@@ -421,7 +421,7 @@ static rbtree_t* rbtree_balance_delete_void(register rbtree_t *p, rbtree_t **pr)
 	else return p;
 }
 
-rbtree_t* rbtree_insert(rbtree_t **pr, char *name, uint64_t index, void *value, rbtree_func_free_t freeFunc)
+rbtree_t* rbtree_insert(rbtree_t **pr, const char *name, uint64_t index, const void *value, rbtree_func_free_t freeFunc)
 {
 	register rbtree_t *v, *p, **pv;
 	int s_cmp;
@@ -469,16 +469,16 @@ rbtree_t* rbtree_insert(rbtree_t **pr, char *name, uint64_t index, void *value, 
 			free(v);
 			return NULL;
 		}
-		memcpy(v->key_name, name, s_cmp);
+		memcpy((void *) v->key_name, name, s_cmp);
 	}
 	v->key_index = index;
-	v->value = value;
+	v->value = (void *) value;
 	v->freeFunc = freeFunc;
 	*pv = v;
 	return rbtree_balance_insert(v, pr);
 }
 
-static void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
+void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
 {
 	register rbtree_t *v, *pp;
 	uint32_t color;
@@ -489,7 +489,7 @@ static void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
 			pp = v;
 		} while ((v = v->l));
 		if (p->freeFunc) p->freeFunc(p);
-		if (p->key_name) free(p->key_name);
+		if (p->key_name) free((void *) p->key_name);
 		p->key_name = pp->key_name;
 		p->key_index = pp->key_index;
 		p->value = pp->value;
@@ -532,7 +532,7 @@ static void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
 	}
 }
 
-void rbtree_delete(register rbtree_t **pr, char *name, uint64_t index)
+void rbtree_delete(register rbtree_t **pr, const char *name, uint64_t index)
 {
 	register rbtree_t *p;
 	int s_cmp;
@@ -567,7 +567,7 @@ void rbtree_delete(register rbtree_t **pr, char *name, uint64_t index)
 	if (p) rbtree_delete_by_pointer(pr, p);
 }
 
-rbtree_t* rbtree_find(rbtree_t **pr, char *name, uint64_t index)
+rbtree_t* rbtree_find(rbtree_t **pr, const char *name, uint64_t index)
 {
 	register rbtree_t *p;
 	int s_cmp;
@@ -625,7 +625,7 @@ void rbtree_clear(rbtree_t **pr)
 		{
 			c = v->u;
 			if (v->freeFunc) v->freeFunc(v);
-			if (v->key_name) free(v->key_name);
+			if (v->key_name) free((void *) v->key_name);
 			free(v);
 			v = c;
 			continue;

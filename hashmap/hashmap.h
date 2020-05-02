@@ -13,7 +13,7 @@ typedef int (*hashmap_func_isfree_t)(hashmap_vlist_t *, void *);
 
 struct hashmap_vlist_t {
 	uint64_t head;
-	char *name;
+	const char *name;
 	void *value;
 	void (*freeFunc)(hashmap_vlist_t *);
 	hashmap_vlist_t *next;
@@ -33,19 +33,19 @@ void hashmap_clear(hashmap_t *hm);
 hashmap_t* hashmap_alloc(void);
 void hashmap_free(hashmap_t *hm);
 // 查找子节点
-hashmap_vlist_t* hashmap_find_name(hashmap_t *hm, char *name);
+hashmap_vlist_t* hashmap_find_name(hashmap_t *hm, const char *name);
 hashmap_vlist_t* hashmap_find_head(hashmap_t *hm, uint64_t head);
 // 删除子节点
-void hashmap_delete_name(hashmap_t *hm, char *name);
+void hashmap_delete_name(hashmap_t *hm, const char *name);
 void hashmap_delete_head(hashmap_t *hm, uint64_t head);
 // 如果没有则添加，有则返回已存在的
-hashmap_vlist_t* hashmap_put_name(hashmap_t *hm, char *name, void *value, hashmap_func_free_t freeFunc);
-hashmap_vlist_t* hashmap_put_head(hashmap_t *hm, uint64_t head, void *value, hashmap_func_free_t freeFunc);
+hashmap_vlist_t* hashmap_put_name(hashmap_t *hm, const char *name, const void *value, hashmap_func_free_t freeFunc);
+hashmap_vlist_t* hashmap_put_head(hashmap_t *hm, uint64_t head, const void *value, hashmap_func_free_t freeFunc);
 // 如果没有则添加，有则替换(释放旧的，创建新的)
-hashmap_vlist_t* hashmap_set_name(hashmap_t *hm, char *name, void *value, hashmap_func_free_t freeFunc);
-hashmap_vlist_t* hashmap_set_head(hashmap_t *hm, uint64_t head, void *value, hashmap_func_free_t freeFunc);
+hashmap_vlist_t* hashmap_set_name(hashmap_t *hm, const char *name, const void *value, hashmap_func_free_t freeFunc);
+hashmap_vlist_t* hashmap_set_head(hashmap_t *hm, uint64_t head, const void *value, hashmap_func_free_t freeFunc);
 // 返回 value
-void* hashmap_get_name(hashmap_t *hm, char *name);
+void* hashmap_get_name(hashmap_t *hm, const char *name);
 void* hashmap_get_head(hashmap_t *hm, uint64_t head);
 // 遍历每一个子节点调用 callFunc
 void hashmap_call(hashmap_t *hm, hashmap_func_call_t callFunc, void *data);
