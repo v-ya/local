@@ -4,7 +4,7 @@ HEADER		= json.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lc -lhashmap -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lhashmap -Wl,-soname,${TARGET}
 
 OBJECT		= json.o
 

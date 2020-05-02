@@ -1,4 +1,4 @@
-project		= hashmap rbtree json
+project		= hashmap rbtree json dylink
 
 .PHONY: clear
 clear:

@@ -6,10 +6,10 @@ HEADER		= dylink.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS-LIB	= -shared -lc -Wl,-soname,${TARGET-LIB}
-LDFLAGS-BIN	= -lc -lhashmap -lrbtree -L. -ldylink
+LDFLAGS-LIB	= -shared -lhashmap -Wl,-soname,${TARGET-LIB}
+LDFLAGS-BIN	= -lhashmap -lrbtree -L. -ldylink
 
-OBJECT-LIB	= dylink.o
+OBJECT-LIB	= dylink.o xmem.o
 OBJECT-BIN	= dylink-entry.o elfobj.o
 
 %.o: %.c

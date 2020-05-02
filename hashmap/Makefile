@@ -4,7 +4,7 @@ HEADER		= hashmap.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lc -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -Wl,-soname,${TARGET}
 
 OBJECT		= hashmap.o
 

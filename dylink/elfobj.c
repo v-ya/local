@@ -72,6 +72,13 @@ typedef struct elfobj_rela_list_s {
 	uint32_t type;
 } elfobj_rela_list_s;
 
+typedef struct elfobj_rela_session_list_s {
+	struct elfobj_rela_session_list_s *next;
+	Elf64_Rela *list;
+	uint32_t number;
+	uint32_t shndx;
+} elfobj_rela_session_list_s;
+
 static void elfobj_set_sym_free_func(hashmap_vlist_t *vl)
 {
 	if (vl->value) free(vl->value);
@@ -107,6 +114,31 @@ static int elfobj_set_sym(hashmap_t *s, char *name, uint64_t index, uint64_t off
 	return -1;
 }
 
+elfobj_rela_session_list_s* elfobj_rela_session_list_insert(elfobj_rela_session_list_s **p, Elf64_Rela *list, uint32_t number, uint32_t shndx)
+{
+	elfobj_rela_session_list_s *v;
+	v = (elfobj_rela_session_list_s *) malloc(sizeof(elfobj_rela_session_list_s));
+	if (v)
+	{
+		v->list = list;
+		v->number = number;
+		v->shndx = shndx;
+		v->next = *p;
+		*p = v;
+	}
+	return v;
+}
+
+void elfobj_rela_session_list_clear(elfobj_rela_session_list_s **p)
+{
+	elfobj_rela_session_list_s *v;
+	while ((v = *p))
+	{
+		*p = v->next;
+		free(v);
+	}
+}
+
 struct elf64obj_s {
 	uint8_t *objdata;
 	size_t objsize;
@@ -122,12 +154,13 @@ struct elf64obj_s {
 	size_t symtab_number;
 	char *symtab_namelist;
 	size_t symtab_nlsize;
-	Elf64_Rela *rela_text_list;
-	size_t rela_text_number;
-	Elf64_Rela *rela_data_list;
-	size_t rela_data_number;
-	uint32_t rela_text_shndx;
-	uint32_t rela_data_shndx;
+	elfobj_rela_session_list_s *rslist;
+	// Elf64_Rela *rela_text_list;
+	// size_t rela_text_number;
+	// Elf64_Rela *rela_data_list;
+	// size_t rela_data_number;
+	// uint32_t rela_text_shndx;
+	// uint32_t rela_data_shndx;
 	size_t common_size;
 	// build set
 	hashmap_t *strpool_offset;
@@ -200,6 +233,7 @@ static int elf64obj_set_need_session(elf64obj_s *e)
 {
 	Elf64_Rela *r;
 	Elf64_Sym *v;
+	elfobj_rela_session_list_s *rslist;
 	size_t n;
 	uint32_t i;
 	v = e->symtab_list;
@@ -219,21 +253,18 @@ static int elf64obj_set_need_session(elf64obj_s *e)
 		++v;
 		--n;
 	}
-	r = e->rela_text_list;
-	n = e->rela_text_number;
-	while (n)
+	rslist = e->rslist;
+	while (rslist)
 	{
-		if (elf64obj_set_sym(e, ELF64_R_SYM(r->r_info))) goto Err;
-		++r;
-		--n;
-	}
-	r = e->rela_data_list;
-	n = e->rela_data_number;
-	while (n)
-	{
-		if (elf64obj_set_sym(e, ELF64_R_SYM(r->r_info))) goto Err;
-		++r;
-		--n;
+		r = rslist->list;
+		n = rslist->number;
+		while (n)
+		{
+			if (elf64obj_set_sym(e, ELF64_R_SYM(r->r_info))) goto Err;
+			++r;
+			--n;
+		}
+		rslist = rslist->next;
 	}
 	return 0;
 	Err:
@@ -304,31 +335,24 @@ elf64obj_s* elf64obj_load(const char *elf64obj_path)
 			e->symtab_namelist = (char *) (e->objdata + p);
 			e->symtab_nlsize = n;
 		}
-		// .rela.text
-		s = hashmap_get_name(&e->session, ".rela.text");
-		if (s)
+		// .rela.*
+		for (p = 0, n = e->session_number; p < n; ++p)
 		{
-			p = s->sh_offset;
-			n = s->sh_size;
-			if (p + n > e->objsize) goto Err;
-			if (n % sizeof(Elf64_Rela)) goto Err;
-			e->rela_text_list = (Elf64_Rela *) (e->objdata + p);
-			e->rela_text_number = n / sizeof(Elf64_Rela);
-			e->rela_text_shndx = s->sh_info;
-			if (!e->rela_text_shndx || e->rela_text_shndx >= e->session_number) goto Err;
-		}
-		// .rela.data
-		s = hashmap_get_name(&e->session, ".rela.data.rel");
-		if (s)
-		{
-			p = s->sh_offset;
-			n = s->sh_size;
-			if (p + n > e->objsize) goto Err;
-			if (n % sizeof(Elf64_Rela)) goto Err;
-			e->rela_data_list = (Elf64_Rela *) (e->objdata + p);
-			e->rela_data_number = n / sizeof(Elf64_Rela);
-			e->rela_data_shndx = s->sh_info;
-			if (!e->rela_data_shndx || e->rela_data_shndx >= e->session_number) goto Err;
+			s = e->session_header + p;
+			if (s->sh_type == SHT_RELA &&
+				(name = elfobj_get_name(e->session_namelist, e->session_nlsize, s->sh_name)) &&
+				strcmp(name, ".rela.eh_frame"))
+			{
+				if (s->sh_offset + s->sh_size > e->objsize) goto Err;
+				if (s->sh_size % sizeof(Elf64_Rela)) goto Err;
+				if (!s->sh_info || s->sh_info >= e->session_number) goto Err;
+				if (!elfobj_rela_session_list_insert(
+					&e->rslist,
+					(Elf64_Rela *) (e->objdata + s->sh_offset),
+					s->sh_size / sizeof(Elf64_Rela),
+					s->sh_info
+				)) goto Err;
+			}
 		}
 		if (elf64obj_set_need_session(e)) goto Err;
 		return e;
@@ -352,6 +376,7 @@ void elf64obj_free(elf64obj_s *e)
 		hashmap_uini(&e->session);
 		hashmap_uini(&e->need_session);
 		hashmap_uini(&e->symtab);
+		elfobj_rela_session_list_clear(&e->rslist);
 		if (e->objdata) free(e->objdata);
 		free(e);
 	}
@@ -614,6 +639,7 @@ static int elf64obj_build_import_by_rela(elf64obj_s *e, Elf64_Rela *rela, size_t
 
 int elf64obj_build_import(elf64obj_s *e)
 {
+	elfobj_rela_session_list_s *rslist;
 	Elf64_Rela *rela;
 	size_t n;
 	char *name;
@@ -621,33 +647,24 @@ int elf64obj_build_import(elf64obj_s *e)
 	else e->import = hashmap_alloc();
 	e->isym_number = 0;
 	if (!e->import) goto Err;
-	rela = e->rela_text_list;
-	n = e->rela_text_number;
-	if (n)
+	rslist = e->rslist;
+	while (rslist)
 	{
-		name = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[e->rela_text_shndx].sh_name);
-		if (!name) goto Err;
-		while (n)
+		rela = rslist->list;
+		n = rslist->number;
+		if (n)
 		{
-			if (elf64obj_build_import_by_rela(e, rela, (size_t)(uintptr_t) hashmap_get_name(e->session_offset, name)))
-				goto Err;
-			++rela;
-			--n;
+			name = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[rslist->shndx].sh_name);
+			if (!name) goto Err;
+			while (n)
+			{
+				if (elf64obj_build_import_by_rela(e, rela, (size_t)(uintptr_t) hashmap_get_name(e->session_offset, name)))
+					goto Err;
+				++rela;
+				--n;
+			}
 		}
-	}
-	rela = e->rela_data_list;
-	n = e->rela_data_number;
-	if (n)
-	{
-		name = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[e->rela_data_shndx].sh_name);
-		if (!name) goto Err;
-		while (n)
-		{
-			if (elf64obj_build_import_by_rela(e, rela, (size_t)(uintptr_t) hashmap_get_name(e->session_offset, name)))
-				goto Err;
-			++rela;
-			--n;
-		}
+		rslist = rslist->next;
 	}
 	return 0;
 	Err:
@@ -1011,59 +1028,43 @@ void elf64obj_dump_symtab(elf64obj_s* e)
 
 void elf64obj_dump_rela(elf64obj_s* e)
 {
+	elfobj_rela_session_list_s *rslist;
 	Elf64_Rela *r;
 	Elf64_Sym *s;
-	char *session;
+	char *rela_sname, *session;
 	uint32_t i, n, index;
 	if (e)
 	{
-		for (i = 0, n = (uint32_t) e->rela_text_number; i < n; ++i)
+		rslist = e->rslist;
+		while (rslist)
 		{
-			r = e->rela_text_list + i;
-			index = ELF64_R_SYM(r->r_info);
-			s = NULL;
-			session = NULL;
-			if (index < e->symtab_number)
+			rela_sname = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[rslist->shndx].sh_name);
+			for (i = 0, n = (uint32_t) rslist->number; i < n; ++i)
 			{
-				s = e->symtab_list + index;
-				if (s->st_shndx < e->session_number)
-					session = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[s->st_shndx].sh_name);
+				r = rslist->list + i;
+				index = ELF64_R_SYM(r->r_info);
+				s = NULL;
+				session = NULL;
+				if (index < e->symtab_number)
+				{
+					s = e->symtab_list + index;
+					if (s->st_shndx < e->session_number)
+						session = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[s->st_shndx].sh_name);
+				}
+				printf(
+					"rela%s[%3u] pos: %6" PRIu64 ", type: %2u, addend: %6" PRId64 " [%3u] %-24s@[%04x]%s\n",
+					rela_sname,
+					i,
+					r->r_offset,
+					(uint32_t) ELF64_R_TYPE(r->r_info),
+					r->r_addend,
+					index,
+					s?elfobj_get_name(e->symtab_namelist, e->symtab_nlsize, s->st_name):"(unknow)",
+					s?s->st_shndx:0,
+					session?session:""
+				);
 			}
-			printf(
-				"rela.text[%3u] pos: %6" PRIu64 ", type: %2u, addend: %6" PRId64 " [%3u] %-24s@[%04x]%s\n",
-				i,
-				r->r_offset,
-				(uint32_t) ELF64_R_TYPE(r->r_info),
-				r->r_addend,
-				index,
-				s?elfobj_get_name(e->symtab_namelist, e->symtab_nlsize, s->st_name):"(unknow)",
-				s?s->st_shndx:0,
-				session?session:""
-			);
-		}
-		for (i = 0, n = (uint32_t) e->rela_data_number; i < n; ++i)
-		{
-			r = e->rela_data_list + i;
-			index = ELF64_R_SYM(r->r_info);
-			s = NULL;
-			session = NULL;
-			if (index < e->symtab_number)
-			{
-				s = e->symtab_list + index;
-				if (s->st_shndx < e->session_number)
-					session = elfobj_get_name(e->session_namelist, e->session_nlsize, e->session_header[s->st_shndx].sh_name);
-			}
-			printf(
-				"rela.data[%3u] pos: %6" PRIu64 ", type: %2u, addend: %6" PRId64 " [%3u] %-24s@[%04x]%s\n",
-				i,
-				r->r_offset,
-				(uint32_t) ELF64_R_TYPE(r->r_info),
-				r->r_addend,
-				index,
-				s?elfobj_get_name(e->symtab_namelist, e->symtab_nlsize, s->st_name):"(unknow)",
-				s?s->st_shndx:0,
-				session?session:""
-			);
+			rslist = rslist->next;
 		}
 	}
 }
