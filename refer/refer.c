@@ -46,7 +46,7 @@ void refer_set_free(refer_t v, refer_free_f free_func)
 
 refer_t refer_save(refer_t v)
 {
-	__sync_add_and_fetch(&((refer_s *) v - 1)->inode, 1);
+	if (v) __sync_add_and_fetch(&((refer_s *) v - 1)->inode, 1);
 	return v;
 }
 

@@ -1,6 +1,7 @@
 #ifndef _refer_h_
 #define _refer_h_
 
+#include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
 
