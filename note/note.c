@@ -73,7 +73,7 @@ void note_random_phase(note_s *n)
 	}
 }
 
-void note_gen(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre)
+void note_gen(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre)
 {
 	double w, k;
 	uint32_t i, j, l, nn;
@@ -88,10 +88,10 @@ void note_gen(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre)
 			while (i < nn)
 			{
 				t = i * k;
-				w = n->base_frequency(t, n->envelope(t, n->envelope_pri), n->base_frequency_pri);
+				w = n->base_frequency(t, n->envelope(t, volume, n->envelope_pri), n->base_frequency_pri);
 				l = (M_PI * 2) / w * sampfre;
 				t += l * k / 2;
-				w = n->base_frequency(t, n->envelope(t, n->envelope_pri), n->base_frequency_pri);
+				w = n->base_frequency(t, n->envelope(t, volume, n->envelope_pri), n->base_frequency_pri);
 				l = (M_PI * 2) / w * sampfre;
 				j = i + l;
 				if (i > j) goto Err;
@@ -99,7 +99,7 @@ void note_gen(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre)
 				{
 					n->tone(n->details, w, n->tone_pri);
 					if (n->phoneme) n->phoneme(n->details, w, n->phoneme_pri);
-					note_details_gen_ex(v + i, frames - i, n->details, l, n->envelope, i * k, j * k, n->envelope_pri);
+					note_details_gen_ex(v + i, frames - i, n->details, l, n->envelope, i * k, j * k, volume, n->envelope_pri);
 				}
 				i = j + 1;
 			}
@@ -109,8 +109,8 @@ void note_gen(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre)
 	return ;
 }
 
-void note_gen_with_pos(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
+void note_gen_with_pos(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
 {
 	if (pos < frames)
-		note_gen(n, t, v + pos, frames - pos, sampfre);
+		note_gen(n, t, volume, v + pos, frames - pos, sampfre);
 }

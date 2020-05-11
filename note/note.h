@@ -5,7 +5,7 @@
 #include <refer.h>
 #include "note_details.h"
 
-typedef double (*note_envelope_f)(double t, refer_t pri);
+typedef double (*note_envelope_f)(double t, double volume, refer_t pri);
 typedef double (*note_base_frequency_f)(double t, double a, refer_t pri);
 typedef void (*note_details_f)(note_details_s *d, double w, refer_t pri);
 
@@ -32,7 +32,7 @@ void note_set_base_frequency(note_s *n, note_base_frequency_f base_frequency, re
 void note_set_phoneme(note_s *n, note_details_f phoneme, refer_t pri);
 void note_set_tone(note_s *n, note_details_f tone, refer_t pri);
 void note_random_phase(note_s *n);
-void note_gen(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre);
-void note_gen_with_pos(note_s *n, double t, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos);
+void note_gen(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre);
+void note_gen_with_pos(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos);
 
 #endif

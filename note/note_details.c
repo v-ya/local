@@ -34,7 +34,7 @@ void note_details_gen(double *v, uint32_t n, note_details_s *nd, uint32_t l, dou
 	}
 }
 
-void note_details_gen_ex(double *v, uint32_t n, note_details_s *nd, uint32_t l, note_details_a_f af, double a1, double a2, refer_t pri)
+void note_details_gen_ex(double *v, uint32_t n, note_details_s *nd, uint32_t l, note_details_a_f af, double a1, double a2, double volume, refer_t pri)
 {
 	double wb, c;
 	note_details_saq_s *saq;
@@ -54,7 +54,28 @@ void note_details_gen_ex(double *v, uint32_t n, note_details_s *nd, uint32_t l, 
 			{
 				c += saq[j].sa * sin(wb * (j + 1) * i + saq[j].sq);
 			}
-			v[i] += af(a1 + a2 * i, pri) * c;
+			v[i] += af(a1 + a2 * i, volume, pri) * c;
 		}
+	}
+}
+
+void note_details_get(note_details_s *nd, double *v, uint32_t frames)
+{
+	double s, c, wb, w, wj, vv;
+	uint32_t i, j, n;
+	if (!nd->used || nd->used > nd->max) nd->used = nd->max;
+	n = nd->used;
+	wb = M_PI * 2 / frames;
+	for (i = 0; i < n; ++i)
+	{
+		w = wb * (i + 1);
+		s = c = 0;
+		for (j = 0; j < frames; ++j)
+		{
+			s += sin(wj = w * j) * (vv = v[j]);
+			c += cos(wj) * vv;
+		}
+		nd->saq[i].sa = sqrt(s * s + c * c) * 2 / frames;
+		nd->saq[i].sq = atan2(c, s);
 	}
 }

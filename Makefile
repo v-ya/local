@@ -1,4 +1,4 @@
-project		= hashmap rbtree json dylink
+project		= hashmap rbtree json dylink note wav wavelike
 
 .PHONY: clear
 clear:
