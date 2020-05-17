@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#define wav_header_size  44
+#define wav_header_tize  44
 
 static int wav_save_nf(const char *path, void *data, uint32_t frames, uint32_t channels, uint32_t samefre)
 {
-	static wav_header_s header = {
+	static wav_header_t header = {
 		.riff = 'FFIR',
 		.length = 0,
 		.wave = 'EVAW',
@@ -22,7 +22,7 @@ static int wav_save_nf(const char *path, void *data, uint32_t frames, uint32_t c
 		.data = 'atad',
 		.data_length = 0
 	};
-	wav_header_s h;
+	wav_header_t h;
 	FILE *fp;
 	int r;
 	r = -1;
@@ -112,14 +112,14 @@ int wav_save_int32(const char *path, int32_t *v[], uint32_t frames, uint32_t cha
 	return r;
 }
 
-struct wav_load_s {
-	wav_header_s header;
+struct wav_load_t {
+	wav_header_t header;
 	int32_t data[];
 }  __attribute__((packed));
 
-wav_load_s* wav_load(const char *path)
+wav_load_t* wav_load(const char *path)
 {
-	wav_load_s *w;
+	wav_load_t *w;
 	FILE *fp;
 	size_t size;
 	w = NULL;
@@ -128,9 +128,9 @@ wav_load_s* wav_load(const char *path)
 	{
 		fseek(fp, 0, SEEK_END);
 		size = ftell(fp);
-		if (size >= sizeof(wav_header_s))
+		if (size >= sizeof(wav_header_t))
 		{
-			w = (wav_load_s *) malloc(size);
+			w = (wav_load_t *) malloc(size);
 			if (w)
 			{
 				fseek(fp, 0, SEEK_SET);
@@ -151,8 +151,8 @@ wav_load_s* wav_load(const char *path)
 					if (!w->header.channels || !w->header.sampfre) goto Err;
 					if (w->header.bits != 32) goto Err;
 					if (w->header.data != (uint32_t) 'atad') goto Err;
-					if (w->header.data_length > w->header.length - (sizeof(wav_header_s) - 8))
-						w->header.data_length = w->header.length - (sizeof(wav_header_s) - 8);
+					if (w->header.data_length > w->header.length - (sizeof(wav_header_t) - 8))
+						w->header.data_length = w->header.length - (sizeof(wav_header_t) - 8);
 				}
 			}
 		}
@@ -161,9 +161,9 @@ wav_load_s* wav_load(const char *path)
 	return w;
 }
 
-wav_load_s* pcms32le_load(const char *path, uint32_t channels, uint32_t samefre)
+wav_load_t* pcms32le_load(const char *path, uint32_t channels, uint32_t samefre)
 {
-	wav_load_s *w;
+	wav_load_t *w;
 	FILE *fp;
 	size_t size;
 	w = NULL;
@@ -172,12 +172,12 @@ wav_load_s* pcms32le_load(const char *path, uint32_t channels, uint32_t samefre)
 	{
 		fseek(fp, 0, SEEK_END);
 		size = ftell(fp);
-		if (size >= sizeof(wav_header_s))
+		if (size >= sizeof(wav_header_t))
 		{
-			w = (wav_load_s *) malloc(size + sizeof(wav_header_s));
+			w = (wav_load_t *) malloc(size + sizeof(wav_header_t));
 			if (w)
 			{
-				memset(&w->header, 0, sizeof(wav_header_s));
+				memset(&w->header, 0, sizeof(wav_header_t));
 				fseek(fp, 0, SEEK_SET);
 				if (fread(w->data, 1, size, fp) != size)
 				{
@@ -197,27 +197,32 @@ wav_load_s* pcms32le_load(const char *path, uint32_t channels, uint32_t samefre)
 	return w;
 }
 
-void wav_free(wav_load_s *wl)
+void wav_free(wav_load_t *wl)
 {
 	if (wl) free(wl);
 }
 
-uint32_t wav_load_channels(wav_load_s *wl)
+int wav_save_load(const char *path, wav_load_t *wl)
+{
+	return wav_save_nf(path, wl->data, wl->header.data_length / sizeof(uint32_t) / wl->header.channels, wl->header.channels, wl->header.sampfre);
+}
+
+uint32_t wav_load_channels(wav_load_t *wl)
 {
 	return wl->header.channels;
 }
 
-uint32_t wav_load_sampfre(wav_load_s *wl)
+uint32_t wav_load_sampfre(wav_load_t *wl)
 {
 	return wl->header.sampfre;
 }
 
-uint32_t wav_load_frames(wav_load_s *wl)
+uint32_t wav_load_frames(wav_load_t *wl)
 {
 	return wl->header.data_length / sizeof(uint32_t) / wl->header.channels;
 }
 
-uint32_t wav_load_get_double(wav_load_s *wl, double v[], uint32_t frames, uint32_t channel)
+uint32_t wav_load_get_double(wav_load_t *wl, double v[], uint32_t frames, uint32_t channel)
 {
 	uint32_t n;
 	int32_t *p;
@@ -237,7 +242,7 @@ uint32_t wav_load_get_double(wav_load_s *wl, double v[], uint32_t frames, uint32
 	return n;
 }
 
-uint32_t wav_load_get_float(wav_load_s *wl, float v[], uint32_t frames, uint32_t channel)
+uint32_t wav_load_get_float(wav_load_t *wl, float v[], uint32_t frames, uint32_t channel)
 {
 	uint32_t n;
 	int32_t *p;
@@ -257,7 +262,7 @@ uint32_t wav_load_get_float(wav_load_s *wl, float v[], uint32_t frames, uint32_t
 	return n;
 }
 
-uint32_t wav_load_get_int32(wav_load_s *wl, int32_t v[], uint32_t frames, uint32_t channel)
+uint32_t wav_load_get_int32(wav_load_t *wl, int32_t v[], uint32_t frames, uint32_t channel)
 {
 	uint32_t n;
 	int32_t *p;

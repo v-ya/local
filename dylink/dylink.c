@@ -7,21 +7,21 @@
 
 size_t dylink_check(uint8_t *r, size_t size, const char *machine)
 {
-	dylink_header_s *h;
-	dylink_isym_s *ih;
-	dylink_esym_s *eh;
+	dylink_header_t *h;
+	dylink_isym_t *ih;
+	dylink_esym_t *eh;
 	size_t n, a, b, c;
-	if (size < sizeof(dylink_header_s)) goto Err;
-	h = (dylink_header_s *) r;
+	if (size < sizeof(dylink_header_t)) goto Err;
+	h = (dylink_header_t *) r;
 	if (h->img_offset > size || (n = size - h->img_offset) < h->img_size) goto Err;
 	if (h->strpool_offset > size || (n = size - h->strpool_offset) < h->strpool_size) goto Err;
-	if (h->isym_offset > size || (n = size - h->isym_offset) / sizeof(dylink_isym_s) < h->isym_number) goto Err;
-	if (h->esym_offset > size || (n = size - h->esym_offset) / sizeof(dylink_esym_s) < h->esym_number) goto Err;
+	if (h->isym_offset > size || (n = size - h->isym_offset) / sizeof(dylink_isym_t) < h->isym_number) goto Err;
+	if (h->esym_offset > size || (n = size - h->esym_offset) / sizeof(dylink_esym_t) < h->esym_number) goto Err;
 	if (h->img_takeup < h->img_size) goto Err;
 	a = h->strpool_offset;
 	b = h->strpool_offset + h->strpool_size;
 	c = h->img_takeup;
-	ih = (dylink_isym_s *) (r + h->isym_offset);
+	ih = (dylink_isym_t *) (r + h->isym_offset);
 	n = h->isym_number;
 	while (n)
 	{
@@ -30,7 +30,7 @@ size_t dylink_check(uint8_t *r, size_t size, const char *machine)
 		--n;
 		++ih;
 	}
-	eh = (dylink_esym_s *) (r + h->esym_offset);
+	eh = (dylink_esym_t *) (r + h->esym_offset);
 	n = h->esym_number;
 	while (n)
 	{
@@ -46,14 +46,14 @@ size_t dylink_check(uint8_t *r, size_t size, const char *machine)
 
 int dylink_link(uint8_t *d, uint8_t *r, dylink_set_f dylink_set, dylink_import_f import_func, dylink_export_f export_func, void *pri)
 {
-	dylink_header_s *h;
-	dylink_isym_s *ih;
-	dylink_esym_s *eh;
+	dylink_header_t *h;
+	dylink_isym_t *ih;
+	dylink_esym_t *eh;
 	void *ptr, **plt;
 	uint32_t n, b;
-	h = (dylink_header_s *) r;
+	h = (dylink_header_t *) r;
 	memcpy(d, r + h->img_offset, h->img_size);
-	ih = (dylink_isym_s *) (r + h->isym_offset);
+	ih = (dylink_isym_t *) (r + h->isym_offset);
 	n = h->isym_number;
 	if (n)
 	{
@@ -76,7 +76,7 @@ int dylink_link(uint8_t *d, uint8_t *r, dylink_set_f dylink_set, dylink_import_f
 	}
 	if (export_func)
 	{
-		eh = (dylink_esym_s *) (r + h->esym_offset);
+		eh = (dylink_esym_t *) (r + h->esym_offset);
 		n = h->esym_number;
 		plt = (void **) (d + h->img_takeup);
 		while (n)
@@ -136,7 +136,7 @@ int m_x86_64_dylink_set(uint32_t type, void *dst, int64_t addend, void *ptr, voi
 	return 0;
 }
 
-struct dylink_pool_s {
+struct dylink_pool_t {
 	hashmap_t symbol;
 	hashmap_t symplt;
 	uint8_t *xmemory;
@@ -151,14 +151,14 @@ struct dylink_pool_s {
 	uint32_t export_number;
 };
 
-dylink_pool_s* dylink_pool_alloc(const char *mechine, dylink_set_f dylink_set, dylink_plt_set_f dylink_plt_set, size_t xmem_size)
+dylink_pool_t* dylink_pool_alloc(const char *mechine, dylink_set_f dylink_set, dylink_plt_set_f dylink_plt_set, size_t xmem_size)
 {
-	dylink_pool_s *dp;
+	dylink_pool_t *dp;
 	// 4 KiB align
 	xmem_size = (xmem_size >> 12) << 12;
 	if (mechine && dylink_set && dylink_plt_set && xmem_size)
 	{
-		dp = (dylink_pool_s *) calloc(1, sizeof(dylink_pool_s));
+		dp = (dylink_pool_t *) calloc(1, sizeof(dylink_pool_t));
 		if (dp)
 		{
 			if (hashmap_init(&dp->symbol) && hashmap_init(&dp->symplt))
@@ -182,7 +182,7 @@ dylink_pool_s* dylink_pool_alloc(const char *mechine, dylink_set_f dylink_set, d
 	return NULL;
 }
 
-void dylink_pool_free(dylink_pool_s *dp)
+void dylink_pool_free(dylink_pool_t *dp)
 {
 	if (dp)
 	{
@@ -193,13 +193,13 @@ void dylink_pool_free(dylink_pool_s *dp)
 	}
 }
 
-void dylink_pool_set_report(dylink_pool_s *dp, dylink_pool_report_f func, void *pri)
+void dylink_pool_set_report(dylink_pool_t *dp, dylink_pool_report_f func, void *pri)
 {
 	dp->report_func = func;
 	dp->report_pri = pri;
 }
 
-int dylink_pool_set_func(dylink_pool_s *dp, const char *symbol, void *func)
+int dylink_pool_set_func(dylink_pool_t *dp, const char *symbol, void *func)
 {
 	void **plt;
 	if (!hashmap_find_name(&dp->symbol, symbol))
@@ -231,13 +231,13 @@ int dylink_pool_set_func(dylink_pool_s *dp, const char *symbol, void *func)
 	return -1;
 }
 
-void* dylink_pool_get_symbol(dylink_pool_s *dp, const char *symbol, void ***plt)
+void* dylink_pool_get_symbol(dylink_pool_t *dp, const char *symbol, void ***plt)
 {
 	if (plt) *plt = (void **) hashmap_get_name(&dp->symplt, symbol);
 	return hashmap_get_name(&dp->symbol, symbol);
 }
 
-void dylink_pool_delete_symbol(dylink_pool_s *dp, const char *symbol)
+void dylink_pool_delete_symbol(dylink_pool_t *dp, const char *symbol)
 {
 	if (dp->report_func)
 	{
@@ -253,7 +253,7 @@ void dylink_pool_delete_symbol(dylink_pool_s *dp, const char *symbol)
 	hashmap_delete_name(&dp->symbol, symbol);
 }
 
-static void* dylink_pool_load_import_func(dylink_pool_s *dp, const char *symbol, void ***plt)
+static void* dylink_pool_load_import_func(dylink_pool_t *dp, const char *symbol, void ***plt)
 {
 	void *ptr;
 	*plt = (void **) hashmap_get_name(&dp->symplt, symbol);
@@ -273,7 +273,7 @@ static void* dylink_pool_load_import_func(dylink_pool_s *dp, const char *symbol,
 	return ptr;
 }
 
-static int dylink_pool_load_export_func(dylink_pool_s *dp, const char *symbol, void *ptr, void **plt)
+static int dylink_pool_load_export_func(dylink_pool_t *dp, const char *symbol, void *ptr, void **plt)
 {
 	if (!hashmap_find_name(&dp->symbol, symbol))
 	{
@@ -310,10 +310,10 @@ static int dylink_pool_load_export_func(dylink_pool_s *dp, const char *symbol, v
 	return -1;
 }
 
-static void dylink_pool_load_clear_export(dylink_pool_s *dp, uint8_t *r, uint32_t n)
+static void dylink_pool_load_clear_export(dylink_pool_t *dp, uint8_t *r, uint32_t n)
 {
-	dylink_esym_s *eh;
-	eh = (dylink_esym_s *) (r + ((dylink_header_s *) r)->esym_offset);
+	dylink_esym_t *eh;
+	eh = (dylink_esym_t *) (r + ((dylink_header_t *) r)->esym_offset);
 	while (n)
 	{
 		dylink_pool_delete_symbol(dp, (char *) (r + eh->name_offset));
@@ -322,7 +322,7 @@ static void dylink_pool_load_clear_export(dylink_pool_s *dp, uint8_t *r, uint32_
 	}
 }
 
-int dylink_pool_load(dylink_pool_s *dp, uint8_t *dylink_data, size_t dylink_size)
+int dylink_pool_load(dylink_pool_t *dp, uint8_t *dylink_data, size_t dylink_size)
 {
 	size_t dylink_takeup;
 	if (dylink_data)
@@ -354,7 +354,7 @@ int dylink_pool_load(dylink_pool_s *dp, uint8_t *dylink_data, size_t dylink_size
 	return -1;
 }
 
-int dylink_pool_load_file(dylink_pool_s *dp, const char *path)
+int dylink_pool_load_file(dylink_pool_t *dp, const char *path)
 {
 	FILE *fp;
 	uint8_t *data;

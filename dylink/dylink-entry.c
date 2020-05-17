@@ -68,7 +68,7 @@ static int file_save(const char *path, uint8_t *data, size_t size)
 int main(int argc, const char *argv[])
 {
 	const char *output, *input;
-	elf64obj_s *e;
+	elf64obj_t *e;
 	uint8_t *data;
 	size_t size;
 	int i;
@@ -141,7 +141,7 @@ int main(int argc, const char *argv[])
 						i = 0;
 					}
 				}
-				else if (size > sizeof(dylink_header_s) && data[0] == 'd' && data[1] == 'y' && data[2] == 'l' && data[3] == '.')
+				else if (size > sizeof(dylink_header_t) && data[0] == 'd' && data[1] == 'y' && data[2] == 'l' && data[3] == '.')
 				{
 					// dylink
 					dylink_dump(data, size);

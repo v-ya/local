@@ -5,60 +5,80 @@
 
 static void note_free_func(note_s *restrict n)
 {
+	uint32_t i, nn;
+	if (n->details) refer_free(n->details);
 	if (n->envelope_pri) refer_free(n->envelope_pri);
 	if (n->base_frequency_pri) refer_free(n->base_frequency_pri);
-	if (n->phoneme_pri) refer_free(n->phoneme_pri);
-	if (n->tone_pri) refer_free(n->tone_pri);
-	if (n->details) refer_free(n->details);
+	for (i = 0, nn = n->stage_max; i < nn; ++i)
+	{
+		if (n->stage[i].pri) refer_free(n->stage[i].pri);
+	}
 }
 
-note_s* note_alloc(uint32_t details_max)
+note_s* note_alloc(uint32_t details_max, uint32_t stage_max)
 {
 	note_s *n;
-	n = refer_alloz(sizeof(note_s));
-	if (n)
+	n = NULL;
+	if (details_max && stage_max)
 	{
-		n->details = note_details_alloc(details_max);
-		if (n->details)
+		n = refer_alloz(sizeof(note_s) + stage_max * sizeof(note_details_stage_t));
+		if (n)
 		{
-			refer_set_free(n, (refer_free_f) note_free_func);
-			return n;
+			n->details = note_details_alloc(details_max);
+			if (n->details)
+			{
+				n->stage_max = stage_max;
+				refer_set_free(n, (refer_free_f) note_free_func);
+				return n;
+			}
+			refer_free(n);
+			n = NULL;
 		}
-		refer_free(n);
-		n = NULL;
 	}
 	return n;
 }
 
-void note_set_envelope(note_s *n, note_envelope_f envelope, refer_t pri)
+void note_set_envelope(note_s *restrict n, note_envelope_f envelope, refer_t pri)
 {
 	n->envelope = envelope;
 	if (n->envelope_pri) refer_free(n->envelope_pri);
 	n->envelope_pri = refer_save(pri);
 }
 
-void note_set_base_frequency(note_s *n, note_base_frequency_f base_frequency, refer_t pri)
+void note_set_base_frequency(note_s *restrict n, note_base_frequency_f base_frequency, refer_t pri)
 {
 	n->base_frequency = base_frequency;
 	if (n->base_frequency_pri) refer_free(n->base_frequency_pri);
 	n->base_frequency_pri = refer_save(pri);
 }
 
-void note_set_phoneme(note_s *n, note_details_f phoneme, refer_t pri)
+note_s* note_set_stage(note_s *restrict n, uint32_t i, note_details_f func, refer_t pri)
 {
-	n->phoneme = phoneme;
-	if (n->phoneme_pri) refer_free(n->phoneme_pri);
-	n->phoneme_pri = refer_save(pri);
+	if (i < n->stage_max)
+	{
+		n->stage[i].func = func;
+		if (n->stage[i].pri) refer_free(n->stage[i].pri);
+		n->stage[i].pri = refer_save(pri);
+		return n;
+	}
+	return NULL;
 }
 
-void note_set_tone(note_s *n, note_details_f tone, refer_t pri)
+note_s* note_append_stage(note_s *restrict n, note_details_f func, refer_t pri)
 {
-	n->tone = tone;
-	if (n->tone_pri) refer_free(n->tone_pri);
-	n->tone_pri = refer_save(pri);
+	uint32_t i;
+	if ((i = n->stage_used) < n->stage_max)
+	{
+		n->stage[i].func = func;
+		if (n->stage[i].pri) refer_free(n->stage[i].pri);
+		n->stage[i].pri = refer_save(pri);
+		++n->stage_used;
+		return n;
+	}
+	return NULL;
 }
 
-void note_random_phase(note_s *n)
+void note_random_phase(note_s *restrict n)
 {
 	static double rand_k = M_PI * 2 / ((double) RAND_MAX + 1);
 	note_details_saq_s *saq;
@@ -73,13 +93,14 @@ void note_random_phase(note_s *n)
 	}
 }
 
-void note_gen(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre)
+void note_gen(note_s *restrict n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre)
 {
 	double w, k;
-	uint32_t i, j, l, nn;
-	if (n->base_frequency && n->base_frequency && n->tone)
+	uint32_t i, j, l, nn, si, sn;
+	if (n->base_frequency && n->base_frequency && n->stage_used && n->stage->func)
 	{
 		nn = (uint32_t) (t * sampfre);
+		sn = n->stage_used;
 		if (nn)
 		{
 			k = 1.0 / nn;
@@ -97,8 +118,8 @@ void note_gen(note_s *n, double t, double volume, double *v, uint32_t frames, ui
 				if (i > j) goto Err;
 				else if (l)
 				{
-					n->tone(n->details, w, n->tone_pri);
-					if (n->phoneme) n->phoneme(n->details, w, n->phoneme_pri);
+					for (si = 0; si < sn; ++si)
+						n->stage[si].func(n->details, w, n->stage[si].pri);
 					note_details_gen_ex(v + i, frames - i, n->details, l, n->envelope, i * k, j * k, volume, n->envelope_pri);
 				}
 				i = j + 1;
@@ -109,7 +130,7 @@ void note_gen(note_s *n, double t, double volume, double *v, uint32_t frames, ui
 	return ;
 }
 
-void note_gen_with_pos(note_s *n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
+void note_gen_with_pos(note_s *restrict n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
 {
 	if (pos < frames)
 		note_gen(n, t, volume, v + pos, frames - pos, sampfre);

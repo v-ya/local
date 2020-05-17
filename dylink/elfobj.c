@@ -54,30 +54,30 @@ typedef enum elfobj_sym_bind_t {
 	elfobj_sym_undef
 } elfobj_sym_bind_t;
 
-typedef struct elfobj_sym_s {
+typedef struct elfobj_sym_t {
 	uint64_t index;
 	uint64_t offset;
 	uint64_t size;
 	elfobj_sym_bind_t bind;
 	uint32_t session_index;
 	uint64_t g_pos;
-} elfobj_sym_s;
+} elfobj_sym_t;
 
-typedef struct elfobj_rela_list_s {
-	struct elfobj_rela_list_s *next;
-	elfobj_sym_s *sym;
+typedef struct elfobj_rela_list_t {
+	struct elfobj_rela_list_t *next;
+	elfobj_sym_t *sym;
 	uint64_t offset;
 	int64_t addend;
 	uint32_t name_offset;
 	uint32_t type;
-} elfobj_rela_list_s;
+} elfobj_rela_list_t;
 
-typedef struct elfobj_rela_session_list_s {
-	struct elfobj_rela_session_list_s *next;
+typedef struct elfobj_rela_session_list_t {
+	struct elfobj_rela_session_list_t *next;
 	Elf64_Rela *list;
 	uint32_t number;
 	uint32_t shndx;
-} elfobj_rela_session_list_s;
+} elfobj_rela_session_list_t;
 
 static void elfobj_set_sym_free_func(hashmap_vlist_t *vl)
 {
@@ -86,11 +86,11 @@ static void elfobj_set_sym_free_func(hashmap_vlist_t *vl)
 
 static int elfobj_set_sym(hashmap_t *s, char *name, uint64_t index, uint64_t offset, uint64_t size, elfobj_sym_bind_t bind, uint32_t sdx)
 {
-	elfobj_sym_s *v;
+	elfobj_sym_t *v;
 	if (hashmap_get_head(s, index)) ;
 	else
 	{
-		v = (elfobj_sym_s *) malloc(sizeof(elfobj_sym_s));
+		v = (elfobj_sym_t *) malloc(sizeof(elfobj_sym_t));
 		if (!v) goto Err;
 		v->index = index;
 		v->offset = offset;
@@ -114,10 +114,10 @@ static int elfobj_set_sym(hashmap_t *s, char *name, uint64_t index, uint64_t off
 	return -1;
 }
 
-elfobj_rela_session_list_s* elfobj_rela_session_list_insert(elfobj_rela_session_list_s **p, Elf64_Rela *list, uint32_t number, uint32_t shndx)
+elfobj_rela_session_list_t* elfobj_rela_session_list_insert(elfobj_rela_session_list_t **p, Elf64_Rela *list, uint32_t number, uint32_t shndx)
 {
-	elfobj_rela_session_list_s *v;
-	v = (elfobj_rela_session_list_s *) malloc(sizeof(elfobj_rela_session_list_s));
+	elfobj_rela_session_list_t *v;
+	v = (elfobj_rela_session_list_t *) malloc(sizeof(elfobj_rela_session_list_t));
 	if (v)
 	{
 		v->list = list;
@@ -129,9 +129,9 @@ elfobj_rela_session_list_s* elfobj_rela_session_list_insert(elfobj_rela_session_
 	return v;
 }
 
-void elfobj_rela_session_list_clear(elfobj_rela_session_list_s **p)
+void elfobj_rela_session_list_clear(elfobj_rela_session_list_t **p)
 {
-	elfobj_rela_session_list_s *v;
+	elfobj_rela_session_list_t *v;
 	while ((v = *p))
 	{
 		*p = v->next;
@@ -139,7 +139,7 @@ void elfobj_rela_session_list_clear(elfobj_rela_session_list_s **p)
 	}
 }
 
-struct elf64obj_s {
+struct elf64obj_t {
 	uint8_t *objdata;
 	size_t objsize;
 	Elf64_Ehdr *header;
@@ -154,7 +154,7 @@ struct elf64obj_s {
 	size_t symtab_number;
 	char *symtab_namelist;
 	size_t symtab_nlsize;
-	elfobj_rela_session_list_s *rslist;
+	elfobj_rela_session_list_t *rslist;
 	// Elf64_Rela *rela_text_list;
 	// size_t rela_text_number;
 	// Elf64_Rela *rela_data_list;
@@ -175,7 +175,7 @@ struct elf64obj_s {
 	size_t esym_number;
 };
 
-static int elf64obj_set_sym(elf64obj_s *e, uint32_t index)
+static int elf64obj_set_sym(elf64obj_t *e, uint32_t index)
 {
 	Elf64_Sym *v;
 	Elf64_Shdr *s;
@@ -229,11 +229,11 @@ static int elf64obj_set_sym(elf64obj_s *e, uint32_t index)
 	return -1;
 }
 
-static int elf64obj_set_need_session(elf64obj_s *e)
+static int elf64obj_set_need_session(elf64obj_t *e)
 {
 	Elf64_Rela *r;
 	Elf64_Sym *v;
-	elfobj_rela_session_list_s *rslist;
+	elfobj_rela_session_list_t *rslist;
 	size_t n;
 	uint32_t i;
 	v = e->symtab_list;
@@ -271,13 +271,13 @@ static int elf64obj_set_need_session(elf64obj_s *e)
 	return -1;
 }
 
-elf64obj_s* elf64obj_load(const char *elf64obj_path)
+elf64obj_t* elf64obj_load(const char *elf64obj_path)
 {
-	elf64obj_s *e;
+	elf64obj_t *e;
 	Elf64_Shdr *s;
 	char *name;
 	size_t p, n;
-	e = (elf64obj_s *) calloc(1, sizeof(elf64obj_s));
+	e = (elf64obj_t *) calloc(1, sizeof(elf64obj_t));
 	if (e)
 	{
 		if (!hashmap_init(&e->session) || !hashmap_init(&e->need_session) || !hashmap_init(&e->symtab)) goto Err;
@@ -362,7 +362,7 @@ elf64obj_s* elf64obj_load(const char *elf64obj_path)
 	return NULL;
 }
 
-void elf64obj_free(elf64obj_s *e)
+void elf64obj_free(elf64obj_t *e)
 {
 	if (e)
 	{
@@ -382,13 +382,13 @@ void elf64obj_free(elf64obj_s *e)
 	}
 }
 
-void elf64obj_delete_sym(elf64obj_s *e, const char *name)
+void elf64obj_delete_sym(elf64obj_t *e, const char *name)
 {
-	elfobj_sym_s *s;
+	elfobj_sym_t *s;
 	uint64_t index;
 	if (e && name)
 	{
-		s = (elfobj_sym_s *) hashmap_find_name(&e->symtab, name);
+		s = (elfobj_sym_t *) hashmap_find_name(&e->symtab, name);
 		if (s)
 		{
 			index = s->index;
@@ -401,9 +401,9 @@ void elf64obj_delete_sym(elf64obj_s *e, const char *name)
 // elf64obj_build
 static void elf64obj_build_namelist_func(hashmap_vlist_t *vl, rbtree_t ***namelist)
 {
-	elfobj_sym_s *s;
+	elfobj_sym_t *s;
 	uint64_t len;
-	if (*namelist && vl->name && (s = (elfobj_sym_s *) vl->value))
+	if (*namelist && vl->name && (s = (elfobj_sym_t *) vl->value))
 	{
 		if (s->bind == elfobj_sym_global || s->bind ==elfobj_sym_undef)
 		{
@@ -417,7 +417,7 @@ static void elf64obj_build_namelist_func(hashmap_vlist_t *vl, rbtree_t ***nameli
 	}
 }
 
-static void elf64obj_build_strpool_offset_func(rbtree_t *v, elf64obj_s **e)
+static void elf64obj_build_strpool_offset_func(rbtree_t *v, elf64obj_t **e)
 {
 	char *name;
 	uint32_t offset;
@@ -438,7 +438,7 @@ static void elf64obj_build_strpool_offset_func(rbtree_t *v, elf64obj_s **e)
 	}
 }
 
-static void elf64obj_build_strpool_data_func(rbtree_t *v, elf64obj_s *e)
+static void elf64obj_build_strpool_data_func(rbtree_t *v, elf64obj_t *e)
 {
 	size_t offset;
 	uint32_t n;
@@ -449,7 +449,7 @@ static void elf64obj_build_strpool_data_func(rbtree_t *v, elf64obj_s *e)
 	}
 }
 
-uint8_t* elf64obj_build_strpool(elf64obj_s *e, size_t *psize)
+uint8_t* elf64obj_build_strpool(elf64obj_t *e, size_t *psize)
 {
 	rbtree_t *namelist;
 	void *argv;
@@ -485,7 +485,7 @@ uint8_t* elf64obj_build_strpool(elf64obj_s *e, size_t *psize)
 }
 
 // elf64obj_build_image
-static void elf64obj_build_session_offset_progbits_func(hashmap_vlist_t *vl, elf64obj_s **e)
+static void elf64obj_build_session_offset_progbits_func(hashmap_vlist_t *vl, elf64obj_t **e)
 {
 	Elf64_Shdr *s;
 	const char *name;
@@ -506,10 +506,10 @@ static void elf64obj_build_session_offset_progbits_func(hashmap_vlist_t *vl, elf
 	}
 }
 
-static void elf64obj_build_image_takeup_common_func(hashmap_vlist_t *vl, elf64obj_s *e)
+static void elf64obj_build_image_takeup_common_func(hashmap_vlist_t *vl, elf64obj_t *e)
 {
-	elfobj_sym_s *s;
-	if (vl->name && (s = (elfobj_sym_s *) vl->value) && s->size)
+	elfobj_sym_t *s;
+	if (vl->name && (s = (elfobj_sym_t *) vl->value) && s->size)
 	{
 		if ((s->bind == elfobj_sym_local || s->bind == elfobj_sym_global) && !s->session_index)
 		{
@@ -518,7 +518,7 @@ static void elf64obj_build_image_takeup_common_func(hashmap_vlist_t *vl, elf64ob
 	}
 }
 
-static void elf64obj_build_session_offset_nobits_func(hashmap_vlist_t *vl, elf64obj_s **e)
+static void elf64obj_build_session_offset_nobits_func(hashmap_vlist_t *vl, elf64obj_t **e)
 {
 	Elf64_Shdr *s;
 	const char *name;
@@ -539,7 +539,7 @@ static void elf64obj_build_session_offset_nobits_func(hashmap_vlist_t *vl, elf64
 	}
 }
 
-static void elf64obj_build_image_data_func(hashmap_vlist_t *vl, elf64obj_s *e)
+static void elf64obj_build_image_data_func(hashmap_vlist_t *vl, elf64obj_t *e)
 {
 	Elf64_Shdr *s;
 	size_t offset;
@@ -554,7 +554,7 @@ static void elf64obj_build_image_data_func(hashmap_vlist_t *vl, elf64obj_s *e)
 	}
 }
 
-uint8_t* elf64obj_build_image(elf64obj_s *e, size_t *psize, size_t *ptakeup)
+uint8_t* elf64obj_build_image(elf64obj_t *e, size_t *psize, size_t *ptakeup)
 {
 	void *argv;
 	if (e->session_offset) hashmap_clear(e->session_offset);
@@ -592,8 +592,8 @@ uint8_t* elf64obj_build_image(elf64obj_s *e, size_t *psize, size_t *ptakeup)
 // elf64obj_build_import
 static void elf64obj_import_free_func(hashmap_vlist_t *vl)
 {
-	elfobj_rela_list_s *rl, *p;
-	if ((rl = (elfobj_rela_list_s *) vl->value))
+	elfobj_rela_list_t *rl, *p;
+	if ((rl = (elfobj_rela_list_t *) vl->value))
 	{
 		while ((p = rl))
 		{
@@ -603,16 +603,16 @@ static void elf64obj_import_free_func(hashmap_vlist_t *vl)
 	}
 }
 
-static int elf64obj_build_import_by_rela(elf64obj_s *e, Elf64_Rela *rela, size_t rela_offset)
+static int elf64obj_build_import_by_rela(elf64obj_t *e, Elf64_Rela *rela, size_t rela_offset)
 {
-	elfobj_sym_s *sym;
-	elfobj_rela_list_s *rl;
+	elfobj_sym_t *sym;
+	elfobj_rela_list_t *rl;
 	hashmap_vlist_t *vl;
 	char *name;
-	sym = (elfobj_sym_s *) hashmap_get_head(&e->symtab, ELF64_R_SYM(rela->r_info));
+	sym = (elfobj_sym_t *) hashmap_get_head(&e->symtab, ELF64_R_SYM(rela->r_info));
 	if (!sym) goto Err;
 	name = elfobj_get_name(e->symtab_namelist, e->symtab_nlsize, e->symtab_list[sym->index].st_name);
-	rl = (elfobj_rela_list_s *) malloc(sizeof(elfobj_rela_list_s));
+	rl = (elfobj_rela_list_t *) malloc(sizeof(elfobj_rela_list_t));
 	if (!rl) goto Err;
 	rl->next = NULL;
 	rl->sym = sym;
@@ -624,7 +624,7 @@ static int elf64obj_build_import_by_rela(elf64obj_s *e, Elf64_Rela *rela, size_t
 	vl = hashmap_find_head(e->import, sym->index);
 	if (vl)
 	{
-		rl->next = (elfobj_rela_list_s *) vl->value;
+		rl->next = (elfobj_rela_list_t *) vl->value;
 		vl->value = rl;
 	}
 	else if (!hashmap_set_head(e->import, sym->index, rl, elf64obj_import_free_func))
@@ -637,9 +637,9 @@ static int elf64obj_build_import_by_rela(elf64obj_s *e, Elf64_Rela *rela, size_t
 	return -1;
 }
 
-int elf64obj_build_import(elf64obj_s *e)
+int elf64obj_build_import(elf64obj_t *e)
 {
-	elfobj_rela_session_list_s *rslist;
+	elfobj_rela_session_list_t *rslist;
 	Elf64_Rela *rela;
 	size_t n;
 	char *name;
@@ -674,29 +674,29 @@ int elf64obj_build_import(elf64obj_s *e)
 // elf64obj_build_export
 static void elf64obj_build_export_func(hashmap_vlist_t *vl, size_t *n)
 {
-	elfobj_sym_s *s;
-	if (vl->name && (s = (elfobj_sym_s *) vl->value))
+	elfobj_sym_t *s;
+	if (vl->name && (s = (elfobj_sym_t *) vl->value))
 	{
 		if (s->bind == elfobj_sym_global) ++*n;
 	}
 }
 
-void elf64obj_build_export(elf64obj_s *e)
+void elf64obj_build_export(elf64obj_t *e)
 {
 	e->esym_number = 0;
 	hashmap_call(&e->symtab, (hashmap_func_call_t) elf64obj_build_export_func, &e->esym_number);
 }
 
 // elf64obj_build_link_self
-static int elf64obj_build_link_self_func(hashmap_vlist_t *vl, elf64obj_s **pe)
+static int elf64obj_build_link_self_func(hashmap_vlist_t *vl, elf64obj_t **pe)
 {
-	elfobj_rela_list_s *rl;
-	elf64obj_s *e;
-	elfobj_sym_s *v;
+	elfobj_rela_list_t *rl;
+	elf64obj_t *e;
+	elfobj_sym_t *v;
 	Elf64_Sym *s;
 	char *name;
 	size_t offset;
-	rl = (elfobj_rela_list_s *) vl->value;
+	rl = (elfobj_rela_list_t *) vl->value;
 	if ((e = *pe) && rl->sym->bind != elfobj_sym_undef)
 	{
 		s = e->symtab_list + vl->head;
@@ -728,7 +728,7 @@ static int elf64obj_build_link_self_func(hashmap_vlist_t *vl, elf64obj_s **pe)
 	return 0;
 }
 
-int elf64obj_build_link_self(elf64obj_s *e)
+int elf64obj_build_link_self(elf64obj_t *e)
 {
 	void *argv;
 	argv = e;
@@ -742,11 +742,11 @@ static void elf64obj_build_dylink_set_strpool_offset_func(hashmap_vlist_t *vl, s
 	vl->value = (uint8_t *) vl->value + offset;
 }
 
-static void elf64obj_build_dylink_set_import_func(hashmap_vlist_t *vl, dylink_isym_s **pih)
+static void elf64obj_build_dylink_set_import_func(hashmap_vlist_t *vl, dylink_isym_t **pih)
 {
-	elfobj_rela_list_s *rl;
-	dylink_isym_s *ih;
-	if ((rl = (elfobj_rela_list_s *) vl->value))
+	elfobj_rela_list_t *rl;
+	dylink_isym_t *ih;
+	if ((rl = (elfobj_rela_list_t *) vl->value))
 	{
 		ih = *pih;
 		while (rl)
@@ -767,13 +767,13 @@ static void elf64obj_build_dylink_set_import_func(hashmap_vlist_t *vl, dylink_is
 
 static void elf64obj_build_dylink_set_export_func(hashmap_vlist_t *vl, void *argv[2])
 {
-	elfobj_sym_s *v;
-	dylink_esym_s **peh, *eh;
-	elf64obj_s *e;
+	elfobj_sym_t *v;
+	dylink_esym_t **peh, *eh;
+	elf64obj_t *e;
 	char *name;
-	peh = (dylink_esym_s **) argv[0];
-	e = (elf64obj_s *) argv[1];
-	if (e && vl->name && (v = (elfobj_sym_s *) vl->value) && v->bind == elfobj_sym_global)
+	peh = (dylink_esym_t **) argv[0];
+	e = (elf64obj_t *) argv[1];
+	if (e && vl->name && (v = (elfobj_sym_t *) vl->value) && v->bind == elfobj_sym_global)
 	{
 		eh = *peh;
 		++*peh;
@@ -787,35 +787,35 @@ static void elf64obj_build_dylink_set_export_func(hashmap_vlist_t *vl, void *arg
 	argv[1] = NULL;
 }
 
-uint8_t* elf64obj_build_dylink(elf64obj_s *e, size_t *psize)
+uint8_t* elf64obj_build_dylink(elf64obj_t *e, size_t *psize)
 {
 	uint8_t *r;
-	dylink_header_s *h;
+	dylink_header_t *h;
 	void *ph;
 	size_t size, strpool_offset, image_offset, isym_offset, esym_offset;
 	void *argv[2];
 	r = NULL;
 	if (!elf64obj_build_strpool(e, NULL)) goto Err;
-	hashmap_call(e->strpool_offset, (hashmap_func_call_t)(void *) elf64obj_build_dylink_set_strpool_offset_func, (void *)(uintptr_t) sizeof(dylink_header_s));
+	hashmap_call(e->strpool_offset, (hashmap_func_call_t)(void *) elf64obj_build_dylink_set_strpool_offset_func, (void *)(uintptr_t) sizeof(dylink_header_t));
 	if (!elf64obj_build_image(e, NULL, NULL)) goto Err;
 	if (elf64obj_build_import(e)) goto Err;
 	elf64obj_build_export(e);
 	if (elf64obj_build_link_self(e)) goto Err;
-	size = sizeof(dylink_header_s);
+	size = sizeof(dylink_header_t);
 	strpool_offset = size;
 	size = (size + e->strpool_size + 0x0f) & ~0x0ful;
 	image_offset = size;
 	size += e->image_size;
 	isym_offset = size;
-	size += e->isym_number * sizeof(dylink_isym_s);
+	size += e->isym_number * sizeof(dylink_isym_t);
 	esym_offset = size;
-	size += e->esym_number * sizeof(dylink_esym_s);
+	size += e->esym_number * sizeof(dylink_esym_t);
 	r = (uint8_t *) calloc(1, size);
 	if (!r) goto Err;
-	h = (dylink_header_s *) r;
+	h = (dylink_header_t *) r;
 	memcpy(h->machine, dylink_mechine_x86_64, sizeof(dylink_mechine_x86_64) - 1);
 	h->version = 1;
-	h->header_size = sizeof(dylink_header_s);
+	h->header_size = sizeof(dylink_header_t);
 	h->img_takeup = e->image_takeup;
 	h->img_offset = (uint32_t) image_offset;
 	h->img_size = (uint32_t) e->image_size;
@@ -917,7 +917,7 @@ static const char* elfobj_str_session_type(unsigned int t)
 	};
 }
 
-void elf64obj_dump_session(elf64obj_s *e)
+void elf64obj_dump_session(elf64obj_t *e)
 {
 	Elf64_Shdr *s;
 	char *name;
@@ -999,7 +999,7 @@ static const char* elfobj_str_symtab_type(unsigned char t)
 	};
 }
 
-void elf64obj_dump_symtab(elf64obj_s* e)
+void elf64obj_dump_symtab(elf64obj_t* e)
 {
 	Elf64_Sym *s;
 	uint32_t i, n;
@@ -1026,9 +1026,9 @@ void elf64obj_dump_symtab(elf64obj_s* e)
 	}
 }
 
-void elf64obj_dump_rela(elf64obj_s* e)
+void elf64obj_dump_rela(elf64obj_t* e)
 {
-	elfobj_rela_session_list_s *rslist;
+	elfobj_rela_session_list_t *rslist;
 	Elf64_Rela *r;
 	Elf64_Sym *s;
 	char *rela_sname, *session;
@@ -1071,13 +1071,13 @@ void elf64obj_dump_rela(elf64obj_s* e)
 
 void dylink_dump(uint8_t *r, size_t size)
 {
-	dylink_header_s *h;
-	dylink_isym_s *ih;
-	dylink_esym_s *eh;
+	dylink_header_t *h;
+	dylink_isym_t *ih;
+	dylink_esym_t *eh;
 	uint32_t i, n;
-	if (size >= sizeof(dylink_header_s))
+	if (size >= sizeof(dylink_header_t))
 	{
-		h = (dylink_header_s *) r;
+		h = (dylink_header_t *) r;
 		printf(
 			"         machine: %s\n"
 			"         version: %u\n"
@@ -1106,10 +1106,10 @@ void dylink_dump(uint8_t *r, size_t size)
 		);
 		if (h->img_offset + h->img_size > size) printf("waring: h->img_offset + h->img_size > size\n");
 		if (h->strpool_offset + h->strpool_size > size) printf("waring: h->strpool_offset + h->strpool_size > size\n");
-		if (h->isym_offset + h->isym_number * sizeof(dylink_isym_s) > size) printf("waring: h->isym_offset + h->isym_number * sizeof(dylink_isym_s) > size\n");
+		if (h->isym_offset + h->isym_number * sizeof(dylink_isym_t) > size) printf("waring: h->isym_offset + h->isym_number * sizeof(dylink_isym_t) > size\n");
 		else
 		{
-			ih = (dylink_isym_s *) (r + h->isym_offset);
+			ih = (dylink_isym_t *) (r + h->isym_offset);
 			n = h->isym_number;
 			printf("isym[%u]\n", n);
 			for (i = 0; i < n; ++i)
@@ -1128,10 +1128,10 @@ void dylink_dump(uint8_t *r, size_t size)
 				++ih;
 			}
 		}
-		if (h->esym_offset + h->esym_number * sizeof(dylink_esym_s) > size) printf("waring: h->esym_offset + h->esym_number * sizeof(dylink_esym_s) > size\n");
+		if (h->esym_offset + h->esym_number * sizeof(dylink_esym_t) > size) printf("waring: h->esym_offset + h->esym_number * sizeof(dylink_esym_t) > size\n");
 		else
 		{
-			eh = (dylink_esym_s *) (r + h->esym_offset);
+			eh = (dylink_esym_t *) (r + h->esym_offset);
 			n = h->esym_number;
 			printf("esym[%u]\n", n);
 			for (i = 0; i < n; ++i)
