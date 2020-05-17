@@ -29,6 +29,14 @@ void dylink_pool_set_preset(dylink_pool_t *dyp)
 	_dylink_pool_set_preset(note_details_gen_ex);
 	_dylink_pool_set_preset(note_details_get);
 
+	// scatterplot
+	_dylink_pool_set_preset(scatterplot_alloc);
+	_dylink_pool_set_preset(scatterplot_set_image);
+	_dylink_pool_set_preset(scatterplot_set_view);
+	_dylink_pool_set_preset(scatterplot_clear);
+	_dylink_pool_set_preset(scatterplot_pos);
+	_dylink_pool_set_preset(scatterplot_save);
+
 	#undef _dylink_pool_set_preset
 }
 

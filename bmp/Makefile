@@ -1,12 +1,12 @@
-TARGET		= libwav.so
-HEADER		= wav.h
+TARGET		= libbmp.so
+HEADER		= bmp.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
 LDFLAGS		= -shared -Wl,-soname,${TARGET}
 
-OBJECT		= wav.o
+OBJECT		= bmp.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

@@ -1,7 +1,12 @@
-project		= hashmap rbtree json dylink note wav wavelike
+project		= refer hashmap rbtree json dylink note wav bmp wavelike pcm2wav scatterplot wldeal
 
-.PHONY: clear
+.PHONY: clear install
 clear:
 	+for p in ${project}; do\
-		make -C $$p clear;\
+		make -C $$p $@;\
+	done
+
+install:
+	+for p in ${project}; do\
+		make -C $$p $@;\
 	done

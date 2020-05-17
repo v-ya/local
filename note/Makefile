@@ -3,8 +3,8 @@ HEADER		= note.h note_details.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lm -Wl,-soname,${TARGET}
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+LDFLAGS		= -shared -lrefer -lm -Wl,-soname,${TARGET}
 
 OBJECT		= note.o note_details.o
 

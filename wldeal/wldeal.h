@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <refer.h>
 #include <note_details.h>
+#include <scatterplot.h>
 
 int console_print(const char *restrict __format, ...) __attribute__((format(printf, 1, 2)));
 

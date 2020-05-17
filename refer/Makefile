@@ -3,7 +3,7 @@ HEADER		= refer.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -O2 -g -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -Wl,-soname,${TARGET}
 
 OBJECT		= refer.o

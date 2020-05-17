@@ -3,11 +3,9 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#define wav_header_tize  44
-
 static int wav_save_nf(const char *path, void *data, uint32_t frames, uint32_t channels, uint32_t samefre)
 {
-	static wav_header_t header = {
+	static const wav_header_t header = {
 		.riff = 'FFIR',
 		.length = 0,
 		.wave = 'EVAW',
