@@ -1,6 +1,5 @@
 #define _DEFAULT_SOURCE
 #include "wldeal.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <dylink.h>
 #include <wav.h>
@@ -13,7 +12,36 @@ void dylink_pool_set_preset(dylink_pool_t *dyp)
 {
 	#define _dylink_pool_set_preset(f)  dylink_pool_set_func(dyp, #f, f)
 	// stdio
-	dylink_pool_set_func(dyp, "console_print", printf);
+	_dylink_pool_set_preset(printf);
+	_dylink_pool_set_preset(sprintf);
+
+	// math
+	_dylink_pool_set_preset(acos);
+	_dylink_pool_set_preset(asin);
+	_dylink_pool_set_preset(atan);
+	_dylink_pool_set_preset(atan2);
+	_dylink_pool_set_preset(cos);
+	_dylink_pool_set_preset(sin);
+	_dylink_pool_set_preset(tan);
+	_dylink_pool_set_preset(cosh);
+	_dylink_pool_set_preset(sinh);
+	_dylink_pool_set_preset(tanh);
+	_dylink_pool_set_preset(acosh);
+	_dylink_pool_set_preset(asinh);
+	_dylink_pool_set_preset(atanh);
+	_dylink_pool_set_preset(exp);
+	_dylink_pool_set_preset(frexp);
+	_dylink_pool_set_preset(ldexp);
+	_dylink_pool_set_preset(log);
+	_dylink_pool_set_preset(log10);
+	_dylink_pool_set_preset(modf);
+	_dylink_pool_set_preset(pow);
+	_dylink_pool_set_preset(sqrt);
+	_dylink_pool_set_preset(hypot);
+	_dylink_pool_set_preset(ceil);
+	_dylink_pool_set_preset(fabs);
+	_dylink_pool_set_preset(floor);
+	_dylink_pool_set_preset(fmod);
 
 	// refer
 	_dylink_pool_set_preset(refer_alloc);
@@ -91,15 +119,17 @@ static int dylink_pool_report_func(void *pri, dylink_pool_report_type_t type, co
 	return 0;
 }
 
-int wavlike_loop_deal(double v[], uint32_t frames, uint32_t sampfre, double t, uint32_t ndmax, wavlike_kernal_deal_f deal, refer_t pri)
+int wavlike_loop_deal(double v[], uint32_t frames, uint32_t sampfre, double t, uint32_t ndmax, wavelike_kernal_deal_f deal, refer_t pri)
 {
 	note_details_s *nd;
-	double p, ul, a;
+	wavelike_kernal_arg_t arg;
+	double p, ul;
 	uint32_t up, ut, i;
 	i = 0;
 	nd = note_details_alloc(ndmax);
 	if (nd)
 	{
+		arg.time = (double) frames / sampfre;
 		t *= sampfre;
 		p = wavelike_first(v, frames, NULL, &t, &ul);
 		while (p < frames)
@@ -108,9 +138,12 @@ int wavlike_loop_deal(double v[], uint32_t frames, uint32_t sampfre, double t, u
 			ut = (uint32_t) (p + t + 0.5) - up;
 			if (ut && up + ut <= frames)
 			{
-				a = wavelike_loadness(v, frames, p, t);
+				arg.a = wavelike_loadness(v, frames, p, t);
 				note_details_get(nd, v + up, ut);
-				deal(pri, i, nd, p / sampfre, t / sampfre, a, sampfre / t);
+				arg.offset = p / sampfre;
+				arg.length = t / sampfre;
+				arg.basefre = sampfre / t;
+				deal(pri, i, nd, &arg);
 			}
 			p = wavelike_next(v, frames, p, &t, &ul);
 			++i;
@@ -125,8 +158,8 @@ int main(int argc, const char **argv)
 	dylink_pool_t *dyp;
 	const char *sym_kalloc;
 	const char *sym_kdeal;
-	wavlike_kernal_alloc_f kalloc;
-	wavlike_kernal_deal_f kdeal;
+	wavelike_kernal_alloc_f kalloc;
+	wavelike_kernal_deal_f kdeal;
 	refer_t kpri;
 	wav_load_t *wl;
 	double *v;
@@ -203,8 +236,8 @@ int main(int argc, const char **argv)
 			dylink_pool_set_report(dyp, dylink_pool_report_func, NULL);
 			if (!dylink_pool_load_file(dyp, kernal))
 			{
-				kalloc = (wavlike_kernal_alloc_f) dylink_pool_get_symbol(dyp, sym_kalloc, NULL);
-				kdeal = (wavlike_kernal_deal_f) dylink_pool_get_symbol(dyp, sym_kdeal, NULL);
+				kalloc = (wavelike_kernal_alloc_f) dylink_pool_get_symbol(dyp, sym_kalloc, NULL);
+				kdeal = (wavelike_kernal_deal_f) dylink_pool_get_symbol(dyp, sym_kdeal, NULL);
 				if (kalloc && kdeal)
 				{
 					wl = wav_load(input);
