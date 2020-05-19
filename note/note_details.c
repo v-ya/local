@@ -54,7 +54,7 @@ void note_details_gen_ex(double *v, uint32_t n, note_details_s *nd, uint32_t l, 
 			{
 				c += saq[j].sa * sin(wb * (j + 1) * i + saq[j].sq);
 			}
-			v[i] += af(a1 + a2 * i, volume, pri) * c;
+			v[i] += af(pri, a1 + a2 * i, volume) * c;
 		}
 	}
 }

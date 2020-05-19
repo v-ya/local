@@ -5,9 +5,9 @@
 #include <refer.h>
 #include "note_details.h"
 
-typedef double (*note_envelope_f)(double t, double volume, refer_t pri);
-typedef double (*note_base_frequency_f)(double t, double a, refer_t pri);
-typedef void (*note_details_f)(note_details_s *d, double w, refer_t pri);
+typedef double (*note_envelope_f)(refer_t pri, double t, double volume);
+typedef double (*note_base_frequency_f)(refer_t pri, double t, double a, double apv);
+typedef void (*note_details_f)(refer_t pri, note_details_s *d, double f, double a, double apv);
 
 typedef struct note_details_stage_t {
 	note_details_f func;

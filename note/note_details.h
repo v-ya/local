@@ -15,7 +15,7 @@ typedef struct note_details_s {
 	note_details_saq_s saq[];
 } note_details_s;
 
-typedef double (*note_details_a_f)(double t, double volume, refer_t pri);
+typedef double (*note_details_a_f)(refer_t pri, double t, double volume);
 
 note_details_s* note_details_alloc(uint32_t max);
 void note_details_gen(double *v, uint32_t n, note_details_s *nd, uint32_t l, double a);
