@@ -36,6 +36,8 @@ typedef struct phoneme_s {
 
 typedef struct phoneme_pool_s {
 	dylink_pool_t *dypool;  // 动态链接池
+	// author.package => path
+	hashmap_t depend;       // 已加载依赖表
 	// author.name => phoneme_src_name_s "author.name"
 	// author.name 必须互不相同
 	hashmap_t name;         // 名称引用池
@@ -53,5 +55,9 @@ typedef struct phoneme_pool_s {
 	hashmap_t phoneme;      // 音素表
 	json_inode_t *var;      // 自定义变量树
 } phoneme_pool_s;
+
+phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool);
+int phoneme_pool_test_package(phoneme_pool_s *restrict pp, const char *restrict package);
+int phoneme_pool_load_package(phoneme_pool_s *restrict pp, const char *restrict package, const char *restrict path);
 
 #endif
