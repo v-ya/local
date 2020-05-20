@@ -51,6 +51,7 @@ typedef struct phoneme_pool_s {
 	hashmap_t arg;          // 构造函数参数类型二级映射表
 	// phoneme_name => phoneme_s *
 	hashmap_t phoneme;      // 音素表
+	json_inode_t *var;      // 自定义变量树
 } phoneme_pool_s;
 
 #endif
