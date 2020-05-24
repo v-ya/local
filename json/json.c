@@ -849,7 +849,7 @@ json_inode_t* json_load(const char *restrict path)
 				if (fread(s_json, 1, size, fp) == size)
 				{
 					s_json[size] = 0;
-					json_decode(path, &json);
+					json_decode(s_json, &json);
 				}
 				free(s_json);
 			}

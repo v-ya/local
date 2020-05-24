@@ -38,6 +38,19 @@ note_s* note_alloc(uint32_t details_max, uint32_t stage_max)
 	return n;
 }
 
+note_s* note_set_details_max(note_s *restrict n, uint32_t details_max)
+{
+	if (n->details->max != details_max)
+	{
+		note_details_s *nd;
+		nd = note_details_alloc(details_max);
+		if (!nd) return NULL;
+		refer_free(n->details);
+		n->details = nd;
+	}
+	return n;
+}
+
 void note_set_envelope(note_s *restrict n, note_envelope_f envelope, refer_t pri)
 {
 	n->envelope = envelope;
@@ -78,6 +91,18 @@ note_s* note_append_stage(note_s *restrict n, note_details_f func, refer_t pri)
 	return NULL;
 }
 
+void note_clear_stage(note_s *restrict n)
+{
+	uint32_t i, nn;
+	for (i = 0, nn = n->stage_max; i < nn; ++i)
+	{
+		if (n->stage[i].pri) refer_free(n->stage[i].pri);
+		n->stage[i].func = NULL;
+		n->stage[i].pri = NULL;
+	}
+	n->stage_used = 0;
+}
+
 void note_random_phase(note_s *restrict n)
 {
 	static double rand_k = M_PI * 2 / ((double) RAND_MAX + 1);
@@ -93,7 +118,7 @@ void note_random_phase(note_s *restrict n)
 	}
 }
 
-void note_gen(note_s *restrict n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre)
+void note_gen(note_s *restrict n, double t, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre)
 {
 	double f, k, a, apv;
 	uint32_t i, j, l, nn, si, sn;
@@ -103,25 +128,25 @@ void note_gen(note_s *restrict n, double t, double volume, double *v, uint32_t f
 		sn = n->stage_used;
 		if (nn)
 		{
-			k = 1 / nn;
+			k = 1.0 / nn;
 			i = 0;
 			if (nn > frames) nn = frames;
 			while (i < nn)
 			{
 				t = i * k;
 				a = n->envelope(n->envelope_pri, t, volume);
-				f = n->base_frequency(n->base_frequency_pri, t, a, a / volume);
+				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, a / volume);
 				l = sampfre / f;
 				t += l * k / 2;
 				a = n->envelope(n->envelope_pri, t, volume);
-				f = n->base_frequency(n->base_frequency_pri, t, a, apv = a / volume);
+				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, apv = a / volume);
 				l = sampfre / f;
 				j = i + l;
 				if (i > j) goto Err;
 				else if (l)
 				{
 					for (si = 0; si < sn; ++si)
-						n->stage[si].func(n->stage[si].pri, n->details, f, a, apv);
+						n->stage[si].func(n->stage[si].pri, n->details, t, f, a, apv);
 					note_details_gen_ex(v + i, frames - i, n->details, l, n->envelope, i * k, j * k, volume, n->envelope_pri);
 				}
 				i = j + 1;
@@ -132,8 +157,8 @@ void note_gen(note_s *restrict n, double t, double volume, double *v, uint32_t f
 	return ;
 }
 
-void note_gen_with_pos(note_s *restrict n, double t, double volume, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
+void note_gen_with_pos(note_s *restrict n, double t, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
 {
 	if (pos < frames)
-		note_gen(n, t, volume, v + pos, frames - pos, sampfre);
+		note_gen(n, t, volume, basefre, v + pos, frames - pos, sampfre);
 }
