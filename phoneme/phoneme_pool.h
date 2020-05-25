@@ -35,6 +35,7 @@ json_inode_t* phoneme_pool_set_var(phoneme_pool_s *restrict pp, const char *rest
 json_inode_t* phoneme_pool_get_var(phoneme_pool_s *restrict pp, const char *restrict jpath);
 phoneme_arg_pool_s* phoneme_pool_get_arg_pool(phoneme_pool_s *restrict pp, const char *restrict type);
 phoneme_arg_pool_s* phoneme_pool_set_arg_pool(phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict arg2pri, const char *restrict refer);
+phoneme_arg2pri_f phoneme_pool_get_arg2pri(register phoneme_pool_s *restrict pp, const char *restrict type);
 phoneme_arg_s* phoneme_pool_set_arg(phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name, phoneme_arg_s *arg);
 phoneme_arg_s* phoneme_pool_set_arg_json(phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name, json_inode_t *restrict value);
 phoneme_arg_s* phoneme_pool_get_arg(phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name);

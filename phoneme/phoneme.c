@@ -1,4 +1,6 @@
 #include "phoneme.h"
+#include <stdlib.h>
+#include <string.h>
 
 void phoneme_src_unset(register phoneme_src_t *restrict ps)
 {
@@ -187,4 +189,213 @@ note_s* phoneme_update(register phoneme_s *restrict p, register phoneme_pool_s *
 		}
 	}
 	return n;
+}
+
+static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_src_t *restrict s, phoneme_pool_s *restrict pp, hashmap_t *restrict symlist, register const char **restrict modify)
+{
+	register const char *restrict ss, *restrict tt;
+	void *func;
+	phoneme_src_name_s name;
+	json_inode_t *v;
+	char path[512];
+	char value[512];
+	ss = *modify;
+	while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+	*modify = ss;
+	if (*ss != '(') goto Err;
+	while (*(ss = *modify))
+	{
+		while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+		switch (*ss)
+		{
+			case '=':
+				++ss;
+				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+				if (*ss == '<')
+				{
+					*modify = ss + 1;
+					if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
+						goto Err;
+					v = phoneme_pool_get_var(pp, value);
+					if (*(ss = *modify) != '>') goto Err;
+					if (!v || v->type != json_inode_string) goto Err;
+					tt = v->value.string;
+					++ss;
+				}
+				else
+				{
+					*modify = ss;
+					if (!phoneme_read_string(value, sizeof(value), modify, ", \t\r\n)"))
+						goto Err;
+					tt = value;
+					ss = *modify;
+				}
+				func = hashmap_get_name(symlist, tt);
+				if (!func) goto Err;
+				name = phoneme_pool_get_name(pp, tt);
+				if (!name) goto Err;
+				if (r->name) refer_free((refer_t) r->name);
+				r->name = name;
+				r->func = func;
+				break;
+			case '<':
+				*modify = ss + 1;
+				if (!phoneme_read_string(path, sizeof(path), modify, ">,)"))
+					goto Err;
+				if (*(ss = *modify) != '>') goto Err;
+				++ss;
+				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+				if (*(*modify = ss) != '=') goto Err;
+				++ss;
+				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+				if (*ss == '>')
+				{
+					*modify = ss + 1;
+					if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
+						goto Err;
+					if (*(ss = *modify) != '>') goto Err;
+					++ss;
+					v = phoneme_pool_get_var(pp, value);
+					if (!v) goto Err;
+					v = json_copy(v);
+					if (!v) goto Err;
+				}
+				else
+				{
+					v = NULL;
+					ss = json_decode(*modify = ss, &v);
+					if (!ss || !v) goto Err;
+				}
+				if (*path)
+				{
+					if (!r->arg)
+					{
+						if (s->arg) r->arg = phoneme_arg_dump(s->arg);
+						else r->arg = phoneme_arg_alloc(NULL);
+						if (!r->arg) goto Err_free_v;
+					}
+					if (!json_set(r->arg, path, v)) goto Err_free_v;
+				}
+				else
+				{
+					if (r->arg)
+					{
+						if (*r->arg) json_free(*r->arg);
+						*r->arg = v;
+					}
+					else if (!(r->arg = phoneme_arg_alloc(v)))
+					{
+						Err_free_v:
+						json_free(v);
+						goto Err;
+					}
+				}
+				*modify = ss;
+				break;
+			default:
+				*modify = ss;
+				goto Err;
+		}
+		while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
+		if (*ss == ')')
+		{
+			*modify = ss + 1;
+			return r;
+		}
+		if (*ss != ',') goto Err;
+		*modify = ss + 1;
+	}
+	Err:
+	return NULL;
+}
+
+static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, register phoneme_src_t *restrict s, register phoneme_pool_s *restrict pp)
+{
+	if (!r->name)
+	{
+		if (!(r->name = refer_save((refer_t) s->name))) goto Err;
+		r->func = s->func;
+	}
+	if (!r->arg)
+	{
+		r->arg = refer_save(s->arg);
+		if (r->pri)
+		{
+			refer_free(r->pri);
+			r->pri = NULL;
+		}
+		if (s->name && !strcmp(r->name, s->name))
+			r->pri = refer_save(s->pri);
+		else goto label_arg2pri;
+	}
+	else if (!r->pri)
+	{
+		register phoneme_arg2pri_f arg2pri;
+		label_arg2pri:
+		arg2pri = phoneme_pool_get_arg2pri(pp, r->name);
+		if (!arg2pri) goto Err;
+		r->pri = arg2pri(*r->arg);
+	}
+	return r;
+	Err:
+	return NULL;
+}
+
+phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_s *restrict pp, const char **restrict modify, uint32_t sdmax)
+{
+	register phoneme_s *restrict r;
+	register const char *restrict s;
+	uint32_t i;
+	if (!sdmax) sdmax = p->details_max;
+	r = phoneme_alloc(sdmax, NULL, NULL);
+	if (!r) return NULL;
+	while (*(s = *modify))
+	{
+		while (phoneme_alpha_table_space[*(uint8_t*)s]) ++s;
+		switch (*s)
+		{
+			case '^':
+				++s;
+				*modify = s;
+				if (!phoneme_modify_script(&r->envelope, &p->envelope, pp, &pp->envelope, modify))
+					goto Err;
+				continue;
+			case '~':
+				++s;
+				*modify = s;
+				if (!phoneme_modify_script(&r->basefre, &p->basefre, pp, &pp->basefre, modify))
+					goto Err;
+				continue;
+			case '@':
+				++s;
+				while (phoneme_alpha_table_space[*(uint8_t*)s]) ++s;
+				*modify = s;
+				i = strtoul(s, (char **) modify, 10);
+				if (!*modify)
+				{
+					*modify = s;
+					goto Err;
+				}
+				if (i >= r->details_max) goto Err;
+				if (i >= r->details_used) r->details_used = i + 1;
+				if (!phoneme_modify_script(r->details + i, (i < p->details_used)?(p->details + i):NULL, pp, &pp->details, modify))
+					goto Err;
+				continue;
+		}
+		break;
+	}
+	if (!phoneme_modify_link(&r->envelope, &p->envelope, pp)) goto Err;
+	if (!phoneme_modify_link(&r->basefre, &p->basefre, pp)) goto Err;
+	sdmax = p->details_used;
+	if (sdmax > r->details_max) sdmax = r->details_max;
+	if (r->details_used < sdmax) r->details_used = sdmax;
+	for (i = 0; i < sdmax; ++i)
+	{
+		if (!phoneme_modify_link(r->details + i, p->details + i, pp))
+			goto Err;
+	}
+	return r;
+	Err:
+	refer_free(r);
+	return NULL;
 }

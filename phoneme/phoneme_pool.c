@@ -258,6 +258,14 @@ phoneme_arg_pool_s* phoneme_pool_set_arg_pool(register phoneme_pool_s *restrict 
 	return r;
 }
 
+phoneme_arg2pri_f phoneme_pool_get_arg2pri(register phoneme_pool_s *restrict pp, const char *restrict type)
+{
+	register phoneme_arg_pool_s *restrict ap;
+	ap = (phoneme_arg_pool_s *) hashmap_get_name(&pp->arg, type);
+	if (ap) return ap->arg2pri;
+	return NULL;
+}
+
 phoneme_arg_s* phoneme_pool_set_arg(register phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name, phoneme_arg_s *arg)
 {
 	phoneme_arg_pool_s *p;
