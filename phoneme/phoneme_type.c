@@ -13,15 +13,15 @@ void phoneme_hashmap_free_refer_func(register hashmap_vlist_t *restrict vl)
 	if (vl) refer_free(vl->value);
 }
 
-phoneme_src_name_s* phoneme_src_name_dump(const char *restrict s)
+phoneme_src_name_s phoneme_src_name_dump(const char *restrict s)
 {
-	phoneme_src_name_s *r;
+	phoneme_src_name_s r;
 	size_t n;
 	r = NULL;
 	if (s)
 	{
 		n = strlen(s) + 1;
-		r = (phoneme_src_name_s *) refer_alloc(n);
+		r = (phoneme_src_name_s) refer_alloc(n);
 		if (r) memcpy((void *) r, s, n);
 	}
 	return r;

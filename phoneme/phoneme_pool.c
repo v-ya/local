@@ -354,3 +354,27 @@ phoneme_s* phoneme_pool_set_phoneme_json(register phoneme_pool_s *restrict pp, c
 	}
 	return p;
 }
+
+phoneme_s* phoneme_pool_get_phoneme(register phoneme_pool_s *restrict pp, const char *restrict phname)
+{
+	return (phoneme_s *) refer_save(hashmap_get_name(&pp->phoneme, phname));
+}
+
+phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp, const char *restrict phname, const char **restrict modify, uint32_t sdmax, uint32_t dmax)
+{
+	register phoneme_s *restrict p;
+	p = (phoneme_s *) hashmap_get_name(&pp->phoneme, phname);
+	if (p)
+	{
+		p = phoneme_modify(p, pp, modify, sdmax);
+		if (p)
+		{
+			if (!phoneme_update(p, pp, dmax))
+			{
+				refer_free(p);
+				p = NULL;
+			}
+		}
+	}
+	return p;
+}

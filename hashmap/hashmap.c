@@ -360,6 +360,26 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_t 
 	}
 }
 
+void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call_v2_t callFunc, void *v1, void *v2)
+{
+	register hashmap_vlist_t *vl;
+	if (hm->map)
+	{
+		register uint32_t i;
+		i = hm->mask + 1;
+		while (i)
+		{
+			--i;
+			vl = hm->map[i];
+			while(vl)
+			{
+				callFunc(vl, v1, v2);
+				vl = vl->next;
+			}
+		}
+	}
+}
+
 void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfree_t isfreeFunc, void *data)
 {
 	register hashmap_vlist_t *vl, **pvl;

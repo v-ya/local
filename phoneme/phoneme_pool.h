@@ -42,5 +42,7 @@ phoneme_arg_s* phoneme_pool_get_arg(phoneme_pool_s *restrict pp, const char *res
 refer_t phoneme_pool_get_pri(phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name);
 phoneme_s* phoneme_pool_set_phoneme(phoneme_pool_s *restrict pp, const char *restrict phname, phoneme_s *restrict p);
 phoneme_s* phoneme_pool_set_phoneme_json(phoneme_pool_s *restrict pp, const char *restrict phname, json_inode_t *restrict value, uint32_t sdmax, uint32_t dmax);
+phoneme_s* phoneme_pool_get_phoneme(phoneme_pool_s *restrict pp, const char *restrict phname);
+phoneme_s* phoneme_pool_get_phoneme_modify(phoneme_pool_s *restrict pp, const char *restrict phname, const char **restrict modify, uint32_t sdmax, uint32_t dmax);
 
 #endif
