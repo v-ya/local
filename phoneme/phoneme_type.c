@@ -10,7 +10,7 @@ uint8_t phoneme_alpha_table_space[256] = {
 
 void phoneme_hashmap_free_refer_func(register hashmap_vlist_t *restrict vl)
 {
-	if (vl) refer_free(vl->value);
+	if (vl->value) refer_free(vl->value);
 }
 
 phoneme_src_name_s phoneme_src_name_dump(const char *restrict s)

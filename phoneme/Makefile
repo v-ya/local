@@ -1,5 +1,5 @@
 TARGET		= libphoneme.so
-HEADER		= phoneme_type.h phoneme_arg.h phoneme.h phoneme_pool.h
+HEADER		= phoneme_type.h phoneme_arg.h phoneme_pool.h phoneme.h phoneme_script.h
 
 CC		= gcc
 LD		= ld

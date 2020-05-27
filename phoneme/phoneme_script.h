@@ -9,6 +9,7 @@ typedef int (*phoneme_script_sysfunc_f)(dylink_pool_t *restrict dyp, void *pri);
 
 typedef struct phoneme_script_s {
 	phoneme_pool_s *phoneme_pool;
+	hashmap_t package;
 	phoneme_src_name_s core_path;
 	phoneme_src_name_s package_path;
 	double base_time;

@@ -201,8 +201,8 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 	char value[512];
 	ss = *modify;
 	while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
-	*modify = ss;
 	if (*ss != '(') goto Err;
+	*modify = ss + 1;
 	while (*(ss = *modify))
 	{
 		while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
@@ -248,7 +248,7 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 				if (*(*modify = ss) != '=') goto Err;
 				++ss;
 				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
-				if (*ss == '>')
+				if (*ss == '<')
 				{
 					*modify = ss + 1;
 					if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
@@ -270,7 +270,7 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 				{
 					if (!r->arg)
 					{
-						if (s->arg) r->arg = phoneme_arg_dump(s->arg);
+						if (s && s->arg) r->arg = phoneme_arg_dump(s->arg);
 						else r->arg = phoneme_arg_alloc(NULL);
 						if (!r->arg) goto Err_free_v;
 					}
@@ -343,6 +343,12 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 
 phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_s *restrict pp, const char **restrict modify, uint32_t sdmax)
 {
+	static phoneme_src_t s_phoneme_src_null = {
+		.name = NULL,
+		.arg = NULL,
+		.func = NULL,
+		.pri = NULL
+	};
 	register phoneme_s *restrict r;
 	register const char *restrict s;
 	uint32_t i;
@@ -393,6 +399,12 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 	{
 		if (!phoneme_modify_link(r->details + i, p->details + i, pp))
 			goto Err;
+	}
+	while (i < r->details_used)
+	{
+		if (!phoneme_modify_link(r->details + i, &s_phoneme_src_null, pp))
+			goto Err;
+		++i;
 	}
 	return r;
 	Err:
