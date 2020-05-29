@@ -464,7 +464,7 @@ uint8_t* elf64obj_build_strpool(elf64obj_t *e, size_t *psize)
 	e->strpool_size = 0;
 	if (!e->strpool_offset) goto Err;
 	argv = &namelist;
-	hashmap_call(&e->symtab, (hashmap_func_call_t) elf64obj_build_namelist_func, &argv);
+	hashmap_call(&e->symtab, (hashmap_func_call_f) elf64obj_build_namelist_func, &argv);
 	if (!argv) goto Err;
 	argv = e;
 	rbtree_call(&namelist, (rbtree_func_call_t) elf64obj_build_strpool_offset_func, &argv);
@@ -567,18 +567,18 @@ uint8_t* elf64obj_build_image(elf64obj_t *e, size_t *psize, size_t *ptakeup)
 	e->image_size = e->image_takeup = 0;
 	if (!e->session_offset) goto Err;
 	argv = e;
-	hashmap_call(&e->need_session, (hashmap_func_call_t) elf64obj_build_session_offset_progbits_func, &argv);
+	hashmap_call(&e->need_session, (hashmap_func_call_f) elf64obj_build_session_offset_progbits_func, &argv);
 	if (!argv) goto Err;
-	hashmap_call(&e->symtab, (hashmap_func_call_t) elf64obj_build_image_takeup_common_func, e);
+	hashmap_call(&e->symtab, (hashmap_func_call_f) elf64obj_build_image_takeup_common_func, e);
 	e->image_takeup = (e->image_size + e->common_size + 0x0f) & ~0x0ful;
-	hashmap_call(&e->need_session, (hashmap_func_call_t) elf64obj_build_session_offset_nobits_func, &argv);
+	hashmap_call(&e->need_session, (hashmap_func_call_f) elf64obj_build_session_offset_nobits_func, &argv);
 	if (!argv) goto Err;
 	if (e->image_size)
 	{
 		e->image_data = (uint8_t *) malloc(e->image_size);
 		if (!e->image_data) goto Err;
 		memset(e->image_data, 0xcccccccc, e->image_size);
-		hashmap_call(e->session_offset, (hashmap_func_call_t) elf64obj_build_image_data_func, e);
+		hashmap_call(e->session_offset, (hashmap_func_call_f) elf64obj_build_image_data_func, e);
 	}
 	End:
 	if (psize) *psize = e->image_size;
@@ -684,7 +684,7 @@ static void elf64obj_build_export_func(hashmap_vlist_t *vl, size_t *n)
 void elf64obj_build_export(elf64obj_t *e)
 {
 	e->esym_number = 0;
-	hashmap_call(&e->symtab, (hashmap_func_call_t) elf64obj_build_export_func, &e->esym_number);
+	hashmap_call(&e->symtab, (hashmap_func_call_f) elf64obj_build_export_func, &e->esym_number);
 }
 
 // elf64obj_build_link_self
@@ -732,7 +732,7 @@ int elf64obj_build_link_self(elf64obj_t *e)
 {
 	void *argv;
 	argv = e;
-	hashmap_isfree(e->import, (hashmap_func_isfree_t) elf64obj_build_link_self_func, &argv);
+	hashmap_isfree(e->import, (hashmap_func_isfree_f) elf64obj_build_link_self_func, &argv);
 	return argv?0:-1;
 }
 
@@ -796,7 +796,7 @@ uint8_t* elf64obj_build_dylink(elf64obj_t *e, size_t *psize)
 	void *argv[2];
 	r = NULL;
 	if (!elf64obj_build_strpool(e, NULL)) goto Err;
-	hashmap_call(e->strpool_offset, (hashmap_func_call_t)(void *) elf64obj_build_dylink_set_strpool_offset_func, (void *)(uintptr_t) sizeof(dylink_header_t));
+	hashmap_call(e->strpool_offset, (hashmap_func_call_f)(void *) elf64obj_build_dylink_set_strpool_offset_func, (void *)(uintptr_t) sizeof(dylink_header_t));
 	if (!elf64obj_build_image(e, NULL, NULL)) goto Err;
 	if (elf64obj_build_import(e)) goto Err;
 	elf64obj_build_export(e);
@@ -828,11 +828,11 @@ uint8_t* elf64obj_build_dylink(elf64obj_t *e, size_t *psize)
 	memcpy(r + strpool_offset, e->strpool_data, e->strpool_size);
 	memcpy(r + image_offset, e->image_data, e->image_size);
 	ph = r + isym_offset;
-	hashmap_call(e->import, (hashmap_func_call_t) elf64obj_build_dylink_set_import_func, &ph);
+	hashmap_call(e->import, (hashmap_func_call_f) elf64obj_build_dylink_set_import_func, &ph);
 	ph = r + esym_offset;
 	argv[0] = &ph;
 	argv[1] = e;
-	hashmap_call(&e->symtab, (hashmap_func_call_t) elf64obj_build_dylink_set_export_func, argv);
+	hashmap_call(&e->symtab, (hashmap_func_call_f) elf64obj_build_dylink_set_export_func, argv);
 	if (!argv[1]) goto Err;
 	if (psize) *psize = size;
 	return r;

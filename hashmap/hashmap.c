@@ -37,7 +37,7 @@ static uint64_t mix_num(register uint64_t mix)
 }
 
 // name != NULL => head = mix_str(name)
-static hashmap_vlist_t* hashmap_vlist_alloc(register const char *restrict name, register uint64_t head, const void *value, hashmap_func_free_t freeFunc)
+static hashmap_vlist_t* hashmap_vlist_alloc(register const char *restrict name, register uint64_t head, const void *value, hashmap_func_free_f freeFunc)
 {
 	register hashmap_vlist_t *vl;
 	vl = (hashmap_vlist_t *) malloc(sizeof(hashmap_vlist_t));
@@ -258,7 +258,7 @@ void hashmap_delete_head(register hashmap_t *restrict hm, register uint64_t head
 		hm->number--;
 }
 
-hashmap_vlist_t* hashmap_put_name(register hashmap_t *restrict hm, register const char *restrict name, const void *value, hashmap_func_free_t freeFunc)
+hashmap_vlist_t* hashmap_put_name(register hashmap_t *restrict hm, register const char *restrict name, const void *value, hashmap_func_free_f freeFunc)
 {
 	register hashmap_vlist_t *vl;
 	register uint64_t head;
@@ -271,7 +271,7 @@ hashmap_vlist_t* hashmap_put_name(register hashmap_t *restrict hm, register cons
 	return vl;
 }
 
-hashmap_vlist_t* hashmap_put_head(register hashmap_t *restrict hm, register uint64_t head, const void *value, hashmap_func_free_t freeFunc)
+hashmap_vlist_t* hashmap_put_head(register hashmap_t *restrict hm, register uint64_t head, const void *value, hashmap_func_free_f freeFunc)
 {
 	register hashmap_vlist_t *vl;
 	vl = hashmap_find_head(hm, head);
@@ -282,7 +282,7 @@ hashmap_vlist_t* hashmap_put_head(register hashmap_t *restrict hm, register uint
 	return vl;
 }
 
-hashmap_vlist_t* hashmap_set_name(register hashmap_t *restrict hm, register const char *restrict name, const void *value, hashmap_func_free_t freeFunc)
+hashmap_vlist_t* hashmap_set_name(register hashmap_t *restrict hm, register const char *restrict name, const void *value, hashmap_func_free_f freeFunc)
 {
 	register hashmap_vlist_t *vl;
 	register uint64_t head;
@@ -304,7 +304,7 @@ hashmap_vlist_t* hashmap_set_name(register hashmap_t *restrict hm, register cons
 	}
 }
 
-hashmap_vlist_t* hashmap_set_head(register hashmap_t *restrict hm, register uint64_t head, const void *value, hashmap_func_free_t freeFunc)
+hashmap_vlist_t* hashmap_set_head(register hashmap_t *restrict hm, register uint64_t head, const void *value, hashmap_func_free_f freeFunc)
 {
 	register hashmap_vlist_t *vl;
 	vl = hashmap_find_head(hm, head);
@@ -340,7 +340,7 @@ void* hashmap_get_head(register hashmap_t *restrict hm, register uint64_t head)
 	else return NULL;
 }
 
-void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_t callFunc, void *data)
+void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f callFunc, void *data)
 {
 	register hashmap_vlist_t *vl;
 	if (hm->map)
@@ -360,7 +360,7 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_t 
 	}
 }
 
-void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call_v2_t callFunc, void *v1, void *v2)
+void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call_v2_f callFunc, void *v1, void *v2)
 {
 	register hashmap_vlist_t *vl;
 	if (hm->map)
@@ -380,7 +380,7 @@ void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call
 	}
 }
 
-void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfree_t isfreeFunc, void *data)
+void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfree_f isfreeFunc, void *data)
 {
 	register hashmap_vlist_t *vl, **pvl;
 	if (hm->map)

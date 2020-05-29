@@ -4,6 +4,14 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#ifdef __GNUC__
+#  define dyl_used           __attribute__ ((__used__))
+#  define dyl_global(_n)     __asm__ (".globl " #_n)
+#  define dyl_alias(_r,_n)   __asm__ (".set " #_n ", " #_r)
+#  define dyl_export(_r,_n)  dyl_global(_n);\
+				dyl_alias(_r,_n)
+#endif
+
 #define dylink_mechine_x86_64  "dyl.X86_64"
 
 typedef struct dylink_header_t {

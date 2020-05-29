@@ -174,7 +174,7 @@ static void phoneme_script_load_package_set_arg_func(hashmap_vlist_t *restrict v
 	json_inode_t *v;
 	if (vl->name && (v = (json_inode_t *) vl->value) && v->type == json_inode_object)
 	{
-		hashmap_call_v2(&v->value.object, (hashmap_func_call_v2_t) phoneme_script_load_package_set_arg_by_type_func, pp, (void *) vl->name);
+		hashmap_call_v2(&v->value.object, (hashmap_func_call_v2_f) phoneme_script_load_package_set_arg_by_type_func, pp, (void *) vl->name);
 	}
 }
 
@@ -206,7 +206,7 @@ static void phoneme_script_load_package_set_phoneme_func(hashmap_vlist_t *restri
 				if (s->type != json_inode_string) goto Err;
 				if (!(s = json_find(package, s->value.string))) goto Err;
 				if (!(s = json_copy(s))) goto Err;
-				hashmap_call(&o->value.object, (hashmap_func_call_t) phoneme_script_load_package_set_phoneme_arg_template_func, &s);
+				hashmap_call(&o->value.object, (hashmap_func_call_f) phoneme_script_load_package_set_phoneme_arg_template_func, &s);
 				o = s;
 			}
 		}
@@ -276,7 +276,7 @@ phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps
 		{
 			if (o->type != json_inode_object)
 				goto Err;
-			hashmap_call(&o->value.object, (hashmap_func_call_t) phoneme_script_load_package_set_var_func, ps->phoneme_pool);
+			hashmap_call(&o->value.object, (hashmap_func_call_f) phoneme_script_load_package_set_var_func, ps->phoneme_pool);
 		}
 		// load arg
 		o = json_object_find(package, "arg");
@@ -284,7 +284,7 @@ phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps
 		{
 			if (o->type != json_inode_object)
 				goto Err;
-			hashmap_call(&o->value.object, (hashmap_func_call_t) phoneme_script_load_package_set_arg_func, ps->phoneme_pool);
+			hashmap_call(&o->value.object, (hashmap_func_call_f) phoneme_script_load_package_set_arg_func, ps->phoneme_pool);
 		}
 		// load phoneme
 		o = json_object_find(package, "phoneme");
@@ -292,7 +292,7 @@ phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps
 		{
 			if (o->type != json_inode_object)
 				goto Err;
-			hashmap_call_v2(&o->value.object, (hashmap_func_call_v2_t) phoneme_script_load_package_set_phoneme_func, ps, package);
+			hashmap_call_v2(&o->value.object, (hashmap_func_call_v2_f) phoneme_script_load_package_set_phoneme_func, ps, package);
 		}
 		return ps;
 	}

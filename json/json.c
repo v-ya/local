@@ -426,7 +426,7 @@ static uint64_t json_length_array(register json_inode_t *restrict ji)
 	if (hm->number)
 	{
 		length = hm->number + 1;
-		hashmap_call(hm, (hashmap_func_call_t) json_length_array_hashmap_call_func, &length);
+		hashmap_call(hm, (hashmap_func_call_f) json_length_array_hashmap_call_func, &length);
 		return length;
 	}
 	else return 2;
@@ -445,7 +445,7 @@ static uint64_t json_length_object(register json_inode_t *restrict ji)
 	if (hm->number)
 	{
 		length = hm->number + 1;
-		hashmap_call(hm, (hashmap_func_call_t) json_length_object_hashmap_call_func, &length);
+		hashmap_call(hm, (hashmap_func_call_f) json_length_object_hashmap_call_func, &length);
 		return length;
 	}
 	else return 2;
@@ -618,7 +618,7 @@ static char* json_encode_object(register json_inode_t *restrict ji, register cha
 	{
 		v.s = s;
 		v.isfirst = -1;
-		hashmap_call(hm, (hashmap_func_call_t) json_encode_object_hashmap_call_func, &v);
+		hashmap_call(hm, (hashmap_func_call_f) json_encode_object_hashmap_call_func, &v);
 		s = v.s;
 	}
 	*s++ = '}';
@@ -1166,7 +1166,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 				r->type = ji->type;
 				if (hashmap_init(&r->value.array))
 				{
-					hashmap_call(&ji->value.object, (hashmap_func_call_t) json_copy_hashmap_func, &r->value.object);
+					hashmap_call(&ji->value.object, (hashmap_func_call_f) json_copy_hashmap_func, &r->value.object);
 					return r;
 				}
 				free(r);
