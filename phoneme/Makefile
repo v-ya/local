@@ -1,12 +1,12 @@
 TARGET		= libphoneme.so
-HEADER		= phoneme_type.h phoneme_arg.h phoneme_pool.h phoneme.h phoneme_script.h
+HEADER		= phoneme_type.h phoneme_buffer.h phoneme_arg.h phoneme_pool.h phoneme.h phoneme_script.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS		= -shared -lrefer -lhashmap -ljson -ldylink -lnote -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lrefer -lhashmap -ljson -ldylink -lnote -lm -Wl,-soname,${TARGET}
 
-OBJECT		= phoneme_type.o phoneme_arg.o phoneme.o phoneme_pool.o phoneme_script.o
+OBJECT		= phoneme_type.o phoneme_buffer.o phoneme_arg.o phoneme.o phoneme_pool.o phoneme_script.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

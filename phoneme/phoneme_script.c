@@ -1,6 +1,8 @@
 #include "phoneme_script.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
 static void phoneme_script_free_func(phoneme_script_s *restrict ps)
 {
@@ -32,6 +34,7 @@ phoneme_script_s* phoneme_script_alloc(size_t xmsize, phoneme_script_sysfunc_f s
 						r->base_volume = 0.5;
 						r->base_fre_line = 440;
 						r->base_fre_step = 12;
+						r->space_time = 1;
 						r->dmax = 32;
 						return r;
 					}
@@ -296,6 +299,542 @@ phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps
 		}
 		return ps;
 	}
+	Err:
+	return NULL;
+}
+
+phoneme_s* phoneme_script_get_phoneme(phoneme_script_s *restrict ps, register const char *restrict *restrict script)
+{
+	phoneme_s *r;
+	char phname[phoneme_var_path_max];
+	r = NULL;
+	if (phoneme_read_string(phname, sizeof(phname), script, "([ \t\r\n,;:") && *phname)
+	{
+		if (**script == '[')
+		{
+			++*script;
+			r = phoneme_pool_get_phoneme_modify(ps->phoneme_pool, phname, script, ps->sdmax, ps->dmax);
+			if (**script == ']') ++*script;
+			else if (r)
+			{
+				refer_free(r);
+				r = NULL;
+			}
+		}
+		else r = phoneme_pool_get_phoneme(ps->phoneme_pool, phname);
+	}
+	return r;
+}
+
+
+phoneme_buffer_s* phoneme_script_load(phoneme_script_s *restrict ps, const char *restrict script_path, phoneme_buffer_s *restrict pb)
+{
+	char *script;
+	FILE *fp;
+	size_t size;
+	script = NULL;
+	fp = fopen(script_path, "r");
+	if (fp)
+	{
+		fseek(fp, 0, SEEK_END);
+		size = ftell(fp);
+		if (size && (script = (char *) malloc(size + 1)))
+		{
+			fseek(fp, 0, SEEK_SET);
+			if (fread(script, 1, size, fp) != size)
+			{
+				free(script);
+				script = NULL;
+			}
+		}
+		fclose(fp);
+	}
+	if (script)
+	{
+		script[size] = 0;
+		pb = phoneme_script_run(ps, script, pb);
+		free(script);
+	}
+	else pb = NULL;
+	return pb;
+}
+
+static const char* phoneme_script_run_conctrl_var(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	json_inode_t *value;
+	const char *jpath;
+	char path[phoneme_var_path_max];
+	if (*script == '<')
+	{
+		++script;
+		if (phoneme_read_string(path, sizeof(path), &script, ">") && *script == '>')
+		{
+			++script;
+			while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+			if (*script != '=') goto Err;
+			++script;
+			while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+			value = NULL;
+			if ((script = json_decode(script, &value)) && value)
+			{
+				jpath = NULL;
+				if (*path) jpath = path;
+				if (phoneme_pool_set_var(ps->phoneme_pool, jpath, value))
+					return script;
+				json_free(value);
+			}
+		}
+	}
+	Err:
+	return NULL;
+}
+
+static const char* phoneme_script_run_conctrl_core(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	json_inode_t *value;
+	value = NULL;
+	script = json_decode(script, &value);
+	if (script)
+	{
+		if (value->type == json_inode_string)
+		{
+			if (!phoneme_script_set_core_path(ps, value->value.string))
+				script = NULL;
+		}
+		else if (value->type == json_inode_null)
+			phoneme_script_set_core_path(ps, NULL);
+		else script = NULL;
+		json_free(value);
+	}
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_package(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	json_inode_t *value;
+	value = NULL;
+	script = json_decode(script, &value);
+	if (script)
+	{
+		if (value->type == json_inode_string)
+		{
+			if (!phoneme_script_set_package_path(ps, value->value.string))
+				script = NULL;
+		}
+		else if (value->type == json_inode_null)
+			phoneme_script_set_package_path(ps, NULL);
+		else script = NULL;
+		json_free(value);
+	}
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_btime(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double n;
+	n = strtod(script, (char **) &script);
+	if (n <= 0) return NULL;
+	ps->base_time = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_volume(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double n;
+	n = strtod(script, (char **) &script);
+	if (n < 0) return NULL;
+	ps->base_volume = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_bfline(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double n;
+	n = strtod(script, (char **) &script);
+	if (n <= 0) return NULL;
+	ps->base_fre_line = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_bfstep(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double n;
+	n = strtod(script, (char **) &script);
+	if (n <= 0) return NULL;
+	ps->base_fre_step = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_dmax(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	uint32_t n;
+	n = (uint32_t) strtoul(script, (char **) &script, 10);
+	if (!n) return NULL;
+	ps->dmax = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_sdmax(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	uint32_t n;
+	n = (uint32_t) strtoul(script, (char **) &script, 10);
+	ps->sdmax = n;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_import(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	json_inode_t *value;
+	value = NULL;
+	script = json_decode(script, &value);
+	if (script)
+	{
+		if (value->type == json_inode_string)
+		{
+			if (!phoneme_script_load_package(ps, value->value.string))
+				script = NULL;
+		}
+		else script = NULL;
+		json_free(value);
+	}
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl_phoneme(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	phoneme_s *p;
+	char phname[phoneme_var_path_max];
+	if (phoneme_read_string(phname, sizeof(phname), &script, "=([ \t\r\n,;:") && *phname)
+	{
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		if (*script == '=')
+		{
+			++script;
+			while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+			p = phoneme_script_get_phoneme(ps, &script);
+			if (p)
+			{
+				if (phoneme_pool_set_phoneme(ps->phoneme_pool, phname, p))
+				{
+					refer_free(p);
+					return script;
+				}
+				refer_free(p);
+			}
+		}
+	}
+	return NULL;
+}
+
+static const char* phoneme_script_run_conctrl_sampfre(phoneme_buffer_s *restrict pb, const char *restrict script)
+{
+	uint32_t n;
+	n = (uint32_t) strtoul(script, (char **) &script, 10);
+	if (!phoneme_buffer_set_sampfre(pb, n)) return NULL;
+	return script;
+}
+
+static const char* phoneme_script_run_conctrl(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb)
+{
+	char key[16];
+	*(uint64_t *)key = 0;
+	if (phoneme_read_string(key, sizeof(key), &script, " \t\r\n"))
+	{
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		switch (*(uint64_t *)key)
+		{
+			case ((uint64_t) 'var'):
+				// var
+				return phoneme_script_run_conctrl_var(ps, script);
+			case ((uint64_t) 'core'):
+				// core
+				return phoneme_script_run_conctrl_core(ps, script);
+			case ((uint64_t) 'dmax'):
+				// dmax
+				return phoneme_script_run_conctrl_dmax(ps, script);
+			case (((uint64_t) 'b' << 32) | (uint64_t) 'time'):
+				// btime
+				return phoneme_script_run_conctrl_btime(ps, script);
+			case (((uint64_t) 's' << 32) | (uint64_t) 'dmax'):
+				// sdmax
+				return phoneme_script_run_conctrl_sdmax(ps, script);
+			case (((uint64_t) 'bf' << 32) | (uint64_t) 'line'):
+				// bfline
+				return phoneme_script_run_conctrl_bfline(ps, script);
+			case (((uint64_t) 'bf' << 32) | (uint64_t) 'step'):
+				// bfstep
+				return phoneme_script_run_conctrl_bfstep(ps, script);
+			case (((uint64_t) 'im' << 32) | (uint64_t) 'port'):
+				// import
+				return phoneme_script_run_conctrl_import(ps, script);
+			case (((uint64_t) 'vo' << 32) | (uint64_t) 'lume'):
+				// volume
+				return phoneme_script_run_conctrl_volume(ps, script);
+			case (((uint64_t) 'pac' << 32) | (uint64_t) 'kage'):
+				// package
+				return phoneme_script_run_conctrl_package(ps, script);
+			case (((uint64_t) 'pho' << 32) | (uint64_t) 'neme'):
+				// phoneme
+				return phoneme_script_run_conctrl_phoneme(ps, script);
+			case (((uint64_t) 'sam' << 32) | (uint64_t) 'pfre'):
+				// sampfre
+				return phoneme_script_run_conctrl_sampfre(pb, script);
+		}
+	}
+	return NULL;
+}
+
+static const char* phoneme_script_run_tpos_modify(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double n;
+	n = ps->space_time;
+	if (*script == '(')
+	{
+		++script;
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		if (*script == '<')
+		{
+			json_inode_t *value;
+			char path[phoneme_var_path_max];
+			++script;
+			if (!phoneme_read_string(path, sizeof(path), &script, ">")) goto Err;
+			if (*script != '>') goto Err;
+			++script;
+			value = phoneme_pool_get_var(ps->phoneme_pool, path);
+			if (!value) goto Err;
+			if (value->type == json_inode_integer)
+				n = value->value.integer;
+			else if (value->type == json_inode_floating)
+				n = value->value.floating;
+			else goto Err;
+		}
+		else n = strtod(script, (char **) &script);
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		if (*script == '=') ps->space_time = n;
+		if (*script != ')')
+		{
+			Err:
+			return NULL;
+		}
+		++script;
+	}
+	if ((ps->curr_pos += n * ps->base_time) < 0)
+		ps->curr_pos = 0;
+	return script;
+}
+
+static const char* phoneme_script_run_tpos_ulast(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	json_inode_t *value;
+	ps->last_pos = ps->curr_pos;
+	if (*script == '<')
+	{
+		char *jpath;
+		char path[phoneme_var_path_max];
+		++script;
+		value = NULL;
+		jpath = NULL;
+		if (!phoneme_read_string(path, sizeof(path), &script, ">")) goto Err;
+		if (*script != '>') goto Err;
+		++script;
+		if (*path) jpath = path;
+		value = json_create_floating(ps->curr_pos);
+		if (!value) goto Err;
+		if (!phoneme_pool_set_var(ps->phoneme_pool, jpath, value)) goto Err;
+	}
+	return script;
+	Err:
+	if (value) json_free(value);
+	return NULL;
+}
+
+static const char* phoneme_script_run_tpos_ucurr(phoneme_script_s *restrict ps, const char *restrict script)
+{
+	double pos;
+	pos = ps->last_pos;
+	if (*script == '<')
+	{
+		json_inode_t *value;
+		char path[phoneme_var_path_max];
+		++script;
+		if (!phoneme_read_string(path, sizeof(path), &script, ">")) goto Err;
+		if (*script != '>') goto Err;
+		++script;
+		value = phoneme_pool_get_var(ps->phoneme_pool, path);
+		if (!value) goto Err;
+		if (value->type == json_inode_integer)
+			pos = value->value.integer;
+		else if (value->type == json_inode_floating)
+			pos = value->value.floating;
+		else goto Err;
+		if (pos < 0) pos = 0;
+	}
+	ps->last_pos = ps->curr_pos;
+	ps->curr_pos = pos;
+	return script;
+	Err:
+	return NULL;
+}
+
+static double phoneme_script_run_phoneme_note_read_double(phoneme_script_s *restrict ps, register const char *restrict *restrict script)
+{
+	double r;
+	if (**script == '<')
+	{
+		json_inode_t *value;
+		char path[phoneme_var_path_max];
+		++*script;
+		if (!phoneme_read_string(path, sizeof(path), script, ">")) goto Err;
+		if (**script != '>') goto Err;
+		++*script;
+		value = phoneme_pool_get_var(ps->phoneme_pool, path);
+		if (!value) goto Err;
+		if (value->type == json_inode_integer)
+			r = value->value.integer;
+		else if (value->type == json_inode_floating)
+			r = value->value.floating;
+		else goto Err;
+	}
+	else r = strtod(*script, (char **) script);
+	return r;
+	Err:
+	*script = NULL;
+	return 0;
+}
+
+static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb, note_s *note)
+{
+	double klength;
+	double kvolume;
+	double kstep;
+	double v;
+	klength = kvolume = 1;
+	kstep = 0;
+	while (*script)
+	{
+		switch (*script)
+		{
+			case '_':
+				++script;
+				klength = phoneme_script_run_phoneme_note_read_double(ps, &script);
+				if (klength <= 0) goto Err;
+				break;
+			case '^':
+				++script;
+				kvolume = phoneme_script_run_phoneme_note_read_double(ps, &script);
+				if (kvolume <= 0) goto Err;
+				break;
+			case '~':
+				++script;
+				if (*script >= 'a' && *script <= 'z')
+					v = (*script++ - 'a' + 1) * ps->base_fre_step;
+				else if (*script >= 'A' && *script <= 'Z')
+					v = - (*script++ - 'a' + 1) * ps->base_fre_step;
+				else v = 0;
+				kstep = v + phoneme_script_run_phoneme_note_read_double(ps, &script);
+				break;
+			case ')':
+			case ',':
+			case ':':
+			case ';':
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				if (!phoneme_buffer_gen_note(pb, note, ps->curr_pos, ps->base_time * klength, ps->base_volume * kvolume, ps->base_fre_line * exp2(kstep / ps->base_fre_step)))
+					goto Err;
+				return script;
+			default:
+				goto Err;
+		}
+		if (!script) goto Err;
+	}
+	Err:
+	return NULL;
+}
+
+static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb)
+{
+	phoneme_s *p;
+	p = phoneme_script_get_phoneme(ps, &script);
+	if (p && p->note)
+	{
+		if (*script == '(')
+		{
+			++script;
+			while (*script)
+			{
+				while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+				switch (*script)
+				{
+					case ')':
+						return script + 1;
+					case ',':
+						// time curr pos +=
+						script = phoneme_script_run_tpos_modify(ps, script + 1);
+						if (!phoneme_buffer_set_frames(pb, ps->curr_pos)) goto Err;
+						break;
+					case ';':
+						// time last pos update
+						script = phoneme_script_run_tpos_ulast(ps, script + 1);
+						break;
+					case ':':
+						// time curr pos update
+						script = phoneme_script_run_tpos_ucurr(ps, script + 1);
+						if (!phoneme_buffer_set_frames(pb, ps->curr_pos)) goto Err;
+						break;
+					default:
+						// phoneme
+						script = phoneme_script_run_phoneme_note(ps, script, pb, p->note);
+						break;
+				}
+				if (!script) goto Err;
+			}
+		}
+		else
+		{
+			if (!phoneme_buffer_gen_note(pb, p->note, ps->curr_pos, ps->base_time, ps->base_volume, ps->base_fre_line))
+				goto Err;
+			return script;
+		}
+	}
+	Err:
+	return NULL;
+}
+
+phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register const char *restrict script, phoneme_buffer_s *restrict pb)
+{
+	while (*script)
+	{
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		switch (*script)
+		{
+			case '.':
+				// control
+				script = phoneme_script_run_conctrl(ps, script + 1, pb);
+				break;
+			case ',':
+				// time curr pos +=
+				script = phoneme_script_run_tpos_modify(ps, script + 1);
+				if (!phoneme_buffer_set_frames(pb, ps->curr_pos)) goto Err;
+				break;
+			case ';':
+				// time last pos update
+				script = phoneme_script_run_tpos_ulast(ps, script + 1);
+				break;
+			case ':':
+				// time curr pos update
+				script = phoneme_script_run_tpos_ucurr(ps, script + 1);
+				if (!phoneme_buffer_set_frames(pb, ps->curr_pos)) goto Err;
+				break;
+			default:
+				// phoneme
+				script = phoneme_script_run_phoneme(ps, script, pb);
+				break;
+		}
+		if (!script) goto Err;
+	}
+	return pb;
 	Err:
 	return NULL;
 }

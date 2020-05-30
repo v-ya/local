@@ -360,7 +360,7 @@ phoneme_s* phoneme_pool_get_phoneme(register phoneme_pool_s *restrict pp, const 
 	return (phoneme_s *) refer_save(hashmap_get_name(&pp->phoneme, phname));
 }
 
-phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp, const char *restrict phname, const char **restrict modify, uint32_t sdmax, uint32_t dmax)
+phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp, const char *restrict phname, const char *restrict *restrict modify, uint32_t sdmax, uint32_t dmax)
 {
 	register phoneme_s *restrict p;
 	p = (phoneme_s *) hashmap_get_name(&pp->phoneme, phname);

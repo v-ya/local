@@ -26,6 +26,6 @@ phoneme_src_t* phoneme_src_set(phoneme_src_t *restrict ps, phoneme_pool_s *restr
 phoneme_s* phoneme_alloc(uint32_t sdmax, phoneme_pool_s *restrict pp, json_inode_t *restrict o);
 phoneme_s* phoneme_set_arg(phoneme_s *restrict p, phoneme_pool_s *restrict pp, json_inode_t *restrict o);
 note_s* phoneme_update(phoneme_s *restrict p, phoneme_pool_s *restrict pp, uint32_t dmax);
-phoneme_s* phoneme_modify(phoneme_s *restrict p, phoneme_pool_s *restrict pp, const char **restrict modify, uint32_t sdmax);
+phoneme_s* phoneme_modify(phoneme_s *restrict p, phoneme_pool_s *restrict pp, const char *restrict *restrict modify, uint32_t sdmax);
 
 #endif

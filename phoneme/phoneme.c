@@ -191,14 +191,14 @@ note_s* phoneme_update(register phoneme_s *restrict p, register phoneme_pool_s *
 	return n;
 }
 
-static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_src_t *restrict s, phoneme_pool_s *restrict pp, hashmap_t *restrict symlist, register const char **restrict modify)
+static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_src_t *restrict s, phoneme_pool_s *restrict pp, hashmap_t *restrict symlist, register const char *restrict *restrict modify)
 {
 	register const char *restrict ss, *restrict tt;
 	void *func;
 	phoneme_src_name_s name;
 	json_inode_t *v;
-	char path[512];
-	char value[512];
+	char path[phoneme_var_path_max];
+	char value[phoneme_var_path_max];
 	ss = *modify;
 	while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
 	if (*ss != '(') goto Err;
@@ -341,7 +341,7 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 	return NULL;
 }
 
-phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_s *restrict pp, const char **restrict modify, uint32_t sdmax)
+phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_s *restrict pp, const char *restrict *restrict modify, uint32_t sdmax)
 {
 	static phoneme_src_t s_phoneme_src_null = {
 		.name = NULL,

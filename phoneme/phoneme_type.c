@@ -60,7 +60,7 @@ phoneme_arg_s* phoneme_arg_dump(phoneme_arg_s *restrict a)
 	return r;
 }
 
-char* phoneme_read_string(char *restrict buffer, size_t n, register const char **restrict ps, const char *restrict endc)
+char* phoneme_read_string(char *restrict buffer, size_t n, register const char *restrict *restrict ps, const char *restrict endc)
 {
 	const char *restrict t;
 	size_t nn;
