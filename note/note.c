@@ -118,12 +118,13 @@ void note_random_phase(note_s *restrict n)
 	}
 }
 
-void note_gen(note_s *restrict n, double t, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre)
+void note_gen(note_s *restrict n, double length, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre)
 {
-	double f, k, a, apv;
+	double t, f, k, a, apv;
 	uint32_t i, j, l, nn, si, sn;
 	if (n->base_frequency && n->base_frequency && n->stage_used && n->stage->func)
 	{
+		t = length;
 		nn = (uint32_t) (t * sampfre);
 		sn = n->stage_used;
 		if (nn)
@@ -134,20 +135,20 @@ void note_gen(note_s *restrict n, double t, double volume, double basefre, doubl
 			while (i < nn)
 			{
 				t = i * k;
-				a = n->envelope(n->envelope_pri, t, volume);
-				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, a / volume);
+				a = n->envelope(n->envelope_pri, t, volume, length);
+				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, a / volume, length);
 				l = sampfre / f;
 				t += l * k / 2;
-				a = n->envelope(n->envelope_pri, t, volume);
-				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, apv = a / volume);
+				a = n->envelope(n->envelope_pri, t, volume, length);
+				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, apv = a / volume, length);
 				l = sampfre / f;
 				j = i + l;
 				if (i > j) goto Err;
 				else if (l)
 				{
 					for (si = 0; si < sn; ++si)
-						n->stage[si].func(n->stage[si].pri, n->details, t, f, a, apv);
-					note_details_gen_ex(v + i, frames - i, n->details, l, n->envelope, i * k, j * k, volume, n->envelope_pri);
+						n->stage[si].func(n->stage[si].pri, n->details, t, f, a, apv, length);
+					note_details_gen(v + i, frames - i, n->details, l, a);
 				}
 				i = j + 1;
 			}
@@ -157,8 +158,8 @@ void note_gen(note_s *restrict n, double t, double volume, double basefre, doubl
 	return ;
 }
 
-void note_gen_with_pos(note_s *restrict n, double t, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
+void note_gen_with_pos(note_s *restrict n, double length, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)
 {
 	if (pos < frames)
-		note_gen(n, t, volume, basefre, v + pos, frames - pos, sampfre);
+		note_gen(n, length, volume, basefre, v + pos, frames - pos, sampfre);
 }

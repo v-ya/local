@@ -25,18 +25,20 @@ phoneme_arg_s* phoneme_arg_pool_set(register phoneme_arg_pool_s *restrict pool, 
 	if (arg)
 	{
 		refer_t pri;
-		if (hashmap_set_name(&pool->json, name, arg, phoneme_hashmap_free_refer_func))
-			refer_save(arg);
-		hashmap_delete_name(&pool->pri, name);
-		if (pool->arg2pri)
+		if (pool->arg2pri && (pri = pool->arg2pri(*arg)))
 		{
-			pri = pool->arg2pri(*arg);
-			if (pri && hashmap_set_name(&pool->pri, name, pri, phoneme_hashmap_free_refer_func))
-				pri = NULL;
-			else arg = NULL;
-			if (pri) refer_free(pri);
+			if (hashmap_set_name(&pool->json, name, arg, phoneme_hashmap_free_refer_func))
+			{
+				refer_save(arg);
+				if (hashmap_set_name(&pool->pri, name, pri, phoneme_hashmap_free_refer_func))
+					return arg;
+				else
+				{
+					refer_free(pri);
+					hashmap_delete_name(&pool->json, name);
+				}
+			}
 		}
-		return arg;
 	}
 	return NULL;
 }

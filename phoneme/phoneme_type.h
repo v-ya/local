@@ -1,6 +1,7 @@
 #ifndef _phoneme_type_h_
 #define _phoneme_type_h_
 
+#include <stdint.h>
 #include <refer.h>
 #include <hashmap.h>
 #include <json.h>

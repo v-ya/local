@@ -543,40 +543,40 @@ static const char* phoneme_script_run_conctrl(phoneme_script_s *restrict ps, con
 		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
 		switch (*(uint64_t *)key)
 		{
-			case ((uint64_t) 'var'):
+			case ((uint64_t) 'rav'):
 				// var
 				return phoneme_script_run_conctrl_var(ps, script);
-			case ((uint64_t) 'core'):
+			case ((uint64_t) 'eroc'):
 				// core
 				return phoneme_script_run_conctrl_core(ps, script);
-			case ((uint64_t) 'dmax'):
+			case ((uint64_t) 'xamd'):
 				// dmax
 				return phoneme_script_run_conctrl_dmax(ps, script);
-			case (((uint64_t) 'b' << 32) | (uint64_t) 'time'):
+			case (((uint64_t) 'e' << 32) | (uint64_t) 'mitb'):
 				// btime
 				return phoneme_script_run_conctrl_btime(ps, script);
-			case (((uint64_t) 's' << 32) | (uint64_t) 'dmax'):
+			case (((uint64_t) 'x' << 32) | (uint64_t) 'amds'):
 				// sdmax
 				return phoneme_script_run_conctrl_sdmax(ps, script);
-			case (((uint64_t) 'bf' << 32) | (uint64_t) 'line'):
-				// bfline
-				return phoneme_script_run_conctrl_bfline(ps, script);
-			case (((uint64_t) 'bf' << 32) | (uint64_t) 'step'):
-				// bfstep
-				return phoneme_script_run_conctrl_bfstep(ps, script);
-			case (((uint64_t) 'im' << 32) | (uint64_t) 'port'):
-				// import
-				return phoneme_script_run_conctrl_import(ps, script);
-			case (((uint64_t) 'vo' << 32) | (uint64_t) 'lume'):
+			case (((uint64_t) 'em' << 32) | (uint64_t) 'ulov'):
 				// volume
 				return phoneme_script_run_conctrl_volume(ps, script);
-			case (((uint64_t) 'pac' << 32) | (uint64_t) 'kage'):
+			case (((uint64_t) 'en' << 32) | (uint64_t) 'ilfb'):
+				// bfline
+				return phoneme_script_run_conctrl_bfline(ps, script);
+			case (((uint64_t) 'pe' << 32) | (uint64_t) 'tsfb'):
+				// bfstep
+				return phoneme_script_run_conctrl_bfstep(ps, script);
+			case (((uint64_t) 'tr' << 32) | (uint64_t) 'opmi'):
+				// import
+				return phoneme_script_run_conctrl_import(ps, script);
+			case (((uint64_t) 'ega' << 32) | (uint64_t) 'kcap'):
 				// package
 				return phoneme_script_run_conctrl_package(ps, script);
-			case (((uint64_t) 'pho' << 32) | (uint64_t) 'neme'):
+			case (((uint64_t) 'eme' << 32) | (uint64_t) 'nohp'):
 				// phoneme
 				return phoneme_script_run_conctrl_phoneme(ps, script);
-			case (((uint64_t) 'sam' << 32) | (uint64_t) 'pfre'):
+			case (((uint64_t) 'erf' << 32) | (uint64_t) 'pmas'):
 				// sampfre
 				return phoneme_script_run_conctrl_sampfre(pb, script);
 		}
@@ -610,7 +610,12 @@ static const char* phoneme_script_run_tpos_modify(phoneme_script_s *restrict ps,
 		}
 		else n = strtod(script, (char **) &script);
 		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
-		if (*script == '=') ps->space_time = n;
+		if (*script == '=')
+		{
+			ps->space_time = n;
+			++script;
+		}
+		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
 		if (*script != ')')
 		{
 			Err:
@@ -729,7 +734,7 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 				if (*script >= 'a' && *script <= 'z')
 					v = (*script++ - 'a' + 1) * ps->base_fre_step;
 				else if (*script >= 'A' && *script <= 'Z')
-					v = - (*script++ - 'a' + 1) * ps->base_fre_step;
+					v = - (*script++ - 'A' + 1) * ps->base_fre_step;
 				else v = 0;
 				kstep = v + phoneme_script_run_phoneme_note_read_double(ps, &script);
 				break;
@@ -741,8 +746,9 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 			case '\t':
 			case '\r':
 			case '\n':
-				if (!phoneme_buffer_gen_note(pb, note, ps->curr_pos, ps->base_time * klength, ps->base_volume * kvolume, ps->base_fre_line * exp2(kstep / ps->base_fre_step)))
+				if (!phoneme_buffer_gen_note(pb, note, ps->curr_pos, klength *= ps->base_time, ps->base_volume * kvolume, ps->base_fre_line * exp2(kstep / ps->base_fre_step)))
 					goto Err;
+				ps->curr_pos += klength;
 				return script;
 			default:
 				goto Err;
@@ -756,10 +762,12 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb)
 {
 	phoneme_s *p;
+	ps->last_pos = ps->curr_pos;
 	p = phoneme_script_get_phoneme(ps, &script);
-	if (p && p->note)
+	if (p)
 	{
-		if (*script == '(')
+		if (!p->note) ;
+		else if (*script == '(')
 		{
 			++script;
 			while (*script)
@@ -768,7 +776,8 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 				switch (*script)
 				{
 					case ')':
-						return script + 1;
+						++script;
+						goto End;
 					case ',':
 						// time curr pos +=
 						script = phoneme_script_run_tpos_modify(ps, script + 1);
@@ -795,11 +804,15 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 		{
 			if (!phoneme_buffer_gen_note(pb, p->note, ps->curr_pos, ps->base_time, ps->base_volume, ps->base_fre_line))
 				goto Err;
-			return script;
+			ps->curr_pos += ps->base_time;
+			goto End;
 		}
 	}
 	Err:
-	return NULL;
+	script = NULL;
+	End:
+	if (p) refer_free(p);
+	return script;
 }
 
 phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register const char *restrict script, phoneme_buffer_s *restrict pb)
@@ -809,6 +822,8 @@ phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
 		switch (*script)
 		{
+			case 0:
+				break;
 			case '.':
 				// control
 				script = phoneme_script_run_conctrl(ps, script + 1, pb);
