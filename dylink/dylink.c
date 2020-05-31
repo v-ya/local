@@ -95,13 +95,12 @@ int dylink_link(uint8_t *d, uint8_t *r, dylink_set_f dylink_set, dylink_import_f
 
 void* m_x86_64_dylink_plt_set(void *dst, void *func, void ***plt)
 {
-	// 48 b8 -- -- -- -- -- --
-	// -- -- ff e0 cc cc cc cc
-	// mov rax, func
-	// jmp rax
-	*(uint64_t *) dst = ((uintptr_t) func << 16) | 0xb848UL;
-	*((uint64_t *) dst + 1) = ((uintptr_t) func >> 48) | 0xcccccccce0ff0000;
-	if (plt) *plt = (void **)((uint8_t *) dst + 2);
+	// ff 25 02 00 00 00 xx xx
+	// -- -- -- -- -- -- -- --
+	// jmpq *0x2(%rip)
+	*(uint64_t *) dst = 0x0225ff;
+	*((void **) dst + 1) = func;
+	if (plt) *plt = (void **) dst + 1;
 	return dst;
 }
 

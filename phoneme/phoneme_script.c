@@ -842,6 +842,9 @@ phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 				script = phoneme_script_run_tpos_ucurr(ps, script + 1);
 				if (!phoneme_buffer_set_frames(pb, ps->curr_pos)) goto Err;
 				break;
+			case '#':
+				if (!(script = strchr(script, '\n'))) goto End;
+				break;
 			default:
 				// phoneme
 				script = phoneme_script_run_phoneme(ps, script, pb);
@@ -849,6 +852,7 @@ phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 		}
 		if (!script) goto Err;
 	}
+	End:
 	return pb;
 	Err:
 	return NULL;
