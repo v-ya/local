@@ -460,7 +460,7 @@ static const char* phoneme_script_run_conctrl_bfstep(phoneme_script_s *restrict 
 {
 	double n;
 	n = strtod(script, (char **) &script);
-	if (n <= 0) return NULL;
+	if (n == 0) return NULL;
 	ps->base_fre_step = n;
 	return script;
 }
