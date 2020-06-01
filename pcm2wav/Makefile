@@ -3,7 +3,7 @@ TARGET		= pcm2wav
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS		= -lwav
+LDFLAGS		= -lhashmap -largs -lwav
 
 OBJECT		= pcm2wav.o
 
