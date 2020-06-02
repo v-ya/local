@@ -16,14 +16,13 @@ mlog_s* mlog_alloc(uint32_t init2exp)
 	if (!init2exp) init2exp = 14;
 	if (init2exp < 32)
 	{
-		r = (mlog_s *) refer_alloc(sizeof(mlog_s));
+		r = (mlog_s *) refer_alloz(sizeof(mlog_s));
 		if (r)
 		{
 			r->size = 1 << init2exp;
 			r->mlog = (char *) malloc(r->size);
 			if (r->mlog)
 			{
-				r->length = 0;
 				*r->mlog = 0;
 				refer_set_free(r, (refer_free_f) mlog_free_func);
 				return r;
