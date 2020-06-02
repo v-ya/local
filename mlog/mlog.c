@@ -7,6 +7,7 @@
 static void mlog_free_func(mlog_s *restrict r)
 {
 	if (r->mlog) free(r->mlog);
+	if (r->pri) refer_free(r->pri);
 }
 
 mlog_s* mlog_alloc(uint32_t init2exp)
@@ -33,6 +34,14 @@ mlog_s* mlog_alloc(uint32_t init2exp)
 	return NULL;
 }
 
+mlog_s* mlog_set_report(mlog_s *restrict r, mlog_report_f report_func, refer_t pri)
+{
+	if (r->pri) refer_free(r->pri);
+	r->report = report_func;
+	r->pri = refer_save(pri);
+	return r;
+}
+
 mlog_s* mlog_expand(mlog_s *restrict r)
 {
 	char *rr;
@@ -55,7 +64,7 @@ mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...)
 {
 	va_list list;
 	size_t n, nn;
-	if (r->length + 1 < r->size || (r = mlog_expand(r)))
+	if (r && (r->length + 1 < r->size || (r = mlog_expand(r))))
 	{
 		label_try:
 		va_start(list, fmt);
@@ -68,8 +77,16 @@ mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...)
 			goto label_try;
 		}
 		va_end(list);
-		r->length += n;
+		if (!r->report || !r->report(r->mlog + r->length, n, r->pri))
+			r->length += n;
 	}
+	return r;
+}
+
+mlog_s* mlog_clear(mlog_s *restrict r)
+{
+	r->length = 0;
+	*r->mlog = 0;
 	return r;
 }
 

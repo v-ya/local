@@ -358,8 +358,15 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	return r;
 }
 
+static int mlog_report_func(const char *restrict msg, size_t length, refer_t pri)
+{
+	if (length) fwrite(msg, 1, length, stdout);
+	return 1;
+}
+
 int main(int argc, const char *argv[])
 {
+	mlog_s *mlog;
 	phoneme_script_s *ps;
 	phoneme_buffer_s *pb;
 	args_t args;
@@ -373,32 +380,38 @@ int main(int argc, const char *argv[])
 		else if (!r && !(r = args_check(&args)))
 		{
 			r = -1;
-			ps = phoneme_script_alloc(args.xmsize, (phoneme_script_sysfunc_f) sysfunc, NULL);
-			if (ps)
+			mlog = mlog_alloc(0);
+			if (mlog)
 			{
-				if ((!args.core_path || phoneme_script_set_core_path(ps, args.core_path)) &&
-					(!args.package_path || phoneme_script_set_package_path(ps, args.package_path)))
+				mlog_set_report(mlog, (mlog_report_f) mlog_report_func, NULL);
+				ps = phoneme_script_alloc(args.xmsize, mlog, (phoneme_script_sysfunc_f) sysfunc, NULL);
+				if (ps)
 				{
-					if (args.base_time) ps->base_time = args.base_time;
-					if (args.base_volume) ps->base_volume = args.base_volume;
-					if (args.base_fre_line) ps->base_fre_line = args.base_fre_line;
-					if (args.base_fre_step) ps->base_fre_step = args.base_fre_step;
-					if (args.space_time_used) ps->space_time = args.space_time;
-					if (args.sdmax) ps->sdmax = args.sdmax;
-					if (args.dmax) ps->dmax = args.dmax;
-					pb = phoneme_buffer_alloc(args.sampfre, 0);
-					if (pb)
+					if ((!args.core_path || phoneme_script_set_core_path(ps, args.core_path)) &&
+						(!args.package_path || phoneme_script_set_package_path(ps, args.package_path)))
 					{
-						if (phoneme_script_load(ps, args.input, pb))
+						if (args.base_time) ps->base_time = args.base_time;
+						if (args.base_volume) ps->base_volume = args.base_volume;
+						if (args.base_fre_line) ps->base_fre_line = args.base_fre_line;
+						if (args.base_fre_step) ps->base_fre_step = args.base_fre_step;
+						if (args.space_time_used) ps->space_time = args.space_time;
+						if (args.sdmax) ps->sdmax = args.sdmax;
+						if (args.dmax) ps->dmax = args.dmax;
+						pb = phoneme_buffer_alloc(args.sampfre, 0);
+						if (pb)
 						{
-							if (!wav_save_double(args.output, &pb->buffer, pb->frames, 1, pb->sampfre))
-								r = 0;
+							if (phoneme_script_load(ps, args.input, pb))
+							{
+								if (!wav_save_double(args.output, &pb->buffer, pb->frames, 1, pb->sampfre))
+									r = 0;
+							}
+							refer_free(pb);
 						}
-						else printf("phoneme_script_load fail ...\n");
-						refer_free(pb);
 					}
+					refer_free(ps);
 				}
-				refer_free(ps);
+				if (mlog->length) fwrite(mlog->mlog, 1, mlog->length, stdout);
+				refer_free(mlog);
 			}
 		}
 	}

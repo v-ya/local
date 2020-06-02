@@ -6,8 +6,8 @@ HEADER		= phoneme_type.h phoneme_buffer.h phoneme_arg.h phoneme_pool.h phoneme.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -ldylink -lnote -lm -Wl,-soname,${TARGET-LIB}
-LDFLAGS-BIN	= -lrefer -lhashmap -largs -ldylink -lwav -lm -L. -lphoneme
+LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -lm -Wl,-soname,${TARGET-LIB}
+LDFLAGS-BIN	= -lrefer -lhashmap -lmlog -largs -ldylink -lwav -lm -L. -lphoneme
 
 OBJECT-LIB	= phoneme_type.o phoneme_buffer.o phoneme_arg.o phoneme.o phoneme_pool.o phoneme_script.o
 OBJECT-BIN	= phoneme-entry.o core/core.o

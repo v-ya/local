@@ -4,6 +4,7 @@
 #include "phoneme_type.h"
 #include "phoneme_arg.h"
 #include <dylink.h>
+#include <mlog.h>
 
 typedef struct phoneme_pool_s {
 	dylink_pool_t *dypool;  // 动态链接池
@@ -25,9 +26,11 @@ typedef struct phoneme_pool_s {
 	// phoneme_name => phoneme_s *
 	hashmap_t phoneme;      // 音素表
 	json_inode_t *var;      // 自定义变量树
+	mlog_s *mlog;           // 错误输出
 } phoneme_pool_s;
 
 phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool);
+void phoneme_pool_set_mlog(phoneme_pool_s *restrict pp, mlog_s *restrict ml);
 int phoneme_pool_test_package(phoneme_pool_s *restrict pp, const char *restrict package);
 int phoneme_pool_load_package(phoneme_pool_s *restrict pp, const char *restrict package, const char *restrict path);
 phoneme_src_name_s phoneme_pool_get_name(phoneme_pool_s *restrict pp, const char *restrict type);

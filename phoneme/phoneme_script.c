@@ -7,12 +7,14 @@
 static void phoneme_script_free_func(phoneme_script_s *restrict ps)
 {
 	hashmap_uini(&ps->package);
+	hashmap_uini(&ps->script);
 	if (ps->phoneme_pool) refer_free(ps->phoneme_pool);
+	if (ps->mlog) refer_free(ps->mlog);
 	if (ps->core_path) refer_free((refer_t) ps->core_path);
 	if (ps->package_path) refer_free((refer_t) ps->package_path);
 }
 
-phoneme_script_s* phoneme_script_alloc(size_t xmsize, phoneme_script_sysfunc_f sysfunc, void *pri)
+phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, phoneme_script_sysfunc_f sysfunc, void *pri)
 {
 	register phoneme_script_s *r;
 	dylink_pool_t *dyp;
@@ -24,12 +26,13 @@ phoneme_script_s* phoneme_script_alloc(size_t xmsize, phoneme_script_sysfunc_f s
 			r = (phoneme_script_s *) refer_alloz(sizeof(phoneme_script_s));
 			if (r)
 			{
-				if (hashmap_init(&r->package))
+				refer_set_free(r, (refer_free_f) phoneme_script_free_func);
+				if (hashmap_init(&r->package) && hashmap_init(&r->script))
 				{
-					refer_set_free(r, (refer_free_f) phoneme_script_free_func);
 					if ((r->phoneme_pool = phoneme_pool_alloc(dyp)))
 					{
 						dyp = NULL;
+						phoneme_pool_set_mlog(r->phoneme_pool, r->mlog = refer_save(mlog));
 						r->base_time = 0.5;
 						r->base_volume = 0.5;
 						r->base_fre_line = 440;
@@ -333,6 +336,8 @@ phoneme_buffer_s* phoneme_script_load(phoneme_script_s *restrict ps, const char 
 	FILE *fp;
 	size_t size;
 	script = NULL;
+	if (hashmap_find_name(&ps->script, script_path))
+		return NULL;
 	fp = fopen(script_path, "r");
 	if (fp)
 	{
@@ -352,7 +357,12 @@ phoneme_buffer_s* phoneme_script_load(phoneme_script_s *restrict ps, const char 
 	if (script)
 	{
 		script[size] = 0;
-		pb = phoneme_script_run(ps, script, pb);
+		if (hashmap_set_name(&ps->script, script_path, NULL, NULL))
+		{
+			pb = phoneme_script_run(ps, script, pb);
+			hashmap_delete_name(&ps->script, script_path);
+		}
+		else pb = NULL;
 		free(script);
 	}
 	else pb = NULL;
@@ -534,6 +544,24 @@ static const char* phoneme_script_run_conctrl_sampfre(phoneme_buffer_s *restrict
 	return script;
 }
 
+static const char* phoneme_script_run_conctrl_include(phoneme_script_s *restrict ps, phoneme_buffer_s *restrict pb, const char *restrict script)
+{
+	json_inode_t *value;
+	value = NULL;
+	script = json_decode(script, &value);
+	if (script)
+	{
+		if (value->type == json_inode_string)
+		{
+			if (!phoneme_script_load(ps, value->value.string, pb))
+				script = NULL;
+		}
+		else script = NULL;
+		json_free(value);
+	}
+	return script;
+}
+
 static const char* phoneme_script_run_conctrl(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb)
 {
 	char key[16];
@@ -570,6 +598,9 @@ static const char* phoneme_script_run_conctrl(phoneme_script_s *restrict ps, con
 			case (((uint64_t) 'tr' << 32) | (uint64_t) 'opmi'):
 				// import
 				return phoneme_script_run_conctrl_import(ps, script);
+			case (((uint64_t) 'edu' << 32) | (uint64_t) 'lcni'):
+				// include
+				return phoneme_script_run_conctrl_include(ps, pb, script);
 			case (((uint64_t) 'ega' << 32) | (uint64_t) 'kcap'):
 				// package
 				return phoneme_script_run_conctrl_package(ps, script);
@@ -581,6 +612,7 @@ static const char* phoneme_script_run_conctrl(phoneme_script_s *restrict ps, con
 				return phoneme_script_run_conctrl_sampfre(pb, script);
 		}
 	}
+	mlog_printf(ps->mlog, "unknow control key [%s]\n", key);
 	return NULL;
 }
 
@@ -746,8 +778,14 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 			case '\t':
 			case '\r':
 			case '\n':
-				if (!phoneme_buffer_gen_note(pb, note, ps->curr_pos, klength *= ps->base_time, ps->base_volume * kvolume, ps->base_fre_line * exp2(kstep / ps->base_fre_step)))
+				if (!phoneme_buffer_gen_note(pb, note, ps->curr_pos, klength *= ps->base_time, kvolume *= ps->base_volume, kstep = ps->base_fre_line * exp2(kstep / ps->base_fre_step)))
+				{
+					mlog_printf(
+						ps->mlog, "phoneme gen note fail, [pos = %.2f, length = %.3f, volume = %.3f, fre = %.2f]\n",
+						ps->curr_pos, klength, kvolume, kstep
+					);
 					goto Err;
+				}
 				ps->curr_pos += klength;
 				return script;
 			default:
@@ -759,13 +797,15 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 	return NULL;
 }
 
-static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb)
+static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, const char *restrict *restrict pscript, phoneme_buffer_s *restrict pb)
 {
+	register const char *restrict script;
 	phoneme_s *p;
 	ps->last_pos = ps->curr_pos;
-	p = phoneme_script_get_phoneme(ps, &script);
+	p = phoneme_script_get_phoneme(ps, pscript);
 	if (p)
 	{
+		script = *pscript;
 		if (!p->note) ;
 		else if (*script == '(')
 		{
@@ -773,6 +813,7 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 			while (*script)
 			{
 				while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+				*pscript = script;
 				switch (*script)
 				{
 					case ')':
@@ -803,7 +844,13 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 		else
 		{
 			if (!phoneme_buffer_gen_note(pb, p->note, ps->curr_pos, ps->base_time, ps->base_volume, ps->base_fre_line))
+			{
+				mlog_printf(
+					ps->mlog, "phoneme gen note fail, [pos = %.2f, length = %.3f, volume = %.3f, fre = %.2f]\n",
+					ps->curr_pos, ps->base_time, ps->base_volume, ps->base_fre_line
+				);
 				goto Err;
+			}
 			ps->curr_pos += ps->base_time;
 			goto End;
 		}
@@ -815,11 +862,52 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 	return script;
 }
 
+static void phoneme_script_run_dump_pos(mlog_s *restrict mlog, const char *restrict start, const char *restrict pos)
+{
+	register const char *s;
+	const char *b, *e;
+	uint32_t line, col, u, v;
+	char buffer[64];
+	if (mlog)
+	{
+		for (s = pos; *s && *s != '\n'; ++s);
+		while (s > pos && (*s == '\n' || *s == '\r')) --s;
+		e = s;
+		for (s = pos; s > start && *s != '\n'; --s);
+		if (*s == '\n') ++s;
+		b = s;
+		line = 1;
+		col = (uint32_t)(uintptr_t)(pos - b) + 1;
+		while (s > start)
+		{
+			if (*s == '\n') ++line;
+			--s;
+		}
+		u = (uint32_t)(uintptr_t)(pos - b);
+		v = (uint32_t)(uintptr_t)(e - pos);
+		if (u + v >= sizeof(buffer))
+		{
+			b = pos - u * (sizeof(buffer) - 1) / (u + v);
+			e = pos + v * (sizeof(buffer) - 1) / (u + v);
+		}
+		for (s = b, v = 0; s <= e; ++s)
+		{
+			buffer[v++] = (*s == '\t')?' ':*s;
+		}
+		buffer[v] = 0;
+		mlog_printf(mlog, "%8u:%-4u %s\n", line, col, buffer);
+		mlog_printf(mlog, "%*c\n", u + 15, '^');
+	}
+}
+
 phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register const char *restrict script, phoneme_buffer_s *restrict pb)
 {
+	const char *start, *pos;
+	start = pos = script;
 	while (*script)
 	{
 		while (phoneme_alpha_table_space[*(uint8_t*)script]) ++script;
+		pos = script;
 		switch (*script)
 		{
 			case 0:
@@ -847,7 +935,7 @@ phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 				break;
 			default:
 				// phoneme
-				script = phoneme_script_run_phoneme(ps, script, pb);
+				script = phoneme_script_run_phoneme(ps, &pos, pb);
 				break;
 		}
 		if (!script) goto Err;
@@ -855,5 +943,7 @@ phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 	End:
 	return pb;
 	Err:
+	mlog_printf(ps->mlog, "script run fail\n");
+	phoneme_script_run_dump_pos(ps->mlog, start, pos);
 	return NULL;
 }

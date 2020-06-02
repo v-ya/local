@@ -5,12 +5,15 @@
 #include "phoneme_buffer.h"
 #include "phoneme_pool.h"
 #include "phoneme.h"
+#include <mlog.h>
 
 typedef int (*phoneme_script_sysfunc_f)(dylink_pool_t *restrict dyp, void *pri);
 
 typedef struct phoneme_script_s {
 	phoneme_pool_s *phoneme_pool;
+	mlog_s *mlog;
 	hashmap_t package;
+	hashmap_t script;
 	phoneme_src_name_s core_path;
 	phoneme_src_name_s package_path;
 	double base_time;
@@ -24,7 +27,7 @@ typedef struct phoneme_script_s {
 	uint32_t dmax;
 } phoneme_script_s;
 
-phoneme_script_s* phoneme_script_alloc(size_t xmsize, phoneme_script_sysfunc_f sysfunc, void *pri);
+phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, phoneme_script_sysfunc_f sysfunc, void *pri);
 phoneme_src_name_s phoneme_script_set_core_path(phoneme_script_s *restrict ps, const char *restrict path);
 phoneme_src_name_s phoneme_script_set_package_path(phoneme_script_s *restrict ps, const char *restrict path);
 phoneme_script_s* phoneme_script_load_core(phoneme_script_s *restrict ps, const char *restrict core);

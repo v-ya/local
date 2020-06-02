@@ -1,6 +1,5 @@
 #include "phoneme_pool.h"
 #include "phoneme.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -8,6 +7,7 @@ static void phoneme_pool_free_func(phoneme_pool_s *restrict pp)
 {
 	if (pp->dypool) dylink_pool_free(pp->dypool);
 	if (pp->var) json_free(pp->var);
+	if (pp->mlog) refer_free(pp->mlog);
 	hashmap_uini(&pp->depend);
 	hashmap_uini(&pp->name);
 	hashmap_uini(&pp->envelope);
@@ -99,20 +99,20 @@ static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_r
 				{
 					if (hashmap_find_name(&pp->name, sname))
 					{
-						printf("phoneme symbol [%s] conflict\n", sname);
+						mlog_printf(pp->mlog, "phoneme symbol [%s] conflict\n", sname);
 						r = -1;
 						goto Err;
 					}
 					if (!hashmap_set_name(&pp->name, sname, sname, phoneme_hashmap_free_refer_func))
 					{
-						printf("set phoneme name [%s] fail\n", sname);
+						mlog_printf(pp->mlog, "set phoneme name [%s] fail\n", sname);
 						r = -1;
 						goto Err;
 					}
 					refer_save((refer_t) sname);
 					if (!hashmap_set_name(symlist, sname, ptr, NULL))
 					{
-						printf("set phoneme symbol [%s] fail\n", sname);
+						mlog_printf(pp->mlog, "set phoneme symbol [%s] fail\n", sname);
 						r = -1;
 					}
 				}
@@ -126,8 +126,8 @@ static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_r
 			refer_free((refer_t) sname);
 		}
 	}
-	else if (type == dylink_pool_report_type_import_fail) printf("import [%s] fail\n", symbol);
-	else if (type == dylink_pool_report_type_export_fail) printf("export [%s] fail\n", symbol);
+	else if (type == dylink_pool_report_type_import_fail) mlog_printf(pp->mlog, "import [%s] fail\n", symbol);
+	else if (type == dylink_pool_report_type_export_fail) mlog_printf(pp->mlog, "export [%s] fail\n", symbol);
 	return r;
 }
 
@@ -157,6 +157,12 @@ phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool)
 		}
 	}
 	return NULL;
+}
+
+void phoneme_pool_set_mlog(phoneme_pool_s *restrict pp, mlog_s *restrict ml)
+{
+	if (pp->mlog) refer_free(pp->mlog);
+	pp->mlog = refer_save(ml);
 }
 
 int phoneme_pool_test_package(phoneme_pool_s *restrict pp, const char *restrict package)
