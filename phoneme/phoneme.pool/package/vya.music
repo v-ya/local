@@ -1,0 +1,21 @@
+{
+	"package": [
+		"vya.base"
+	],
+	"phoneme": {
+		"piano": {
+			"^": {
+				"sym": "vya.e.weaken",
+				"arg": "piano"
+			},
+			"~": {
+				"sym": "vya.bf.const"
+			},
+			"@": [
+				{
+					"sym": "vya.dg.chord"
+				}
+			]
+		}
+	}
+}

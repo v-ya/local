@@ -90,7 +90,12 @@ phoneme_script_s* phoneme_script_load_core(phoneme_script_s *restrict ps, const 
 		snprintf(buffer, sizeof(buffer), "%s/%s", ps->core_path, core);
 		path = buffer;
 	}
-	return phoneme_pool_load_package(ps->phoneme_pool, core, path)?NULL:ps;
+	if (phoneme_pool_load_package(ps->phoneme_pool, core, path))
+	{
+		mlog_printf(ps->mlog, "load core[%s](%s) fail ...\n", core, path);
+		return NULL;
+	}
+	return ps;
 }
 
 phoneme_script_s* phoneme_script_load_package(phoneme_script_s *restrict ps, const char *restrict package)
@@ -120,15 +125,25 @@ phoneme_script_s* phoneme_script_load_package(phoneme_script_s *restrict ps, con
 		vl = hashmap_set_name(&ps->package, package, NULL, phoneme_hashmap_free_refer_func);
 		if (!vl) goto Err;
 		json = json_load(path);
-		if (!json) goto Err;
-		if (!phoneme_script_load_package_json(ps, json)) goto Err;
+		if (!json)
+		{
+			mlog_printf(ps->mlog, "load package-json[%s] fail ...\n", path);
+			goto Err;
+		}
+		if (!phoneme_script_load_package_json(ps, json))
+		{
+			mlog_printf(ps->mlog, "parse package-json[%s] fail ...\n", path);
+			goto Err;
+		}
 		json_free(json);
 		vl->value = (void *) path;
 	}
 	else if (!vl->value)
 	{
+		mlog_printf(ps->mlog, "package[%s] loop load ...\n", package);
 		path = NULL;
 		Err:
+		mlog_printf(ps->mlog, "load package[%s] fail ...\n", package);
 		if (path)
 		{
 			if (json) json_free(json);

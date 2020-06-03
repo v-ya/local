@@ -1,0 +1,19 @@
+{
+	"core": [
+		"vya.base"
+	],
+	"type": [
+		{
+			"name": "vya.e.weaken",
+			"arg2pri": "vya.e.weaken.arg"
+		}
+	],
+	"arg": {
+		"vya.e.weaken": {
+			"piano": {
+				"u": 0.2,
+				"p": 1.0
+			}
+		}
+	}
+}
