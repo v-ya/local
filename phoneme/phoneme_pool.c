@@ -384,3 +384,32 @@ phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp,
 	}
 	return p;
 }
+
+json_inode_t* phoneme_pool_read_value(phoneme_pool_s *restrict pp, register const char *restrict *restrict ps, json_inode_t **restrict need_free)
+{
+	register const char *restrict s, *restrict t;
+	*need_free = NULL;
+	s = *ps;
+	if (*s == '<')
+	{
+		register size_t n;
+		char path[phoneme_var_path_max];
+		if ((t = strchr(++s, '>')))
+		{
+			n = (size_t)(uintptr_t)(t - s);
+			if (n < sizeof(path))
+			{
+				memcpy(path, s, n);
+				path[n] = 0;
+				*ps = t + 1;
+				return phoneme_pool_get_var(pp, path);
+			}
+		}
+	}
+	else
+	{
+		s = json_decode(s, need_free);
+		if (s) *ps = s;
+	}
+	return *need_free;
+}
