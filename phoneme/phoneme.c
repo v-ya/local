@@ -324,7 +324,7 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 			refer_free(r->pri);
 			r->pri = NULL;
 		}
-		if (s->name && !strcmp(r->name, s->name))
+		if (!r->arg || (s->name && !strcmp(r->name, s->name)))
 			r->pri = refer_save(s->pri);
 		else goto label_arg2pri;
 	}
@@ -364,13 +364,13 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 				++s;
 				*modify = s;
 				if (!phoneme_modify_script(&r->envelope, &p->envelope, pp, &pp->envelope, modify))
-					goto Err;
+					goto Err_envelope;
 				continue;
 			case '~':
 				++s;
 				*modify = s;
 				if (!phoneme_modify_script(&r->basefre, &p->basefre, pp, &pp->basefre, modify))
-					goto Err;
+					goto Err_basefre;
 				continue;
 			case '@':
 				++s;
@@ -380,34 +380,52 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 				if (!*modify)
 				{
 					*modify = s;
-					goto Err;
+					goto Err_details;
 				}
 				if (i >= r->details_max) goto Err;
 				if (i >= r->details_used) r->details_used = i + 1;
 				if (!phoneme_modify_script(r->details + i, (i < p->details_used)?(p->details + i):NULL, pp, &pp->details, modify))
-					goto Err;
+					goto Err_details;
 				continue;
 		}
 		break;
 	}
-	if (!phoneme_modify_link(&r->envelope, &p->envelope, pp)) goto Err;
-	if (!phoneme_modify_link(&r->basefre, &p->basefre, pp)) goto Err;
+	if (!phoneme_modify_link(&r->envelope, &p->envelope, pp)) goto Err_link_envelope;
+	if (!phoneme_modify_link(&r->basefre, &p->basefre, pp)) goto Err_link_basefre;
 	sdmax = p->details_used;
 	if (sdmax > r->details_max) sdmax = r->details_max;
 	if (r->details_used < sdmax) r->details_used = sdmax;
 	for (i = 0; i < sdmax; ++i)
 	{
 		if (!phoneme_modify_link(r->details + i, p->details + i, pp))
-			goto Err;
+			goto Err_link_details;
 	}
 	while (i < r->details_used)
 	{
 		if (!phoneme_modify_link(r->details + i, &s_phoneme_src_null, pp))
-			goto Err;
+			goto Err_link_details;
 		++i;
 	}
 	return r;
 	Err:
 	refer_free(r);
 	return NULL;
+	Err_envelope:
+	mlog_printf(pp->mlog, "phoneme modify envelope fail ...\n");
+	goto Err;
+	Err_basefre:
+	mlog_printf(pp->mlog, "phoneme modify basefre fail ...\n");
+	goto Err;
+	Err_details:
+	mlog_printf(pp->mlog, "phoneme modify details fail ...\n");
+	goto Err;
+	Err_link_envelope:
+	mlog_printf(pp->mlog, "phoneme modify link envelope fail ...\n");
+	goto Err;
+	Err_link_basefre:
+	mlog_printf(pp->mlog, "phoneme modify link basefre fail ...\n");
+	goto Err;
+	Err_link_details:
+	mlog_printf(pp->mlog, "phoneme modify link details fail ...\n");
+	goto Err;
 }

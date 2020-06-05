@@ -18,51 +18,6 @@ static void phoneme_pool_free_func(phoneme_pool_s *restrict pp)
 	hashmap_uini(&pp->phoneme);
 }
 
-static uint64_t phoneme_pool_dypool_type(const char *type, const char **name)
-{
-	register uint64_t r;
-	register size_t n;
-	r = n = 0;
-	for (n = 0; n < 8 && *type && *type != '$'; ++n, ++type)
-	{
-		r = (r << 8) | *(uint8_t *) type;
-	}
-	if (*type == '$') ++type;
-	else
-	{
-		type = NULL;
-		r = 0;
-	}
-	*name = type;
-	return r;
-}
-
-static phoneme_src_name_s phoneme_pool_dypool_src_name(const char *symbol, uint64_t *type)
-{
-	char *r;
-	const char *name;
-	size_t n1, n2;
-	r = NULL;
-	name = strchr(symbol, '$');
-	if (name)
-	{
-		n1 = (size_t) (name - symbol);
-		*type = phoneme_pool_dypool_type(name + 1, &name);
-		if (name)
-		{
-			n2 = strlen(name) + 1;
-			r = refer_alloc(n1 + n2 + 1);
-			if (r)
-			{
-				memcpy(r, symbol, n1);
-				r[n1] = '.';
-				memcpy(r + n1 + 1, name, n2);
-			}
-		}
-	}
-	return r;
-}
-
 static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_report_type_t type, const char *symbol, void *ptr, void **plt)
 {
 	phoneme_src_name_s sname;
@@ -72,28 +27,39 @@ static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_r
 	r = 0;
 	if (type == dylink_pool_report_type_export_ok || type == dylink_pool_report_type_delete_symbol)
 	{
-		sname = phoneme_pool_dypool_src_name(symbol, &phoneme_type);
+		if (*symbol != '$') goto End;
+		sname = strchr(++symbol, '$');
 		if (sname)
 		{
+			switch ((uint32_t)(uintptr_t)(sname - symbol))
+			{
+				case 7:
+				case 8:
+					phoneme_type = *(uint64_t *) symbol;
+					break;
+				default:
+					phoneme_type = 0;
+					break;
+			}
 			switch (phoneme_type)
 			{
-				case (((uint64_t) 'enve' << 32) | (uint64_t) 'lope'):
+				case (((uint64_t) 'epol' << 32) | (uint64_t) 'evne'):
 					symlist = &pp->envelope;
 					break;
-				case (((uint64_t) 'bas' << 32) | (uint64_t) 'efre'):
+				case (((uint64_t) '$erf' << 32) | (uint64_t) 'esab'):
 					symlist = &pp->basefre;
 					break;
-				case (((uint64_t) 'det' << 32) | (uint64_t) 'ails'):
+				case (((uint64_t) '$sli' << 32) | (uint64_t) 'ated'):
 					symlist = &pp->details;
 					break;
-				case (((uint64_t) 'arg' << 32) | (uint64_t) '2pri'):
+				case (((uint64_t) '$irp' << 32) | (uint64_t) '2gra'):
 					symlist = &pp->arg2pri;
 					break;
 				default:
 					symlist = NULL;
 					break;
 			}
-			if (symlist)
+			if (symlist && *++sname && (sname = phoneme_src_name_dump(sname)))
 			{
 				if (type == dylink_pool_report_type_export_ok)
 				{
@@ -121,13 +87,14 @@ static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_r
 					hashmap_delete_name(symlist, sname);
 					hashmap_delete_name(&pp->name, sname);
 				}
+				Err:
+				refer_free((refer_t) sname);
 			}
-			Err:
-			refer_free((refer_t) sname);
 		}
 	}
 	else if (type == dylink_pool_report_type_import_fail) mlog_printf(pp->mlog, "import [%s] fail\n", symbol);
 	else if (type == dylink_pool_report_type_export_fail) mlog_printf(pp->mlog, "export [%s] fail\n", symbol);
+	End:
 	return r;
 }
 
@@ -377,10 +344,12 @@ phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp,
 		{
 			if (!phoneme_update(p, pp, dmax))
 			{
+				mlog_printf(pp->mlog, "phoneme(%s) update fail ...\n", phname);
 				refer_free(p);
 				p = NULL;
 			}
 		}
+		else mlog_printf(pp->mlog, "phoneme(%s) modify fail ...\n", phname);
 	}
 	return p;
 }

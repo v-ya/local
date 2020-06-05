@@ -5,15 +5,16 @@
 static dyl_used phoneme_details_func(dg_chord, refer_t)
 {
 	static double k = 6 / M_PI / M_PI;
-	uint32_t i, n;
+	register double j;
+	register uint32_t n;
 	n = d->used = d->max;
-	i = 0;
-	while (i < n)
+	while (n)
 	{
-		d->saq[i].sa = k / (i + 1) / (i + 1);
-		d->saq[i].sq = 0;
-		++i;
+		j = 1.0 / n;
+		--n;
+		d->saq[n].sa = k * j * j;
+		d->saq[n].sq = 0;
 	}
 }
-dyl_export(dg_chord, vya$details$dg.chord);
+dyl_export(dg_chord, $details$vya.dg.chord);
 

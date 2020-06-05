@@ -333,10 +333,14 @@ phoneme_s* phoneme_script_get_phoneme(phoneme_script_s *restrict ps, register co
 			++*script;
 			r = phoneme_pool_get_phoneme_modify(ps->phoneme_pool, phname, script, ps->sdmax, ps->dmax);
 			if (**script == ']') ++*script;
-			else if (r)
+			else
 			{
-				refer_free(r);
-				r = NULL;
+				if (r)
+				{
+					refer_free(r);
+					r = NULL;
+				}
+				mlog_printf(ps->mlog, "phoneme modify parse fail ...\n");
 			}
 		}
 		else r = phoneme_pool_get_phoneme(ps->phoneme_pool, phname);

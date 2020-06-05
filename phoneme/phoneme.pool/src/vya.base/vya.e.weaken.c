@@ -1,6 +1,6 @@
 #include <phoneme/phoneme.h>
 #include <math.h>
-#include "common.h"
+#include "../vya.common/json_set_float.inc"
 
 typedef struct e_weaken_s {
 	double u;
@@ -16,7 +16,7 @@ static dyl_used phoneme_envelope_func(e_weaken, e_weaken_s*)
 	}
 	return 0;
 }
-dyl_export(e_weaken, vya$envelope$e.weaken);
+dyl_export(e_weaken, $envelope$vya.e.weaken);
 
 static dyl_used phoneme_arg2pri_func(e_weaken_arg, e_weaken_s*)
 {
@@ -32,19 +32,22 @@ static dyl_used phoneme_arg2pri_func(e_weaken_arg, e_weaken_s*)
 		r->u = v;
 		v = 1;
 		json_set_float(&v, arg, ".p");
-		if (v < 1) v = 1;
 		r->p = v;
 		// find max
-		v += 1;
-		v = v * v - 4 * r->u * r->p;
-		if (v > 0) v = sqrt(v);
-		else v = 0;
-		v = (r->p + 1 - v) / 2 / r->p;
-		if (v < 0) v = 0;
-		if (v > 1) v = 1;
+		if (r->p)
+		{
+			v += 1;
+			v = v * v - 4 * r->u * r->p;
+			if (v > 0) v = sqrt(v);
+			else v = 0;
+			v = (r->p + 1 - v) / (r->p * 2);
+			if (v < 0) v = 0;
+			if (v > 1) v = 1;
+		}
+		else v = r->u;
 		r->k = 1;
 		r->k /= e_weaken(r, v, 1, 0);
 	}
 	return r;
 }
-dyl_export(e_weaken_arg, vya$arg2pri$e.weaken.arg);
+dyl_export(e_weaken_arg, $arg2pri$vya.e.weaken.arg);

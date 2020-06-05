@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "phoneme_script.h"
 #include <wav.h>
 #include <args.h>
@@ -321,6 +322,7 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(strxfrm);
 	// ==========
 	// math.h
+	// double
 	set_func(acos);
 	set_func(asin);
 	set_func(atan);
@@ -331,6 +333,7 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(sinh);
 	set_func(tan);
 	set_func(tanh);
+	set_func(sincos);
 	set_func(exp);
 	set_func(frexp);
 	set_func(ldexp);
@@ -343,6 +346,30 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(fabs);
 	set_func(floor);
 	set_func(fmod);
+	// float
+	set_func(acosf);
+	set_func(asinf);
+	set_func(atanf);
+	set_func(atan2f);
+	set_func(cosf);
+	set_func(coshf);
+	set_func(sinf);
+	set_func(sinhf);
+	set_func(tanf);
+	set_func(tanhf);
+	set_func(sincosf);
+	set_func(expf);
+	set_func(frexpf);
+	set_func(ldexpf);
+	set_func(logf);
+	set_func(log10f);
+	set_func(modff);
+	set_func(powf);
+	set_func(sqrtf);
+	set_func(ceilf);
+	set_func(fabsf);
+	set_func(floorf);
+	set_func(fmodf);
 	#undef set_func
 	if (!r)
 	{

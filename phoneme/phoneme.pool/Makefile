@@ -3,7 +3,7 @@ LD		= ld
 DYLINK		= dylink
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
 
-core		= vya.base
+core		= vya.common vya.base
 
 .PRECIOUS: %.o src/%.r.o
 
