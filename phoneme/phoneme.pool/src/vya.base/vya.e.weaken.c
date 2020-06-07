@@ -1,6 +1,6 @@
 #include <phoneme/phoneme.h>
 #include <math.h>
-#include "../vya.common/json_set_float.inc"
+#include "../vya.common/get_float.inc"
 
 typedef struct e_weaken_s {
 	double u;
@@ -26,12 +26,12 @@ static dyl_used phoneme_arg2pri_func(e_weaken_arg, e_weaken_s*)
 	if (r)
 	{
 		v = 0.2;
-		json_set_float(&v, arg, ".u");
+		get_float(&v, arg, ".u");
 		if (v < 0) v = 0;
 		if (v > 1) v = 1;
 		r->u = v;
 		v = 1;
-		json_set_float(&v, arg, ".p");
+		get_float(&v, arg, ".p");
 		r->p = v;
 		// find max
 		if (r->p)

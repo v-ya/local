@@ -7,6 +7,10 @@
 		{
 			"name": "vya.e.weaken",
 			"arg2pri": "vya.e.weaken.arg"
+		},
+		{
+			"name": "vya.bf.crand",
+			"arg2pri": "vya.bf.crand.arg"
 		}
 	],
 	"arg": {
