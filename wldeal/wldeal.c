@@ -54,7 +54,6 @@ void dylink_pool_set_preset(dylink_pool_t *dyp)
 	// note_details
 	_dylink_pool_set_preset(note_details_alloc);
 	_dylink_pool_set_preset(note_details_gen);
-	_dylink_pool_set_preset(note_details_gen_ex);
 	_dylink_pool_set_preset(note_details_get);
 
 	// scatterplot
