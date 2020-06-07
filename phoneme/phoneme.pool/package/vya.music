@@ -14,6 +14,9 @@
 			"@": [
 				{
 					"sym": "vya.dg.chord"
+				},
+				{
+					"sym": "vya.df.vfix"
 				}
 			]
 		}

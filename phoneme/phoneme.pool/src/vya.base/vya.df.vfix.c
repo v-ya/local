@@ -85,7 +85,7 @@ static dyl_used phoneme_details_func(df_vfix, refer_t)
 			--i;
 			a += d->saq[i].sa * sin(q + d->saq[i].sq);
 		}
-		a = 1.0 / a;
+		a = 1.0 / fabs(a);
 		i = d->used;
 		while (i) d->saq[--i].sa *= a;
 	}

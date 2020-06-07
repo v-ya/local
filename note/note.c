@@ -120,7 +120,7 @@ void note_random_phase(note_s *restrict n)
 
 void note_gen(note_s *restrict n, double length, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre)
 {
-	double t, f, k, a, apv;
+	double t, dt, q, f, a, apv;
 	uint32_t i, j, l, nn, si, sn;
 	if (n->base_frequency && n->base_frequency && n->stage_used && n->stage->func)
 	{
@@ -129,32 +129,32 @@ void note_gen(note_s *restrict n, double length, double volume, double basefre, 
 		sn = n->stage_used;
 		if (nn)
 		{
-			k = 1.0 / nn;
 			i = 0;
+			t = q = 0;
 			if (nn > frames) nn = frames;
 			while (i < nn)
 			{
-				t = i * k;
 				a = n->envelope(n->envelope_pri, t, volume, length);
 				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, a / volume, length);
-				l = sampfre / f;
-				t += l * k / 2;
-				a = n->envelope(n->envelope_pri, t, volume, length);
-				f = n->base_frequency(n->base_frequency_pri, t, basefre, a, apv = a / volume, length);
-				l = sampfre / f;
-				j = i + l;
-				if (i > j) goto Err;
-				else if (l)
+				dt = sampfre / (f * nn * 2);
+				a = n->envelope(n->envelope_pri, t + dt, volume, length);
+				f = n->base_frequency(n->base_frequency_pri, t + dt, basefre, a, apv = a / volume, length);
+				dt = sampfre / (f * nn * 2);
+				t += dt;
+				l = (uint32_t) ((q = sampfre / f) + 0.5);
+				if ((j = i + l) > nn) break;
+				if (l)
 				{
 					for (si = 0; si < sn; ++si)
 						n->stage[si].func(n->stage[si].pri, n->details, t, f, a, apv, length);
-					note_details_gen(v + i, frames - i, n->details, l, a);
+					note_details_gen(v + i, frames - i, n->details, l, a, (M_PI * 2) * (q * f / sampfre));
 				}
-				i = j + 1;
+				t += dt;
+				i = j + !l;
+				q = l - q;
 			}
 		}
 	}
-	Err:
 	return ;
 }
 

@@ -129,7 +129,7 @@ static args_deal_func(_dm, args_t*)
 
 static args_deal_func(_sf, args_t*)
 {
-	if (!value || (int)(pri->sampfre = atoi(value)) <= 0) return -1;
+	if (!value || (int)(pri->sampfre = atoi(value)) < 0) return -1;
 	++*index;
 	return 0;
 }
@@ -213,7 +213,7 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 
 static int args_check(args_t *pri)
 {
-	if (!pri->input || !pri->output || !pri->xmsize)
+	if (!pri->input || (!pri->output && pri->sampfre) || !pri->xmsize)
 		return -1;
 	if (pri->xmsize < 4096) pri->xmsize = 4096;
 	return 0;
@@ -429,7 +429,7 @@ int main(int argc, const char *argv[])
 						{
 							if (phoneme_script_load(ps, args.input, pb))
 							{
-								if (!wav_save_double(args.output, &pb->buffer, pb->frames, 1, pb->sampfre))
+								if (!args.output || !wav_save_double(args.output, &pb->buffer, pb->frames, 1, pb->sampfre))
 									r = 0;
 							}
 							refer_free(pb);

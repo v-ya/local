@@ -10,51 +10,27 @@ note_details_s* note_details_alloc(uint32_t max)
 	return nd;
 }
 
-void note_details_gen(double *v, uint32_t n, note_details_s *nd, uint32_t l, double a)
+void note_details_gen(register double *v, uint32_t n, note_details_s *nd, uint32_t l, double a, double q)
 {
-	double wb, c;
-	note_details_saq_s *saq;
-	uint32_t i, j;
+	double wb, rw, ra, rq;
+	register note_details_saq_s *restrict saq;
+	register uint32_t i, j;
 	if (l)
 	{
 		wb = M_PI * 2 / l;
-		if (l < n) ++l;
-		else l = n;
-		n = nd->used;
+		if (l > n) l = n;
 		saq = nd->saq;
-		for (i = 0; i < l; ++i)
+		j = nd->used;
+		while (j)
 		{
-			c = 0;
-			for (j = 0; j < n; ++j)
+			rw = wb * j;
+			--j;
+			ra = saq[j].sa * a;
+			rq = saq[j].sq + q;
+			for (i = 0; i < l; ++i)
 			{
-				c += saq[j].sa * sin(wb * (j + 1) * i + saq[j].sq);
+				v[i] += ra * sin(rw * i + rq);
 			}
-			v[i] += a * c;
-		}
-	}
-}
-
-void note_details_gen_ex(double *v, uint32_t n, note_details_s *nd, uint32_t l, note_details_a_f af, double a1, double a2, double volume, refer_t pri)
-{
-	double wb, c;
-	note_details_saq_s *saq;
-	uint32_t i, j;
-	if (l)
-	{
-		wb = M_PI * 2 / l;
-		a2 = (a2 - a1) / l;
-		if (l < n) ++l;
-		else l = n;
-		n = nd->used;
-		saq = nd->saq;
-		for (i = 0; i < l; ++i)
-		{
-			c = 0;
-			for (j = 0; j < n; ++j)
-			{
-				c += saq[j].sa * sin(wb * (j + 1) * i + saq[j].sq);
-			}
-			v[i] += af(pri, a1 + a2 * i, volume) * c;
 		}
 	}
 }

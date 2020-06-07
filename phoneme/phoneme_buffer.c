@@ -10,37 +10,31 @@ static void phoneme_buffer_free_func(phoneme_buffer_s *restrict pb)
 phoneme_buffer_s* phoneme_buffer_alloc(uint32_t sampfre, uint32_t frames)
 {
 	phoneme_buffer_s *r;
-	if (sampfre)
+	r = refer_alloc(sizeof(phoneme_buffer_s));
+	if (r)
 	{
-		r = refer_alloc(sizeof(phoneme_buffer_s));
-		if (r)
+		r->sampfre = sampfre;
+		r->frames_max = frames;
+		r->frames = frames;
+		if (!frames) frames = (16 << 10);
+		r->frames_size = frames;
+		r->buffer = (double *) calloc(frames, sizeof(double));
+		if (r->buffer)
 		{
-			r->sampfre = sampfre;
-			r->frames_max = frames;
-			r->frames = frames;
-			if (!frames) frames = (16 << 10);
-			r->frames_size = frames;
-			r->buffer = (double *) calloc(frames, sizeof(double));
-			if (r->buffer)
-			{
-				refer_set_free(r, (refer_free_f) phoneme_buffer_free_func);
-				return r;
-			}
-			refer_free(r);
+			refer_set_free(r, (refer_free_f) phoneme_buffer_free_func);
+			return r;
 		}
+		refer_free(r);
 	}
 	return NULL;
 }
 
 phoneme_buffer_s* phoneme_buffer_set_sampfre(phoneme_buffer_s *restrict pb, uint32_t sampfre)
 {
-	if (sampfre)
+	if (!pb->frames_max)
 	{
-		if (!pb->frames_max)
-		{
-			pb->sampfre = sampfre;
-			return pb;
-		}
+		pb->sampfre = sampfre;
+		return pb;
 	}
 	return NULL;
 }
@@ -77,11 +71,12 @@ phoneme_buffer_s* phoneme_buffer_set_frames(phoneme_buffer_s *restrict pb, doubl
 
 phoneme_buffer_s* phoneme_buffer_gen_note(phoneme_buffer_s *restrict pb, note_s *restrict note, double pos, double length, double volume, double basefre)
 {
-	if (note && length > 0 && volume > 0 && basefre > 0)
+	if (length > 0 && volume > 0 && basefre > 0)
 	{
-		if (phoneme_buffer_set_frames(pb, pos + length))
+		if (!pb->sampfre) return pb;
+		else if (phoneme_buffer_set_frames(pb, pos + length))
 		{
-			note_gen_with_pos(note, length, volume, basefre, pb->buffer, pb->frames, pb->sampfre, (uint32_t) (pos * pb->sampfre + 0.5));
+			note_gen_with_pos(note, length, volume, basefre, pb->buffer, pb->frames, pb->sampfre, (uint32_t) (pos * pb->sampfre));
 			return pb;
 		}
 	}

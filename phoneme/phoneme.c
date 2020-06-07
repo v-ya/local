@@ -324,7 +324,8 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 			refer_free(r->pri);
 			r->pri = NULL;
 		}
-		if (!r->arg || (s->name && !strcmp(r->name, s->name)))
+		if (!r->arg) ;
+		else if (s->name && !strcmp(r->name, s->name))
 			r->pri = refer_save(s->pri);
 		else goto label_arg2pri;
 	}
