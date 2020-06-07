@@ -1,15 +1,15 @@
 TARGET-LIB	= libphoneme.so
 TARGET-BIN	= phoneme
 TARGET		= ${TARGET-LIB} ${TARGET-BIN}
-HEADER		= phoneme_type.h phoneme_buffer.h phoneme_arg.h phoneme_pool.h phoneme.h phoneme_script.h
+HEADER		= phoneme_type.h phoneme_output.h phoneme_arg.h phoneme_pool.h phoneme.h phoneme_script.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -lm -Wl,-soname,${TARGET-LIB}
+LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -lpthread -lm -Wl,-soname,${TARGET-LIB}
 LDFLAGS-BIN	= -lrefer -lhashmap -lmlog -largs -ldylink -lwav -lm -L. -lphoneme
 
-OBJECT-LIB	= phoneme_type.o phoneme_buffer.o phoneme_arg.o phoneme.o phoneme_pool.o phoneme_script.o
+OBJECT-LIB	= phoneme_type.o phoneme_output.o phoneme_arg.o phoneme_pool.o phoneme.o phoneme_script.o
 OBJECT-BIN	= phoneme-entry.o core/core.o
 
 %.o: %.c

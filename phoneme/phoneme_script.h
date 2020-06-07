@@ -2,7 +2,7 @@
 #define _phoneme_script_h_
 
 #include "phoneme_type.h"
-#include "phoneme_buffer.h"
+#include "phoneme_output.h"
 #include "phoneme_pool.h"
 #include "phoneme.h"
 #include <mlog.h>
@@ -34,7 +34,7 @@ phoneme_script_s* phoneme_script_load_core(phoneme_script_s *restrict ps, const 
 phoneme_script_s* phoneme_script_load_package(phoneme_script_s *restrict ps, const char *restrict package);
 phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps, json_inode_t *restrict package);
 phoneme_s* phoneme_script_get_phoneme(phoneme_script_s *restrict ps, const char *restrict *restrict script);
-phoneme_buffer_s* phoneme_script_load(phoneme_script_s *restrict ps, const char *restrict script_path, phoneme_buffer_s *restrict pb);
-phoneme_buffer_s* phoneme_script_run(phoneme_script_s *restrict ps, const char *restrict script, phoneme_buffer_s *restrict pb);
+phoneme_output_s* phoneme_script_load(phoneme_script_s *restrict ps, const char *restrict script_path, phoneme_output_s *restrict po);
+phoneme_output_s* phoneme_script_run(phoneme_script_s *restrict ps, const char *restrict script, phoneme_output_s *restrict po);
 
 #endif

@@ -18,10 +18,9 @@ static void note_free_func(note_s *restrict n)
 note_s* note_alloc(uint32_t details_max, uint32_t stage_max)
 {
 	note_s *n;
-	n = NULL;
 	if (details_max && stage_max)
 	{
-		n = refer_alloz(sizeof(note_s) + stage_max * sizeof(note_details_stage_t));
+		n = (note_s *) refer_alloz(sizeof(note_s) + stage_max * sizeof(note_details_stage_t));
 		if (n)
 		{
 			n->details = note_details_alloc(details_max);
@@ -32,10 +31,37 @@ note_s* note_alloc(uint32_t details_max, uint32_t stage_max)
 				return n;
 			}
 			refer_free(n);
-			n = NULL;
 		}
 	}
-	return n;
+	return NULL;
+}
+
+note_s* note_dump(note_s *restrict n)
+{
+	note_s *restrict r;
+	r = (note_s *) refer_alloz(sizeof(note_s) + n->stage_max * sizeof(note_details_stage_t));
+	if (r)
+	{
+		r->details = note_details_alloc(n->details->max);
+		if (r->details)
+		{
+			uint32_t i, nn;
+			r->stage_max = n->stage_max;
+			refer_set_free(r, (refer_free_f) note_free_func);
+			r->envelope = n->envelope;
+			r->envelope_pri = refer_save(n->envelope_pri);
+			r->base_frequency = n->base_frequency;
+			r->base_frequency_pri = refer_save(n->base_frequency_pri);
+			for (i = 0, nn = r->stage_used = n->stage_used; i < nn; ++i)
+			{
+				r->stage[i].func = n->stage[i].func;
+				r->stage[i].pri = refer_save(n->stage[i].pri);
+			}
+			return r;
+		}
+		refer_free(r);
+	}
+	return NULL;
 }
 
 note_s* note_set_details_max(note_s *restrict n, uint32_t details_max)

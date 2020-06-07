@@ -30,6 +30,7 @@ typedef struct note_s {
 } note_s;
 
 note_s* note_alloc(uint32_t details_max, uint32_t stage_max);
+note_s* note_dump(note_s *restrict n);
 note_s* note_set_details_max(note_s *restrict n, uint32_t details_max);
 void note_set_envelope(note_s *restrict n, note_envelope_f envelope, refer_t pri);
 void note_set_base_frequency(note_s *restrict n, note_base_frequency_f base_frequency, refer_t pri);

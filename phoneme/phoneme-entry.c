@@ -24,7 +24,8 @@ static void _help(const char *exec, const char *type)
 		"\t " "-st/--space-time                [float]\n"
 		"\t " "-sm/-sdmax/--stage-details-max  [integer > 0]\n"
 		"\t " "-dm/-dmax/--details-max         [integer > 0]\n"
-		"\t " "-sf/--sampfre                   [integer > 0]\n"
+		"\t " "-sf/--sampfre                   [integer >= 0]\n"
+		"\t " "-t/--thread                     [integer >= 0]\n"
 		"\t " "-xm/--xmsize                    [integer > 0]\n"
 		"\t " "-h/--help\n"
 		, exec
@@ -41,10 +42,10 @@ typedef struct args_t {
 	double base_fre_line;
 	double base_fre_step;
 	double space_time;
-	uint32_t space_time_used;
 	uint32_t sdmax;
 	uint32_t dmax;
 	uint32_t sampfre;
+	uint32_t thread;
 	size_t xmsize;
 } args_t;
 
@@ -108,7 +109,6 @@ static args_deal_func(_st, args_t*)
 {
 	if (!value) return -1;
 	pri->space_time = atof(value);
-	pri->space_time_used = 1;
 	++*index;
 	return 0;
 }
@@ -130,6 +130,13 @@ static args_deal_func(_dm, args_t*)
 static args_deal_func(_sf, args_t*)
 {
 	if (!value || (int)(pri->sampfre = atoi(value)) < 0) return -1;
+	++*index;
+	return 0;
+}
+
+static args_deal_func(_t, args_t*)
+{
+	if (!value || (int)(pri->thread = atoi(value)) < 0) return -1;
 	++*index;
 	return 0;
 }
@@ -173,6 +180,12 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 	int r;
 	memset(pri, 0, sizeof(args_t));
 	pri->sampfre = 96000;
+	pri->base_time = 0.5;
+	pri->base_volume = 0.5;
+	pri->base_fre_line = 440;
+	pri->base_fre_step = 12;
+	pri->space_time = 1;
+	pri->dmax = 32;
 	pri->xmsize = 1 << 20;
 	r = -1;
 	if (!hashmap_init(&args)) goto Err;
@@ -201,6 +214,8 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 	if (!args_set_command(&args, "--details-max", (args_deal_f) _dm)) goto Err;
 	if (!args_set_command(&args, "-sf", (args_deal_f) _sf)) goto Err;
 	if (!args_set_command(&args, "--sampfre", (args_deal_f) _sf)) goto Err;
+	if (!args_set_command(&args, "-t", (args_deal_f) _t)) goto Err;
+	if (!args_set_command(&args, "--thread", (args_deal_f) _t)) goto Err;
 	if (!args_set_command(&args, "-xm", (args_deal_f) _xm)) goto Err;
 	if (!args_set_command(&args, "--xmsize", (args_deal_f) _xm)) goto Err;
 	if (!args_set_command(&args, "-h", (args_deal_f) _h)) goto Err;
@@ -395,7 +410,7 @@ int main(int argc, const char *argv[])
 {
 	mlog_s *mlog;
 	phoneme_script_s *ps;
-	phoneme_buffer_s *pb;
+	phoneme_output_s *po;
 	args_t args;
 	int r;
 	r = 0;
@@ -417,22 +432,23 @@ int main(int argc, const char *argv[])
 					if ((!args.core_path || phoneme_script_set_core_path(ps, args.core_path)) &&
 						(!args.package_path || phoneme_script_set_package_path(ps, args.package_path)))
 					{
-						if (args.base_time) ps->base_time = args.base_time;
-						if (args.base_volume) ps->base_volume = args.base_volume;
-						if (args.base_fre_line) ps->base_fre_line = args.base_fre_line;
-						if (args.base_fre_step) ps->base_fre_step = args.base_fre_step;
-						if (args.space_time_used) ps->space_time = args.space_time;
-						if (args.sdmax) ps->sdmax = args.sdmax;
-						if (args.dmax) ps->dmax = args.dmax;
-						pb = phoneme_buffer_alloc(args.sampfre, 0);
-						if (pb)
+						ps->base_time = args.base_time;
+						ps->base_volume = args.base_volume;
+						ps->base_fre_line = args.base_fre_line;
+						ps->base_fre_step = args.base_fre_step;
+						ps->space_time = args.space_time;
+						ps->sdmax = args.sdmax;
+						ps->dmax = args.dmax;
+						po = phoneme_output_alloc(args.sampfre, 0, args.thread, 5000);
+						if (po)
 						{
-							if (phoneme_script_load(ps, args.input, pb))
+							if (phoneme_script_load(ps, args.input, po))
 							{
-								if (!args.output || !wav_save_double(args.output, &pb->buffer, pb->frames, 1, pb->sampfre))
+								phoneme_output_join(po);
+								if (!args.output || !wav_save_double(args.output, &po->output.buffer, po->frames, 1, po->sampfre))
 									r = 0;
 							}
-							refer_free(pb);
+							refer_free(po);
 						}
 					}
 					refer_free(ps);
