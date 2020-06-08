@@ -11,6 +11,10 @@
 		{
 			"name": "vya.bf.crand",
 			"arg2pri": "vya.bf.crand.arg"
+		},
+		{
+			"name": "vya.df.formant",
+			"arg2pri": "vya.df.formant.arg"
 		}
 	],
 	"arg": {

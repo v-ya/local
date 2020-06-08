@@ -4,6 +4,6 @@
 ---
 ### detail
 ```
-	= sa[] = rand [0, 1]
-	= sq[] = rand [0, pi * 2]
+	= sa[n] = rand [0, 1]
+	= sq[n] = rand [0, pi * 2]
 ```

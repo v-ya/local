@@ -4,5 +4,5 @@
 ---
 ### detail
 ```
-	= sq[] = rand [0, pi * 2]
+	= sq[n] = rand [0, pi * 2]
 ```
