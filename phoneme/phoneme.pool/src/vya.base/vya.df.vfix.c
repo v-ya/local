@@ -28,7 +28,7 @@ static float df_vfix_turn_xm(register note_details_s *restrict nd, float x)
 		if (fa == 0) break;
 		x -= (f /= fa);
 	}
-	while (--m && fabs(f) > 1e-5);
+	while (--m && fabsf(f) > 1e-5f);
 	return x;
 }
 
@@ -74,20 +74,20 @@ static dyl_used phoneme_details_func(df_vfix, refer_t)
 {
 	if (d->used)
 	{
-		double x, a, q;
-		uint32_t i;
+		register double x, _a, _q;
+		register uint32_t i;
 		x = df_vfix_turn_xm(d, df_vfix_4sampfre_xm(d));
-		a = 0;
+		_a = 0;
 		i = d->used;
 		while (i)
 		{
-			q = x * i;
+			_q = x * i;
 			--i;
-			a += d->saq[i].sa * sin(q + d->saq[i].sq);
+			_a += d->saq[i].sa * sin(_q + d->saq[i].sq);
 		}
-		a = 1.0 / fabs(a);
+		_a = 1.0 / fabs(_a);
 		i = d->used;
-		while (i) d->saq[--i].sa *= a;
+		while (i) d->saq[--i].sa *= _a;
 	}
 }
 dyl_export(df_vfix, $details$vya.df.vfix);

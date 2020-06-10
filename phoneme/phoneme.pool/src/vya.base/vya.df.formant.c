@@ -14,7 +14,7 @@ typedef struct df_formant_s {
 	df_formant_a_t a[];
 } df_formant_s;
 
-static dyl_used phoneme_details_func(df_formant, df_formant_s*)
+static dyl_used phoneme_details_func(df_formant, df_formant_s*restrict)
 {
 	register df_formant_a_t *restrict p;
 	register size_t n;
@@ -27,7 +27,7 @@ static dyl_used phoneme_details_func(df_formant, df_formant_s*)
 		saq = d->saq;
 		while (n)
 		{
-			_k = 1 / f;
+			_k = 1 / arg->f;
 			_u = p->u * _k;
 			_a = p->a;
 			_c = p->c * _k;

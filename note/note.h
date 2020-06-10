@@ -5,9 +5,18 @@
 #include <refer.h>
 #include "note_details.h"
 
-typedef double (*note_envelope_f)(refer_t pri, double t, double volume, double length);
-typedef double (*note_base_frequency_f)(refer_t pri, double t, double basefre, double a, double apv, double length);
-typedef void (*note_details_f)(refer_t pri, note_details_s *d, double t, double f, double a, double apv, double length);
+typedef struct note_dyarg_t {
+	double length;   // 时长 (s)
+	double volume;   // 响度
+	double basefre;  // 基频 (Hz)
+	double t;        // 当前位置 (pos / length)
+	double a;        // 当前响度
+	double f;        // 当前频率 (Hz)
+} note_dyarg_t;
+
+typedef double (*note_envelope_f)(refer_t pri, note_dyarg_t *arg);
+typedef double (*note_base_frequency_f)(refer_t pri, note_dyarg_t *arg);
+typedef void (*note_details_f)(refer_t pri, note_dyarg_t *arg, note_details_s *d);
 
 typedef struct note_details_stage_t {
 	note_details_f func;

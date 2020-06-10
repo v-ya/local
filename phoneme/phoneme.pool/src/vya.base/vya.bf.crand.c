@@ -6,13 +6,13 @@ typedef struct bf_crand_s {
 	double kr;
 } bf_crand_s;
 
-static dyl_used phoneme_basefre_func(bf_crand, bf_crand_s*)
+static dyl_used phoneme_basefre_func(bf_crand, bf_crand_s*restrict)
 {
 	if (pri)
 	{
-		basefre *= (1 + (pri->kr * (rand() * (2.0 / RAND_MAX) - 1)));
+		return arg->basefre * (1 + (pri->kr * (rand() * (2.0 / RAND_MAX) - 1)));
 	}
-	return basefre;
+	return arg->basefre;
 }
 dyl_export(bf_crand, $basefre$vya.bf.crand);
 

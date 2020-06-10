@@ -5,10 +5,10 @@
 #include "phoneme_pool.h"
 #include <note.h>
 
-#define phoneme_envelope_func(_symbol, _pri)  double _symbol(_pri pri, double t, double volume, double length)
-#define phoneme_basefre_func(_symbol, _pri)   double _symbol(_pri pri, double t, double basefre, double a, double apv, double length)
-#define phoneme_details_func(_symbol, _pri)   void _symbol(_pri pri, note_details_s *d, double t, double f, double a, double apv, double length)
-#define phoneme_arg2pri_func(_symbol, _pri)   _pri _symbol(json_inode_t *arg)
+#define phoneme_envelope_func(_symbol, _pri)  double _symbol(_pri pri, register note_dyarg_t *restrict arg)
+#define phoneme_basefre_func(_symbol, _pri)   double _symbol(_pri pri, register note_dyarg_t *restrict arg)
+#define phoneme_details_func(_symbol, _pri)   void _symbol(_pri pri, register note_dyarg_t *restrict arg, register note_details_s *restrict d)
+#define phoneme_arg2pri_func(_symbol, _pri)   _pri _symbol(json_inode_t *restrict arg)
 
 typedef struct phoneme_src_t {
 	phoneme_src_name_s name;

@@ -8,11 +8,13 @@ typedef struct e_weaken_s {
 	double k;
 } e_weaken_s;
 
-static dyl_used phoneme_envelope_func(e_weaken, e_weaken_s*)
+static dyl_used phoneme_envelope_func(e_weaken, e_weaken_s*restrict)
 {
+	register double t;
+	t = arg->t;
 	if (pri && t >= 0 && t <= 1)
 	{
-		return volume * pri->k * pow(t, pri->u) * pow(1 - t, 1 - pri->u) * exp(- pri->p * t);
+		return arg->volume * pri->k * pow(t, pri->u) * pow(1 - t, 1 - pri->u) * exp(- pri->p * t);
 	}
 	return 0;
 }
@@ -45,8 +47,8 @@ static dyl_used phoneme_arg2pri_func(e_weaken_arg, e_weaken_s*)
 			if (v > 1) v = 1;
 		}
 		else v = r->u;
-		r->k = 1;
-		r->k /= e_weaken(r, v, 1, 0);
+		v = pow(v, r->u) * pow(1 - v, 1 - r->u) * exp(- r->p * v);
+		r->k = 1 / v;
 	}
 	return r;
 }
