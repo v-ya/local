@@ -1,20 +1,18 @@
 #define _DEFAULT_SOURCE
 #include <phoneme/phoneme.h>
 #include <math.h>
+#include "../vya.common/dg_a_qz.inc"
+
+// link vya.df.chord
+
+phoneme_details_func(df_chord, refer_t);
+dyl_alias($details$vya.df.chord, df_chord);
 
 static dyl_used phoneme_details_func(dg_chord, refer_t)
 {
-	static double k = 6 / M_PI / M_PI;
-	register double j;
-	register uint32_t n;
-	n = d->used = d->max;
-	while (n)
-	{
-		j = 1.0 / n;
-		--n;
-		d->saq[n].sa = k * j * j;
-		d->saq[n].sq = 0;
-	}
+	d->used = d->max;
+	dg_a_qz(d, 1);
+	df_chord(pri, arg, d);
 }
 dyl_export(dg_chord, $details$vya.dg.chord);
 

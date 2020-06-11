@@ -4,7 +4,7 @@
 ---
 ### detail
 ```
-	n = d->used * 4
+	n = d->used * 8
 	x = (max abs {float[n] = detail()}).pos
 	(x -= detail'(x) / detail''(x)) loop
 	k = 1.0 / detail(x)

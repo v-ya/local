@@ -13,7 +13,8 @@
 			},
 			"@": [
 				{
-					"sym": "vya.dg.chord"
+					"sym": "vya.dg.grapow",
+					"arg": "piano"
 				},
 				{
 					"sym": "vya.df.vfix"

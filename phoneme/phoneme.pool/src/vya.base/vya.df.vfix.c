@@ -37,7 +37,7 @@ static float df_vfix_4sampfre_xm(note_details_s *nd)
 	float *s;
 	float a, q, w, k;
 	uint32_t i, j, n;
-	n = nd->used * 4;
+	n = nd->used * 8;
 	q = 0;
 	s = (float *) alloca(n * sizeof(float));
 	if (s)
