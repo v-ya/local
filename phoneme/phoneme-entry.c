@@ -386,6 +386,7 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(floorf);
 	set_func(fmodf);
 	#undef set_func
+	r += !!dylink_pool_set_func(dyp, "dypool.symbol", dylink_pool_get_symbol);
 	if (!r)
 	{
 		r = dylink_pool_load(dyp, dy_core, dy_core_size);
@@ -398,6 +399,14 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 		#undef unset_func
 	}
 	return r;
+}
+
+static phoneme_script_s* sysset(phoneme_script_s *restrict ps)
+{
+	phoneme_script_s* (*init)(phoneme_script_s *restrict);
+	init = dylink_pool_get_symbol(ps->phoneme_pool->dypool, "this.init", NULL);
+	if (init) return init(ps);
+	return NULL;
 }
 
 static int mlog_report_func(const char *restrict msg, size_t length, refer_t pri)
@@ -429,7 +438,7 @@ int main(int argc, const char *argv[])
 				ps = phoneme_script_alloc(args.xmsize, mlog, (phoneme_script_sysfunc_f) sysfunc, NULL);
 				if (ps)
 				{
-					if ((!args.core_path || phoneme_script_set_core_path(ps, args.core_path)) &&
+					if (sysset(ps) && (!args.core_path || phoneme_script_set_core_path(ps, args.core_path)) &&
 						(!args.package_path || phoneme_script_set_package_path(ps, args.package_path)))
 					{
 						ps->base_time = args.base_time;

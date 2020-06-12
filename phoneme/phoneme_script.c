@@ -760,7 +760,6 @@ static const char* phoneme_script_run_tpos_ucurr(phoneme_script_s *restrict ps, 
 		if (!script) goto Err;
 		if (pos < 0) pos = 0;
 	}
-	ps->last_pos = ps->curr_pos;
 	ps->curr_pos = pos;
 	return script;
 	Err:
@@ -798,6 +797,15 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 				else v = 0;
 				kstep = v + phoneme_script_run_read_double(ps, &script);
 				break;
+			case '=':
+				++script;
+				ps->base_time *= klength;
+				ps->base_volume *= kvolume;
+				ps->base_fre_line *= exp2(kstep / ps->base_fre_step);
+				goto End;
+			case '-':
+				++script;
+				// fall through
 			case ')':
 			case ',':
 			case ':':
@@ -815,6 +823,7 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 					goto Err;
 				}
 				ps->curr_pos += klength;
+				End:
 				return script;
 			default:
 				goto Err;
@@ -828,8 +837,12 @@ static const char* phoneme_script_run_phoneme_note(phoneme_script_s *restrict ps
 static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, const char *restrict *restrict pscript, phoneme_output_s *restrict po)
 {
 	register const char *restrict script;
-	phoneme_s *p;
-	ps->last_pos = ps->curr_pos;
+	phoneme_s *p, *np, *tp;
+	double bt, bv, bfl;
+	bt = ps->base_time;
+	bv = ps->base_volume;
+	bfl = ps->base_fre_line;
+	np = tp = NULL;
 	p = phoneme_script_get_phoneme(ps, pscript);
 	if (p)
 	{
@@ -861,9 +874,47 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 						script = phoneme_script_run_tpos_ucurr(ps, script + 1);
 						if (!phoneme_output_set_frames(po, ps->curr_pos)) goto Err;
 						break;
+					case '[':
+						*pscript = ++script;
+						tp = phoneme_modify(p, ps->phoneme_pool, pscript, ps->sdmax);
+						if (!tp) goto Err;
+						if (!phoneme_update(tp, ps->phoneme_pool, ps->dmax)) goto Err;
+						if (*(script = *pscript) != ']') goto Err;
+						if (*++script == '=')
+						{
+							// np = NULL
+							++script;
+							if (np)
+							{
+								refer_free(np);
+								np = NULL;
+							}
+							refer_free(p);
+							p = tp;
+						}
+						else if (np)
+						{
+							// keep np
+							refer_free(p);
+							p = tp;
+						}
+						else
+						{
+							// np = p
+							np = p;
+							p = tp;
+						}
+						tp = NULL;
+						break;
 					default:
 						// phoneme
 						script = phoneme_script_run_phoneme_note(ps, script, po, p->note);
+						if (np)
+						{
+							refer_free(p);
+							p = np;
+							np = NULL;
+						}
 						break;
 				}
 				if (!script) goto Err;
@@ -887,6 +938,11 @@ static const char* phoneme_script_run_phoneme(phoneme_script_s *restrict ps, con
 	script = NULL;
 	End:
 	if (p) refer_free(p);
+	if (np) refer_free(np);
+	if (tp) refer_free(tp);
+	ps->base_time = bt;
+	ps->base_volume = bv;
+	ps->base_fre_line = bfl;
 	return script;
 }
 

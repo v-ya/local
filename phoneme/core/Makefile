@@ -5,7 +5,7 @@ LD		= ld
 DYLINK		= dylink
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
 
-OBJECT		= refer.o hashmap.o rbtree.o json.o
+OBJECT		= refer.o hashmap.o rbtree.o json.o pthis.o
 
 %.o:
 	${CC} ${CCFLAGS} -c -o $@ $<
@@ -28,6 +28,7 @@ refer.o: ../../refer/refer.c
 hashmap.o: ../../hashmap/hashmap.c
 rbtree.o: ../../rbtree/rbtree.c
 json.o: ../../json/json.c
+pthis.o: ../phoneme.pool/src/pthis.c
 
 clear:
 	rm -f *.o *.dy
