@@ -180,7 +180,7 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 	int r;
 	memset(pri, 0, sizeof(args_t));
 	pri->sampfre = 96000;
-	pri->base_time = 0.75;
+	pri->base_time = 0.5;
 	pri->base_volume = 0.5;
 	pri->base_fre_line = 440;
 	pri->base_fre_step = 12;
