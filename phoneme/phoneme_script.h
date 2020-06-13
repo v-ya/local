@@ -25,6 +25,10 @@ typedef struct phoneme_script_s {
 	double last_pos;
 	uint32_t sdmax;
 	uint32_t dmax;
+	uint32_t vstack_script_max;
+	uint32_t vstack_script_this;
+	uint32_t vstack_phoneme_max;
+	uint32_t vstack_phoneme_this;
 } phoneme_script_s;
 
 phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, phoneme_script_sysfunc_f sysfunc, void *pri);

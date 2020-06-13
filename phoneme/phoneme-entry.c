@@ -24,6 +24,8 @@ static void _help(const char *exec, const char *type)
 		"\t " "-st/--space-time                [float]\n"
 		"\t " "-sm/-sdmax/--stage-details-max  [integer > 0]\n"
 		"\t " "-dm/-dmax/--details-max         [integer > 0]\n"
+		"\t " "-vss/--vstack-script            [integer >= 0]\n"
+		"\t " "-vsp/--vstack-phoneme           [integer >= 0]\n"
 		"\t " "-sf/--sampfre                   [integer >= 0]\n"
 		"\t " "-t/--thread                     [integer >= 0]\n"
 		"\t " "-xm/--xmsize                    [integer > 0]\n"
@@ -44,6 +46,8 @@ typedef struct args_t {
 	double space_time;
 	uint32_t sdmax;
 	uint32_t dmax;
+	uint32_t vstack_script_max;
+	uint32_t vstack_phoneme_max;
 	uint32_t sampfre;
 	uint32_t thread;
 	size_t xmsize;
@@ -51,8 +55,13 @@ typedef struct args_t {
 
 static args_deal_func(__, args_t*)
 {
-	pri->input = value;
-	if (command) ++*index;
+	if (*index)
+	{
+		if (!value || pri->input || (!command && *value == '-'))
+			return -1;
+		pri->input = value;
+		if (command) ++*index;
+	}
 	return 0;
 }
 
@@ -127,6 +136,20 @@ static args_deal_func(_dm, args_t*)
 	return 0;
 }
 
+static args_deal_func(_vss, args_t*)
+{
+	if (!value || (int)(pri->vstack_script_max = atoi(value)) < 0) return -1;
+	++*index;
+	return 0;
+}
+
+static args_deal_func(_vsp, args_t*)
+{
+	if (!value || (int)(pri->vstack_phoneme_max = atoi(value)) < 0) return -1;
+	++*index;
+	return 0;
+}
+
 static args_deal_func(_sf, args_t*)
 {
 	if (!value || (int)(pri->sampfre = atoi(value)) < 0) return -1;
@@ -179,13 +202,15 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 	hashmap_t args;
 	int r;
 	memset(pri, 0, sizeof(args_t));
-	pri->sampfre = 96000;
 	pri->base_time = 0.5;
 	pri->base_volume = 0.5;
 	pri->base_fre_line = 440;
 	pri->base_fre_step = 12;
 	pri->space_time = 1;
 	pri->dmax = 32;
+	pri->vstack_script_max = 16;
+	pri->vstack_phoneme_max = 16;
+	pri->sampfre = 96000;
 	pri->xmsize = 1 << 20;
 	r = -1;
 	if (!hashmap_init(&args)) goto Err;
@@ -212,6 +237,10 @@ static int args_init(args_t *pri, int argc, const char *argv[])
 	if (!args_set_command(&args, "-dm", (args_deal_f) _dm)) goto Err;
 	if (!args_set_command(&args, "-dmax", (args_deal_f) _dm)) goto Err;
 	if (!args_set_command(&args, "--details-max", (args_deal_f) _dm)) goto Err;
+	if (!args_set_command(&args, "-vss", (args_deal_f) _vss)) goto Err;
+	if (!args_set_command(&args, "--vstack-script", (args_deal_f) _vss)) goto Err;
+	if (!args_set_command(&args, "-vsp", (args_deal_f) _vsp)) goto Err;
+	if (!args_set_command(&args, "--vstack-phoneme", (args_deal_f) _vsp)) goto Err;
 	if (!args_set_command(&args, "-sf", (args_deal_f) _sf)) goto Err;
 	if (!args_set_command(&args, "--sampfre", (args_deal_f) _sf)) goto Err;
 	if (!args_set_command(&args, "-t", (args_deal_f) _t)) goto Err;
@@ -426,14 +455,14 @@ int main(int argc, const char *argv[])
 	if (argc == 1) _help(argv[0], NULL);
 	else
 	{
-		r = args_init(&args, argc, argv);
-		if (r > 0) r = 0;
-		else if (!r && !(r = args_check(&args)))
+		mlog = mlog_alloc(0);
+		if (mlog)
 		{
-			r = -1;
-			mlog = mlog_alloc(0);
-			if (mlog)
+			r = args_init(&args, argc, argv);
+			if (r > 0) r = 0;
+			else if (!r && !(r = args_check(&args)))
 			{
+				r = -1;
 				mlog_set_report(mlog, (mlog_report_f) mlog_report_func, NULL);
 				ps = phoneme_script_alloc(args.xmsize, mlog, (phoneme_script_sysfunc_f) sysfunc, NULL);
 				if (ps)
@@ -448,6 +477,8 @@ int main(int argc, const char *argv[])
 						ps->space_time = args.space_time;
 						ps->sdmax = args.sdmax;
 						ps->dmax = args.dmax;
+						ps->vstack_script_max = args.vstack_script_max;
+						ps->vstack_phoneme_max = args.vstack_phoneme_max;
 						po = phoneme_output_alloc(args.sampfre, 0, args.thread, 5000);
 						if (po)
 						{
@@ -456,15 +487,21 @@ int main(int argc, const char *argv[])
 								phoneme_output_join(po);
 								if (!args.output || !wav_save_double(args.output, &po->output.buffer, po->frames, 1, po->sampfre))
 									r = 0;
+								else mlog_printf(mlog, "save output[%s] fail ...\n", args.output);
 							}
+							else mlog_printf(mlog, "load script[%s] fail ...\n", args.input);
 							refer_free(po);
 						}
+						else mlog_printf(mlog, "alloc phoneme output fail ...\n");
 					}
+					else mlog_printf(mlog, "init phoneme script environment fail ...\n");
 					refer_free(ps);
 				}
-				if (mlog->length) fwrite(mlog->mlog, 1, mlog->length, stdout);
-				refer_free(mlog);
+				else mlog_printf(mlog, "alloc phoneme script environment fail ...\n");
 			}
+			else mlog_printf(mlog, "args check fail ...\n");
+			if (mlog->length) fwrite(mlog->mlog, 1, mlog->length, stdout);
+			refer_free(mlog);
 		}
 	}
 	return r;
