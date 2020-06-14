@@ -220,6 +220,11 @@ uint32_t wav_load_frames(wav_load_t *wl)
 	return wl->header.data_length / sizeof(uint32_t) / wl->header.channels;
 }
 
+void* wav_load_data(wav_load_t *wl)
+{
+	return wl->data;
+}
+
 uint32_t wav_load_get_double(wav_load_t *wl, double v[], uint32_t frames, uint32_t channel)
 {
 	uint32_t n;

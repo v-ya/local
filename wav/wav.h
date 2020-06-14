@@ -31,6 +31,7 @@ int wav_save_load(const char *path, wav_load_t *wl);
 uint32_t wav_load_channels(wav_load_t *wl);
 uint32_t wav_load_sampfre(wav_load_t *wl);
 uint32_t wav_load_frames(wav_load_t *wl);
+void* wav_load_data(wav_load_t *wl);
 uint32_t wav_load_get_double(wav_load_t *wl, double v[], uint32_t frames, uint32_t channel);
 uint32_t wav_load_get_float(wav_load_t *wl, float v[], uint32_t frames, uint32_t channel);
 uint32_t wav_load_get_int32(wav_load_t *wl, int32_t v[], uint32_t frames, uint32_t channel);
