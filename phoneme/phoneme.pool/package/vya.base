@@ -9,6 +9,14 @@
 			"arg2pri": "vya.e.weaken.arg"
 		},
 		{
+			"name": "vya.e.polyline",
+			"arg2pri": "vya.e.polyline.arg"
+		},
+		{
+			"name": "vya.bf.polyline",
+			"arg2pri": "vya.bf.polyline.arg"
+		},
+		{
 			"name": "vya.bf.crand",
 			"arg2pri": "vya.bf.crand.arg"
 		},
@@ -19,6 +27,10 @@
 		{
 			"name": "vya.df.grapow",
 			"arg2pri": "vya.df.grapow.arg"
+		},
+		{
+			"name": "vya.df.fa_q",
+			"arg2pri": "vya.df.fa_q.arg"
 		},
 		{
 			"name": "vya.dg.grapow",

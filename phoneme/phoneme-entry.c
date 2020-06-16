@@ -304,9 +304,9 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	// set_func(fputs);
 	// set_func(getc);
 	// set_func(getchar);
-	// set_func(putc);
+	set_func(putc);
 	set_func(putchar);
-	// set_func(puts);
+	set_func(puts);
 	// set_func(ungetc);
 	// set_func(perror);
 	set_func(snprintf);

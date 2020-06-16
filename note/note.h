@@ -14,9 +14,9 @@ typedef struct note_dyarg_t {
 	double f;        // 当前频率 (Hz)
 } note_dyarg_t;
 
-typedef double (*note_envelope_f)(refer_t pri, note_dyarg_t *arg);
-typedef double (*note_base_frequency_f)(refer_t pri, note_dyarg_t *arg);
-typedef void (*note_details_f)(refer_t pri, note_dyarg_t *arg, note_details_s *d);
+typedef double (*note_envelope_f)(refer_t pri, note_dyarg_t *restrict arg, refer_t *restrict data);
+typedef double (*note_base_frequency_f)(refer_t pri, note_dyarg_t *restrict arg, refer_t *restrict data);
+typedef void (*note_details_f)(refer_t pri, note_dyarg_t *restrict arg, note_details_s *restrict d, refer_t *restrict data);
 
 typedef struct note_details_stage_t {
 	note_details_f func;

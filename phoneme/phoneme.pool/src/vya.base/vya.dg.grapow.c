@@ -10,7 +10,7 @@ static dyl_used phoneme_details_func(dg_grapow, refer_t)
 {
 	d->used = d->max;
 	dg_a_qz(d, 1);
-	df_grapow(pri, arg, d);
+	df_grapow(pri, arg, d, data);
 }
 dyl_export(dg_grapow, $details$vya.dg.grapow);
 

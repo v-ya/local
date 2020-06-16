@@ -335,7 +335,8 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 		label_arg2pri:
 		arg2pri = phoneme_pool_get_arg2pri(pp, r->name);
 		if (!arg2pri) goto Err;
-		r->pri = arg2pri(*r->arg);
+		if (!(r->pri = arg2pri(*r->arg)))
+			goto Err;
 	}
 	return r;
 	Err:
@@ -388,6 +389,9 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 				if (!phoneme_modify_script(r->details + i, (i < p->details_used)?(p->details + i):NULL, pp, &pp->details, modify))
 					goto Err_details;
 				continue;
+			default:
+				*modify = s;
+				break;
 		}
 		break;
 	}

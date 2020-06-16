@@ -2,6 +2,7 @@
 #include "note.h"
 #include <math.h>
 #include <stdlib.h>
+#include <memory.h>
 
 static void note_free_func(note_s *restrict n)
 {
@@ -147,8 +148,10 @@ void note_random_phase(note_s *restrict n)
 void note_gen(note_s *restrict n, double length, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre)
 {
 	note_dyarg_t arg;
-	register double t, dt, q;
 	uint32_t i, j, l, nn, si, sn;
+	refer_t envelope_data, basefre_data;
+	register refer_t *details_data;
+	register double t, dt, q;
 	if (n->base_frequency && n->base_frequency && n->stage_used && n->stage->func)
 	{
 		arg.length = t = length;
@@ -156,20 +159,23 @@ void note_gen(note_s *restrict n, double length, double volume, double basefre, 
 		arg.basefre = basefre;
 		nn = (uint32_t) (t * sampfre);
 		sn = n->stage_used;
-		if (nn)
+		details_data = (refer_t *) alloca(sn * sizeof(refer_t));
+		if (nn && details_data)
 		{
+			envelope_data = basefre_data = NULL;
+			memset(details_data, 0, sn * sizeof(refer_t));
 			i = 0;
 			t = q = 0;
 			if (nn > frames) nn = frames;
 			while (i < nn)
 			{
 				arg.t = t;
-				arg.a = n->envelope(n->envelope_pri, &arg);
-				arg.f = n->base_frequency(n->base_frequency_pri, &arg);
+				arg.a = n->envelope(n->envelope_pri, &arg, &envelope_data);
+				arg.f = n->base_frequency(n->base_frequency_pri, &arg, &basefre_data);
 				dt = sampfre / (arg.f * nn * 2);
 				arg.t = t + dt;
-				arg.a = n->envelope(n->envelope_pri, &arg);
-				arg.f = n->base_frequency(n->base_frequency_pri, &arg);
+				arg.a = n->envelope(n->envelope_pri, &arg, &envelope_data);
+				arg.f = n->base_frequency(n->base_frequency_pri, &arg, &basefre_data);
 				dt = sampfre / (arg.f * nn * 2);
 				arg.t = (t += dt);
 				l = (uint32_t) ((q = sampfre / arg.f) + 0.5);
@@ -177,16 +183,22 @@ void note_gen(note_s *restrict n, double length, double volume, double basefre, 
 				if (l)
 				{
 					for (si = 0; si < sn; ++si)
-						n->stage[si].func(n->stage[si].pri, &arg, n->details);
+						n->stage[si].func(n->stage[si].pri, &arg, n->details, details_data + si);
 					note_details_gen(v + i, frames - i, n->details, l, arg.a, (M_PI * 2) * (q * arg.f / sampfre));
 				}
 				t += dt;
 				i = j + !l;
 				q = l - q;
 			}
+			if (envelope_data) refer_free(envelope_data);
+			if (basefre_data) refer_free(basefre_data);
+			for (si = 0; si < sn; ++si)
+			{
+				if (details_data[si])
+					refer_free(details_data[si]);
+			}
 		}
 	}
-	return ;
 }
 
 void note_gen_with_pos(note_s *restrict n, double length, double volume, double basefre, double *v, uint32_t frames, uint32_t sampfre, uint32_t pos)

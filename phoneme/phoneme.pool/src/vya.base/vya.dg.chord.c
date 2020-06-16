@@ -12,7 +12,7 @@ static dyl_used phoneme_details_func(dg_chord, refer_t)
 {
 	d->used = d->max;
 	dg_a_qz(d, 1);
-	df_chord(pri, arg, d);
+	df_chord(pri, arg, d, data);
 }
 dyl_export(dg_chord, $details$vya.dg.chord);
 

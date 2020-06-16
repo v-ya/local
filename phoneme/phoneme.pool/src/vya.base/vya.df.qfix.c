@@ -7,7 +7,7 @@ static double df_qfix_turn_x0(register note_details_s *restrict nd, double x)
 {
 	register uint32_t i;
 	uint32_t n, m;
-	double f, fa, k, ka, q;
+	double f, fa, q;
 	n = nd->used;
 	m = 10;
 	do {
@@ -16,10 +16,9 @@ static double df_qfix_turn_x0(register note_details_s *restrict nd, double x)
 		while (i)
 		{
 			--i;
-			ka = (k = nd->saq[i].sa) * (q = nd->saq[i].sq);
-			q *= x;
-			f += k * sin(q);
-			fa += ka * cos(q);
+			q = nd->saq[i].sq + x;
+			f += sin(q);
+			fa += cos(q);
 		}
 		if (fa == 0)
 		{
@@ -37,20 +36,22 @@ static dyl_used phoneme_details_func(df_qfix, refer_t)
 {
 	if (d->used)
 	{
-		register double k;
+		register double *restrict qsave;
+		register double x;
 		register uint32_t i;
-		i = d->used;
-		while (i)
+		if (!(qsave = *data))
 		{
-			--i;
-			d->saq[i].sq = q_normal(d->saq[i].sq);
+			*data = qsave = (double *) refer_alloz(sizeof(double));
 		}
-		k = df_qfix_turn_x0(d, 1);
-		i = d->used;
-		while (i)
+		if (qsave)
 		{
-			--i;
-			d->saq[i].sq *= k;
+			*qsave = x = df_qfix_turn_x0(d, *qsave);
+			i = d->used;
+			while (i)
+			{
+				--i;
+				d->saq[i].sq += x;
+			}
 		}
 	}
 }

@@ -1,7 +1,7 @@
 #ifndef _pthis_h_
 #define _pthis_h_
 
-#include "../../phoneme_script.h"
+#include <phoneme/phoneme_script.h>
 
 extern phoneme_script_s *pthis_phoneme_script;
 dyl_alias(this.var.ps, phoneme_script);
