@@ -1118,6 +1118,7 @@ phoneme_output_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 				{
 					if (!(script = strstr(script + 3, "###")))
 						goto End;
+					script += 3;
 				}
 				else if (!(script = strchr(script + 1, '\n'))) goto End;
 				break;

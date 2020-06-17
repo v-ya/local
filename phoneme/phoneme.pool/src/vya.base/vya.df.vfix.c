@@ -32,7 +32,7 @@ static float df_vfix_turn_xm(register note_details_s *restrict nd, float x)
 	return x;
 }
 
-static float df_vfix_4sampfre_xm(note_details_s *nd)
+static float df_vfix_8sampfre_xm(note_details_s *nd)
 {
 	float *s;
 	float a, q, w, k;
@@ -76,7 +76,7 @@ static dyl_used phoneme_details_func(df_vfix, refer_t)
 	{
 		register double x, _a, _q;
 		register uint32_t i;
-		x = df_vfix_turn_xm(d, df_vfix_4sampfre_xm(d));
+		x = df_vfix_turn_xm(d, df_vfix_8sampfre_xm(d));
 		_a = 0;
 		i = d->used;
 		while (i)
