@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/resource.h>
 
 static phoneme_buffer_t* phoneme_buffer_init(phoneme_buffer_t *restrict b, uint32_t size)
 {
@@ -43,6 +45,7 @@ static phoneme_buffer_t* phoneme_buffer_set_frames(phoneme_buffer_t *restrict pb
 
 static void* phoneme_output_core_thread_func(register phoneme_output_core_t *restrict core)
 {
+	core->tid = syscall(SYS_gettid);
 	while (core->running)
 	{
 		if (core->busy)
@@ -170,6 +173,29 @@ phoneme_output_s* phoneme_output_alloc(uint32_t sampfre, uint32_t frames, uint32
 		refer_free(r);
 	}
 	return NULL;
+}
+
+phoneme_output_s* phoneme_output_set_priority(phoneme_output_s *restrict po, double nice)
+{
+	phoneme_output_s *r;
+	r = NULL;
+	if (po->core_number)
+	{
+		phoneme_output_core_t *core;
+		uint32_t i;
+		int _ni;
+		r = po;
+		if (nice < 0) _ni = (int) (nice * (-PRIO_MIN) - 0.5);
+		else _ni = (int) (nice * PRIO_MAX + 0.5);
+		for (i = 0, core = po->core; i < po->core_number; ++i, ++core)
+		{
+			while (!*(volatile uintptr_t*) &core->tid)
+				usleep(core->usleep_time);
+			if (setpriority(PRIO_PROCESS, (id_t) core->tid, _ni))
+				r = NULL;
+		}
+	}
+	return r;
 }
 
 phoneme_output_s* phoneme_output_set_sampfre(phoneme_output_s *restrict po, uint32_t sampfre)
