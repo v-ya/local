@@ -88,7 +88,12 @@ uint32_t pcmplay_period_frames(pcmplay_s *restrict pp)
 	return pp->fpw;
 }
 
-void pcmplay_write(pcmplay_s *restrict pp, void *data, uint32_t frames)
+int pcmplay_prepare(pcmplay_s *restrict pp)
+{
+	return snd_pcm_prepare(pp->pcm);
+}
+
+void pcmplay_write(pcmplay_s *restrict pp, void *restrict data, uint32_t frames)
 {
 	snd_pcm_sframes_t r;
 	while (frames > pp->fpw)
@@ -110,7 +115,28 @@ void pcmplay_write(pcmplay_s *restrict pp, void *data, uint32_t frames)
 	}
 }
 
+int32_t pcmplay_write_once(pcmplay_s *restrict pp, register void *restrict *restrict data, register uint32_t *restrict frames)
+{
+	uint32_t n;
+	int32_t r;
+	if ((n = *frames) > pp->fpw) n = pp->fpw;
+	r = snd_pcm_writei(pp->pcm, *data, n);
+	if (r == -EPIPE)
+	{
+		if (!snd_pcm_prepare(pp->pcm))
+			r = snd_pcm_writei(pp->pcm, *data, n);
+	}
+	*frames -= n;
+	*(char *restrict *restrict) data += n * pp->bpf;
+	return r;
+}
+
 int pcmplay_wait(pcmplay_s *restrict pp)
 {
 	return snd_pcm_drain(pp->pcm);
+}
+
+int32_t pcmplay_get_avail(pcmplay_s *restrict pp)
+{
+	return snd_pcm_avail_update(pp->pcm);
 }

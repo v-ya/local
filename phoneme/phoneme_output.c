@@ -198,6 +198,13 @@ phoneme_output_s* phoneme_output_set_priority(phoneme_output_s *restrict po, dou
 	return r;
 }
 
+phoneme_output_s* phoneme_output_clear(phoneme_output_s *restrict po)
+{
+	if (po->frames) memset(po->output.buffer, 0, po->frames * sizeof(double));
+	po->frames = 0;
+	return po;
+}
+
 phoneme_output_s* phoneme_output_set_sampfre(phoneme_output_s *restrict po, uint32_t sampfre)
 {
 	po->sampfre = sampfre;

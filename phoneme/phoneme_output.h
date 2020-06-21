@@ -37,6 +37,7 @@ typedef struct phoneme_output_s {
 
 phoneme_output_s* phoneme_output_alloc(uint32_t sampfre, uint32_t frames, uint32_t core_number, uint32_t usleep_time);
 phoneme_output_s* phoneme_output_set_priority(phoneme_output_s *restrict po, double nice);
+phoneme_output_s* phoneme_output_clear(phoneme_output_s *restrict po);
 phoneme_output_s* phoneme_output_set_sampfre(phoneme_output_s *restrict po, uint32_t sampfre);
 phoneme_output_s* phoneme_output_set_frames(phoneme_output_s *restrict po, double t);
 phoneme_output_s* phoneme_output_gen_note(phoneme_output_s *restrict po, note_s *restrict note, double pos, double length, double volume, double basefre);

@@ -1,4 +1,4 @@
-project		= refer hashmap rbtree json mlog args dylink note wav bmp wavelike pcm2wav pcmplay scatterplot wldeal phoneme
+project		= refer hashmap rbtree json mlog args dylink note wav bmp wavelike pcm2wav pcmplay audioloop scatterplot wldeal phoneme
 
 .PHONY: clear install
 clear:
