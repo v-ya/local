@@ -29,9 +29,9 @@ aloop_input_s* aloop_input_alloc(void);
 aloop_input_s* aloop_input_set_frames(register aloop_input_s *restrict ai, uint32_t n);
 aloop_input_s* aloop_input_set_double(register aloop_input_s *restrict ai, double *restrict *restrict v, uint32_t channels, uint32_t sampfre, uint32_t frames);
 
-aloop_s* aloop_alloc(void);
+aloop_s* aloop_alloc(uint32_t usleep_time);
 aloop_s* aloop_update_double(aloop_s *restrict r, double *restrict *restrict v, uint32_t channels, uint32_t sampfre, uint32_t frames);
 
-void aloop_clear(void);
+void aloop_uini(void);
 
 #endif

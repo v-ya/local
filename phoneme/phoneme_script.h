@@ -31,6 +31,16 @@ typedef struct phoneme_script_s {
 	uint32_t vstack_phoneme_this;
 } phoneme_script_s;
 
+#define phoneme_script_default_base_time           0.4054
+#define phoneme_script_default_base_volume         0.5
+#define phoneme_script_default_base_fre_line       440
+#define phoneme_script_default_base_fre_step       12
+#define phoneme_script_default_space_time          1
+#define phoneme_script_default_sdmax               0
+#define phoneme_script_default_dmax                32
+#define phoneme_script_default_vstack_script_max   16
+#define phoneme_script_default_vstack_phoneme_max  16
+
 phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, phoneme_script_sysfunc_f sysfunc, void *pri);
 phoneme_src_name_s phoneme_script_set_core_path(phoneme_script_s *restrict ps, const char *restrict path);
 phoneme_src_name_s phoneme_script_set_package_path(phoneme_script_s *restrict ps, const char *restrict path);

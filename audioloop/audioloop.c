@@ -31,7 +31,7 @@ aloop_input_s* aloop_input_set_frames(register aloop_input_s *restrict ai, uint3
 	size = aloop_input_min_data_size;
 	while (size && size < n) size <<= 1;
 	if (!size) goto label_error;
-	data = (int32_t *) malloc((size_t) n << 2);
+	data = (int32_t *) malloc((size_t) size << 2);
 	if (!data) goto label_error;
 	if (ai->data) free(ai->data);
 	ai->data = data;
@@ -227,7 +227,7 @@ static void* aloop_thread_func(register aloop_s *a)
 	return NULL;
 }
 
-aloop_s* aloop_alloc(void)
+aloop_s* aloop_alloc(uint32_t usleep_time)
 {
 	register aloop_s *restrict r;
 	r = (aloop_s *) refer_alloz(sizeof(aloop_s));
@@ -240,7 +240,7 @@ aloop_s* aloop_alloc(void)
 		if (r->ai1 && r->ai2 && r->ai3)
 		{
 			r->status = 1;
-			r->usleep_time = 5;
+			r->usleep_time = usleep_time;
 			if (!pthread_create(&r->thread, NULL, (void *(*)(void *)) aloop_thread_func, r))
 				return r;
 		}
@@ -265,7 +265,7 @@ aloop_s* aloop_update_double(aloop_s *restrict r, double *restrict *restrict v, 
 	return NULL;
 }
 
-void aloop_clear(void)
+void aloop_uini(void)
 {
-	pcmplay_clear();
+	pcmplay_uini();
 }

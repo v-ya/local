@@ -33,14 +33,15 @@ phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, pho
 					{
 						dyp = NULL;
 						phoneme_pool_set_mlog(r->phoneme_pool, r->mlog = refer_save(mlog));
-						r->base_time = 0.4054;
-						r->base_volume = 0.5;
-						r->base_fre_line = 440;
-						r->base_fre_step = 12;
-						r->space_time = 1;
-						r->dmax = 32;
-						r->vstack_script_max = 16;
-						r->vstack_phoneme_max = 16;
+						r->base_time = phoneme_script_default_base_time;
+						r->base_volume = phoneme_script_default_base_volume;
+						r->base_fre_line = phoneme_script_default_base_fre_line;
+						r->base_fre_step = phoneme_script_default_base_fre_step;
+						r->space_time = phoneme_script_default_space_time;
+						r->sdmax = phoneme_script_default_sdmax;
+						r->dmax = phoneme_script_default_dmax;
+						r->vstack_script_max = phoneme_script_default_vstack_script_max;
+						r->vstack_phoneme_max = phoneme_script_default_vstack_phoneme_max;
 						return r;
 					}
 				}

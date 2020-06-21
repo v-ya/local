@@ -23,7 +23,7 @@ int main(int argc, const char *argv[])
 				pcmplay_write(pp, data, frames);
 				pcmplay_wait(pp);
 				refer_free(pp);
-				pcmplay_clear();
+				pcmplay_uini();
 				r = 0;
 			}
 			wav_free(wl);

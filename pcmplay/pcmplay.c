@@ -19,7 +19,7 @@ static void pcmplay_free_func(pcmplay_s *restrict r)
 	}
 }
 
-int pcmplay_clear(void)
+int pcmplay_uini(void)
 {
 	return snd_config_update_free_global();
 }

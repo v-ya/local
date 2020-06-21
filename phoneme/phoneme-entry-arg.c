@@ -1,4 +1,5 @@
 #include "phoneme-entry-arg.h"
+#include "phoneme_script.h"
 #include <args.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -189,14 +190,15 @@ int args_init(args_t *pri, int argc, const char *argv[])
 	hashmap_t args;
 	int r;
 	memset(pri, 0, sizeof(args_t));
-	pri->base_time = 0.4054;
-	pri->base_volume = 0.5;
-	pri->base_fre_line = 440;
-	pri->base_fre_step = 12;
-	pri->space_time = 1;
-	pri->dmax = 32;
-	pri->vstack_script_max = 16;
-	pri->vstack_phoneme_max = 16;
+	pri->base_time = phoneme_script_default_base_time;
+	pri->base_volume = phoneme_script_default_base_volume;
+	pri->base_fre_line = phoneme_script_default_base_fre_line;
+	pri->base_fre_step = phoneme_script_default_base_fre_step;
+	pri->space_time = phoneme_script_default_space_time;
+	pri->sdmax = phoneme_script_default_sdmax;
+	pri->dmax = phoneme_script_default_dmax;
+	pri->vstack_script_max = phoneme_script_default_vstack_script_max;
+	pri->vstack_phoneme_max = phoneme_script_default_vstack_phoneme_max;
 	pri->sampfre = 96000;
 	pri->nice = 1;
 	pri->xmsize = 1 << 20;
