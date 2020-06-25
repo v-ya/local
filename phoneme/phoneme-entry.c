@@ -24,12 +24,12 @@ int main(int argc, const char *argv[])
 		mlog = mlog_alloc(0);
 		if (mlog)
 		{
+			mlog_set_report(mlog, (mlog_report_f) mlog_report_func, NULL);
 			r = args_init(&args, argc, argv);
 			if (r > 0) r = 0;
 			else if (!r && !(r = args_check(&args)))
 			{
 				r = -1;
-				mlog_set_report(mlog, (mlog_report_f) mlog_report_func, NULL);
 				ps = phoneme_script_create_default(args.xmsize, mlog);
 				if (ps)
 				{
