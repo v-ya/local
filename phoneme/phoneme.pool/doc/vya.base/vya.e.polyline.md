@@ -4,31 +4,20 @@
 ---
 ### arg
 ```
-	[].s:  floating  [0, ...)+  位置
-	[].v:  floating  [0, 1]     值
-```
-```
-	; 位置等分 [0, 1]
-	[]:    floating  [0, 1]     值
+	= vya.common.polyline
 ```
 ---
 ### detail
 ```
 	volume = :
 	t = :
-	s[] = <[].s>
-	v[] = <[].v>
-	= volume * seqence(s[], v[], t)
+	p = <vya.bf.polyline.arg()>
+	= volume * vya.common.polyline(t, p)
 ```
 
 ***
 # vya.e.polyline.arg
 ---
 ```
-	s[] = <[].s>
-	v[] = <[].v>
-```
-```
-	s[] = [0 ... 1]
-	v[] = <[]>
+	p = vya.common.polyline_arg(<>, a_func = null, b_func = null)
 ```

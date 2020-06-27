@@ -4,31 +4,21 @@
 ---
 ### arg
 ```
-	[].s:  floating  [0, ...)+  位置
-	[].v:  floating  [0, 1]     值
-```
-```
-	; 位置等分 [0, 1]
-	[]:    floating  [0, 1]     值
+	a_func := vya.vd.frestep
+	= vya.common.polyline
 ```
 ---
 ### detail
 ```
 	basefre = :
 	t = :
-	s[] = <[].s>
-	v[] = <[].v>
-	= basefre * seqence(s[], v[], t)
+	p = <vya.bf.polyline.arg()>
+	= basefre * vya.common.polyline(t, p)
 ```
 
 ***
 # vya.bf.polyline.arg
 ---
 ```
-	s[] = <[].s>
-	v[] = <[].v>
-```
-```
-	s[] = [0 ... 1]
-	v[] = <[]>
+	p = vya.common.polyline_arg(<>, a_func = vya.vd.frestep, b_func = null)
 ```
