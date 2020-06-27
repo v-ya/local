@@ -1,41 +1,23 @@
 #define _DEFAULT_SOURCE
 #include <phoneme/phoneme.h>
-#include "../vya.common/seqence.inc"
+#include "../vya.common/polyline.inc"
 
-typedef struct e_polyline_s {
-	size_t n;
-	double *s;
-	double *v;
-	double value[];
-} e_polyline_s;
-
-static dyl_used phoneme_envelope_func(e_polyline, e_polyline_s*restrict)
+static dyl_used phoneme_envelope_func(e_polyline, refer_t)
 {
-	if (pri) return arg->volume * seqence(pri->n, pri->s, pri->v, arg->t);
-	return arg->volume;
+	register double v;
+	v = 1;
+	if (pri)
+	{
+		v = polyline(arg->t, pri);
+		if (v < 0) v = 0;
+	}
+	return arg->volume * v;
 }
 dyl_export(e_polyline, $envelope$vya.e.polyline);
 
-static dyl_used phoneme_arg2pri_func(e_polyline_arg, e_polyline_s*)
+static dyl_used phoneme_arg2pri_func(e_polyline_arg, refer_t)
 {
-	e_polyline_s *r;
-	size_t n;
-	r = NULL;
-	if (arg && arg->type == json_inode_array && (n = arg->value.array.number))
-	{
-		r = refer_alloz(sizeof(e_polyline_s) + sizeof(double) * 2 * n);
-		if (r)
-		{
-			seqence_arg(r->n = n, r->s = r->value, r->v = r->value + n, arg);
-			while (n)
-			{
-				--n;
-				if (r->v[n] < 0) r->v[n] = 0;
-				if (r->v[n] > 1) r->v[n] = 1;
-			}
-		}
-	}
-	return r;
+	return polyline_arg(arg, NULL, NULL);
 }
 dyl_export(e_polyline_arg, $arg2pri$vya.e.polyline.arg);
 

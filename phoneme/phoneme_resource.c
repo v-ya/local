@@ -123,9 +123,12 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(tanh);
 	set_func(sincos);
 	set_func(exp);
+	set_func(exp2);
+	set_func(exp10);
 	set_func(frexp);
 	set_func(ldexp);
 	set_func(log);
+	set_func(log2);
 	set_func(log10);
 	set_func(modf);
 	set_func(pow);
@@ -147,9 +150,12 @@ static int sysfunc(dylink_pool_t *dyp, void *pri)
 	set_func(tanhf);
 	set_func(sincosf);
 	set_func(expf);
+	set_func(exp2f);
+	set_func(exp10f);
 	set_func(frexpf);
 	set_func(ldexpf);
 	set_func(logf);
+	set_func(log2f);
 	set_func(log10f);
 	set_func(modff);
 	set_func(powf);

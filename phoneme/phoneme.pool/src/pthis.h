@@ -4,9 +4,9 @@
 #include <phoneme/phoneme_script.h>
 
 extern phoneme_script_s *pthis_phoneme_script;
-dyl_alias(this.var.ps, phoneme_script);
+dyl_alias(this.var.ps, pthis_phoneme_script);
 extern phoneme_pool_s *phis_phoneme_pool;
-dyl_alias(this.var.pp, phoneme_pool);
+dyl_alias(this.var.pp, phis_phoneme_pool);
 
 void* pthis_symbol(const char *restrict symbol);
 dyl_alias(this.func.symbol, pthis_symbol);

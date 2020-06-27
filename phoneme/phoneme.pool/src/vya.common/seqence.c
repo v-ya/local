@@ -1,8 +1,9 @@
 #define _DEFAULT_SOURCE
 #include <phoneme/phoneme.h>
+#include "value_deal.h"
 #include "get_float.inc"
 
-static dyl_used double seqence(register size_t n, register double *restrict s, register double *restrict v, register double t)
+static dyl_used double seqence(register size_t n, register double *restrict s, register double *restrict v, register double t, value_deal_f func, refer_t pri)
 {
 	if (t < *s) goto other;
 	while (--n && *++s < t) ++v;
@@ -10,9 +11,11 @@ static dyl_used double seqence(register size_t n, register double *restrict s, r
 	--s;
 	if (s[0] == s[1]) goto other;
 	t = (t - *s) / (s[1] - s[0]);
-	return v[0] * (1 - t) + v[1] * t;
+	if (func) return func(v[0], pri) * (1 - t) + func(v[1], pri) * t;
+	else return v[0] * (1 - t) + v[1] * t;
 	other:
-	return *v;
+	if (func) return func(*v, pri);
+	else return *v;
 }
 dyl_export(seqence, vya.common.seqence);
 

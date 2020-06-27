@@ -1,6 +1,6 @@
 #include <phoneme/phoneme.h>
 
-static dyl_used void get_float(double *r, json_inode_t *arg, const char *restrict jpath)
+static dyl_used void get_float(double *restrict r, json_inode_t *restrict arg, const char *restrict jpath)
 {
 	if (arg)
 	{

@@ -1,4 +1,5 @@
-double seqence(register size_t n, register double *restrict s, register double *restrict v, register double t);
+#include "value_deal.h"
+double seqence(size_t n, double *restrict s, double *restrict v, double t, value_deal_f func, refer_t pri);
 dyl_alias(vya.common.seqence, seqence);
-void seqence_arg(register size_t n, register double *restrict s, register double *restrict v, register json_inode_t *arg);
+void seqence_arg(size_t n, double *restrict s, double *restrict v, json_inode_t *arg);
 dyl_alias(vya.common.seqence_arg, seqence_arg);
