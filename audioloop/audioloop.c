@@ -223,7 +223,7 @@ static void* aloop_thread_func(register aloop_s *a)
 			aloop_wait_player(a);
 		}
 	}
-	aloop_push_input(a, play);
+	if (play) aloop_push_input(a, play);
 	return NULL;
 }
 

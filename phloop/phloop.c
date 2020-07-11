@@ -66,7 +66,11 @@ phloop_s* phloop_update(phloop_s *restrict phloop, const char *script_path)
 				r = phloop;
 			else mlog_printf(phloop->mlog, "[phloop_update] update audio loop fail ...\n");
 		}
-		else mlog_printf(phloop->mlog, "[phloop_update] load script[%s] fail ...\n", script_path);
+		else
+		{
+			phoneme_output_join(po);
+			mlog_printf(phloop->mlog, "[phloop_update] load script[%s] fail ...\n", script_path);
+		}
 		refer_free(ps);
 	}
 	else mlog_printf(phloop->mlog, "[phloop_update] create default phoneme script fail ...\n");

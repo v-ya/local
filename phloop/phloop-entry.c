@@ -3,6 +3,7 @@
 #include "phloop-entry-arg.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,8 +12,10 @@ static volatile uint32_t running;
 
 static void signal_int_func(int sig)
 {
+	static int n = 5;
 	printf("wait stop ...\n");
 	running = 0;
+	if (--n < 0) exit(-1);
 }
 
 static int mlog_report_func(const char *restrict msg, size_t length, refer_t pri)
