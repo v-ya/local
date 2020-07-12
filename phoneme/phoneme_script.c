@@ -1040,6 +1040,11 @@ static const char* phoneme_script_run_var(phoneme_script_s *restrict ps, const c
 	return r;
 }
 
+static const char* phoneme_script_run_keyword(phoneme_script_s *restrict ps, const char *restrict *restrict pscript, phoneme_output_s *restrict po)
+{
+	return NULL;
+}
+
 static void phoneme_script_run_dump_pos(mlog_s *restrict mlog, const char *restrict start, const char *restrict pos)
 {
 	register const char *s;
@@ -1112,6 +1117,10 @@ phoneme_output_s* phoneme_script_run(phoneme_script_s *restrict ps, register con
 			case '<':
 				// run var
 				script = phoneme_script_run_var(ps, &pos, po);
+				break;
+			case '$':
+				// find keyword and run
+				script = phoneme_script_run_keyword(ps, &pos, po);
 				break;
 			case '#':
 				// note

@@ -14,6 +14,7 @@ static void phoneme_pool_free_func(phoneme_pool_s *restrict pp)
 	hashmap_uini(&pp->basefre);
 	hashmap_uini(&pp->details);
 	hashmap_uini(&pp->arg2pri);
+	hashmap_uini(&pp->keyword);
 	hashmap_uini(&pp->arg);
 	hashmap_uini(&pp->phoneme);
 }
@@ -54,6 +55,9 @@ static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_r
 					break;
 				case (((uint64_t) '$irp' << 32) | (uint64_t) '2gra'):
 					symlist = &pp->arg2pri;
+					break;
+				case (((uint64_t) '$dro' << 32) | (uint64_t) 'wyek'):
+					symlist = &pp->keyword;
 					break;
 				default:
 					symlist = NULL;
@@ -113,6 +117,7 @@ phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool)
 			if (!hashmap_init(&pp->basefre)) goto Err;
 			if (!hashmap_init(&pp->details)) goto Err;
 			if (!hashmap_init(&pp->arg2pri)) goto Err;
+			if (!hashmap_init(&pp->keyword)) goto Err;
 			if (!hashmap_init(&pp->arg)) goto Err;
 			if (!hashmap_init(&pp->phoneme)) goto Err;
 			pp->dypool = dypool;

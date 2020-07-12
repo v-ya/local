@@ -31,6 +31,8 @@ typedef struct phoneme_script_s {
 	uint32_t vstack_phoneme_this;
 } phoneme_script_s;
 
+typedef const char* (*phoneme_script_keyword_f)(const char *restrict *restrict pos, phoneme_s *restrict phoneme, phoneme_script_s *restrict phoneme_script, phoneme_output_s *phoneme_output);
+
 #define phoneme_script_default_base_time           0.4054
 #define phoneme_script_default_base_volume         0.5
 #define phoneme_script_default_base_fre_line       440
