@@ -33,7 +33,9 @@ static dyl_used polyline_s* polyline_arg(register json_inode_t *restrict arg, co
 	register polyline_s *restrict r;
 	register json_inode_t *v;
 	size_t n;
-	if (arg && (v = json_find(arg, ".=")) && v->type == json_inode_array && (n = v->value.array.number))
+	if (arg && ((v = arg)->type == json_inode_array ||
+		((v = json_find(arg, ".=")) && v->type == json_inode_array)) &&
+		(n = v->value.array.number))
 	{
 		r = refer_alloz(sizeof(polyline_s) + sizeof(double) * 2 * n);
 		if (r)

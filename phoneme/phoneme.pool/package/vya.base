@@ -36,6 +36,10 @@
 			"name": "vya.dg.grapow",
 			"arg2pri": "vya.dg.grapow.arg",
 			"refer": "vya.df.grapow"
+		},
+		{
+			"name": "vya.df.formant_polyline",
+			"arg2pri": "vya.df.formant_polyline.arg"
 		}
 	],
 	"arg": {

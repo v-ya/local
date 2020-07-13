@@ -5,9 +5,6 @@
 
 static void phoneme_pool_free_func(phoneme_pool_s *restrict pp)
 {
-	if (pp->dypool) dylink_pool_free(pp->dypool);
-	if (pp->var) json_free(pp->var);
-	if (pp->mlog) refer_free(pp->mlog);
 	hashmap_uini(&pp->depend);
 	hashmap_uini(&pp->name);
 	hashmap_uini(&pp->envelope);
@@ -17,6 +14,9 @@ static void phoneme_pool_free_func(phoneme_pool_s *restrict pp)
 	hashmap_uini(&pp->keyword);
 	hashmap_uini(&pp->arg);
 	hashmap_uini(&pp->phoneme);
+	if (pp->var) json_free(pp->var);
+	if (pp->mlog) refer_free(pp->mlog);
+	if (pp->dypool) dylink_pool_free(pp->dypool);
 }
 
 static int phoneme_pool_dypool_report(phoneme_pool_s *restrict pp, dylink_pool_report_type_t type, const char *symbol, void *ptr, void **plt)
