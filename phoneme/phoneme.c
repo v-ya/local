@@ -334,7 +334,12 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 		register phoneme_arg2pri_f arg2pri;
 		label_arg2pri:
 		arg2pri = phoneme_pool_get_arg2pri(pp, r->name);
-		if (arg2pri && !(r->pri = arg2pri(*r->arg)))
+		if (arg2pri)
+		{
+			if (!(r->pri = arg2pri(*r->arg)))
+				goto Err;
+		}
+		else if (*r->arg && (*r->arg)->type != json_inode_null)
 			goto Err;
 	}
 	return r;
