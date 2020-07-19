@@ -6,31 +6,34 @@ double wavelike_next_zpos(double v[], uint32_t frames, double last)
 	uint32_t n;
 	if (last < 0) n = 0;
 	else n = (uint32_t) last + 1;
-	if (v[n] > 0)
+	if (n < frames)
 	{
-		++n;
-		while (n < frames)
+		if (v[n] > 0)
 		{
-			if (v[n] <= 0)
-			{
-				return n + v[n] / (v[n - 1] - v[n]);
-			}
 			++n;
+			while (n < frames)
+			{
+				if (v[n] <= 0)
+				{
+					return n + v[n] / (v[n - 1] - v[n]);
+				}
+				++n;
+			}
 		}
-	}
-	else if (v[n] < 0)
-	{
-		++n;
-		while (n < frames)
+		else if (v[n] < 0)
 		{
-			if (v[n] >= 0)
-			{
-				return n - v[n] / (v[n] - v[n - 1]);
-			}
 			++n;
+			while (n < frames)
+			{
+				if (v[n] >= 0)
+				{
+					return n - v[n] / (v[n] - v[n - 1]);
+				}
+				++n;
+			}
 		}
+		else return n;
 	}
-	else return n;
 	return frames + 1;
 }
 

@@ -4,7 +4,7 @@ HEADER		= wldeal.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS		= -lrefer -ldylink -lwav -lwavelike -lnote -lscatterplot -lm
+LDFLAGS		= -lrefer -ldylink -lwav -lwavelike -ljson -lnote -lscatterplot -lm
 
 OBJECT		= wldeal.o
 

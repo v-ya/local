@@ -12,8 +12,15 @@ void dylink_pool_set_preset(dylink_pool_t *dyp)
 {
 	#define _dylink_pool_set_preset(f)  dylink_pool_set_func(dyp, #f, f)
 	// stdio
+	_dylink_pool_set_preset(puts);
 	_dylink_pool_set_preset(printf);
 	_dylink_pool_set_preset(sprintf);
+	_dylink_pool_set_preset(fopen);
+	_dylink_pool_set_preset(fclose);
+	_dylink_pool_set_preset(fread);
+	_dylink_pool_set_preset(fwrite);
+	_dylink_pool_set_preset(fseek);
+	_dylink_pool_set_preset(ftell);
 
 	// math
 	_dylink_pool_set_preset(acos);
@@ -50,6 +57,39 @@ void dylink_pool_set_preset(dylink_pool_t *dyp)
 	_dylink_pool_set_preset(refer_set_free);
 	_dylink_pool_set_preset(refer_save);
 	_dylink_pool_set_preset(refer_save_number);
+
+	// json
+	_dylink_pool_set_preset(json_free);
+	_dylink_pool_set_preset(json_decode);
+	_dylink_pool_set_preset(json_length);
+	_dylink_pool_set_preset(json_encode_intext);
+	_dylink_pool_set_preset(json_encode);
+	_dylink_pool_set_preset(json_create_null);
+	_dylink_pool_set_preset(json_create_boolean);
+	_dylink_pool_set_preset(json_create_integer);
+	_dylink_pool_set_preset(json_create_floating);
+	_dylink_pool_set_preset(json_create_string);
+	_dylink_pool_set_preset(json_create_array);
+	_dylink_pool_set_preset(json_create_object);
+	_dylink_pool_set_preset(json_array_find);
+	_dylink_pool_set_preset(json_object_find);
+	_dylink_pool_set_preset(json_array_get);
+	_dylink_pool_set_preset(json_object_get);
+	_dylink_pool_set_preset(json_array_set);
+	_dylink_pool_set_preset(json_object_set);
+	_dylink_pool_set_preset(json_array_delete);
+	_dylink_pool_set_preset(json_object_delete);
+	_dylink_pool_set_preset(json_load);
+	_dylink_pool_set_preset(json_find);
+	_dylink_pool_set_preset(json_set);
+	_dylink_pool_set_preset(json_get_null);
+	_dylink_pool_set_preset(json_get_boolean);
+	_dylink_pool_set_preset(json_get_integer);
+	_dylink_pool_set_preset(json_get_floating);
+	_dylink_pool_set_preset(json_get_string);
+	_dylink_pool_set_preset(json_get_array);
+	_dylink_pool_set_preset(json_get_object);
+	_dylink_pool_set_preset(json_copy);
 
 	// note_details
 	_dylink_pool_set_preset(note_details_alloc);

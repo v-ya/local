@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <refer.h>
+#include <json.h>
 #include <note_details.h>
 #include <scatterplot.h>
 
