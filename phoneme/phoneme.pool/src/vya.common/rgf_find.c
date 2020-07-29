@@ -3,10 +3,10 @@
 #include <alloca.h>
 #include "../pthis.h"
 
-static dyl_used void* vdf_find(const char *restrict sym, void **restrict arg2pri)
+static dyl_used void* rgf_find(const char *restrict sym, void **restrict arg2pri)
 {
 	void *r;
-	if (!strncmp(sym, "vya.vd.", 7))
+	if (!strncmp(sym, "vya.rg.", 7))
 	{
 		r = pthis_symbol(sym);
 		if (r)
@@ -33,5 +33,5 @@ static dyl_used void* vdf_find(const char *restrict sym, void **restrict arg2pri
 	if (arg2pri) *arg2pri = NULL;
 	return NULL;
 }
-dyl_export(vdf_find, vya.common.vdf_find);
+dyl_export(rgf_find, vya.common.rgf_find);
 
