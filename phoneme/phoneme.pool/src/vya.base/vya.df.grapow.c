@@ -33,7 +33,7 @@ static dyl_used phoneme_arg2pri_func(df_grapow_arg, df_grapow_s*)
 {
 	register df_grapow_s *r;
 	r = NULL;
-	r = (df_grapow_s *) refer_alloz(sizeof(df_grapow_s));
+	r = (df_grapow_s *) refer_alloc(sizeof(df_grapow_s));
 	if (r)
 	{
 		r->a = 0;

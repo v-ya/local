@@ -347,8 +347,7 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f 
 	{
 		register uint32_t i;
 		i = hm->mask + 1;
-		while (i)
-		{
+		do {
 			--i;
 			vl = hm->map[i];
 			while(vl)
@@ -357,6 +356,7 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f 
 				vl = vl->next;
 			}
 		}
+		while (i);
 	}
 }
 
@@ -367,8 +367,7 @@ void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call
 	{
 		register uint32_t i;
 		i = hm->mask + 1;
-		while (i)
-		{
+		do {
 			--i;
 			vl = hm->map[i];
 			while(vl)
@@ -377,6 +376,7 @@ void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call
 				vl = vl->next;
 			}
 		}
+		while (i);
 	}
 }
 
@@ -387,8 +387,7 @@ void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfre
 	{
 		register uint32_t i;
 		i = hm->mask + 1;
-		while (i)
-		{
+		do {
 			--i;
 			pvl = hm->map + i;
 			while((vl = *pvl))
@@ -398,6 +397,7 @@ void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfre
 					// free
 					*pvl = vl->next;
 					hashmap_vlist_free(vl);
+					--hm->number;
 				}
 				else
 				{
@@ -406,5 +406,6 @@ void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfre
 				}
 			}
 		}
+		while (i);
 	}
 }

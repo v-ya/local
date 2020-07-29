@@ -161,10 +161,10 @@ int scatterplot_save(register scatterplot_s *restrict sp, const char *restrict p
 	}
 	if (xk <= 0) xk = 1;
 	if (yk <= 0) yk = 1;
-	xp -= xk * 0.1;
-	yp -= yk * 0.1;
-	xk *= 1.2;
-	yk *= 1.2;
+	xp -= xk * 0.05;
+	yp -= yk * 0.05;
+	xk *= 1.10;
+	yk *= 1.10;
 	if (sp->w && sp->h)
 	{
 		w = sp->w;
