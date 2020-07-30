@@ -21,6 +21,18 @@
 			"arg2pri": "vya.bf.crand.arg"
 		},
 		{
+			"name": "vya.dg.rand",
+			"arg2pri": "vya.dg.rand.arg"
+		},
+		{
+			"name": "vya.df.randa",
+			"arg2pri": "vya.df.randa.arg"
+		},
+		{
+			"name": "vya.df.randq",
+			"arg2pri": "vya.df.randq.arg"
+		},
+		{
 			"name": "vya.df.formant",
 			"arg2pri": "vya.df.formant.arg"
 		},

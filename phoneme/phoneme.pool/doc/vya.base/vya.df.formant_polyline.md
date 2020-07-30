@@ -23,7 +23,7 @@
 # vya.df.formant_polyline.arg
 ---
 ```
-	pl[].u = vya.common.polyline_arg(<[].u>, a_func = null, b_func = null)
-	pl[].c = vya.common.polyline_arg(<[].c>, a_func = null, b_func = null)
-	pl[].a = vya.common.polyline_arg(<[].a>, a_func = null, b_func = null)
+	pl[].u = vya.common.polyline_arg(<[].u>, asym = null, bsym = null)
+	pl[].c = vya.common.polyline_arg(<[].c>, asym = null, bsym = null)
+	pl[].a = vya.common.polyline_arg(<[].a>, asym = null, bsym = null)
 ```

@@ -6,8 +6,8 @@
 
 static random_src_generate_func(rsg_default, random_src_s *restrict)
 {
-	static double k = (1.0 / RAND_MAX);
-	return rand() * k;
+	static double k = (1.0 / (RAND_MAX + 1u));
+	return (rand() + 0.5) * k;
 }
 
 static random_src_alloc_func(rsa_default, random_src_s*)
@@ -18,13 +18,11 @@ static random_src_alloc_func(rsa_default, random_src_s*)
 	return r;
 }
 
-static dyl_used random_src_s* rsrc_alloc(json_inode_t *restrict arg)
+static dyl_used random_src_s* rsrc_alloc(json_inode_t *restrict arg, register const char *restrict name)
 {
 	register random_src_alloc_f rsa_func;
 	register json_inode_t *v;
-	register const char *restrict name;
 	rsa_func = NULL;
-	name = NULL;
 	if (arg && arg->type == json_inode_object)
 	{
 		v = json_object_find(arg, "@");

@@ -4,7 +4,7 @@
 ---
 ### arg
 ```
-	a_func := vya.vd.frestep
+	asym := vya.vd.frestep
 	= vya.common.polyline
 ```
 ---
@@ -20,5 +20,5 @@
 # vya.bf.polyline.arg
 ---
 ```
-	p = vya.common.polyline_arg(<>, a_func = vya.vd.frestep, b_func = null)
+	p = vya.common.polyline_arg(<>, asym = vya.vd.frestep, bsym = null)
 ```

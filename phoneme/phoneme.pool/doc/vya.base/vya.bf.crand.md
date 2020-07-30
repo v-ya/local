@@ -4,19 +4,21 @@
 ---
 ### arg
 ```
-	.kr:  floating  [0, 1]  线性偏置点
+	rgname := vya.rg.normal
+	= vya.common.random_const
 ```
 ---
 ### detail
 ```
 	basefre = :
-	kr = <.kr>
-	= basefre * (1 + kr * rand [-1, 1])
+	k = 1 + vya.common.random_const(rc)
+	if (k < 0) k = 0
+	= basefre * k
 ```
 
 ***
 # vya.bf.crand.arg
 ---
 ```
-	kr = <.kr>
+	rc = vya.common.random_const_arg(<>, rgname = vya.rg.normal, rsname = null)
 ```

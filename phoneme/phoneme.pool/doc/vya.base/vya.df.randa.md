@@ -2,7 +2,21 @@
 随机数填充所有使用的幅值
 
 ---
+### arg
+```
+	rgname := vya.rg.normal
+	= vya.common.random_const
+```
+---
 ### detail
 ```
-	= sa[n] = rand [0, 1]
+	rc = <vya.dg.grapow.arg()>
+	= sa[n] = (f = vya.common.random_const(rc))>0?f:0
+```
+
+***
+# vya.df.randa.arg
+---
+```
+	rc = vya.common.random_const_arg(<>, rgname = vya.rg.normal, rsname = null)
 ```

@@ -2,7 +2,21 @@
 随机数填充所有使用的相位
 
 ---
+### arg
+```
+	rgname := vya.rg.normal
+	= vya.common.random_const
+```
+---
 ### detail
 ```
-	= sq[n] = rand [0, pi * 2]
+	rc = <vya.dg.grapow.arg()>
+	= sq[n] = vya.common.random_const(rc)
+```
+
+***
+# vya.df.randa.arg
+---
+```
+	rc = vya.common.random_const_arg(<>, rgname = vya.rg.normal, rsname = null)
 ```

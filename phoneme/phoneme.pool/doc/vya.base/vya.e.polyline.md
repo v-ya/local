@@ -19,5 +19,5 @@
 # vya.e.polyline.arg
 ---
 ```
-	p = vya.common.polyline_arg(<>, a_func = null, b_func = null)
+	p = vya.common.polyline_arg(<>, asym = null, bsym = null)
 ```
