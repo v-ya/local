@@ -341,20 +341,31 @@ phoneme_s* phoneme_pool_get_phoneme(register phoneme_pool_s *restrict pp, const 
 phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp, const char *restrict phname, const char *restrict *restrict modify, uint32_t sdmax, uint32_t dmax)
 {
 	register phoneme_s *restrict p;
-	p = (phoneme_s *) hashmap_get_name(&pp->phoneme, phname);
-	if (p)
+	if (phname)
 	{
-		p = phoneme_modify(p, pp, modify, sdmax);
+		p = (phoneme_s *) hashmap_get_name(&pp->phoneme, phname);
 		if (p)
 		{
-			if (!phoneme_update(p, pp, dmax))
+			p = phoneme_modify(p, pp, modify, sdmax);
+			if (p)
 			{
-				mlog_printf(pp->mlog, "phoneme(%s) update fail ...\n", phname);
-				refer_free(p);
-				p = NULL;
+				label_update:
+				if (!phoneme_update(p, pp, dmax))
+				{
+					mlog_printf(pp->mlog, "phoneme(%s) update fail ...\n", phname);
+					refer_free(p);
+					p = NULL;
+				}
 			}
+			else mlog_printf(pp->mlog, "phoneme(%s) modify fail ...\n", phname);
 		}
-		else mlog_printf(pp->mlog, "phoneme(%s) modify fail ...\n", phname);
+		else mlog_printf(pp->mlog, "phoneme(%s) not find ...\n", phname);
+	}
+	else
+	{
+		p = phoneme_modify(NULL, pp, modify, sdmax);
+		if (p) goto label_update;
+		mlog_printf(pp->mlog, "phoneme build fail ...\n");
 	}
 	return p;
 }

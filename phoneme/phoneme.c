@@ -358,9 +358,9 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 	register phoneme_s *restrict r;
 	register const char *restrict s;
 	uint32_t i;
-	if (!sdmax) sdmax = p->details_max;
+	if (!sdmax && p) sdmax = p->details_max;
 	r = phoneme_alloc(sdmax, NULL, NULL);
-	if (!r) return NULL;
+	if (!r) goto Err_alloc;
 	while (*(s = *modify))
 	{
 		while (phoneme_alpha_table_space[*(uint8_t*)s]) ++s;
@@ -369,13 +369,13 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 			case '^':
 				++s;
 				*modify = s;
-				if (!phoneme_modify_script(&r->envelope, &p->envelope, pp, &pp->envelope, modify))
+				if (!phoneme_modify_script(&r->envelope, p?&p->envelope:NULL, pp, &pp->envelope, modify))
 					goto Err_envelope;
 				continue;
 			case '~':
 				++s;
 				*modify = s;
-				if (!phoneme_modify_script(&r->basefre, &p->basefre, pp, &pp->basefre, modify))
+				if (!phoneme_modify_script(&r->basefre, p?&p->basefre:NULL, pp, &pp->basefre, modify))
 					goto Err_basefre;
 				continue;
 			case '@':
@@ -390,7 +390,7 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 				}
 				if (i >= r->details_max) goto Err;
 				if (i >= r->details_used) r->details_used = i + 1;
-				if (!phoneme_modify_script(r->details + i, (i < p->details_used)?(p->details + i):NULL, pp, &pp->details, modify))
+				if (!phoneme_modify_script(r->details + i, (p && i < p->details_used)?(p->details + i):NULL, pp, &pp->details, modify))
 					goto Err_details;
 				continue;
 			default:
@@ -399,15 +399,20 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 		}
 		break;
 	}
-	if (!phoneme_modify_link(&r->envelope, &p->envelope, pp)) goto Err_link_envelope;
-	if (!phoneme_modify_link(&r->basefre, &p->basefre, pp)) goto Err_link_basefre;
-	sdmax = p->details_used;
-	if (sdmax > r->details_max) sdmax = r->details_max;
-	if (r->details_used < sdmax) r->details_used = sdmax;
-	for (i = 0; i < sdmax; ++i)
+	if (!phoneme_modify_link(&r->envelope, p?&p->envelope:&s_phoneme_src_null, pp)) goto Err_link_envelope;
+	if (!phoneme_modify_link(&r->basefre, p?&p->basefre:&s_phoneme_src_null, pp)) goto Err_link_basefre;
+	i = 0;
+	if (p)
 	{
-		if (!phoneme_modify_link(r->details + i, p->details + i, pp))
-			goto Err_link_details;
+		sdmax = p->details_used;
+		if (sdmax > r->details_max) sdmax = r->details_max;
+		if (r->details_used < sdmax) r->details_used = sdmax;
+		while (i < sdmax)
+		{
+			if (!phoneme_modify_link(r->details + i, p->details + i, pp))
+				goto Err_link_details;
+			++i;
+		}
 	}
 	while (i < r->details_used)
 	{
@@ -418,7 +423,11 @@ phoneme_s* phoneme_modify(register phoneme_s *restrict p, register phoneme_pool_
 	return r;
 	Err:
 	refer_free(r);
+	Err_nofree:
 	return NULL;
+	Err_alloc:
+	mlog_printf(pp->mlog, "phoneme modify alloc fail ...\n");
+	goto Err_nofree;
 	Err_envelope:
 	mlog_printf(pp->mlog, "phoneme modify envelope fail ...\n");
 	goto Err;

@@ -38,7 +38,7 @@ typedef const char* (*phoneme_script_keyword_f)(const char *restrict *restrict p
 #define phoneme_script_default_base_fre_line       440
 #define phoneme_script_default_base_fre_step       12
 #define phoneme_script_default_space_time          1
-#define phoneme_script_default_sdmax               0
+#define phoneme_script_default_sdmax               8
 #define phoneme_script_default_dmax                32
 #define phoneme_script_default_vstack_script_max   16
 #define phoneme_script_default_vstack_phoneme_max  16

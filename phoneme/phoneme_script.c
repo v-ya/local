@@ -329,12 +329,12 @@ phoneme_s* phoneme_script_get_phoneme(phoneme_script_s *restrict ps, register co
 	phoneme_s *r;
 	char phname[phoneme_var_path_max];
 	r = NULL;
-	if (phoneme_read_string(phname, sizeof(phname), script, "([ \t\r\n,;:") && *phname)
+	if (phoneme_read_string(phname, sizeof(phname), script, "([ \t\r\n,;:"))
 	{
 		if (**script == '[')
 		{
 			++*script;
-			r = phoneme_pool_get_phoneme_modify(ps->phoneme_pool, phname, script, ps->sdmax, ps->dmax);
+			r = phoneme_pool_get_phoneme_modify(ps->phoneme_pool, *phname?phname:NULL, script, ps->sdmax, ps->dmax);
 			if (**script == ']') ++*script;
 			else
 			{
