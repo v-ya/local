@@ -21,7 +21,7 @@
 # vya.common.random_const_arg
 ---
 ```
-	rsrc = vya.common.random_arg(<.type>)
+	r = vya.common.random_arg(<.type>)
 	mu = <.u>
 	sigma = <.c>
 ```

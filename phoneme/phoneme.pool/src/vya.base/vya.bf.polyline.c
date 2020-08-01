@@ -1,5 +1,6 @@
 #define _DEFAULT_SOURCE
 #include <phoneme/phoneme.h>
+#include "const.define.h"
 #include "../vya.common/polyline.inc"
 
 static dyl_used phoneme_basefre_func(bf_polyline, refer_t)
@@ -17,7 +18,7 @@ dyl_export(bf_polyline, $basefre$vya.bf.polyline);
 
 static dyl_used phoneme_arg2pri_func(bf_polyline_arg, refer_t)
 {
-	return polyline_arg(arg, "vya.vd.frestep", NULL);
+	return polyline_arg(arg, vya_vd_frestep, NULL);
 }
 dyl_export(bf_polyline_arg, $arg2pri$vya.bf.polyline.arg);
 

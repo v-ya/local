@@ -10,7 +10,7 @@
 ---
 ### detail
 ```
-	rc = <vya.dg.grapow.arg()>
+	rc = <vya.df.randa.arg()>
 	= sa[n] = (f = vya.common.random_const(rc))>0?f:0
 ```
 

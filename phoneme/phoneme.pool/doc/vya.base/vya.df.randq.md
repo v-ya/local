@@ -1,4 +1,4 @@
-# vya.df.randa
+# vya.df.randq
 随机数填充所有使用的相位
 
 ---
@@ -10,12 +10,12 @@
 ---
 ### detail
 ```
-	rc = <vya.dg.grapow.arg()>
+	rc = <vya.df.randq.arg()>
 	= sq[n] = vya.common.random_const(rc)
 ```
 
 ***
-# vya.df.randa.arg
+# vya.df.randq.arg
 ---
 ```
 	rc = vya.common.random_const_arg(<>, rgname = vya.rg.normal, rsname = null)

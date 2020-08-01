@@ -4,55 +4,28 @@
 		"vya.base"
 	],
 	"type": [
-		{
-			"name": "vya.e.weaken",
-			"arg2pri": "vya.e.weaken.arg"
-		},
-		{
-			"name": "vya.e.polyline",
-			"arg2pri": "vya.e.polyline.arg"
-		},
-		{
-			"name": "vya.bf.polyline",
-			"arg2pri": "vya.bf.polyline.arg"
-		},
-		{
-			"name": "vya.bf.crand",
-			"arg2pri": "vya.bf.crand.arg"
-		},
-		{
-			"name": "vya.dg.rand",
-			"arg2pri": "vya.dg.rand.arg"
-		},
-		{
-			"name": "vya.df.randa",
-			"arg2pri": "vya.df.randa.arg"
-		},
-		{
-			"name": "vya.df.randq",
-			"arg2pri": "vya.df.randq.arg"
-		},
-		{
-			"name": "vya.df.formant",
-			"arg2pri": "vya.df.formant.arg"
-		},
-		{
-			"name": "vya.df.grapow",
-			"arg2pri": "vya.df.grapow.arg"
-		},
-		{
-			"name": "vya.df.fa_q",
-			"arg2pri": "vya.df.fa_q.arg"
-		},
+		"vya.e.weaken",
+		"vya.e.polyline",
+		"vya.bf.polyline",
+		"vya.bf.crand",
+		"vya.bf.random",
+		"vya.bf.random_polyline",
+		"vya.dg.rand",
+		"vya.df.randa",
+		"vya.df.randq",
+		"vya.df.random",
+		"vya.df.r_at_polyline",
+		"vya.df.r_an_polyline",
+		"vya.df.r_af_polyline",
+		"vya.df.formant",
+		"vya.df.formant_polyline",
+		"vya.df.grapow",
 		{
 			"name": "vya.dg.grapow",
 			"arg2pri": "vya.dg.grapow.arg",
 			"refer": "vya.df.grapow"
 		},
-		{
-			"name": "vya.df.formant_polyline",
-			"arg2pri": "vya.df.formant_polyline.arg"
-		}
+		"vya.df.fa_q"
 	],
 	"arg": {
 		"vya.e.weaken": {

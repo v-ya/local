@@ -1,4 +1,5 @@
 #include <phoneme/phoneme.h>
+#include "const.define.h"
 #include "../vya.common/random_const.inc"
 
 static dyl_used phoneme_details_func(df_randa, refer_t)
@@ -15,7 +16,7 @@ dyl_export(df_randa, $details$vya.df.randa);
 
 static dyl_used phoneme_arg2pri_func(df_randa_arg, refer_t)
 {
-	return random_const_arg(arg, "vya.rg.normal", NULL);
+	return random_const_arg(arg, vya_rg_normal, NULL);
 }
 dyl_export(df_randa_arg, $arg2pri$vya.df.randa.arg);
 

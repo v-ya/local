@@ -1,5 +1,5 @@
-# vya.bf.crand
-原始基频+随机波动
+# vya.df.random
+带扰动的细节幅值修饰
 
 ---
 ### arg
@@ -10,15 +10,12 @@
 ---
 ### detail
 ```
-	basefre = :
-	rc = <vya.bf.crand.arg()>
-	k = 1 + vya.common.random_const(rc)
-	if (k < 0) k = 0
-	= basefre * k
+	rc = <vya.df.random.arg()>
+	= sa[n] * exp(vya.common.random_const(rc))
 ```
 
 ***
-# vya.bf.crand.arg
+# vya.df.random.arg
 ---
 ```
 	rc = vya.common.random_const_arg(<>, rgname = vya.rg.normal, rsname = null)

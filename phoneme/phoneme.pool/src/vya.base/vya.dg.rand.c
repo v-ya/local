@@ -1,4 +1,5 @@
 #include <phoneme/phoneme.h>
+#include "const.define.h"
 #include "../vya.common/random_const.inc"
 
 typedef struct dg_rand_s {
@@ -28,14 +29,13 @@ static void dg_rand_free_func(register dg_rand_s *restrict r)
 
 static dyl_used phoneme_arg2pri_func(dg_rand_arg, dg_rand_s*)
 {
-	static const char rgname[] = "vya.rg.normal";
 	register dg_rand_s *restrict r;
 	r = refer_alloz(sizeof(dg_rand_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) dg_rand_free_func);
-		if ((r->rca = random_const_arg(json_object_find(arg, "a"), rgname, NULL)) &&
-			(r->rcq = random_const_arg(json_object_find(arg, "q"), rgname, NULL))) ;
+		if ((r->rca = random_const_arg(json_object_find(arg, "a"), vya_rg_normal, NULL)) &&
+			(r->rcq = random_const_arg(json_object_find(arg, "q"), vya_rg_normal, NULL))) ;
 		else
 		{
 			refer_free(r);

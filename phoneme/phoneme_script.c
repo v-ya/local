@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <memory.h>
 #include <math.h>
 
 static void phoneme_script_free_func(phoneme_script_s *restrict ps)
@@ -160,15 +161,37 @@ phoneme_script_s* phoneme_script_load_package(phoneme_script_s *restrict ps, con
 
 static phoneme_script_s* phoneme_script_load_type(phoneme_script_s *restrict ps, json_inode_t *type)
 {
-	json_inode_t *name, *arg2pri, *refer_name;
-	name = json_object_find(type, "name");
-	if (!name || name->type != json_inode_string) goto Err;
-	arg2pri = json_object_find(type, "arg2pri");
-	if (arg2pri && arg2pri->type != json_inode_string) goto Err;
-	refer_name = json_object_find(type, "refer");
-	if (refer_name && refer_name->type != json_inode_string) goto Err;
-	phoneme_pool_set_arg_pool(ps->phoneme_pool, name->value.string, arg2pri?arg2pri->value.string:NULL, refer_name?refer_name->value.string:NULL);
-	return ps;
+	if (type->type == json_inode_string)
+	{
+		register const char *name;
+		register char *arg2pri;
+		register size_t n;
+		n = strlen(name = type->value.string);
+		arg2pri = alloca(n + 5);
+		if (!arg2pri) goto Err;
+		memcpy(arg2pri, name, n);
+		arg2pri[n++] = '.';
+		arg2pri[n++] = 'a';
+		arg2pri[n++] = 'r';
+		arg2pri[n++] = 'g';
+		arg2pri[n] = 0;
+		if (!phoneme_pool_set_arg_pool(ps->phoneme_pool, name, arg2pri, NULL))
+			goto Err;
+		return ps;
+	}
+	else if (type->type == json_inode_object)
+	{
+		register json_inode_t *name, *arg2pri, *refer_name;
+		name = json_object_find(type, "name");
+		if (!name || name->type != json_inode_string) goto Err;
+		arg2pri = json_object_find(type, "arg2pri");
+		if (arg2pri && arg2pri->type != json_inode_string) goto Err;
+		refer_name = json_object_find(type, "refer");
+		if (refer_name && refer_name->type != json_inode_string) goto Err;
+		if (!phoneme_pool_set_arg_pool(ps->phoneme_pool, name->value.string, arg2pri?arg2pri->value.string:NULL, refer_name?refer_name->value.string:NULL))
+			goto Err;
+		return ps;
+	}
 	Err:
 	return NULL;
 }
@@ -290,7 +313,7 @@ phoneme_script_s* phoneme_script_load_package_json(phoneme_script_s *restrict ps
 			for (i = 0, n = o->value.array.number; i < n; ++i)
 			{
 				v = json_array_find(o, i);
-				if (!v || v->type != json_inode_object) goto Err;
+				if (!v) goto Err;
 				if (!phoneme_script_load_type(ps, v)) goto Err;
 			}
 		}
