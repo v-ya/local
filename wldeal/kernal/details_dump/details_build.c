@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <json.h>
 #include <wav.h>
 #include <note_details.h>
+
+static uint32_t qzero;
 
 static uint32_t get_frames(json_inode_t *restrict array, uint32_t sampfre, double *a_max)
 {
@@ -56,13 +59,19 @@ static void set_frames(double *data, uint32_t frames, json_inode_t *restrict arr
 				if (m > sq->value.array.number) m = sq->value.array.number;
 				if (m > nd->max) m = nd->max;
 				nd->used = m;
-				for (j = 0; j < m; ++j)
+				if (qzero) for (j = 0; j < m; ++j)
 				{
 					v = json_array_find(sa, j);
 					if (v && v->type == json_inode_floating)
 						nd->saq[j].sa = v->value.floating;
 					else nd->saq[j].sa = 0;
-					// sq maybe set to 0
+				}
+				else for (j = 0; j < m; ++j)
+				{
+					v = json_array_find(sa, j);
+					if (v && v->type == json_inode_floating)
+						nd->saq[j].sa = v->value.floating;
+					else nd->saq[j].sa = 0;
 					v = json_array_find(sq, j);
 					if (v && v->type == json_inode_floating)
 						nd->saq[j].sq = v->value.floating;
@@ -79,11 +88,12 @@ static void set_frames(double *data, uint32_t frames, json_inode_t *restrict arr
 
 int main(int argc, const char *argv[])
 {
-	if (argc == 3)
+	if (argc == 3 || (argc == 4 && !strcmp(argv[3], "-qzero")))
 	{
 		json_inode_t *restrict array;
 		double *v, amax;
 		uint32_t sampfre, frames;
+		qzero = (argc == 4);
 		array = json_load(argv[1]);
 		if (array && array->type == json_inode_array)
 		{
@@ -106,6 +116,6 @@ int main(int argc, const char *argv[])
 		}
 		else printf("[%s] don't load or not array json\n", argv[1]);
 	}
-	else printf("%s <details.json> <output.wav>\n", argv[0]);
+	else printf("%s <details.json> <output.wav> [-qzero]\n", argv[0]);
 	return 0;
 }

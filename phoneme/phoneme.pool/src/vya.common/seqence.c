@@ -6,7 +6,7 @@
 static dyl_used double seqence(register size_t n, register double *restrict s, register double *restrict v, register double t, value_deal_f func, refer_t pri)
 {
 	if (t < *s) goto other;
-	while (--n && *++s < t) ++v;
+	while (--n && *++s <= t) ++v;
 	if (t >= *s) goto other;
 	--s;
 	if (s[0] == s[1]) goto other;

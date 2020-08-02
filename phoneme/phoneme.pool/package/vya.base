@@ -19,6 +19,7 @@
 		"vya.df.r_af_polyline",
 		"vya.df.formant",
 		"vya.df.formant_polyline",
+		"vya.df.tone",
 		"vya.df.grapow",
 		{
 			"name": "vya.dg.grapow",
