@@ -21,10 +21,22 @@ typedef struct statistics_t {
 	statistics_p_t s[marco_dmax];
 } statistics_t;
 
+typedef struct tone_polyline_t {
+	size_t n;
+	double last;
+	double xl[marco_dmax];
+	double yd[marco_dmax];
+} tone_polyline_t;
+
+typedef struct tone_avg_value_t {
+	double s;
+	size_t n;
+} tone_avg_value_t;
+
 typedef struct tone_avg_s {
 	double l;
 	size_t n;
-	statistics_p_t p[];
+	tone_avg_value_t v[];
 } tone_avg_s;
 
 #define statistics_init(_x)  ((_x = alloca(sizeof(statistics_t)))?memset(_x, 0, sizeof(statistics_t)):_x)
@@ -106,12 +118,45 @@ static void statistics_sp_d(statistics_t *restrict s, scatterplot_s *restrict sp
 	} while (i);
 }
 
+static inline void tone_polyline_clear(register tone_polyline_t *restrict tp)
+{
+	tp->n = 0;
+	tp->last = 0;
+}
+
+static inline void tone_polyline_append(register tone_polyline_t *restrict tp, register double x, register double y)
+{
+	register size_t n;
+	if ((n = tp->n) < marco_dmax)
+	{
+		if (n > 1)
+		{
+			tp->xl[n] = x;
+			tp->yd[n] = ((y - tp->last) / (x - tp->xl[n - 1])) * 2 - tp->yd[n - 1];
+			tp->last = y;
+		}
+		else if (n == 1)
+		{
+			tp->xl[1] = x;
+			tp->yd[0] = tp->yd[1] = (y - tp->last) / (x - tp->xl[0]);
+			tp->last = y;
+		}
+		else
+		{
+			tp->last = y;
+			tp->xl[0] = x;
+			tp->yd[0] = 0;
+		}
+		++tp->n;
+	}
+}
+
 static tone_avg_s* tone_avg_alloc(size_t n, double L)
 {
 	register tone_avg_s *restrict r;
 	if (n && L > 0)
 	{
-		r = refer_alloz(sizeof(tone_avg_s) + sizeof(statistics_p_t) * n);
+		r = refer_alloz(sizeof(tone_avg_s) + sizeof(tone_avg_value_t) * n);
 		if (r)
 		{
 			r->l = L / n;
@@ -122,62 +167,66 @@ static tone_avg_s* tone_avg_alloc(size_t n, double L)
 	return NULL;
 }
 
-static void tone_avg_send_statistics(register tone_avg_s *restrict t, statistics_t *restrict s)
+static void tone_avg_send_polyline(register tone_avg_s *restrict t, register tone_polyline_t *restrict tp)
 {
-	register statistics_p_t *restrict p, *restrict q;
-	register uint32_t n, i;
-	p = s->s;
-	n = marco_dmax;
-	do {
-		if (p->ok)
+	register double xl0, yd0, xl1, yd1, k;
+	register uint32_t i, n, j, m;
+	if ((n = tp->n))
+	{
+		xl0 = tp->xl[0];
+		yd0 = tp->yd[0];
+		j = (uint32_t) (xl0 / t->l);
+		for (i = 1; i < n; ++i)
 		{
-			i = (uint32_t) p->x / t->l;
-			if (i < t->n)
+			xl1 = tp->xl[i];
+			yd1 = tp->yd[i];
+			k = (yd1 - yd0) / (xl1 - xl0);
+			m = (uint32_t) (xl1 / t->l);
+			if (m > t->n) m = t->n;
+			while (j < m)
 			{
-				q = t->p + i;
-				++q->n;
-				q->x += p->x;
-				q->y += p->y;
-				q->y2 += p->y2;
+				t->v[j].s += (j * t->l - xl0) * k + yd0;
+				++t->v[j].n;
+				++j;
 			}
+			if (j >= t->n) break;
+			xl0 = xl1;
+			yd0 = yd1;
 		}
-		++p;
-	} while (--n);
+	}
 }
 
-static void tone_avg_ok(tone_avg_s *restrict t)
+/*
+static void tone_arg_send_statistics(register tone_avg_s *restrict t, statistics_t *restrict s)
 {
-	register statistics_p_t *restrict p;
-	register size_t i;
-	register uint32_t n;
-	p = t->p;
-	i = t->n;
+	register statistics_p_t *p;
+	register uint32_t i;
+	tone_polyline_t tp;
+	p = s->s;
+	i = marco_dmax;
+	tone_polyline_clear(&tp);
 	do {
-		if (!p->ok && (n = p->n))
-		{
-			p->x /= n;
-			p->y /= n;
-			p->y2 /= n;
-			p->ok = 1;
-		}
+		--i;
+		if (p->ok)
+			tone_polyline_append(&tp, p->x, p->y);
 		++p;
-	} while (--i);
+	} while (i);
+	tone_avg_send_polyline(t, &tp);
 }
+*/
 
 static void tone_avg_sp(tone_avg_s *restrict t, scatterplot_s *restrict sp)
 {
-	register statistics_p_t *restrict p;
-	register size_t i;
-	p = t->p;
-	i = t->n;
-	do {
-		if (p->ok)
-		{
-			scatterplot_pos(sp, p->x, p->y, 0xff0000);
-			scatterplot_pos(sp, p->x, p->y2, 0x00ff00);
-		}
+	register size_t i, n;
+	register tone_avg_value_t *restrict p;
+	n = t->n;
+	p = t->v;
+	for (i = 0; i < n; ++i)
+	{
+		if (p->n)
+			scatterplot_pos(sp, i * t->l, p->s / p->n, 0xff0000);
 		++p;
-	} while (--i);
+	}
 }
 
 static json_inode_t* tone_avg_save_json_create_array_inode(double s, double v)
@@ -197,26 +246,23 @@ static json_inode_t* tone_avg_save_json_create_array_inode(double s, double v)
 static void tone_avg_save_json(tone_avg_s *restrict t, const char *restrict path)
 {
 	json_inode_t *array, *v;
-	register statistics_p_t *restrict p;
-	register size_t i;
-	p = t->p;
-	i = t->n;
+	register tone_avg_value_t *restrict p;
+	register size_t i, n;
+	p = t->v;
+	n = t->n;
 	array = json_create_array();
 	v = NULL;
 	if (array)
 	{
-		if (!json_array_set(array, array->value.array.number, v = tone_avg_save_json_create_array_inode(0, 0)))
-			goto Err;
-		do {
-			if (p->ok)
+		for (i = 0; i < n; ++i)
+		{
+			if (p->n)
 			{
-				if (!json_array_set(array, array->value.array.number, v = tone_avg_save_json_create_array_inode(p->x, p->y)))
+				if (!json_array_set(array, array->value.array.number, v = tone_avg_save_json_create_array_inode(i * t->l, p->s / p->n)))
 					goto Err;
 			}
 			++p;
-		} while (--i);
-		if (!json_array_set(array, array->value.array.number, v = tone_avg_save_json_create_array_inode(t->l * t->n, 0)))
-			goto Err;
+		}
 		v = NULL;
 		i = json_length(array);
 		if (i)
@@ -391,7 +437,7 @@ static void sp_formant_n(scatterplot_s *restrict sp, json_inode_t *array, double
 				{
 					k = j + 1;
 					v = json_array_find(a, j);
-					if (get_floating(v, &f))
+					if (get_floating(v, &f) && f > 0)
 						scatterplot_pos(sp, j + offset, f * k * k, c);
 				}
 			}
@@ -423,7 +469,7 @@ static void sp_formant_f(scatterplot_s *restrict sp, json_inode_t *array, double
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (k * fre < marco_fmax && get_floating(v, &f))
+						if (k * fre < marco_fmax && get_floating(v, &f) && f > 0)
 							scatterplot_pos(sp, k * fre, f * k * k, c);
 					}
 				}
@@ -453,7 +499,7 @@ static void sp_formant_nl(scatterplot_s *restrict sp, json_inode_t *array, doubl
 				{
 					k = j + 1;
 					v = json_array_find(a, j);
-					if (get_floating(v, &f))
+					if (get_floating(v, &f) && f > 0)
 						scatterplot_pos(sp, j + offset, log(f * k * k) + yp, c);
 				}
 			}
@@ -485,7 +531,7 @@ static void sp_formant_fl(scatterplot_s *restrict sp, json_inode_t *array, doubl
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (k * fre < marco_fmax && get_floating(v, &f))
+						if (k * fre < marco_fmax && get_floating(v, &f) && f > 0)
 							scatterplot_pos(sp, k * fre, log(f * k * k) + yp, c);
 					}
 				}
@@ -515,7 +561,7 @@ static void sp_formant_nld(scatterplot_s *restrict sp, json_inode_t *array, doub
 				{
 					k = j + 1;
 					v = json_array_find(a, j);
-					if (get_floating(v, &f))
+					if (get_floating(v, &f) && f > 0)
 					{
 						f = log(f * k * k);
 						if (j) scatterplot_pos(sp, j + offset - 0.5, f - last, c);
@@ -551,7 +597,7 @@ static void sp_formant_fld(scatterplot_s *restrict sp, json_inode_t *array, doub
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (j * fre < marco_fmax && get_floating(v, &f))
+						if (j * fre < marco_fmax && get_floating(v, &f) && f > 0)
 						{
 							f = log(f * k * k);
 							if (j) scatterplot_pos(sp, (k - 0.5) * fre, (f - last) / fre, c);
@@ -589,7 +635,7 @@ static void sp_formant_fls(scatterplot_s *restrict sp, json_inode_t *array, doub
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (get_floating(v, &f))
+						if (get_floating(v, &f) && f > 0)
 							statistics_pos(s, j, k * fre, log(f * k * k));
 					}
 				}
@@ -624,7 +670,7 @@ static void sp_formant_flds(scatterplot_s *restrict sp, json_inode_t *array, dou
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (j * fre < marco_fmax && get_floating(v, &f))
+						if (j * fre < marco_fmax && get_floating(v, &f) && f > 0)
 						{
 							f = log(f * k * k);
 							if (j) statistics_pos(s, j, (k - 0.5) * fre, (f - last) / fre);
@@ -663,7 +709,7 @@ static void sp_formant_flsd(scatterplot_s *restrict sp, json_inode_t *array, dou
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (get_floating(v, &f))
+						if (get_floating(v, &f) && f > 0)
 							statistics_pos(s, j, k * fre, log(f * k * k));
 					}
 				}
@@ -678,8 +724,9 @@ static void sp_formant_flds_avg(scatterplot_s *restrict sp, json_inode_t *array,
 {
 	statistics_t *s;
 	json_inode_t *a, *o, *v;
-	double f, fre, last;
+	double f, fre;
 	uint32_t i, n, j, m, k;
+	tone_polyline_t tp;
 	if (!statistics_init(s)) return ;
 	n = array->value.array.number;
 	for (i = 0; i < n; ++i)
@@ -693,24 +740,22 @@ static void sp_formant_flds_avg(scatterplot_s *restrict sp, json_inode_t *array,
 				a = json_object_find(o, "sa");
 				if (a && a->type == json_inode_array)
 				{
+					tone_polyline_clear(&tp);
 					m = a->value.array.number;
 					for (j = 0; j < m; j = k)
 					{
 						k = j + 1;
 						v = json_array_find(a, j);
-						if (j * fre < marco_fmax && get_floating(v, &f))
+						if (get_floating(v, &f) && f > 0)
 						{
-							f = log(f * k * k);
-							if (j) statistics_pos(s, j, (k - 0.5) * fre, (f - last) / fre);
-							last = f;
+							tone_polyline_append(&tp, k * fre, log(f * k * k));
 						}
 					}
+					tone_avg_send_polyline(ta, &tp);
 				}
 			}
 		}
 	}
-	statistics_ok(s);
-	tone_avg_send_statistics(ta, s);
 }
 
 static json_inode_t* load_dump_json(const char *restrict path)
@@ -893,7 +938,7 @@ int main(int argc, const char *argv[])
 					sp_axis_fl(sp, limit);
 					break;
 				case exec_type_formant_flds_avg:
-					if (split_n && split_n < marco_fmax)
+					if (split_n)
 					{
 						tone_avg_s *ta;
 						ta = tone_avg_alloc(split_n, marco_fmax);
@@ -912,7 +957,6 @@ int main(int argc, const char *argv[])
 							--argc;
 							++argv;
 						}
-						tone_avg_ok(ta);
 						tone_avg_sp(ta, sp);
 						sp_axis_fl(sp, limit);
 						tone_avg_save_json(ta, tone);
