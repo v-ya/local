@@ -1,90 +1,72 @@
 #include <phoneme/phoneme.h>
 #include <math.h>
-#include "../vya.common/polyline.inc"
+#include <memory.h>
+#include <alloca.h>
+#include "../vya.common/seqarray.inc"
 #include "../vya.common/get_float.inc"
 
-typedef struct df_tone_s {
-	double fre_start;
-	double fre_length;
-	size_t fre_number;
-	double tone[];
-} df_tone_s;
-
-static dyl_used phoneme_details_func(df_tone, register df_tone_s *restrict)
+static dyl_used phoneme_details_func(df_tone, register refer_t)
 {
-	register double bf, df, ss, l;
-	register size_t index, n;
+	register double bf, fre;
 	register uint32_t i;
-	double ts, te;
 	if ((i = d->used))
 	{
 		bf = arg->basefre;
 		if (pri)
 		{
-			ss = pri->fre_start;
-			l = pri->fre_length;
-			ts = pri->tone[0];
-			te = pri->tone[(n = pri->fre_number) - 1];
 			while (i)
 			{
-				df = i * bf - ss;
-				if (df < 0) df = ts;
-				else if ((index = (size_t) (df / l))) df = pri->tone[index];
-				else df = te;
-				d->saq[--i].sa *= exp(df);
+				fre = i * bf;
+				d->saq[--i].sa *= exp(seqarray(pri, fre));
 			}
 		}
 	}
 }
 dyl_export(df_tone, $details$vya.df.tone);
 
-static df_tone_s* df_tone_alloc(refer_t pl, double length, double fre_start, double fre_length, double fre_granularity)
+static refer_t df_tone_alloc(refer_t sa, double fre_length, double fre_offset, double fre_granularity)
 {
-	register df_tone_s *restrict r;
+	register refer_t r;
+	register double *restrict value;
 	register size_t i, n;
-	register double integral, k, l;
+	register double integral, k;
 	r = NULL;
-	if (length > 0 && fre_length > 0 && fre_granularity > 0 && (n = (size_t) (fre_length / fre_granularity)))
+	if (fre_length > 0 && fre_granularity > 0 && (n = (size_t) (fre_length / fre_granularity)))
 	{
-		r = (df_tone_s *) refer_alloz(sizeof(df_tone_s) + sizeof(double) * n);
-		if (r)
+		value = (double *) alloca(i = sizeof(double) * n);
+		if (value)
 		{
-			r->fre_start = fre_start;
-			r->fre_length = l = fre_length / n;
-			r->fre_number = n;
+			memset(value, 0, i);
 			integral = 0;
-			k = length / n;
+			k = fre_length / n;
 			for (i = 0; i < n; ++i)
 			{
-				r->tone[i] = integral;
-				integral += polyline(k * i, pl) * l;
+				value[i] = integral;
+				integral += seqarray(sa, k * i) * k;
 			}
+			r = seqarray_alloc(value, n, -fre_offset, fre_length);
 		}
 	}
 	return r;
 }
 
-static dyl_used phoneme_arg2pri_func(df_tone_arg, df_tone_s*)
+static dyl_used phoneme_arg2pri_func(df_tone_arg, refer_t)
 {
-	df_tone_s *r;
-	refer_t pl;
-	double fre_start;
+	refer_t r, pl;
+	double fre_offset;
 	double fre_length;
 	double fre_granularity;
-	double length;
 	r = NULL;
-	pl = polyline_arg(json_object_find(arg, "tone"), NULL, NULL);
+	fre_length = 20000;
+	fre_offset = 0;
+	fre_granularity = 10;
+	get_float(&fre_length, arg, ".length");
+	get_float(&fre_offset, arg, ".offset");
+	get_float(&fre_granularity, arg, ".g");
+	pl = seqarray_arg(json_object_find(arg, "tone"), 0, fre_length);
 	if (pl)
 	{
-		fre_start = 0;
-		get_float(&fre_start, arg, ".fre.start");
-		fre_length = 20000;
-		get_float(&fre_length, arg, ".fre.length");
-		fre_granularity = 10;
-		get_float(&fre_granularity, arg, ".fre.g");
-		length = fre_length;
-		get_float(&length, arg, ".length");
-		r = df_tone_alloc(pl, length, fre_start, fre_length, fre_granularity);
+		r = df_tone_alloc(pl, fre_length, fre_offset, fre_granularity);
 		refer_free(pl);
 	}
 	return r;
