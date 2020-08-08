@@ -1,4 +1,4 @@
-TARGET		= details_dump.dy details_build.elf formant_test.elf
+TARGET		= details_dump.dy details_build.elf tone_test.elf
 
 CC		= gcc
 LD		= ld
@@ -17,7 +17,7 @@ details_dump.dy: details_dump.o
 details_build.elf: details_build.o
 	${CC} -o $@ $^ -lrefer -ljson -lwav -lnote
 
-formant_test.elf: formant_test.o
+tone_test.elf: tone_test.o
 	${CC} -o $@ $^ -lm -lrefer -ljson -lscatterplot
 
 clear:

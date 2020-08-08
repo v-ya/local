@@ -30,6 +30,7 @@ typedef struct tone_polyline_t {
 
 typedef struct tone_avg_value_t {
 	double s;
+	double s2;
 	size_t n;
 } tone_avg_value_t;
 
@@ -169,7 +170,7 @@ static tone_avg_s* tone_avg_alloc(size_t n, double L)
 
 static void tone_avg_send_polyline(register tone_avg_s *restrict t, register tone_polyline_t *restrict tp)
 {
-	register double xl0, yd0, xl1, yd1, k;
+	register double xl0, yd0, xl1, yd1, k, v;
 	register uint32_t i, n, j, m;
 	if ((n = tp->n))
 	{
@@ -185,7 +186,8 @@ static void tone_avg_send_polyline(register tone_avg_s *restrict t, register ton
 			if (m > t->n) m = t->n;
 			while (j < m)
 			{
-				t->v[j].s += (j * t->l - xl0) * k + yd0;
+				t->v[j].s += (v = (j * t->l - xl0) * k + yd0);
+				t->v[j].s2 += v * v;
 				++t->v[j].n;
 				++j;
 			}
@@ -219,28 +221,19 @@ static void tone_avg_sp(tone_avg_s *restrict t, scatterplot_s *restrict sp)
 {
 	register size_t i, n;
 	register tone_avg_value_t *restrict p;
+	register double avg, x;
 	n = t->n;
 	p = t->v;
 	for (i = 0; i < n; ++i)
 	{
 		if (p->n)
-			scatterplot_pos(sp, i * t->l, p->s / p->n, 0xff0000);
+		{
+			scatterplot_pos(sp, x = i * t->l, avg = p->s / p->n, 0xff0000);
+			avg = (p->s2 / p->n) - (avg * avg);
+			scatterplot_pos(sp, x, (avg > 0)?sqrt(avg):0, 0x00ff00);
+		}
 		++p;
 	}
-}
-
-static json_inode_t* tone_avg_save_json_create_array_inode(double s, double v)
-{
-	json_inode_t *o, *c;
-	if ((o = json_create_object()))
-	{
-		if (json_object_set(o, "s", c = json_create_floating(s)) &&
-			json_object_set(o, "v", c = json_create_floating(v)))
-			return o;
-		if (c) json_free(c);
-		json_free(o);
-	}
-	return NULL;
 }
 
 static void tone_avg_save_json(tone_avg_s *restrict t, const char *restrict path)
@@ -256,11 +249,8 @@ static void tone_avg_save_json(tone_avg_s *restrict t, const char *restrict path
 	{
 		for (i = 0; i < n; ++i)
 		{
-			if (p->n)
-			{
-				if (!json_array_set(array, array->value.array.number, v = tone_avg_save_json_create_array_inode(i * t->l, p->s / p->n)))
-					goto Err;
-			}
+			if (!json_array_set(array, array->value.array.number, v = json_create_floating(p->n?(p->s/p->n):0)))
+				goto Err;
 			++p;
 		}
 		v = NULL;
@@ -417,7 +407,7 @@ static void sp_axis_fl(scatterplot_s *restrict sp, double limit)
 	}
 }
 
-static void sp_formant_n(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_n(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	json_inode_t *a, *o, *v;
 	double f, offset;
@@ -446,7 +436,7 @@ static void sp_formant_n(scatterplot_s *restrict sp, json_inode_t *array, double
 	sp_axis_n(sp, limit);
 }
 
-static void sp_formant_f(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_f(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	json_inode_t *a, *o, *v;
 	double f, fre, offset;
@@ -479,7 +469,7 @@ static void sp_formant_f(scatterplot_s *restrict sp, json_inode_t *array, double
 	sp_axis_f(sp, limit);
 }
 
-static void sp_formant_nl(scatterplot_s *restrict sp, json_inode_t *array, double limit, double yp)
+static void sp_tone_nl(scatterplot_s *restrict sp, json_inode_t *array, double limit, double yp)
 {
 	json_inode_t *a, *o, *v;
 	double f, offset;
@@ -508,7 +498,7 @@ static void sp_formant_nl(scatterplot_s *restrict sp, json_inode_t *array, doubl
 	sp_axis_nl(sp, limit);
 }
 
-static void sp_formant_fl(scatterplot_s *restrict sp, json_inode_t *array, double limit, double yp)
+static void sp_tone_fl(scatterplot_s *restrict sp, json_inode_t *array, double limit, double yp)
 {
 	json_inode_t *a, *o, *v;
 	double f, fre, offset;
@@ -541,7 +531,7 @@ static void sp_formant_fl(scatterplot_s *restrict sp, json_inode_t *array, doubl
 	sp_axis_fl(sp, limit);
 }
 
-static void sp_formant_nld(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_nld(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	json_inode_t *a, *o, *v;
 	double f, offset, last;
@@ -574,7 +564,7 @@ static void sp_formant_nld(scatterplot_s *restrict sp, json_inode_t *array, doub
 	sp_axis_nl(sp, limit);
 }
 
-static void sp_formant_fld(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_fld(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	json_inode_t *a, *o, *v;
 	double f, fre, offset, last;
@@ -611,7 +601,7 @@ static void sp_formant_fld(scatterplot_s *restrict sp, json_inode_t *array, doub
 	sp_axis_fl(sp, limit);
 }
 
-static void sp_formant_fls(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_fls(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	statistics_t *s;
 	json_inode_t *a, *o, *v;
@@ -646,7 +636,7 @@ static void sp_formant_fls(scatterplot_s *restrict sp, json_inode_t *array, doub
 	statistics_sp(s, sp);
 }
 
-static void sp_formant_flds(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_flds(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	statistics_t *s;
 	json_inode_t *a, *o, *v;
@@ -685,7 +675,7 @@ static void sp_formant_flds(scatterplot_s *restrict sp, json_inode_t *array, dou
 	statistics_sp(s, sp);
 }
 
-static void sp_formant_flsd(scatterplot_s *restrict sp, json_inode_t *array, double limit)
+static void sp_tone_flsd(scatterplot_s *restrict sp, json_inode_t *array, double limit)
 {
 	statistics_t *s;
 	json_inode_t *a, *o, *v;
@@ -720,7 +710,7 @@ static void sp_formant_flsd(scatterplot_s *restrict sp, json_inode_t *array, dou
 	statistics_sp_d(s, sp);
 }
 
-static void sp_formant_flds_avg(scatterplot_s *restrict sp, json_inode_t *array, double limit, tone_avg_s *restrict ta)
+static void sp_tone_flds_avg(scatterplot_s *restrict sp, json_inode_t *array, double limit, tone_avg_s *restrict ta)
 {
 	statistics_t *s;
 	json_inode_t *a, *o, *v;
@@ -776,16 +766,16 @@ static json_inode_t* load_dump_json(const char *restrict path)
 
 enum exec_type_e {
 	exec_type_null,
-	exec_type_formant_n,
-	exec_type_formant_f,
-	exec_type_formant_nl,
-	exec_type_formant_fl,
-	exec_type_formant_nld,
-	exec_type_formant_fld,
-	exec_type_formant_fls,
-	exec_type_formant_flds,
-	exec_type_formant_flsd,
-	exec_type_formant_flds_avg
+	exec_type_n,
+	exec_type_f,
+	exec_type_nl,
+	exec_type_fl,
+	exec_type_nld,
+	exec_type_fld,
+	exec_type_fls,
+	exec_type_flds,
+	exec_type_flsd,
+	exec_type_flds_avg
 };
 
 static uint32_t get_exec_type(const char *restrict type)
@@ -793,16 +783,16 @@ static uint32_t get_exec_type(const char *restrict type)
 	uint32_t r;
 	r = 0;
 	if (!type) goto label_miss;
-	else if (!strcmp(type, "formant_n")) r = exec_type_formant_n;
-	else if (!strcmp(type, "formant_f")) r = exec_type_formant_f;
-	else if (!strcmp(type, "formant_nl")) r = exec_type_formant_nl;
-	else if (!strcmp(type, "formant_fl")) r = exec_type_formant_fl;
-	else if (!strcmp(type, "formant_nld")) r = exec_type_formant_nld;
-	else if (!strcmp(type, "formant_fld")) r = exec_type_formant_fld;
-	else if (!strcmp(type, "formant_fls")) r = exec_type_formant_fls;
-	else if (!strcmp(type, "formant_flds")) r = exec_type_formant_flds;
-	else if (!strcmp(type, "formant_flsd")) r = exec_type_formant_flsd;
-	else if (!strcmp(type, "formant_flds_avg")) r = exec_type_formant_flds_avg;
+	else if (!strcmp(type, "n")) r = exec_type_n;
+	else if (!strcmp(type, "f")) r = exec_type_f;
+	else if (!strcmp(type, "nl")) r = exec_type_nl;
+	else if (!strcmp(type, "fl")) r = exec_type_fl;
+	else if (!strcmp(type, "nld")) r = exec_type_nld;
+	else if (!strcmp(type, "fld")) r = exec_type_fld;
+	else if (!strcmp(type, "fls")) r = exec_type_fls;
+	else if (!strcmp(type, "flds")) r = exec_type_flds;
+	else if (!strcmp(type, "flsd")) r = exec_type_flsd;
+	else if (!strcmp(type, "flds_avg")) r = exec_type_flds_avg;
 	label_miss:
 	return r;
 }
@@ -811,16 +801,16 @@ static inline void help(const char *restrict exec)
 {
 	printf(
 		"%s <type> [ ... ]\n"
-		"\t" "formant_n        <dump.json> <output.bmp> <y-limit>\n"
-		"\t" "formant_f        <dump.json> <output.bmp> <y-limit>\n"
-		"\t" "formant_nl       <dump.json> <output.bmp> <y-limit> <y-offset>\n"
-		"\t" "formant_fl       <dump.json> <output.bmp> <y-limit> <y-offset>\n"
-		"\t" "formant_nld      <dump.json> <output.bmp> <y-limit>\n"
-		"\t" "formant_fld      <dump.json> <output.bmp> <y-limit>\n"
-		"\t" "formant_fls      <output.bmp> <y-limit> <dump.json> [ ... ]\n"
-		"\t" "formant_flds     <output.bmp> <y-limit> <dump.json> [ ... ]\n"
-		"\t" "formant_flsd     <output.bmp> <y-limit> <dump.json> [ ... ]\n"
-		"\t" "formant_flds_avg <output.bmp> <y-limit> <n-split> <tone.json> <dump.json> [ ... ]\n"
+		"\t" "n        <dump.json> <output.bmp> <y-limit>\n"
+		"\t" "f        <dump.json> <output.bmp> <y-limit>\n"
+		"\t" "nl       <dump.json> <output.bmp> <y-limit> <y-offset>\n"
+		"\t" "fl       <dump.json> <output.bmp> <y-limit> <y-offset>\n"
+		"\t" "nld      <dump.json> <output.bmp> <y-limit>\n"
+		"\t" "fld      <dump.json> <output.bmp> <y-limit>\n"
+		"\t" "fls      <output.bmp> <y-limit> <dump.json> [ ... ]\n"
+		"\t" "flds     <output.bmp> <y-limit> <dump.json> [ ... ]\n"
+		"\t" "flsd     <output.bmp> <y-limit> <dump.json> [ ... ]\n"
+		"\t" "flds_avg <output.bmp> <y-limit> <n-split> <tone.json> <dump.json> [ ... ]\n"
 		, exec
 	);
 }
@@ -851,26 +841,26 @@ int main(int argc, const char *argv[])
 			limit = offset = 0;
 			switch (type)
 			{
-				case exec_type_formant_n:
-				case exec_type_formant_f:
-				case exec_type_formant_nld:
-				case exec_type_formant_fld:
+				case exec_type_n:
+				case exec_type_f:
+				case exec_type_nld:
+				case exec_type_fld:
 					if (argc != 3) goto Help;
-					label_formant_base:
+					label_tone_base:
 					dump = load_dump_json(argv[0]);
 					if (!dump) goto Err;
 					output = argv[1];
 					limit = atof(argv[2]);
 					if (limit <= 0) limit = 1;
 					break;
-				case exec_type_formant_nl:
-				case exec_type_formant_fl:
+				case exec_type_nl:
+				case exec_type_fl:
 					if (argc != 4) goto Help;
 					offset = atof(argv[3]);
-					goto label_formant_base;
-				case exec_type_formant_fls:
-				case exec_type_formant_flds:
-				case exec_type_formant_flsd:
+					goto label_tone_base;
+				case exec_type_fls:
+				case exec_type_flds:
+				case exec_type_flsd:
 					if (argc < 3) goto Help;
 					output = argv[0];
 					limit = atof(argv[1]);
@@ -878,7 +868,7 @@ int main(int argc, const char *argv[])
 					argc -= 2;
 					argv += 2;
 					break;
-				case exec_type_formant_flds_avg:
+				case exec_type_flds_avg:
 					if (argc < 5) goto Help;
 					output = argv[0];
 					limit = atof(argv[1]);
@@ -893,41 +883,41 @@ int main(int argc, const char *argv[])
 			}
 			switch (type)
 			{
-				case exec_type_formant_n:
-					sp_formant_n(sp, dump, limit);
+				case exec_type_n:
+					sp_tone_n(sp, dump, limit);
 					break;
-				case exec_type_formant_f:
-					sp_formant_f(sp, dump, limit);
+				case exec_type_f:
+					sp_tone_f(sp, dump, limit);
 					break;
-				case exec_type_formant_nl:
-					sp_formant_nl(sp, dump, limit, offset);
+				case exec_type_nl:
+					sp_tone_nl(sp, dump, limit, offset);
 					break;
-				case exec_type_formant_fl:
-					sp_formant_fl(sp, dump, limit, offset);
+				case exec_type_fl:
+					sp_tone_fl(sp, dump, limit, offset);
 					break;
-				case exec_type_formant_nld:
-					sp_formant_nld(sp, dump, limit);
+				case exec_type_nld:
+					sp_tone_nld(sp, dump, limit);
 					break;
-				case exec_type_formant_fld:
-					sp_formant_fld(sp, dump, limit);
+				case exec_type_fld:
+					sp_tone_fld(sp, dump, limit);
 					break;
-				case exec_type_formant_fls:
-				case exec_type_formant_flds:
-				case exec_type_formant_flsd:
+				case exec_type_fls:
+				case exec_type_flds:
+				case exec_type_flsd:
 					while (argc)
 					{
 						dump = load_dump_json(argv[0]);
 						if (!dump) goto Err;
 						switch (type)
 						{
-							case exec_type_formant_fls:
-								sp_formant_fls(sp, dump, limit);
+							case exec_type_fls:
+								sp_tone_fls(sp, dump, limit);
 								break;
-							case exec_type_formant_flds:
-								sp_formant_flds(sp, dump, limit);
+							case exec_type_flds:
+								sp_tone_flds(sp, dump, limit);
 								break;
-							case exec_type_formant_flsd:
-								sp_formant_flsd(sp, dump, limit);
+							case exec_type_flsd:
+								sp_tone_flsd(sp, dump, limit);
 								break;
 						}
 						json_free(dump);
@@ -937,7 +927,7 @@ int main(int argc, const char *argv[])
 					}
 					sp_axis_fl(sp, limit);
 					break;
-				case exec_type_formant_flds_avg:
+				case exec_type_flds_avg:
 					if (split_n)
 					{
 						tone_avg_s *ta;
@@ -951,7 +941,7 @@ int main(int argc, const char *argv[])
 								refer_free(ta);
 								goto Err;
 							}
-							sp_formant_flds_avg(sp, dump, limit, ta);
+							sp_tone_flds_avg(sp, dump, limit, ta);
 							json_free(dump);
 							dump = NULL;
 							--argc;
