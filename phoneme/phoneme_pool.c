@@ -370,7 +370,7 @@ phoneme_s* phoneme_pool_get_phoneme_modify(register phoneme_pool_s *restrict pp,
 	return p;
 }
 
-json_inode_t* phoneme_pool_read_value(phoneme_pool_s *restrict pp, register const char *restrict *restrict ps, json_inode_t **restrict need_free)
+static json_inode_t* phoneme_pool_read_value_noload(phoneme_pool_s *restrict pp, register const char *restrict *restrict ps, json_inode_t **restrict need_free)
 {
 	register const char *restrict s, *restrict t;
 	*need_free = NULL;
@@ -397,4 +397,20 @@ json_inode_t* phoneme_pool_read_value(phoneme_pool_s *restrict pp, register cons
 		if (s) *ps = s;
 	}
 	return *need_free;
+}
+
+json_inode_t* phoneme_pool_read_value(phoneme_pool_s *restrict pp, register const char *restrict *restrict ps, json_inode_t **restrict need_free)
+{
+	if (**ps != '@') return phoneme_pool_read_value_noload(pp, ps, need_free);
+	else
+	{
+		register json_inode_t *restrict load;
+		++*ps;
+		load = phoneme_pool_read_value_noload(pp, ps, need_free);
+		if (load && load->type == json_inode_string)
+			load = json_load(load->value.string);
+		else load = NULL;
+		if (*need_free) json_free(*need_free);
+		return (*need_free = load);
+	}
 }

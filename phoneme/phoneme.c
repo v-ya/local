@@ -193,11 +193,10 @@ note_s* phoneme_update(register phoneme_s *restrict p, register phoneme_pool_s *
 
 static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_src_t *restrict s, phoneme_pool_s *restrict pp, hashmap_t *restrict symlist, register const char *restrict *restrict modify)
 {
-	register const char *restrict ss, *restrict tt;
+	register const char *restrict ss;
 	void *func;
 	phoneme_src_name_s name;
-	json_inode_t *v;
-	char path[phoneme_var_path_max];
+	json_inode_t *v, *need_free;
 	char value[phoneme_var_path_max];
 	ss = *modify;
 	while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
@@ -211,28 +210,32 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 			case '=':
 				++ss;
 				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
-				if (*ss == '<')
+				if (*ss == '<' || *ss == '\"')
 				{
-					*modify = ss + 1;
-					if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
+					*modify = ss;
+					v = phoneme_pool_read_value(pp, modify, &need_free);
+					if (v || v->type == json_inode_string)
+					{
+						strncpy(value, v->value.string, phoneme_var_path_max - 1);
+						value[phoneme_var_path_max - 1] = 0;
+						if (need_free) json_free(need_free);
+					}
+					else
+					{
+						if (need_free) json_free(need_free);
 						goto Err;
-					v = phoneme_pool_get_var(pp, value);
-					if (*(ss = *modify) != '>') goto Err;
-					if (!v || v->type != json_inode_string) goto Err;
-					tt = v->value.string;
-					++ss;
+					}
 				}
 				else
 				{
 					*modify = ss;
 					if (!phoneme_read_string(value, sizeof(value), modify, ", \t\r\n)"))
 						goto Err;
-					tt = value;
-					ss = *modify;
 				}
-				func = hashmap_get_name(symlist, tt);
+				ss = *modify;
+				func = hashmap_get_name(symlist, value);
 				if (!func) goto Err;
-				name = phoneme_pool_get_name(pp, tt);
+				name = phoneme_pool_get_name(pp, value);
 				if (!name) goto Err;
 				if (r->name) refer_free((refer_t) r->name);
 				r->name = name;
@@ -240,7 +243,7 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 				break;
 			case '<':
 				*modify = ss + 1;
-				if (!phoneme_read_string(path, sizeof(path), modify, ">,)"))
+				if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
 					goto Err;
 				if (*(ss = *modify) != '>') goto Err;
 				++ss;
@@ -248,25 +251,12 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 				if (*(*modify = ss) != '=') goto Err;
 				++ss;
 				while (phoneme_alpha_table_space[*(uint8_t*)ss]) ++ss;
-				if (*ss == '<')
-				{
-					*modify = ss + 1;
-					if (!phoneme_read_string(value, sizeof(value), modify, ">,)"))
-						goto Err;
-					if (*(ss = *modify) != '>') goto Err;
-					++ss;
-					v = phoneme_pool_get_var(pp, value);
-					if (!v) goto Err;
-					v = json_copy(v);
-					if (!v) goto Err;
-				}
-				else
-				{
-					v = NULL;
-					ss = json_decode(*modify = ss, &v);
-					if (!ss || !v) goto Err;
-				}
-				if (*path)
+				*modify = ss;
+				v = phoneme_pool_read_value(pp, modify, &need_free);
+				if (!need_free && v) v = json_copy(v);
+				if (!v) goto Err;
+				ss = *modify;
+				if (*value)
 				{
 					if (!r->arg)
 					{
@@ -274,7 +264,7 @@ static phoneme_src_t* phoneme_modify_script(phoneme_src_t *restrict r, phoneme_s
 						else r->arg = phoneme_arg_alloc(NULL);
 						if (!r->arg) goto Err_free_v;
 					}
-					if (!json_set(r->arg, path, v)) goto Err_free_v;
+					if (!json_set(r->arg, value, v)) goto Err_free_v;
 				}
 				else
 				{
