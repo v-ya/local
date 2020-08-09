@@ -1,4 +1,4 @@
-TARGET		= details_dump.dy details_build.elf tone_test.elf
+TARGET		= details_dump.dy details_build.elf tone_test.elf tone_cross.elf
 
 CC		= gcc
 LD		= ld
@@ -18,6 +18,9 @@ details_build.elf: details_build.o
 	${CC} -o $@ $^ -lrefer -ljson -lwav -lnote
 
 tone_test.elf: tone_test.o
+	${CC} -o $@ $^ -lm -lrefer -ljson -lscatterplot
+
+tone_cross.elf: tone_cross.o
 	${CC} -o $@ $^ -lm -lrefer -ljson -lscatterplot
 
 clear:
