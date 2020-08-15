@@ -1,5 +1,5 @@
 TARGET		= libgraph.so
-HEADER		= graph.h allocator.h type.h
+HEADER		= graph.h allocator.h device.h type.h
 
 CC		= gcc
 LD		= ld
