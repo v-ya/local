@@ -8,7 +8,7 @@ CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
 LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -lpthread -lm -Wl,-soname,${TARGET-LIB}
-LDFLAGS-RES	= -shared -lrefer -ldylink -lm -L. -lphoneme
+LDFLAGS-RES	= -shared -lrefer -ldylink -lm -L. -lphoneme -Wl,-soname,${TARGET-RES}
 LDFLAGS-BIN	= -lrefer -lhashmap -lmlog -largs -lwav -L. -lphoneme -lphonemeres
 
 OBJECT-LIB	= phoneme_type.o phoneme_output.o phoneme_arg.o phoneme_pool.o phoneme.o phoneme_script.o

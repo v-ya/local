@@ -88,16 +88,16 @@ static inline void hashmap_vlist_insert(register hashmap_vlist_t *restrict *rest
 }
 
 // name != NULL => head = mix_str(name)
-static hashmap_vlist_t* hashmap_vlist_find(register hashmap_vlist_t *restrict vl, register const char *restrict name, register uint64_t head)
+static hashmap_vlist_t* hashmap_vlist_find(register const hashmap_vlist_t *restrict vl, register const char *restrict name, register uint64_t head)
 {
 	if (name) while (vl)
 	{
-		if (vl->name && vl->head == head && !strcmp(vl->name, name)) return vl;
+		if (vl->name && vl->head == head && !strcmp(vl->name, name)) return (hashmap_vlist_t *) vl;
 		vl = vl->next;
 	}
 	else while (vl)
 	{
-		if (!vl->name && vl->head == head) return vl;
+		if (!vl->name && vl->head == head) return (hashmap_vlist_t *) vl;
 		vl = vl->next;
 	}
 	return NULL;
@@ -227,19 +227,19 @@ static inline void hashmap_insert(register hashmap_t *restrict hm, register hash
 }
 
 // hm != NULL, name != NULL => head = mix_str(name)
-static inline hashmap_vlist_t* hashmap_find(register hashmap_t *restrict hm, register const char *restrict name, register uint64_t head)
+static inline hashmap_vlist_t* hashmap_find(register const hashmap_t *restrict hm, register const char *restrict name, register uint64_t head)
 {
 	return hashmap_vlist_find(hm->map[(name?head:mix_num(head)) & hm->mask], name, head);
 }
 
-hashmap_vlist_t* hashmap_find_name(register hashmap_t *restrict hm, register const char *restrict name)
+hashmap_vlist_t* hashmap_find_name(register const hashmap_t *restrict hm, register const char *restrict name)
 {
 	register uint64_t head;
 	head = mix_str(name);
 	return hashmap_vlist_find(hm->map[head & hm->mask], name, head);
 }
 
-hashmap_vlist_t* hashmap_find_head(register hashmap_t *restrict hm, register uint64_t head)
+hashmap_vlist_t* hashmap_find_head(register const hashmap_t *restrict hm, register uint64_t head)
 {
 	return hashmap_vlist_find(hm->map[mix_num(head) & hm->mask], NULL, head);
 }
@@ -324,7 +324,7 @@ hashmap_vlist_t* hashmap_set_head(register hashmap_t *restrict hm, register uint
 	}
 }
 
-void* hashmap_get_name(register hashmap_t *restrict hm, register const char *restrict name)
+void* hashmap_get_name(register const hashmap_t *restrict hm, register const char *restrict name)
 {
 	register hashmap_vlist_t *vl;
 	vl = hashmap_find(hm, name, mix_str(name));
@@ -332,7 +332,7 @@ void* hashmap_get_name(register hashmap_t *restrict hm, register const char *res
 	else return NULL;
 }
 
-void* hashmap_get_head(register hashmap_t *restrict hm, register uint64_t head)
+void* hashmap_get_head(register const hashmap_t *restrict hm, register uint64_t head)
 {
 	register hashmap_vlist_t *vl;
 	vl = hashmap_find(hm, NULL, head);

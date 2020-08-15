@@ -34,8 +34,8 @@ void hashmap_clear(hashmap_t *restrict hm);
 hashmap_t* hashmap_alloc(void);
 void hashmap_free(hashmap_t *restrict hm);
 // 查找子节点
-hashmap_vlist_t* hashmap_find_name(hashmap_t *restrict hm, const char *restrict name);
-hashmap_vlist_t* hashmap_find_head(hashmap_t *restrict hm, uint64_t head);
+hashmap_vlist_t* hashmap_find_name(const hashmap_t *restrict hm, const char *restrict name);
+hashmap_vlist_t* hashmap_find_head(const hashmap_t *restrict hm, uint64_t head);
 // 删除子节点
 void hashmap_delete_name(hashmap_t *restrict hm, const char *restrict name);
 void hashmap_delete_head(hashmap_t *restrict hm, uint64_t head);
@@ -46,8 +46,8 @@ hashmap_vlist_t* hashmap_put_head(hashmap_t *restrict hm, uint64_t head, const v
 hashmap_vlist_t* hashmap_set_name(hashmap_t *restrict hm, const char *restrict name, const void *value, hashmap_func_free_f freeFunc);
 hashmap_vlist_t* hashmap_set_head(hashmap_t *restrict hm, uint64_t head, const void *value, hashmap_func_free_f freeFunc);
 // 返回 value
-void* hashmap_get_name(hashmap_t *restrict hm, const char *restrict name);
-void* hashmap_get_head(hashmap_t *restrict hm, uint64_t head);
+void* hashmap_get_name(const hashmap_t *restrict hm, const char *restrict name);
+void* hashmap_get_head(const hashmap_t *restrict hm, uint64_t head);
 // 遍历每一个子节点调用 callFunc
 void hashmap_call(hashmap_t *restrict hm, hashmap_func_call_f callFunc, void *data);
 void hashmap_call_v2(hashmap_t *restrict hm, hashmap_func_call_v2_f callFunc, void *v1, void *v2);
