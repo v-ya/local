@@ -1,12 +1,12 @@
 TARGET		= libgraph.so
-HEADER		= graph.h allocator.h device.h type.h
+HEADER		= graph.h allocator.h support.h device.h type.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lhashmap -lmlog -lvulkan -Wl,-soname,${TARGET}
 
-OBJECT		= graph.o allocator.o vulkan_debug.o device.o
+OBJECT		= graph.o allocator.o support.o vulkan_debug.o device.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

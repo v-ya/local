@@ -7,7 +7,7 @@
 #include "vulkan_debug.h"
 
 struct graph_s {
-	mlog_s *mlog;
+	mlog_s *ml;
 	graph_vulkan_debug_utils_messenger_s *debug;
 	VkInstance instance;
 	graph_allocator_s *ga;
