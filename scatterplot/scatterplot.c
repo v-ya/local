@@ -38,7 +38,7 @@ static void scatterplot_free_func(register scatterplot_s *restrict sp)
 scatterplot_s* scatterplot_alloc(void)
 {
 	register scatterplot_s *restrict sp;
-	sp = refer_alloz(sizeof(scatterplot_s));
+	sp = (scatterplot_s *) refer_alloz(sizeof(scatterplot_s));
 	if (sp) refer_set_free(sp, (refer_free_f) scatterplot_free_func);
 	return sp;
 }

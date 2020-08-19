@@ -29,7 +29,7 @@ pcmplay_s* pcmplay_alloc(uint32_t channels, uint32_t sampfre, pcmplay_format_t f
 	register pcmplay_s *restrict r;
 	if (channels && sampfre && format >= 0 && format < pcmplay_format_max)
 	{
-		r = refer_alloz(sizeof(pcmplay_s));
+		r = (pcmplay_s *) refer_alloz(sizeof(pcmplay_s));
 		if (r)
 		{
 			refer_set_free(r, (refer_free_f) pcmplay_free_func);

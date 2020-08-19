@@ -107,7 +107,7 @@ phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool)
 	phoneme_pool_s *pp;
 	if (dypool)
 	{
-		pp = refer_alloz(sizeof(phoneme_pool_s));
+		pp = (phoneme_pool_s *) refer_alloz(sizeof(phoneme_pool_s));
 		if (pp)
 		{
 			refer_set_free(pp, (refer_free_f) phoneme_pool_free_func);
@@ -134,7 +134,7 @@ phoneme_pool_s* phoneme_pool_alloc(dylink_pool_t *dypool)
 void phoneme_pool_set_mlog(phoneme_pool_s *restrict pp, mlog_s *restrict ml)
 {
 	if (pp->mlog) refer_free(pp->mlog);
-	pp->mlog = refer_save(ml);
+	pp->mlog = (mlog_s *) refer_save(ml);
 }
 
 int phoneme_pool_test_package(phoneme_pool_s *restrict pp, const char *restrict package)
@@ -298,7 +298,7 @@ phoneme_arg_s* phoneme_pool_get_arg(register phoneme_pool_s *restrict pp, const 
 refer_t phoneme_pool_get_pri(register phoneme_pool_s *restrict pp, const char *restrict type, const char *restrict name)
 {
 	phoneme_arg_pool_s *p;
-	refer_t *r;
+	refer_t r;
 	r = NULL;
 	p = phoneme_pool_get_arg_pool(pp, type);
 	if (p)

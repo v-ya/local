@@ -153,7 +153,7 @@ static void phoneme_output_free_func(phoneme_output_s *restrict po)
 phoneme_output_s* phoneme_output_alloc(uint32_t sampfre, uint32_t frames, uint32_t core_number, uint32_t usleep_time)
 {
 	phoneme_output_s *r;
-	r = refer_alloz(sizeof(phoneme_output_s) + core_number * sizeof(phoneme_output_core_t));
+	r = (phoneme_output_s *) refer_alloz(sizeof(phoneme_output_s) + core_number * sizeof(phoneme_output_core_t));
 	if (r)
 	{
 		if (!frames) frames = (16 << 10);

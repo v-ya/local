@@ -9,7 +9,7 @@ static void phoneme_arg_pool_free_func(register phoneme_arg_pool_s *restrict pap
 phoneme_arg_pool_s* phoneme_arg_pool_alloc(void)
 {
 	register phoneme_arg_pool_s *restrict r;
-	r = refer_alloz(sizeof(phoneme_arg_pool_s));
+	r = (phoneme_arg_pool_s *) refer_alloz(sizeof(phoneme_arg_pool_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) phoneme_arg_pool_free_func);

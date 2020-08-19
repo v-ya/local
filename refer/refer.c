@@ -32,7 +32,7 @@ refer_t refer_free(refer_t v)
 	{
 		refer_s *s;
 		s = (refer_s *) v - 1;
-		if (s->free_func) s->free_func(v);
+		if (s->free_func) s->free_func((void *) v);
 		free(s);
 		v = NULL;
 	}
@@ -42,6 +42,11 @@ refer_t refer_free(refer_t v)
 void refer_set_free(refer_t v, refer_free_f free_func)
 {
 	((refer_s *) v - 1)->free_func = free_func;
+}
+
+refer_free_f refer_get_free(refer_t v)
+{
+	return ((refer_s *) v - 1)->free_func;
 }
 
 refer_t refer_save(refer_t v)

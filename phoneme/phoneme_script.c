@@ -33,7 +33,7 @@ phoneme_script_s* phoneme_script_alloc(size_t xmsize, mlog_s *restrict mlog, pho
 					if ((r->phoneme_pool = phoneme_pool_alloc(dyp)))
 					{
 						dyp = NULL;
-						phoneme_pool_set_mlog(r->phoneme_pool, r->mlog = refer_save(mlog));
+						phoneme_pool_set_mlog(r->phoneme_pool, r->mlog = (mlog_s *) refer_save(mlog));
 						r->base_time = phoneme_script_default_base_time;
 						r->base_volume = phoneme_script_default_base_volume;
 						r->base_fre_line = phoneme_script_default_base_fre_line;

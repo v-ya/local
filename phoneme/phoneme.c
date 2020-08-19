@@ -144,7 +144,7 @@ phoneme_s* phoneme_alloc(uint32_t sdmax, phoneme_pool_s *restrict pp, json_inode
 	else o = NULL;
 	if (sdmax)
 	{
-		r = refer_alloz(sizeof(phoneme_s) + sizeof(phoneme_src_t) * sdmax);
+		r = (phoneme_s *) refer_alloz(sizeof(phoneme_s) + sizeof(phoneme_src_t) * sdmax);
 		if (r)
 		{
 			r->details_max = sdmax;
@@ -308,7 +308,7 @@ static phoneme_src_t* phoneme_modify_link(register phoneme_src_t *restrict r, re
 	}
 	if (!r->arg)
 	{
-		r->arg = refer_save(s->arg);
+		r->arg = (phoneme_arg_s *) refer_save(s->arg);
 		if (r->pri)
 		{
 			refer_free(r->pri);

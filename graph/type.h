@@ -15,6 +15,8 @@ typedef enum graph_layer_e {
 typedef enum graph_extension_e {
 	graph_extension_null,
 	graph_extension_ext_debug_utils,
+	graph_extension_khr_surface,
+	graph_extension_khr_xcb_surface,
 	graph_extension$number
 } graph_extension_t;
 

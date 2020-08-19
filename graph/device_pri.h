@@ -48,6 +48,7 @@ struct graph_dev_param_s {
 struct graph_dev_s {
 	mlog_s *ml;
 	VkDevice dev;
+	VkPhysicalDevice phydev;
 	graph_allocator_s *ga;
 };
 

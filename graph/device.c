@@ -185,7 +185,7 @@ static void graph_dev_param_free_func(register graph_dev_param_s *restrict r)
 graph_dev_param_s* graph_dev_param_alloc(register uint32_t queue_family_number)
 {
 	register graph_dev_param_s *restrict r;
-	r = refer_alloz(sizeof(graph_dev_param_s) + sizeof(VkDeviceQueueCreateInfo) * queue_family_number);
+	r = (graph_dev_param_s *) refer_alloz(sizeof(graph_dev_param_s) + sizeof(VkDeviceQueueCreateInfo) * queue_family_number);
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) graph_dev_param_free_func);
@@ -309,7 +309,7 @@ graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, register const g
 {
 	register graph_dev_s *restrict r;
 	VkResult ret;
-	r = refer_alloz(sizeof(graph_dev_s));
+	r = (graph_dev_s *) refer_alloz(sizeof(graph_dev_s));
 	if (r)
 	{
 		VkDeviceCreateInfo info;
@@ -326,7 +326,7 @@ graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, register const g
 		info.enabledExtensionCount = param->extension_number;
 		info.ppEnabledExtensionNames = param->extension_list;
 		info.pEnabledFeatures = &param->features;
-		ret = vkCreateDevice(gd->phydev, &info, &ga->alloc, &r->dev);
+		ret = vkCreateDevice(r->phydev = gd->phydev, &info, &ga->alloc, &r->dev);
 		if (ret) goto label_fail;
 		return r;
 		label_fail:
