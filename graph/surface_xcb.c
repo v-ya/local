@@ -10,8 +10,7 @@ typedef struct graph_surface_xcb_s {
 
 static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r)
 {
-	if (r->surface.surface)
-		vkDestroySurfaceKHR(r->surface.g->instance, r->surface.surface, &r->surface.g->ga->alloc);
+	graph_surface_uini(&r->surface);
 	if (r->connect)
 	{
 		if (r->winid)
@@ -19,7 +18,6 @@ static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r
 		xcb_flush(r->connect);
 		xcb_disconnect(r->connect);
 	}
-	if (r->surface.g) refer_free(r->surface.g);
 }
 
 graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, graph_surface_s *restrict parent, int x, int y, unsigned int width, unsigned int height, unsigned int depth)
@@ -28,9 +26,10 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 	PFN_vkCreateXcbSurfaceKHR func;
 	xcb_screen_t *screen;
 	VkXcbSurfaceCreateInfoKHR info;
-	VkResult ret;
 	int rflush;
-	if ((!parent || refer_get_free(parent) == (refer_free_f) graph_surface_xcb_free_func) && width && height)
+	if (graph_surface_init_check(g) &&
+		(!parent || refer_get_free(parent) == (refer_free_f) graph_surface_xcb_free_func) &&
+		width && height)
 	{
 		func = (PFN_vkCreateXcbSurfaceKHR) vkGetInstanceProcAddr(g->instance, "vkCreateXcbSurfaceKHR");
 		if (func)
@@ -56,9 +55,8 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 				info.flags = 0;
 				info.connection = r->connect;
 				info.window = r->winid;
-				ret = func(g->instance, &info, &g->ga->alloc, &r->surface.surface);
-				if (!ret) return &r->surface;
-				mlog_printf(g->ml, "[graph_surface_xcb_create_window] vkCreateXcbSurfaceKHR = %d\n", ret);
+				if (graph_surface_init(&r->surface, g, (graph_surface_vk_create_f) func, &info))
+					return &r->surface;
 				label_free:
 				refer_free(r);
 			}

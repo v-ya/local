@@ -12,6 +12,7 @@ static const char* graph_layer_mapping[graph_layer$number] = {
 static const char* graph_extension_mapping[graph_extension$number] = {
 	[graph_extension_null] = NULL,
 	[graph_extension_ext_debug_utils] = "VK_EXT_debug_utils",
+	[graph_extension_khr_swapchain] = "VK_KHR_swapchain",
 	[graph_extension_khr_surface] = "VK_KHR_surface",
 	[graph_extension_khr_xcb_surface] = "VK_KHR_xcb_surface",
 };

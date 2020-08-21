@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lhashmap -lmlog -lvulkan -lxcb -Wl,-soname,${TARGET}
 
-OBJECT		= graph.o allocator.o support.o vulkan_debug.o device.o surface_xcb.o
+OBJECT		= graph.o allocator.o support.o vulkan_debug.o device.o surface.o surface_xcb.o type.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

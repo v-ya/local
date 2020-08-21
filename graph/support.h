@@ -3,7 +3,6 @@
 
 #include <refer.h>
 #include <mlog.h>
-
 #include "type.h"
 
 typedef struct graph_layer_support_s graph_layer_support_s;

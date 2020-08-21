@@ -28,6 +28,7 @@ struct graph_device_queue_t {
 struct graph_device_queues_s {
 	mlog_s *ml;
 	size_t number;
+	VkPhysicalDevice phydev;
 	graph_device_queue_t queue_array[];
 };
 

@@ -1,4 +1,5 @@
 #include "vulkan_debug.h"
+#include "type_pri.h"
 #include "allocator_pri.h"
 
 struct graph_vulkan_debug_utils_messenger_s {
@@ -73,19 +74,19 @@ static VkBool32 graph_vulkan_instance_debug_callback_func(
 	{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 			// 诊断信息
-			s_severity = "\e[1;34mverbose\e[0m";
+			s_severity = graph_type_blue "verbose" graph_type_back;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 			// 资源创建之类的信息
-			s_severity = "\e[1;32minfo\e[0m";
+			s_severity = graph_type_green "info" graph_type_back;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 			// 警告信息
-			s_severity = "\e[1;33mwarning\e[0m";
+			s_severity = graph_type_yellow "warning" graph_type_back;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 			// 不合法和可能造成崩溃的操作信息
-			s_severity = "\e[1;31merror\e[0m";
+			s_severity = graph_type_red "error" graph_type_back;
 			break;
 		default:
 			s_severity = "unknow";
@@ -95,15 +96,15 @@ static VkBool32 graph_vulkan_instance_debug_callback_func(
 	{
 		case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
 			// 规范和性能无关的事件
-			s_type = "\e[1;37mgeneral\e[0m";
+			s_type = graph_type_aqua "general" graph_type_back;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
 			// 违反规范的情况或发生了一个可能的错误
-			s_type = "\e[1;36mvalidation\e[0m";
+			s_type = graph_type_red "validation" graph_type_back;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
 			// 可能影响 Vulkan 性能的行为
-			s_type = "\e[1;35mperformance\e[0m";
+			s_type = graph_type_purple "performance" graph_type_back;
 			break;
 		default:
 			s_type = "unknow";

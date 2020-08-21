@@ -1,6 +1,8 @@
+#include "type_pri.h"
 #include "device_pri.h"
 #include "graph_pri.h"
 #include "support_pri.h"
+#include "surface_pri.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -139,6 +141,7 @@ graph_device_queues_s* graph_device_queues_get(register const graph_device_t *re
 		if (r)
 		{
 			r->ml = (mlog_s *) refer_save(gd->ml);
+			r->phydev = gd->phydev;
 			refer_set_free(r, (refer_free_f) graph_p_mlog_free_func);
 			p = (VkQueueFamilyProperties *) ((uint8_t *) r + (sizeof(graph_device_queues_s) + sizeof(graph_device_queue_t) * number));
 			vkGetPhysicalDeviceQueueFamilyProperties(gd->phydev, &number, p);
@@ -343,23 +346,18 @@ graph_bool_t graph_device_features_test(register const graph_device_t *restrict 
 	return 0;
 }
 
-const char* graph_physical_device_type_string(graph_physical_device_type_t type)
+graph_bool_t graph_device_queue_surface_support(register const graph_device_queue_t *restrict q, register const struct graph_surface_s *restrict sf)
 {
-	static const char* mapping[] = {
-		[graph_physical_device_type_other]          = "other",
-		[graph_physical_device_type_integrated_gpu] = "integrated gpu",
-		[graph_physical_device_type_discrete_gpu]   = "discrete gpu",
-		[graph_physical_device_type_virtual_gpu]    = "virtual gpu",
-		[graph_physical_device_type_cpu]            = "cpu"
-	};
-	if ((uint32_t) type < (sizeof(mapping) / sizeof(const char *)))
-		return mapping[type];
-	return "unknow";
-}
-
-static inline const char* graph_device_bool(VkBool32 b)
-{
-	return (const char * []){"false", "true"}[!!b];
+	register const graph_device_queues_s *restrict qs;
+	VkResult r;
+	VkBool32 b;
+	qs = (graph_device_queues_s *) ((uint8_t *) (q - q->index) - offsetof(graph_device_queues_s, queue_array));
+	r = vkGetPhysicalDeviceSurfaceSupportKHR(qs->phydev, (uint32_t) q->index, sf->surface, &b);
+	if (!r) goto label_return;
+	mlog_printf(q->ml, "[graph_device_queue_surface_support] vkGetPhysicalDeviceSurfaceSupportKHR = %d\n", r);
+	b = 0;
+	label_return:
+	return b;
 }
 
 void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
@@ -459,7 +457,7 @@ void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
 	mlog_printf(ml, "\t" "sampled image stencil sample counts                   = 0x%02x\n", p->sampledImageStencilSampleCounts);
 	mlog_printf(ml, "\t" "storage image sample counts                           = 0x%02x\n", p->storageImageSampleCounts);
 	mlog_printf(ml, "\t" "max sample mask words                                 = %u\n", p->maxSampleMaskWords);
-	mlog_printf(ml, "\t" "timestamp compute and graphics                        = %s\n", graph_device_bool(p->timestampComputeAndGraphics));
+	mlog_printf(ml, "\t" "timestamp compute and graphics                        = %s\n", graph_bool$string(p->timestampComputeAndGraphics));
 	mlog_printf(ml, "\t" "timestamp period                                      = %f\n", p->timestampPeriod);
 	mlog_printf(ml, "\t" "max clip distances                                    = %u\n", p->maxClipDistances);
 	mlog_printf(ml, "\t" "max cull distances                                    = %u\n", p->maxCullDistances);
@@ -469,8 +467,8 @@ void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
 	mlog_printf(ml, "\t" "line width range                                      = [%f, %f]\n", p->lineWidthRange[0], p->lineWidthRange[1]);
 	mlog_printf(ml, "\t" "point size granularity                                = %f\n", p->pointSizeGranularity);
 	mlog_printf(ml, "\t" "line width granularity                                = %f\n", p->lineWidthGranularity);
-	mlog_printf(ml, "\t" "strict lines                                          = %s\n", graph_device_bool(p->strictLines));
-	mlog_printf(ml, "\t" "standard sample locations                             = %s\n", graph_device_bool(p->standardSampleLocations));
+	mlog_printf(ml, "\t" "strict lines                                          = %s\n", graph_bool$string(p->strictLines));
+	mlog_printf(ml, "\t" "standard sample locations                             = %s\n", graph_bool$string(p->standardSampleLocations));
 	mlog_printf(ml, "\t" "optimal buffer copy offset alignment                  = %" PRIu64 "\n", p->optimalBufferCopyOffsetAlignment);
 	mlog_printf(ml, "\t" "optimal buffer copy row pitch alignment               = %" PRIu64 "\n", p->optimalBufferCopyRowPitchAlignment);
 	mlog_printf(ml, "\t" "non coherent atom size                                = %" PRIu64 "\n", p->nonCoherentAtomSize);
@@ -482,11 +480,11 @@ void graph_device_properties_sparse_dump(const graph_device_t *restrict gd)
 	register const VkPhysicalDeviceSparseProperties *restrict p;
 	ml = gd->ml;
 	p = &gd->properties.sparseProperties;
-	mlog_printf(ml, "\t" "residency standard 2D block shape                     = %s\n", graph_device_bool(p->residencyStandard2DBlockShape));
-	mlog_printf(ml, "\t" "residency standard 2D multisample block shape         = %s\n", graph_device_bool(p->residencyStandard2DMultisampleBlockShape));
-	mlog_printf(ml, "\t" "residency standard 3D block shape                     = %s\n", graph_device_bool(p->residencyStandard3DBlockShape));
-	mlog_printf(ml, "\t" "residency aligned mip size                            = %s\n", graph_device_bool(p->residencyAlignedMipSize));
-	mlog_printf(ml, "\t" "residency non resident strict                         = %s\n", graph_device_bool(p->residencyNonResidentStrict));
+	mlog_printf(ml, "\t" "residency standard 2D block shape                     = %s\n", graph_bool$string(p->residencyStandard2DBlockShape));
+	mlog_printf(ml, "\t" "residency standard 2D multisample block shape         = %s\n", graph_bool$string(p->residencyStandard2DMultisampleBlockShape));
+	mlog_printf(ml, "\t" "residency standard 3D block shape                     = %s\n", graph_bool$string(p->residencyStandard3DBlockShape));
+	mlog_printf(ml, "\t" "residency aligned mip size                            = %s\n", graph_bool$string(p->residencyAlignedMipSize));
+	mlog_printf(ml, "\t" "residency non resident strict                         = %s\n", graph_bool$string(p->residencyNonResidentStrict));
 }
 
 void graph_device_properties_dump(const graph_device_t *restrict gd)
@@ -503,7 +501,7 @@ void graph_device_properties_dump(const graph_device_t *restrict gd)
 	mlog_printf(ml, "\t" "vendor ID                                             = 0x%x\n", p->vendorID);
 	mlog_printf(ml, "\t" "device ID                                             = 0x%x\n", p->deviceID);
 	mlog_printf(ml, "\t" "device type                                           = %d (%s)\n",
-		p->deviceType, graph_physical_device_type_string((graph_physical_device_type_t) p->deviceType));
+		p->deviceType, graph_physical_device_type$string((graph_physical_device_type_t) p->deviceType));
 	mlog_printf(ml, "\t" "device name                                           = %s\n", p->deviceName);
 	mlog_printf(ml, "\t" "pipeline cache UUID                                   = %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
 		p->pipelineCacheUUID[0], p->pipelineCacheUUID[1], p->pipelineCacheUUID[2], p->pipelineCacheUUID[3],
@@ -520,61 +518,61 @@ void graph_device_features_dump(const graph_device_t *restrict gd)
 	register const VkPhysicalDeviceFeatures *restrict p;
 	ml = gd->ml;
 	p = &gd->features;
-	mlog_printf(ml, "\t" "robust buffer access                         = %s\n", graph_device_bool(p->robustBufferAccess));
-	mlog_printf(ml, "\t" "full draw index uint32                       = %s\n", graph_device_bool(p->fullDrawIndexUint32));
-	mlog_printf(ml, "\t" "image cube array                             = %s\n", graph_device_bool(p->imageCubeArray));
-	mlog_printf(ml, "\t" "independent blend                            = %s\n", graph_device_bool(p->independentBlend));
-	mlog_printf(ml, "\t" "geometry shader                              = %s\n", graph_device_bool(p->geometryShader));
-	mlog_printf(ml, "\t" "tessellation shader                          = %s\n", graph_device_bool(p->tessellationShader));
-	mlog_printf(ml, "\t" "sample rate shading                          = %s\n", graph_device_bool(p->sampleRateShading));
-	mlog_printf(ml, "\t" "dual src blend                               = %s\n", graph_device_bool(p->dualSrcBlend));
-	mlog_printf(ml, "\t" "logic op                                     = %s\n", graph_device_bool(p->logicOp));
-	mlog_printf(ml, "\t" "multi draw indirect                          = %s\n", graph_device_bool(p->multiDrawIndirect));
-	mlog_printf(ml, "\t" "draw indirect first instance                 = %s\n", graph_device_bool(p->drawIndirectFirstInstance));
-	mlog_printf(ml, "\t" "depth clamp                                  = %s\n", graph_device_bool(p->depthClamp));
-	mlog_printf(ml, "\t" "depth bias clamp                             = %s\n", graph_device_bool(p->depthBiasClamp));
-	mlog_printf(ml, "\t" "fill mode non solid                          = %s\n", graph_device_bool(p->fillModeNonSolid));
-	mlog_printf(ml, "\t" "depth bounds                                 = %s\n", graph_device_bool(p->depthBounds));
-	mlog_printf(ml, "\t" "wide lines                                   = %s\n", graph_device_bool(p->wideLines));
-	mlog_printf(ml, "\t" "large points                                 = %s\n", graph_device_bool(p->largePoints));
-	mlog_printf(ml, "\t" "alpha to one                                 = %s\n", graph_device_bool(p->alphaToOne));
-	mlog_printf(ml, "\t" "multi viewport                               = %s\n", graph_device_bool(p->multiViewport));
-	mlog_printf(ml, "\t" "sampler anisotropy                           = %s\n", graph_device_bool(p->samplerAnisotropy));
-	mlog_printf(ml, "\t" "texture compression ETC2                     = %s\n", graph_device_bool(p->textureCompressionETC2));
-	mlog_printf(ml, "\t" "texture compression ASTC LDR                 = %s\n", graph_device_bool(p->textureCompressionASTC_LDR));
-	mlog_printf(ml, "\t" "texture compression BC                       = %s\n", graph_device_bool(p->textureCompressionBC));
-	mlog_printf(ml, "\t" "occlusion query precise                      = %s\n", graph_device_bool(p->occlusionQueryPrecise));
-	mlog_printf(ml, "\t" "pipeline statistics query                    = %s\n", graph_device_bool(p->pipelineStatisticsQuery));
-	mlog_printf(ml, "\t" "vertex pipeline stores and atomics           = %s\n", graph_device_bool(p->vertexPipelineStoresAndAtomics));
-	mlog_printf(ml, "\t" "fragment stores and atomics                  = %s\n", graph_device_bool(p->fragmentStoresAndAtomics));
-	mlog_printf(ml, "\t" "shader tessellation and geometry point size  = %s\n", graph_device_bool(p->shaderTessellationAndGeometryPointSize));
-	mlog_printf(ml, "\t" "shader image gather extended                 = %s\n", graph_device_bool(p->shaderImageGatherExtended));
-	mlog_printf(ml, "\t" "shader storage image extended formats        = %s\n", graph_device_bool(p->shaderStorageImageExtendedFormats));
-	mlog_printf(ml, "\t" "shader storage image multisample             = %s\n", graph_device_bool(p->shaderStorageImageMultisample));
-	mlog_printf(ml, "\t" "shader storage image read without format     = %s\n", graph_device_bool(p->shaderStorageImageReadWithoutFormat));
-	mlog_printf(ml, "\t" "shader storage image write without format    = %s\n", graph_device_bool(p->shaderStorageImageWriteWithoutFormat));
-	mlog_printf(ml, "\t" "shader uniform buffer array dynamic indexing = %s\n", graph_device_bool(p->shaderUniformBufferArrayDynamicIndexing));
-	mlog_printf(ml, "\t" "shader sampled image array dynamic indexing  = %s\n", graph_device_bool(p->shaderSampledImageArrayDynamicIndexing));
-	mlog_printf(ml, "\t" "shader storage buffer array dynamic indexing = %s\n", graph_device_bool(p->shaderStorageBufferArrayDynamicIndexing));
-	mlog_printf(ml, "\t" "shader storage image array dynamic indexing  = %s\n", graph_device_bool(p->shaderStorageImageArrayDynamicIndexing));
-	mlog_printf(ml, "\t" "shader clip distance                         = %s\n", graph_device_bool(p->shaderClipDistance));
-	mlog_printf(ml, "\t" "shader cull distance                         = %s\n", graph_device_bool(p->shaderCullDistance));
-	mlog_printf(ml, "\t" "shader float64                               = %s\n", graph_device_bool(p->shaderFloat64));
-	mlog_printf(ml, "\t" "shader int64                                 = %s\n", graph_device_bool(p->shaderInt64));
-	mlog_printf(ml, "\t" "shader int16                                 = %s\n", graph_device_bool(p->shaderInt16));
-	mlog_printf(ml, "\t" "shader resource residency                    = %s\n", graph_device_bool(p->shaderResourceResidency));
-	mlog_printf(ml, "\t" "shader resource min lod                      = %s\n", graph_device_bool(p->shaderResourceMinLod));
-	mlog_printf(ml, "\t" "sparse binding                               = %s\n", graph_device_bool(p->sparseBinding));
-	mlog_printf(ml, "\t" "sparse residency buffer                      = %s\n", graph_device_bool(p->sparseResidencyBuffer));
-	mlog_printf(ml, "\t" "sparse residency image 2D                    = %s\n", graph_device_bool(p->sparseResidencyImage2D));
-	mlog_printf(ml, "\t" "sparse residency image 3D                    = %s\n", graph_device_bool(p->sparseResidencyImage3D));
-	mlog_printf(ml, "\t" "sparse residency 2 samples                   = %s\n", graph_device_bool(p->sparseResidency2Samples));
-	mlog_printf(ml, "\t" "sparse residency 4 samples                   = %s\n", graph_device_bool(p->sparseResidency4Samples));
-	mlog_printf(ml, "\t" "sparse residency 8 samples                   = %s\n", graph_device_bool(p->sparseResidency8Samples));
-	mlog_printf(ml, "\t" "sparse residency 16 samples                  = %s\n", graph_device_bool(p->sparseResidency16Samples));
-	mlog_printf(ml, "\t" "sparse residency aliased                     = %s\n", graph_device_bool(p->sparseResidencyAliased));
-	mlog_printf(ml, "\t" "variable multi sample rate                   = %s\n", graph_device_bool(p->variableMultisampleRate));
-	mlog_printf(ml, "\t" "inherited queries                            = %s\n", graph_device_bool(p->inheritedQueries));
+	mlog_printf(ml, "\t" "robust buffer access                         = %s\n", graph_bool$string(p->robustBufferAccess));
+	mlog_printf(ml, "\t" "full draw index uint32                       = %s\n", graph_bool$string(p->fullDrawIndexUint32));
+	mlog_printf(ml, "\t" "image cube array                             = %s\n", graph_bool$string(p->imageCubeArray));
+	mlog_printf(ml, "\t" "independent blend                            = %s\n", graph_bool$string(p->independentBlend));
+	mlog_printf(ml, "\t" "geometry shader                              = %s\n", graph_bool$string(p->geometryShader));
+	mlog_printf(ml, "\t" "tessellation shader                          = %s\n", graph_bool$string(p->tessellationShader));
+	mlog_printf(ml, "\t" "sample rate shading                          = %s\n", graph_bool$string(p->sampleRateShading));
+	mlog_printf(ml, "\t" "dual src blend                               = %s\n", graph_bool$string(p->dualSrcBlend));
+	mlog_printf(ml, "\t" "logic op                                     = %s\n", graph_bool$string(p->logicOp));
+	mlog_printf(ml, "\t" "multi draw indirect                          = %s\n", graph_bool$string(p->multiDrawIndirect));
+	mlog_printf(ml, "\t" "draw indirect first instance                 = %s\n", graph_bool$string(p->drawIndirectFirstInstance));
+	mlog_printf(ml, "\t" "depth clamp                                  = %s\n", graph_bool$string(p->depthClamp));
+	mlog_printf(ml, "\t" "depth bias clamp                             = %s\n", graph_bool$string(p->depthBiasClamp));
+	mlog_printf(ml, "\t" "fill mode non solid                          = %s\n", graph_bool$string(p->fillModeNonSolid));
+	mlog_printf(ml, "\t" "depth bounds                                 = %s\n", graph_bool$string(p->depthBounds));
+	mlog_printf(ml, "\t" "wide lines                                   = %s\n", graph_bool$string(p->wideLines));
+	mlog_printf(ml, "\t" "large points                                 = %s\n", graph_bool$string(p->largePoints));
+	mlog_printf(ml, "\t" "alpha to one                                 = %s\n", graph_bool$string(p->alphaToOne));
+	mlog_printf(ml, "\t" "multi viewport                               = %s\n", graph_bool$string(p->multiViewport));
+	mlog_printf(ml, "\t" "sampler anisotropy                           = %s\n", graph_bool$string(p->samplerAnisotropy));
+	mlog_printf(ml, "\t" "texture compression ETC2                     = %s\n", graph_bool$string(p->textureCompressionETC2));
+	mlog_printf(ml, "\t" "texture compression ASTC LDR                 = %s\n", graph_bool$string(p->textureCompressionASTC_LDR));
+	mlog_printf(ml, "\t" "texture compression BC                       = %s\n", graph_bool$string(p->textureCompressionBC));
+	mlog_printf(ml, "\t" "occlusion query precise                      = %s\n", graph_bool$string(p->occlusionQueryPrecise));
+	mlog_printf(ml, "\t" "pipeline statistics query                    = %s\n", graph_bool$string(p->pipelineStatisticsQuery));
+	mlog_printf(ml, "\t" "vertex pipeline stores and atomics           = %s\n", graph_bool$string(p->vertexPipelineStoresAndAtomics));
+	mlog_printf(ml, "\t" "fragment stores and atomics                  = %s\n", graph_bool$string(p->fragmentStoresAndAtomics));
+	mlog_printf(ml, "\t" "shader tessellation and geometry point size  = %s\n", graph_bool$string(p->shaderTessellationAndGeometryPointSize));
+	mlog_printf(ml, "\t" "shader image gather extended                 = %s\n", graph_bool$string(p->shaderImageGatherExtended));
+	mlog_printf(ml, "\t" "shader storage image extended formats        = %s\n", graph_bool$string(p->shaderStorageImageExtendedFormats));
+	mlog_printf(ml, "\t" "shader storage image multisample             = %s\n", graph_bool$string(p->shaderStorageImageMultisample));
+	mlog_printf(ml, "\t" "shader storage image read without format     = %s\n", graph_bool$string(p->shaderStorageImageReadWithoutFormat));
+	mlog_printf(ml, "\t" "shader storage image write without format    = %s\n", graph_bool$string(p->shaderStorageImageWriteWithoutFormat));
+	mlog_printf(ml, "\t" "shader uniform buffer array dynamic indexing = %s\n", graph_bool$string(p->shaderUniformBufferArrayDynamicIndexing));
+	mlog_printf(ml, "\t" "shader sampled image array dynamic indexing  = %s\n", graph_bool$string(p->shaderSampledImageArrayDynamicIndexing));
+	mlog_printf(ml, "\t" "shader storage buffer array dynamic indexing = %s\n", graph_bool$string(p->shaderStorageBufferArrayDynamicIndexing));
+	mlog_printf(ml, "\t" "shader storage image array dynamic indexing  = %s\n", graph_bool$string(p->shaderStorageImageArrayDynamicIndexing));
+	mlog_printf(ml, "\t" "shader clip distance                         = %s\n", graph_bool$string(p->shaderClipDistance));
+	mlog_printf(ml, "\t" "shader cull distance                         = %s\n", graph_bool$string(p->shaderCullDistance));
+	mlog_printf(ml, "\t" "shader float64                               = %s\n", graph_bool$string(p->shaderFloat64));
+	mlog_printf(ml, "\t" "shader int64                                 = %s\n", graph_bool$string(p->shaderInt64));
+	mlog_printf(ml, "\t" "shader int16                                 = %s\n", graph_bool$string(p->shaderInt16));
+	mlog_printf(ml, "\t" "shader resource residency                    = %s\n", graph_bool$string(p->shaderResourceResidency));
+	mlog_printf(ml, "\t" "shader resource min lod                      = %s\n", graph_bool$string(p->shaderResourceMinLod));
+	mlog_printf(ml, "\t" "sparse binding                               = %s\n", graph_bool$string(p->sparseBinding));
+	mlog_printf(ml, "\t" "sparse residency buffer                      = %s\n", graph_bool$string(p->sparseResidencyBuffer));
+	mlog_printf(ml, "\t" "sparse residency image 2D                    = %s\n", graph_bool$string(p->sparseResidencyImage2D));
+	mlog_printf(ml, "\t" "sparse residency image 3D                    = %s\n", graph_bool$string(p->sparseResidencyImage3D));
+	mlog_printf(ml, "\t" "sparse residency 2 samples                   = %s\n", graph_bool$string(p->sparseResidency2Samples));
+	mlog_printf(ml, "\t" "sparse residency 4 samples                   = %s\n", graph_bool$string(p->sparseResidency4Samples));
+	mlog_printf(ml, "\t" "sparse residency 8 samples                   = %s\n", graph_bool$string(p->sparseResidency8Samples));
+	mlog_printf(ml, "\t" "sparse residency 16 samples                  = %s\n", graph_bool$string(p->sparseResidency16Samples));
+	mlog_printf(ml, "\t" "sparse residency aliased                     = %s\n", graph_bool$string(p->sparseResidencyAliased));
+	mlog_printf(ml, "\t" "variable multi sample rate                   = %s\n", graph_bool$string(p->variableMultisampleRate));
+	mlog_printf(ml, "\t" "inherited queries                            = %s\n", graph_bool$string(p->inheritedQueries));
 }
 
 void graph_device_dump(const graph_device_t *restrict gd)
@@ -586,21 +584,14 @@ void graph_device_dump(const graph_device_t *restrict gd)
 
 void graph_device_queue_dump(const graph_device_queue_t *restrict gdq)
 {
-	static const char empty[1] = {0};
+	char buffer[128];
 	register mlog_s *ml;
 	register VkQueueFamilyProperties *restrict p;
-	register graph_queue_flags_t flags;
 	ml = gdq->ml;
 	p = gdq->properties;
 	mlog_printf(ml, "queue[%u]:\n", (uint32_t) gdq->index);
-	flags = (graph_queue_flags_t) p->queueFlags;
-	mlog_printf(ml, "\t" "queue flags                    = 0x%02x (%s%s%s%s%s )\n", flags,
-		(flags & graph_queue_flags_graphics)?" graphics":empty,
-		(flags & graph_queue_flags_compute)?" compute":empty,
-		(flags & graph_queue_flags_transfer)?" transfer":empty,
-		(flags & graph_queue_flags_sparse_binding)?" sparse_binding":empty,
-		(flags & graph_queue_flags_protected)?" protected":empty
-	);
+	mlog_printf(ml, "\t" "queue flags                    = 0x%02x (%s)\n",
+		p->queueFlags, graph_queue_flags$list(buffer, (graph_queue_flags_t) p->queueFlags));
 	mlog_printf(ml, "\t" "queue count                    = %u\n", p->queueCount);
 	mlog_printf(ml, "\t" "timestamp valid bits           = 0x%08x\n", p->timestampValidBits);
 	mlog_printf(ml, "\t" "min image transfer granularity = [w:%u, h:%u, d:%u]\n", p->timestampValidBits);

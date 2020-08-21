@@ -3,7 +3,6 @@
 
 #include <refer.h>
 #include <mlog.h>
-
 #include "type.h"
 
 typedef struct graph_s graph_s;

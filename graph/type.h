@@ -9,15 +9,18 @@ typedef enum graph_layer_e {
 	graph_layer_null,
 	graph_layer_validation,
 	graph_layer_api_dump,
-	graph_layer$number
+	graph_layer$number,
+	graph_layer$placeholder = 0x7fffffff
 } graph_layer_t;
 
 typedef enum graph_extension_e {
 	graph_extension_null,
 	graph_extension_ext_debug_utils,
+	graph_extension_khr_swapchain,
 	graph_extension_khr_surface,
 	graph_extension_khr_xcb_surface,
-	graph_extension$number
+	graph_extension$number,
+	graph_extension$placeholder = 0x7fffffff
 } graph_extension_t;
 
 typedef enum graph_debug_message_level_e {
@@ -34,11 +37,11 @@ typedef enum graph_debug_message_type_e {
 } graph_debug_message_type_t;
 
 typedef enum graph_physical_device_type_e {
-    graph_physical_device_type_other          = 0,
-    graph_physical_device_type_integrated_gpu = 1,
-    graph_physical_device_type_discrete_gpu   = 2,
-    graph_physical_device_type_virtual_gpu    = 3,
-    graph_physical_device_type_cpu            = 4
+	graph_physical_device_type_other          = 0,
+	graph_physical_device_type_integrated_gpu = 1,
+	graph_physical_device_type_discrete_gpu   = 2,
+	graph_physical_device_type_virtual_gpu    = 3,
+	graph_physical_device_type_cpu            = 4
 } graph_physical_device_type_t;
 
 typedef enum graph_queue_flags_e {
@@ -111,5 +114,182 @@ typedef enum graph_device_feature_e {
 	graph_device_feature_inheritedQueries,
 	graph_device_feature$number
 } graph_device_feature_t;
+
+typedef enum graph_format_e {
+	graph_format_unknow,
+	graph_format_r4g4_unorm_pack8,
+	graph_format_r4g4b4a4_unorm_pack16,
+	graph_format_b4g4r4a4_unorm_pack16,
+	graph_format_r5g6b5_unorm_pack16,
+	graph_format_b5g6r5_unorm_pack16,
+	graph_format_r5g5b5a1_unorm_pack16,
+	graph_format_b5g5r5a1_unorm_pack16,
+	graph_format_a1r5g5b5_unorm_pack16,
+	graph_format_r8_unorm,
+	graph_format_r8_snorm,
+	graph_format_r8_uscaled,
+	graph_format_r8_sscaled,
+	graph_format_r8_uint,
+	graph_format_r8_sint,
+	graph_format_r8_srgb,
+	graph_format_r8g8_unorm,
+	graph_format_r8g8_snorm,
+	graph_format_r8g8_uscaled,
+	graph_format_r8g8_sscaled,
+	graph_format_r8g8_uint,
+	graph_format_r8g8_sint,
+	graph_format_r8g8_srgb,
+	graph_format_r8g8b8_unorm,
+	graph_format_r8g8b8_snorm,
+	graph_format_r8g8b8_uscaled,
+	graph_format_r8g8b8_sscaled,
+	graph_format_r8g8b8_uint,
+	graph_format_r8g8b8_sint,
+	graph_format_r8g8b8_srgb,
+	graph_format_b8g8r8_unorm,
+	graph_format_b8g8r8_snorm,
+	graph_format_b8g8r8_uscaled,
+	graph_format_b8g8r8_sscaled,
+	graph_format_b8g8r8_uint,
+	graph_format_b8g8r8_sint,
+	graph_format_b8g8r8_srgb,
+	graph_format_r8g8b8a8_unorm,
+	graph_format_r8g8b8a8_snorm,
+	graph_format_r8g8b8a8_uscaled,
+	graph_format_r8g8b8a8_sscaled,
+	graph_format_r8g8b8a8_uint,
+	graph_format_r8g8b8a8_sint,
+	graph_format_r8g8b8a8_srgb,
+	graph_format_b8g8r8a8_unorm,
+	graph_format_b8g8r8a8_snorm,
+	graph_format_b8g8r8a8_uscaled,
+	graph_format_b8g8r8a8_sscaled,
+	graph_format_b8g8r8a8_uint,
+	graph_format_b8g8r8a8_sint,
+	graph_format_b8g8r8a8_srgb,
+	graph_format_a8b8g8r8_unorm_pack32,
+	graph_format_a8b8g8r8_snorm_pack32,
+	graph_format_a8b8g8r8_uscaled_pack32,
+	graph_format_a8b8g8r8_sscaled_pack32,
+	graph_format_a8b8g8r8_uint_pack32,
+	graph_format_a8b8g8r8_sint_pack32,
+	graph_format_a8b8g8r8_srgb_pack32,
+	graph_format_a2r10g10b10_unorm_pack32,
+	graph_format_a2r10g10b10_snorm_pack32,
+	graph_format_a2r10g10b10_uscaled_pack32,
+	graph_format_a2r10g10b10_sscaled_pack32,
+	graph_format_a2r10g10b10_uint_pack32,
+	graph_format_a2r10g10b10_sint_pack32,
+	graph_format_a2b10g10r10_unorm_pack32,
+	graph_format_a2b10g10r10_snorm_pack32,
+	graph_format_a2b10g10r10_uscaled_pack32,
+	graph_format_a2b10g10r10_sscaled_pack32,
+	graph_format_a2b10g10r10_uint_pack32,
+	graph_format_a2b10g10r10_sint_pack32,
+	graph_format_r16_unorm,
+	graph_format_r16_snorm,
+	graph_format_r16_uscaled,
+	graph_format_r16_sscaled,
+	graph_format_r16_uint,
+	graph_format_r16_sint,
+	graph_format_r16_sfloat,
+	graph_format_r16g16_unorm,
+	graph_format_r16g16_snorm,
+	graph_format_r16g16_uscaled,
+	graph_format_r16g16_sscaled,
+	graph_format_r16g16_uint,
+	graph_format_r16g16_sint,
+	graph_format_r16g16_sfloat,
+	graph_format_r16g16b16_unorm,
+	graph_format_r16g16b16_snorm,
+	graph_format_r16g16b16_uscaled,
+	graph_format_r16g16b16_sscaled,
+	graph_format_r16g16b16_uint,
+	graph_format_r16g16b16_sint,
+	graph_format_r16g16b16_sfloat,
+	graph_format_r16g16b16a16_unorm,
+	graph_format_r16g16b16a16_snorm,
+	graph_format_r16g16b16a16_uscaled,
+	graph_format_r16g16b16a16_sscaled,
+	graph_format_r16g16b16a16_uint,
+	graph_format_r16g16b16a16_sint,
+	graph_format_r16g16b16a16_sfloat,
+	graph_format_r32_uint,
+	graph_format_r32_sint,
+	graph_format_r32_sfloat,
+	graph_format_r32g32_uint,
+	graph_format_r32g32_sint,
+	graph_format_r32g32_sfloat,
+	graph_format_r32g32b32_uint,
+	graph_format_r32g32b32_sint,
+	graph_format_r32g32b32_sfloat,
+	graph_format_r32g32b32a32_uint,
+	graph_format_r32g32b32a32_sint,
+	graph_format_r32g32b32a32_sfloat,
+	graph_format_r64_uint,
+	graph_format_r64_sint,
+	graph_format_r64_sfloat,
+	graph_format_r64g64_uint,
+	graph_format_r64g64_sint,
+	graph_format_r64g64_sfloat,
+	graph_format_r64g64b64_uint,
+	graph_format_r64g64b64_sint,
+	graph_format_r64g64b64_sfloat,
+	graph_format_r64g64b64a64_uint,
+	graph_format_r64g64b64a64_sint,
+	graph_format_r64g64b64a64_sfloat,
+	graph_format_b10g11r11_ufloat_pack32,
+	graph_format_e5b9g9r9_ufloat_pack32,
+	graph_format_d16_unorm,
+	graph_format_x8_d24_unorm_pack32,
+	graph_format_d32_sfloat,
+	graph_format_s8_uint,
+	graph_format_d16_unorm_s8_uint,
+	graph_format_d24_unorm_s8_uint,
+	graph_format_d32_sfloat_s8_uint,
+	graph_format$number
+} graph_format_t;
+
+typedef enum graph_color_space_e {
+	graph_color_space_srgb = 0
+} graph_color_space_t;
+
+typedef enum graph_present_mode_e {
+	graph_present_mode_immediate    = 0,
+	graph_present_mode_mailbox      = 1,
+	graph_present_mode_fifo         = 2,
+	graph_present_mode_fifo_relaxed = 3
+} graph_present_mode_t;
+
+typedef enum graph_image_usage_e {
+    graph_image_usage_transfer_src             = 0x0001,
+    graph_image_usage_transfer_dst             = 0x0002,
+    graph_image_usage_sampled                  = 0x0004,
+    graph_image_usage_storage                  = 0x0008,
+    graph_image_usage_color_attachment         = 0x0010,
+    graph_image_usage_depth_stencil_attachment = 0x0020,
+    graph_image_usage_transient_attachment     = 0x0040,
+    graph_image_usage_input_attachment         = 0x0080,
+    graph_image_usage_shading_rate_image_nv    = 0x0100,
+    graph_image_usage_fragment_density_map_ext = 0x0200
+} graph_image_usage_t;
+
+typedef enum graph_surface_transform_e {
+	graph_surface_transform_identity                     = 0x0001,
+	graph_surface_transform_rotate_90                    = 0x0002,
+	graph_surface_transform_rotate_180                   = 0x0004,
+	graph_surface_transform_rotate_270                   = 0x0008,
+	graph_surface_transform_horizontal_mirror            = 0x0010,
+	graph_surface_transform_horizontal_mirror_rotate_90  = 0x0020,
+	graph_surface_transform_horizontal_mirror_rotate_180 = 0x0040,
+	graph_surface_transform_horizontal_mirror_rotate_270 = 0x0080
+} graph_surface_transform_t;
+
+typedef enum graph_composite_alpha_e {
+    graph_composite_alpha_opaque          = 0x01,
+    graph_composite_alpha_pre_multiplied  = 0x02,
+    graph_composite_alpha_post_multiplied = 0x04,
+    graph_composite_alpha_inherit         = 0x08
+} graph_composite_alpha_t;
 
 #endif
