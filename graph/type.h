@@ -274,6 +274,23 @@ typedef enum graph_image_usage_e {
     graph_image_usage_fragment_density_map_ext = 0x0200
 } graph_image_usage_t;
 
+
+typedef enum graph_image_view_type_e {
+    graph_image_view_type_1D,
+    graph_image_view_type_2D,
+    graph_image_view_type_3D,
+    graph_image_view_type_cube,
+    graph_image_view_type_1D_array,
+    graph_image_view_type_2D_array,
+    graph_image_view_type_cube_array,
+    graph_image_view_type$number
+} graph_image_view_type_t;
+
+typedef enum graph_sharing_mode_e {
+	graph_sharing_mode_exclusive  = 0,
+	graph_sharing_mode_concurrent = 1
+} graph_sharing_mode_t;
+
 typedef enum graph_surface_transform_e {
 	graph_surface_transform_identity                     = 0x0001,
 	graph_surface_transform_rotate_90                    = 0x0002,

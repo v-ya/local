@@ -2,6 +2,49 @@
 
 static const char graph_string_unknow[] = graph_type_red "unknow" graph_type_back;
 
+char* graph_type_list(char *restrict s, register uint32_t r, register const char *array[], register uint32_t n)
+{
+	register char *d;
+	register const char *restrict c;
+	register uint32_t i;
+	d = s;
+	i = 0;
+	do {
+		if (r & 1)
+		{
+			c = array[i];
+			do *d++ = *c++; while (*c);
+			*d++ = ' ';
+		}
+		r >>= 1;
+	} while (++i < n);
+	if (d > s) --d;
+	*d = 0;
+	return s;
+}
+
+const char* graph_bool$string(graph_bool_t r)
+{
+	return (const char *[]){
+		graph_type_red   "false" graph_type_back,
+		graph_type_green "true"  graph_type_back
+	}[!!r];
+}
+
+const char* graph_physical_device_type$string(graph_physical_device_type_t r)
+{
+	static const char *mapping[] = {
+		[graph_physical_device_type_other]          = graph_type_red "other" graph_type_back,
+		[graph_physical_device_type_integrated_gpu] = graph_type_blue "integrated gpu" graph_type_back,
+		[graph_physical_device_type_discrete_gpu]   = graph_type_green "discrete gpu" graph_type_back,
+		[graph_physical_device_type_virtual_gpu]    = graph_type_yellow "virtual gpu" graph_type_back,
+		[graph_physical_device_type_cpu]            = graph_type_purple "cpu" graph_type_back
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return graph_string_unknow;
+}
+
 graph_format_t graph_format4vk(VkFormat r)
 {
 	static const graph_format_t mapping[] = {
@@ -282,28 +325,6 @@ VkFormat graph_format2vk(graph_format_t r)
 	return VK_FORMAT_UNDEFINED;
 }
 
-const char* graph_bool$string(graph_bool_t r)
-{
-	return (const char *[]){
-		graph_type_red   "false" graph_type_back,
-		graph_type_green "true"  graph_type_back
-	}[!!r];
-}
-
-const char* graph_physical_device_type$string(graph_physical_device_type_t r)
-{
-	static const char *mapping[] = {
-		[graph_physical_device_type_other]          = graph_type_red "other" graph_type_back,
-		[graph_physical_device_type_integrated_gpu] = graph_type_blue "integrated gpu" graph_type_back,
-		[graph_physical_device_type_discrete_gpu]   = graph_type_green "discrete gpu" graph_type_back,
-		[graph_physical_device_type_virtual_gpu]    = graph_type_yellow "virtual gpu" graph_type_back,
-		[graph_physical_device_type_cpu]            = graph_type_purple "cpu" graph_type_back
-	};
-	if ((uint32_t) r < graph_array_number(mapping))
-		return mapping[r];
-	return graph_string_unknow;
-}
-
 const char* graph_format$string(graph_format_t r)
 {
 	static const char *mapping[] = {
@@ -469,27 +490,6 @@ const char* graph_present_mode$string(graph_present_mode_t r)
 	return graph_string_unknow;
 }
 
-char* graph_type_list(char *restrict s, register uint32_t r, register const char *array[], register uint32_t n)
-{
-	register char *d;
-	register const char *restrict c;
-	register uint32_t i;
-	d = s;
-	i = 0;
-	do {
-		if (r & 1)
-		{
-			c = array[i];
-			do *d++ = *c++; while (*c);
-			*d++ = ' ';
-		}
-		r >>= 1;
-	} while (++i < n);
-	if (d > s) --d;
-	*d = 0;
-	return s;
-}
-
 char* graph_queue_flags$list(register char *restrict s, register graph_queue_flags_t r)
 {
 	static const char *array[] = {
@@ -517,6 +517,38 @@ char* graph_image_usage$list(register char *restrict s, register graph_image_usa
 		"fragment_density_map_ext"
 	};
 	return graph_type_list(s, r, array, graph_array_number(array));
+}
+
+graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
+{
+	static graph_image_view_type_t mapping[graph_image_view_type$number] = {
+		[VK_IMAGE_VIEW_TYPE_1D]         = graph_image_view_type_1D,
+		[VK_IMAGE_VIEW_TYPE_2D]         = graph_image_view_type_2D,
+		[VK_IMAGE_VIEW_TYPE_3D]         = graph_image_view_type_3D,
+		[VK_IMAGE_VIEW_TYPE_CUBE]       = graph_image_view_type_cube,
+		[VK_IMAGE_VIEW_TYPE_1D_ARRAY]   = graph_image_view_type_1D_array,
+		[VK_IMAGE_VIEW_TYPE_2D_ARRAY]   = graph_image_view_type_2D_array,
+		[VK_IMAGE_VIEW_TYPE_CUBE_ARRAY] = graph_image_view_type_cube_array
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return graph_image_view_type$number;
+}
+
+VkImageViewType graph_image_view_type2vk(graph_image_view_type_t r)
+{
+	static VkImageViewType mapping[graph_image_view_type$number] = {
+		[graph_image_view_type_1D]         = VK_IMAGE_VIEW_TYPE_1D,
+		[graph_image_view_type_2D]         = VK_IMAGE_VIEW_TYPE_2D,
+		[graph_image_view_type_3D]         = VK_IMAGE_VIEW_TYPE_3D,
+		[graph_image_view_type_cube]       = VK_IMAGE_VIEW_TYPE_CUBE,
+		[graph_image_view_type_1D_array]   = VK_IMAGE_VIEW_TYPE_1D_ARRAY,
+		[graph_image_view_type_2D_array]   = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+		[graph_image_view_type_cube_array] = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 }
 
 char* graph_surface_transform$list(register char *restrict s, register graph_surface_transform_t r)

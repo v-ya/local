@@ -1,5 +1,4 @@
 #include "surface_pri.h"
-#include "device_pri.h"
 #include "type_pri.h"
 #include <stdlib.h>
 
@@ -26,12 +25,12 @@ graph_surface_s* graph_surface_init(register graph_surface_s *restrict surface, 
 
 void graph_surface_uini(register graph_surface_s *restrict surface)
 {
-	register refer_t r;
-	if (surface->surface)
-		vkDestroySurfaceKHR(surface->g->instance, surface->surface, &surface->ga->alloc);
-	if ((r = surface->ga)) refer_free(r);
-	if ((r = surface->g)) refer_free(r);
-	if ((r = surface->ml)) refer_free(r);
+	register void *v;
+	if ((v = surface->surface))
+		vkDestroySurfaceKHR(surface->g->instance, (VkSurfaceKHR) v, &surface->ga->alloc);
+	if ((v = surface->ga)) refer_free(v);
+	if ((v = surface->g)) refer_free(v);
+	if ((v = surface->ml)) refer_free(v);
 }
 
 static void graph_surface_attr_free_func(register graph_surface_attr_s *restrict r)
@@ -87,6 +86,126 @@ graph_surface_attr_s* graph_surface_attr_get(register const graph_surface_s *res
 	label_malloc:
 	mlog_printf(surface->ml, "[graph_surface_attr_get] malloc fail\n");
 	goto label_return;
+}
+
+static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register const VkPresentModeKHR *restrict p, register uint32_t n, register VkPresentModeKHR mode)
+{
+	while (n)
+	{
+		--n;
+		if (*p == mode) return p;
+		++p;
+	}
+	return NULL;
+}
+
+static void graph_swapchain_param_free_func(register graph_swapchain_param_s *restrict r)
+{
+	register refer_t v;
+	if ((v = r->surface)) refer_free(v);
+	if ((v = r->attr)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+}
+
+graph_swapchain_param_s* graph_swapchain_param_alloc(register graph_surface_s *restrict surface, register const graph_surface_attr_s *restrict attr, uint32_t queue_sharing_number)
+{
+	register graph_swapchain_param_s *restrict r;
+	r = NULL;
+	if (attr->format_number && attr->mode_number)
+	{
+		r = (graph_swapchain_param_s *) refer_alloz(sizeof(graph_swapchain_param_s) + sizeof(uint32_t) * queue_sharing_number);
+		if (r)
+		{
+			refer_set_free(r, (refer_free_f) graph_swapchain_param_free_func);
+			r->surface = (graph_surface_s *) refer_save(surface);
+			r->attr = (graph_surface_attr_s *) refer_save(attr);
+			r->qf_number = queue_sharing_number;
+			r->info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			r->info.pNext = NULL;
+			r->info.flags = 0;
+			r->info.surface = surface->surface;
+			r->info.minImageCount = attr->capabilities.minImageCount + 1;
+			if (r->info.minImageCount > attr->capabilities.maxImageCount)
+				r->info.minImageCount = attr->capabilities.maxImageCount;
+			r->info.imageFormat = attr->formats->format;
+			r->info.imageColorSpace = attr->formats->colorSpace;
+			r->info.imageExtent = attr->capabilities.currentExtent;
+			r->info.imageArrayLayers = attr->capabilities.maxImageArrayLayers;
+			r->info.imageUsage = attr->capabilities.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			r->info.imageSharingMode = queue_sharing_number?VK_SHARING_MODE_CONCURRENT:VK_SHARING_MODE_EXCLUSIVE;
+			r->info.queueFamilyIndexCount = 0;
+			r->info.pQueueFamilyIndices = queue_sharing_number?r->queue_family_indices:NULL;
+			r->info.preTransform = attr->capabilities.currentTransform;
+			r->info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			if (graph_surface_attr_test_VkPresentModeKHR(attr->modes, attr->mode_number, VK_PRESENT_MODE_MAILBOX_KHR))
+				r->info.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+			else if (graph_surface_attr_test_VkPresentModeKHR(attr->modes, attr->mode_number, VK_PRESENT_MODE_IMMEDIATE_KHR))
+				r->info.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+			else r->info.presentMode = *attr->modes;
+			r->info.clipped = VK_TRUE;
+			r->info.oldSwapchain = NULL;
+		}
+	}
+	return r;
+}
+
+static void graph_swapchain_free_func(register graph_swapchain_s *restrict r)
+{
+	register void *v;
+	if ((v = r->swapchain))
+		vkDestroySwapchainKHR(r->dev->dev, (VkSwapchainKHR) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->surface)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+	if ((v = r->image_array)) free(v);
+}
+
+graph_swapchain_s* graph_swapchain_alloc(register const graph_swapchain_param_s *restrict param, register struct graph_dev_s *dev)
+{
+	register graph_swapchain_s *restrict r;
+	VkResult ret;
+	if ((dev || param->dev) && (!dev || !param->dev || dev == param->dev))
+	{
+		r = (graph_swapchain_s *) refer_alloz(sizeof(graph_swapchain_s));
+		if (r)
+		{
+			refer_set_free(r, (refer_free_f) graph_swapchain_free_func);
+			if (!dev) dev = param->dev;
+			r->ml = (mlog_s *) refer_save(dev->ml);
+			r->ga = (graph_allocator_s *) refer_save(dev->ga);
+			r->dev = (graph_dev_s *) refer_save(dev);
+			r->surface = (graph_surface_s *) refer_save(param->surface);
+			ret = vkCreateSwapchainKHR(dev->dev, &param->info, &r->ga->alloc, &r->swapchain);
+			if (ret) goto label_fail;
+			ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, NULL);
+			if (ret) goto label_image;
+			r->image_array = (VkImage *) malloc(sizeof(VkImage) * r->image_number);
+			if (!r->image_array) goto label_malloc;
+			ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, r->image_array);
+			if (ret) goto label_image;
+			r->image_format = param->info.imageFormat;
+			r->image_size = param->info.imageExtent;
+			return r;
+			label_free:
+			refer_free(r);
+		}
+	}
+	return NULL;
+	label_fail:
+	mlog_printf(r->ml, "[graph_swapchain_alloc] vkCreateSwapchainKHR = %d\n", ret);
+	goto label_free;
+	label_image:
+	mlog_printf(r->ml, "[graph_swapchain_alloc] vkGetSwapchainImagesKHR = %d\n", ret);
+	goto label_free;
+	label_malloc:
+	mlog_printf(r->ml, "[graph_swapchain_alloc] malloc fail\n");
+	goto label_free;
+}
+
+uint32_t graph_swapchain_image_number(register const graph_swapchain_s *restrict swapchain)
+{
+	return swapchain->image_number;
 }
 
 static void graph_surface_attr_dump_capabilities(register mlog_s *restrict ml, register const VkSurfaceCapabilitiesKHR *restrict r)

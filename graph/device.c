@@ -303,12 +303,13 @@ static void graph_dev_free_func(register graph_dev_s *restrict r)
 	register void *v;
 	register VkAllocationCallbacks *ga;
 	ga = &r->ga->alloc;
-	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) vkDestroyDevice((VkDevice) v, ga);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->g)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, register const graph_dev_param_s *restrict param, struct graph_allocator_s *ga)
+graph_dev_s* graph_dev_alloc(register const graph_dev_param_s *restrict param, register const struct graph_s *restrict g, register const graph_device_t *restrict gd)
 {
 	register graph_dev_s *restrict r;
 	VkResult ret;
@@ -317,8 +318,9 @@ graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, register const g
 	{
 		VkDeviceCreateInfo info;
 		refer_set_free(r, (refer_free_f) graph_dev_free_func);
-		r->ml = (mlog_s *) refer_save(gd->ml);
-		r->ga = (graph_allocator_s *) refer_save(ga);
+		r->ml = (mlog_s *) refer_save(g->ml);
+		r->g = (graph_s *) refer_save(g);
+		r->ga = (graph_allocator_s *) refer_save(g->ga);
 		info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		info.pNext = NULL;
 		info.flags = 0;
@@ -329,7 +331,7 @@ graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, register const g
 		info.enabledExtensionCount = param->extension_number;
 		info.ppEnabledExtensionNames = param->extension_list;
 		info.pEnabledFeatures = &param->features;
-		ret = vkCreateDevice(r->phydev = gd->phydev, &info, &ga->alloc, &r->dev);
+		ret = vkCreateDevice(r->phydev = gd->phydev, &info, &r->ga->alloc, &r->dev);
 		if (ret) goto label_fail;
 		return r;
 		label_fail:

@@ -13,7 +13,6 @@ typedef struct graph_dev_param_s graph_dev_param_s;
 typedef struct graph_dev_s graph_dev_s;
 
 struct graph_s;
-struct graph_allocator_s;
 struct graph_surface_s;
 
 graph_devices_s* graph_instance_devices_get(const struct graph_s *restrict g);
@@ -32,7 +31,7 @@ void graph_dev_param_feature_enable(graph_dev_param_s *restrict param, graph_dev
 void graph_dev_param_feature_disable(graph_dev_param_s *restrict param, graph_device_feature_t feature);
 void graph_dev_param_feature_enable_all(graph_dev_param_s *restrict param, const graph_device_t *restrict gd);
 
-graph_dev_s* graph_dev_alloc(const graph_device_t *restrict gd, const graph_dev_param_s *restrict param, struct graph_allocator_s *ga);
+graph_dev_s* graph_dev_alloc(const graph_dev_param_s *restrict param, const struct graph_s *restrict g, const graph_device_t *restrict gd);
 
 graph_bool_t graph_device_features_test(const graph_device_t *restrict gd, graph_device_feature_t feature);
 graph_bool_t graph_device_queue_surface_support(const graph_device_queue_t *restrict q, const struct graph_surface_s *restrict sf);

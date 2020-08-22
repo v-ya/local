@@ -3,7 +3,7 @@
 
 #include "device.h"
 #include <vulkan/vulkan.h>
-#include "allocator_pri.h"
+#include "graph_pri.h"
 
 struct graph_device_t {
 	mlog_s *ml;
@@ -48,6 +48,7 @@ struct graph_dev_param_s {
 
 struct graph_dev_s {
 	mlog_s *ml;
+	graph_s *g;
 	VkDevice dev;
 	VkPhysicalDevice phydev;
 	graph_allocator_s *ga;

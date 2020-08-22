@@ -38,7 +38,6 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 			if (r)
 			{
 				refer_set_free(r, (refer_free_f) graph_surface_xcb_free_func);
-				r->surface.g = (graph_s *) refer_save(g);
 				r->connect = xcb_connect(NULL, NULL);
 				if (!r->connect) goto label_connect;
 				screen = (xcb_screen_t *) xcb_setup_roots_iterator(xcb_get_setup(r->connect)).data;
