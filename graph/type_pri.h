@@ -4,7 +4,7 @@
 #include "type.h"
 #include <vulkan/vulkan.h>
 
-#define graph_array_number(_arr)  (sizeof(_arr) / sizeof(_arr[0]))
+#define graph_array_number(_arr)  (sizeof(_arr) / sizeof(*_arr))
 
 #define graph_type_red    "\e[31m"
 #define graph_type_green  "\e[32m"
