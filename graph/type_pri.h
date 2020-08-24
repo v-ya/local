@@ -43,4 +43,8 @@ char* graph_surface_transform$list(register char *restrict s, register graph_sur
 // 64 bytes
 char* graph_composite_alpha$list(register char *restrict s, register graph_composite_alpha_t r);
 
+VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r);
+
+VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r);
+
 #endif

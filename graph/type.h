@@ -309,4 +309,55 @@ typedef enum graph_composite_alpha_e {
     graph_composite_alpha_inherit         = 0x08
 } graph_composite_alpha_t;
 
+typedef enum graph_shader_type_e {
+	graph_shader_type_vertex                  = 0x0001,
+	graph_shader_type_tessellation_control    = 0x0002,
+	graph_shader_type_tessellation_evaluation = 0x0004,
+	graph_shader_type_geometry                = 0x0008,
+	graph_shader_type_fragment                = 0x0010,
+	graph_shader_type_compute                 = 0x0020
+} graph_shader_type_t;
+
+typedef enum graph_primitive_topology_e {
+	graph_primitive_topology_point_list,
+	graph_primitive_topology_line_list,
+	graph_primitive_topology_line_strip,
+	graph_primitive_topology_triangle_list,
+	graph_primitive_topology_triangle_strip,
+	graph_primitive_topology_triangle_fan,
+	graph_primitive_topology_line_list_with_adjacency,
+	graph_primitive_topology_line_strip_with_adjacency,
+	graph_primitive_topology_triangle_list_with_adjacency,
+	graph_primitive_topology_triangle_strip_with_adjacency,
+	graph_primitive_topology_patch_list,
+	graph_primitive_topology$number
+} graph_primitive_topology_t;
+
+typedef enum graph_polygon_mode_e {
+	graph_polygon_mode_fill,
+	graph_polygon_mode_line,
+	graph_polygon_mode_point,
+	graph_polygon_mode$number
+} graph_polygon_mode_t;
+
+typedef enum graph_cull_mode_flags_e {
+	graph_cull_mode_flags_none           = 0x00,
+	graph_cull_mode_flags_front          = 0x01,
+	graph_cull_mode_flags_back           = 0x02,
+	graph_cull_mode_flags_front_and_back = 0x03
+} graph_cull_mode_flags_t;
+
+typedef enum graph_front_face_e {
+    graph_front_face_counter_clockwise = 0,
+    graph_front_face_clockwise         = 1
+} graph_front_face_t;
+
+typedef enum graph_pipe_flags_e {
+	graph_pipe_flags_disable_optimization         = 0x00000001,
+	graph_pipe_flags_allow_derivatives            = 0x00000002,
+	graph_pipe_flags_derivative                   = 0x00000004,
+	graph_pipe_flags_view_index_from_device_index = 0x00000008,
+	graph_pipe_flags_dispatch_base                = 0x00000010
+} graph_pipe_flags_t;
+
 #endif

@@ -521,7 +521,7 @@ char* graph_image_usage$list(register char *restrict s, register graph_image_usa
 
 graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
 {
-	static graph_image_view_type_t mapping[graph_image_view_type$number] = {
+	static const graph_image_view_type_t mapping[graph_image_view_type$number] = {
 		[VK_IMAGE_VIEW_TYPE_1D]         = graph_image_view_type_1D,
 		[VK_IMAGE_VIEW_TYPE_2D]         = graph_image_view_type_2D,
 		[VK_IMAGE_VIEW_TYPE_3D]         = graph_image_view_type_3D,
@@ -537,7 +537,7 @@ graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
 
 VkImageViewType graph_image_view_type2vk(graph_image_view_type_t r)
 {
-	static VkImageViewType mapping[graph_image_view_type$number] = {
+	static const VkImageViewType mapping[graph_image_view_type$number] = {
 		[graph_image_view_type_1D]         = VK_IMAGE_VIEW_TYPE_1D,
 		[graph_image_view_type_2D]         = VK_IMAGE_VIEW_TYPE_2D,
 		[graph_image_view_type_3D]         = VK_IMAGE_VIEW_TYPE_3D,
@@ -575,4 +575,36 @@ char* graph_composite_alpha$list(register char *restrict s, register graph_compo
 		"inherit"
 	};
 	return graph_type_list(s, r, array, graph_array_number(array));
+}
+
+VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r)
+{
+	static const VkPrimitiveTopology mapping[graph_primitive_topology$number] = {
+		[graph_primitive_topology_point_list]                    = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+		[graph_primitive_topology_line_list]                     = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+		[graph_primitive_topology_line_strip]                    = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
+		[graph_primitive_topology_triangle_list]                 = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+		[graph_primitive_topology_triangle_strip]                = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+		[graph_primitive_topology_triangle_fan]                  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+		[graph_primitive_topology_line_list_with_adjacency]      = VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+		[graph_primitive_topology_line_strip_with_adjacency]     = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY,
+		[graph_primitive_topology_triangle_list_with_adjacency]  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+		[graph_primitive_topology_triangle_strip_with_adjacency] = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY,
+		[graph_primitive_topology_patch_list]                    = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+}
+
+VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r)
+{
+	static const VkPolygonMode mapping[graph_polygon_mode$number] = {
+		[graph_polygon_mode_fill]  = VK_POLYGON_MODE_FILL,
+		[graph_polygon_mode_line]  = VK_POLYGON_MODE_LINE,
+		[graph_polygon_mode_point] = VK_POLYGON_MODE_POINT
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_POLYGON_MODE_MAX_ENUM;
 }
