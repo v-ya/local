@@ -352,6 +352,16 @@ typedef enum graph_front_face_e {
     graph_front_face_clockwise         = 1
 } graph_front_face_t;
 
+typedef enum graph_sample_count_e {
+	graph_sample_count_1  = 0x01,
+	graph_sample_count_2  = 0x02,
+	graph_sample_count_4  = 0x04,
+	graph_sample_count_8  = 0x08,
+	graph_sample_count_16 = 0x10,
+	graph_sample_count_32 = 0x20,
+	graph_sample_count_64 = 0x40
+} graph_sample_count_t;
+
 typedef enum graph_pipe_flags_e {
 	graph_pipe_flags_disable_optimization         = 0x00000001,
 	graph_pipe_flags_allow_derivatives            = 0x00000002,

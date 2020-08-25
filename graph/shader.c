@@ -50,12 +50,115 @@ graph_shader_s* graph_shader_alloc(register struct graph_dev_s *restrict dev, co
 	goto label_return;
 }
 
+graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number)
+{
+	register graph_viewports_scissors_s *restrict r;
+	if (viewport_number && scissor_number)
+	{
+		r = (graph_viewports_scissors_s *) refer_alloc(
+			sizeof(graph_viewports_scissors_s) +
+			sizeof(VkViewport) * viewport_number +
+			sizeof(VkRect2D) * scissor_number);
+		if (r)
+		{
+			r->viewport_size = viewport_number;
+			r->scissor_size = scissor_number;
+			r->viewport_number = 0;
+			r->scissor_number = 0;
+			r->viewports = (VkViewport *) (r + 1);
+			r->scissors = (VkRect2D *) (r->viewports + viewport_number);
+			return r;
+		}
+	}
+	return NULL;
+}
+
+graph_viewports_scissors_s* graph_viewports_scissors_append_viewport(register graph_viewports_scissors_s *restrict r, float x, float y, float w, float h, float dmin, float dmax)
+{
+	register VkViewport *restrict p;
+	if (r->viewport_number < r->viewport_size)
+	{
+		p = r->viewports + r->viewport_number++;
+		p->x = x;
+		p->y = y;
+		p->width = w;
+		p->height = h;
+		p->minDepth = dmin;
+		p->maxDepth = dmax;
+		return r;
+	}
+	return NULL;
+}
+
+graph_viewports_scissors_s* graph_viewports_scissors_append_scissor(register graph_viewports_scissors_s *restrict r, int32_t x, int32_t y, uint32_t w, uint32_t h)
+{
+	register VkRect2D *restrict p;
+	if (r->scissor_number < r->scissor_size)
+	{
+		p = r->scissors + r->scissor_number++;
+		p->offset.x = x;
+		p->offset.y = y;
+		p->extent.width = w;
+		p->extent.height = h;
+		return r;
+	}
+	return NULL;
+}
+
+void graph_pipe_layout_free_func(register graph_pipe_layout_s *restrict r)
+{
+	register void *v;
+	if ((v = r->layout)) vkDestroyPipelineLayout(r->dev->dev, (VkPipelineLayout) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restrict dev, register const graph_pipe_layout_param_s *restrict param)
+{
+	register graph_pipe_layout_s *restrict r;
+	VkPipelineLayoutCreateInfo info;
+	VkResult ret;
+	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	info.pNext = NULL;
+	info.flags = 0;
+	info.setLayoutCount = 0;
+	info.pSetLayouts = NULL;
+	info.pushConstantRangeCount = 0;
+	info.pPushConstantRanges = NULL;
+	r = (graph_pipe_layout_s *) refer_alloz(sizeof(graph_pipe_layout_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_pipe_layout_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		if (param)
+		{
+			;
+		}
+		ret = vkCreatePipelineLayout(dev->dev, &info, &r->ga->alloc, &r->layout);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_pipe_layout_alloc] vkCreatePipelineLayout = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}
+
+// graph_pipe_s* graph_pipe_alloc_graphics(register graph_gpipe_param_s *restrict param)
+// {
+// 	// VkGraphicsPipelineCreateInfo;
+// 	// vkCreateGraphicsPipelines(, , , , , );
+// 	return NULL;
+// }
+
 static void graph_gpipe_param_free_func(register graph_gpipe_param_s *restrict r)
 {
 	register void *v;
 	register graph_shader_stage_t *p;
 	register uint32_t n;
 	if ((v = r->viewports_scissors)) refer_free(v);
+	if ((v = r->pipe_layout)) refer_free(v);
 	p = r->shader_stages;
 	n = r->shader_number;
 	do {
@@ -66,7 +169,6 @@ static void graph_gpipe_param_free_func(register graph_gpipe_param_s *restrict r
 	} while (--n);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
-	if ((v = r->ga)) refer_free(v);
 }
 
 graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restrict dev, uint32_t shader_number)
@@ -75,19 +177,20 @@ graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restri
 	if (shader_number)
 	{
 		r = (graph_gpipe_param_s *) refer_alloz(sizeof(graph_gpipe_param_s) +
-			(sizeof(graph_shader_s *) + sizeof(VkPipelineShaderStageCreateInfo)) * shader_number);
+			(sizeof(graph_shader_stage_t) + sizeof(VkPipelineShaderStageCreateInfo)) * shader_number);
 		if (r)
 		{
 			refer_set_free(r, (refer_free_f) graph_gpipe_param_free_func);
 			r->ml = (mlog_s *) refer_save(dev->ml);
 			r->dev = (graph_dev_s *) refer_save(dev);
-			r->ga = (graph_allocator_s *) refer_save(dev->ga);
 			r->shader_number = shader_number;
 			r->shader_stages = (graph_shader_stage_t *) (r + 1);
 			r->shaders = (VkPipelineShaderStageCreateInfo *) (r->shader_stages + shader_number);
 			r->info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 			r->info.pStages = r->shaders;
 			r->info.pRasterizationState = &r->rasterization;
+			r->info.pMultisampleState = &r->multisample;
+			r->info.pColorBlendState = &r->color_blend;
 			r->vertex_input.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			r->input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			r->tessellation.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
@@ -97,6 +200,9 @@ graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restri
 			r->depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 			r->color_blend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 			r->dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+			r->rasterization.lineWidth = 1.0f;
+			r->multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+			r->multisample.minSampleShading = 1.0f;
 			do {
 				r->shaders[--shader_number].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			} while (shader_number);
@@ -111,6 +217,7 @@ graph_gpipe_param_s* graph_gpipe_param_append_shader(register graph_gpipe_param_
 	register VkPipelineShaderStageCreateInfo *restrict p;
 	register graph_shader_stage_t *restrict s;
 	uint32_t i;
+	r->pi = NULL;
 	if (!shader || !entry) goto label_arg;
 	if ((i = r->info.stageCount) >= r->shader_number) goto label_shader_max;
 	p = r->shaders + i;
@@ -140,6 +247,7 @@ graph_gpipe_param_s* graph_gpipe_param_append_shader(register graph_gpipe_param_
 
 graph_gpipe_param_s* graph_gpipe_param_set_assembly(register graph_gpipe_param_s *restrict r, graph_primitive_topology_t pt, graph_bool_t primitive_restart)
 {
+	r->pi = NULL;
 	if ((uint32_t) pt < graph_primitive_topology$number)
 	{
 		r->input_assembly.flags = 0;
@@ -153,6 +261,7 @@ graph_gpipe_param_s* graph_gpipe_param_set_assembly(register graph_gpipe_param_s
 
 graph_gpipe_param_s* graph_gpipe_param_set_viewport(register graph_gpipe_param_s *restrict r, const graph_viewports_scissors_s *restrict gvs)
 {
+	r->pi = NULL;
 	if (r->viewports_scissors)
 	{
 		refer_free(r->viewports_scissors);
@@ -174,32 +283,38 @@ graph_gpipe_param_s* graph_gpipe_param_set_viewport(register graph_gpipe_param_s
 
 void graph_gpipe_param_set_rasterization_depth_clamp(register graph_gpipe_param_s *restrict r, graph_bool_t depth_clamp)
 {
+	r->pi = NULL;
 	r->rasterization.depthClampEnable = !!depth_clamp;
 }
 
 void graph_gpipe_param_set_rasterization_discard(register graph_gpipe_param_s *restrict r, graph_bool_t discard)
 {
+	r->pi = NULL;
 	r->rasterization.rasterizerDiscardEnable = !!discard;
 }
 
 void graph_gpipe_param_set_rasterization_polygon(register graph_gpipe_param_s *restrict r, graph_polygon_mode_t polygon)
 {
+	r->pi = NULL;
 	if ((uint32_t) polygon < graph_polygon_mode$number)
 		r->rasterization.polygonMode = graph_polygon_mode2vk(polygon);
 }
 
 void graph_gpipe_param_set_rasterization_cull(register graph_gpipe_param_s *restrict r, graph_cull_mode_flags_t cull)
 {
+	r->pi = NULL;
 	r->rasterization.cullMode = (VkCullModeFlags) cull;
 }
 
 void graph_gpipe_param_set_rasterization_front_face(register graph_gpipe_param_s *restrict r, graph_front_face_t front_face)
 {
+	r->pi = NULL;
 	r->rasterization.frontFace = (VkFrontFace) front_face;
 }
 
 void graph_gpipe_param_set_rasterization_depth_bias(register graph_gpipe_param_s *restrict r, float constant_factor, float clamp, float slope_factor)
 {
+	r->pi = NULL;
 	r->rasterization.depthBiasEnable = 1;
 	r->rasterization.depthBiasConstantFactor = constant_factor;
 	r->rasterization.depthBiasClamp = clamp;
@@ -208,5 +323,63 @@ void graph_gpipe_param_set_rasterization_depth_bias(register graph_gpipe_param_s
 
 void graph_gpipe_param_set_rasterization_line_width(register graph_gpipe_param_s *restrict r, float line_width)
 {
+	r->pi = NULL;
 	r->rasterization.lineWidth = line_width;
+}
+
+void graph_gpipe_param_set_multisample_sample_count(register graph_gpipe_param_s *restrict r, graph_sample_count_t sample_count)
+{
+	r->pi = NULL;
+	switch (sample_count)
+	{
+		case graph_sample_count_1:
+		case graph_sample_count_2:
+		case graph_sample_count_4:
+		case graph_sample_count_8:
+		case graph_sample_count_16:
+		case graph_sample_count_32:
+		case graph_sample_count_64:
+			r->multisample.rasterizationSamples = (VkPipelineMultisampleStateCreateFlags) sample_count;
+			break;
+	}
+}
+
+void graph_gpipe_param_set_multisample_sample_shading(register graph_gpipe_param_s *restrict r, graph_bool_t sample_shading)
+{
+	r->pi = NULL;
+	r->multisample.sampleShadingEnable = !!sample_shading;
+}
+
+void graph_gpipe_param_set_multisample_min_sample_shading(register graph_gpipe_param_s *restrict r, float min_sample_shading)
+{
+	r->pi = NULL;
+	r->multisample.minSampleShading = min_sample_shading;
+}
+
+void graph_gpipe_param_set_multisample_alpha2coverage(register graph_gpipe_param_s *restrict r, graph_bool_t alpha2coverage)
+{
+	r->pi = NULL;
+	r->multisample.alphaToCoverageEnable = !!alpha2coverage;
+}
+
+void graph_gpipe_param_set_multisample_alpha2one(register graph_gpipe_param_s *restrict r, graph_bool_t alpha2one)
+{
+	r->pi = NULL;
+	r->multisample.alphaToOneEnable = !!alpha2one;
+}
+
+void graph_gpipe_param_set_layout(register graph_gpipe_param_s *restrict r, register const graph_pipe_layout_s *restrict layout)
+{
+	r->pi = NULL;
+	r->info.layout = NULL;
+	if (r->pipe_layout)
+	{
+		refer_free(r->pipe_layout);
+		r->pipe_layout = NULL;
+	}
+	if (layout)
+	{
+		r->pipe_layout = (graph_pipe_layout_s *) refer_save(layout);
+		r->info.layout = layout->layout;
+	}
 }

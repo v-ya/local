@@ -31,16 +31,31 @@ typedef struct graph_shader_stage_t {
 	graph_shader_spec_s *spec;
 } graph_shader_stage_t;
 
+struct graph_pipe_layout_param_s {
+	;
+};
+
+struct graph_pipe_layout_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkPipelineLayout layout;
+	graph_allocator_s *ga;
+};
+
+struct graph_pipe_s {
+	;
+};
+
 struct graph_gpipe_param_s {
 	mlog_s *ml;
 	graph_dev_s *dev;
-	graph_allocator_s *ga;
 	VkGraphicsPipelineCreateInfo *pi;
 	uint32_t shader_number;
 	uint32_t res;
 	graph_shader_stage_t *shader_stages;
 	VkPipelineShaderStageCreateInfo *shaders;
 	graph_viewports_scissors_s *viewports_scissors;
+	graph_pipe_layout_s *pipe_layout;
 	VkGraphicsPipelineCreateInfo info;
 	VkPipelineVertexInputStateCreateInfo vertex_input;
 	VkPipelineInputAssemblyStateCreateInfo input_assembly;
@@ -51,10 +66,6 @@ struct graph_gpipe_param_s {
 	VkPipelineDepthStencilStateCreateInfo depth_stencil;
 	VkPipelineColorBlendStateCreateInfo color_blend;
 	VkPipelineDynamicStateCreateInfo dynamic;
-};
-
-struct graph_gpipe_s {
-	;
 };
 
 #endif
