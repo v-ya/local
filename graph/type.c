@@ -23,7 +23,7 @@ char* graph_type_list(char *restrict s, register uint32_t r, register const char
 	return s;
 }
 
-const char* graph_bool$string(graph_bool_t r)
+const char* graph_bool$string(register graph_bool_t r)
 {
 	return (const char *[]){
 		graph_type_red   "false" graph_type_back,
@@ -31,7 +31,7 @@ const char* graph_bool$string(graph_bool_t r)
 	}[!!r];
 }
 
-const char* graph_physical_device_type$string(graph_physical_device_type_t r)
+const char* graph_physical_device_type$string(register graph_physical_device_type_t r)
 {
 	static const char *mapping[] = {
 		[graph_physical_device_type_other]          = graph_type_red "other" graph_type_back,
@@ -45,7 +45,7 @@ const char* graph_physical_device_type$string(graph_physical_device_type_t r)
 	return graph_string_unknow;
 }
 
-graph_format_t graph_format4vk(VkFormat r)
+graph_format_t graph_format4vk(register VkFormat r)
 {
 	static const graph_format_t mapping[] = {
 		[VK_FORMAT_UNDEFINED]                  = graph_format_unknow,
@@ -185,7 +185,7 @@ graph_format_t graph_format4vk(VkFormat r)
 	return graph_format_unknow;
 }
 
-VkFormat graph_format2vk(graph_format_t r)
+VkFormat graph_format2vk(register graph_format_t r)
 {
 	static const VkFormat mapping[] = {
 		[graph_format_unknow]                     = VK_FORMAT_UNDEFINED,
@@ -325,7 +325,7 @@ VkFormat graph_format2vk(graph_format_t r)
 	return VK_FORMAT_UNDEFINED;
 }
 
-const char* graph_format$string(graph_format_t r)
+const char* graph_format$string(register graph_format_t r)
 {
 	static const char *mapping[] = {
 		#define def_string(_n)  [graph_format_##_n] = #_n
@@ -467,7 +467,7 @@ const char* graph_format$string(graph_format_t r)
 	return mapping[0];
 }
 
-const char* graph_color_space$string(graph_color_space_t r)
+const char* graph_color_space$string(register graph_color_space_t r)
 {
 	static const char *mapping[] = {
 		[graph_color_space_srgb] = "srgb"
@@ -477,7 +477,7 @@ const char* graph_color_space$string(graph_color_space_t r)
 	return graph_string_unknow;
 }
 
-const char* graph_present_mode$string(graph_present_mode_t r)
+const char* graph_present_mode$string(register graph_present_mode_t r)
 {
 	static const char *mapping[] = {
 		[graph_present_mode_immediate]    = graph_type_blue "immediate" graph_type_back,
@@ -519,7 +519,7 @@ char* graph_image_usage$list(register char *restrict s, register graph_image_usa
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
+graph_image_view_type_t graph_image_view_type4vk(register VkImageViewType r)
 {
 	static const graph_image_view_type_t mapping[graph_image_view_type$number] = {
 		[VK_IMAGE_VIEW_TYPE_1D]         = graph_image_view_type_1D,
@@ -535,7 +535,7 @@ graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
 	return graph_image_view_type$number;
 }
 
-VkImageViewType graph_image_view_type2vk(graph_image_view_type_t r)
+VkImageViewType graph_image_view_type2vk(register graph_image_view_type_t r)
 {
 	static const VkImageViewType mapping[graph_image_view_type$number] = {
 		[graph_image_view_type_1D]         = VK_IMAGE_VIEW_TYPE_1D,
@@ -577,7 +577,7 @@ char* graph_composite_alpha$list(register char *restrict s, register graph_compo
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r)
+VkPrimitiveTopology graph_primitive_topology2vk(register graph_primitive_topology_t r)
 {
 	static const VkPrimitiveTopology mapping[graph_primitive_topology$number] = {
 		[graph_primitive_topology_point_list]                    = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
@@ -597,7 +597,7 @@ VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r)
 	return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 }
 
-VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r)
+VkPolygonMode graph_polygon_mode2vk(register graph_polygon_mode_t r)
 {
 	static const VkPolygonMode mapping[graph_polygon_mode$number] = {
 		[graph_polygon_mode_fill]  = VK_POLYGON_MODE_FILL,
@@ -607,4 +607,57 @@ VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r)
 	if ((uint32_t) r < graph_array_number(mapping))
 		return mapping[r];
 	return VK_POLYGON_MODE_MAX_ENUM;
+}
+
+VkAttachmentLoadOp graph_attachment_load_op2vk(register graph_attachment_load_op_t r)
+{
+	static const VkAttachmentLoadOp mapping[graph_attachment_load_op$number] = {
+		[graph_attachment_load_op_load]  = VK_ATTACHMENT_LOAD_OP_LOAD,
+		[graph_attachment_load_op_clear] = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		[graph_attachment_load_op_none]  = VK_ATTACHMENT_LOAD_OP_DONT_CARE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+}
+
+VkAttachmentStoreOp graph_attachment_store_op2vk(register graph_attachment_store_op_t r)
+{
+	static const VkAttachmentStoreOp mapping[graph_attachment_store_op$number] = {
+		[graph_attachment_store_op_store] = VK_ATTACHMENT_STORE_OP_STORE,
+		[graph_attachment_store_op_none]  = VK_ATTACHMENT_STORE_OP_DONT_CARE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+}
+
+VkImageLayout graph_image_layout2vk(register graph_image_layout_t r)
+{
+	static const VkImageLayout mapping[graph_image_layout$number] = {
+		[graph_image_layout_unknow]                           = VK_IMAGE_LAYOUT_UNDEFINED,
+		[graph_image_layout_general]                          = VK_IMAGE_LAYOUT_GENERAL,
+		[graph_image_layout_color_attachment_optimal]         = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		[graph_image_layout_depth_stencil_attachment_optimal] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+		[graph_image_layout_depth_stencil_read_only_optimal]  = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+		[graph_image_layout_shader_read_only_optimal]         = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		[graph_image_layout_transfer_src_optimal]             = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		[graph_image_layout_transfer_dst_optimal]             = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		[graph_image_layout_preinitialized]                   = VK_IMAGE_LAYOUT_PREINITIALIZED,
+		[graph_image_layout_khr_present_src]                  = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_IMAGE_LAYOUT_UNDEFINED;
+}
+
+VkPipelineBindPoint graph_pipeline_bind_point2vk(register graph_pipeline_bind_point_t r)
+{
+	static const VkPipelineBindPoint mapping[graph_pipeline_bind_point$number] = {
+		[graph_pipeline_bind_point_graphics] = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		[graph_pipeline_bind_point_compute]  = VK_PIPELINE_BIND_POINT_COMPUTE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_PIPELINE_BIND_POINT_GRAPHICS;
 }

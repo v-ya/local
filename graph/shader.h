@@ -9,6 +9,8 @@ typedef struct graph_shader_spec_s graph_shader_spec_s;
 typedef struct graph_viewports_scissors_s graph_viewports_scissors_s;
 typedef struct graph_pipe_layout_param_s graph_pipe_layout_param_s;
 typedef struct graph_pipe_layout_s graph_pipe_layout_s;
+typedef struct graph_render_pass_param_s graph_render_pass_param_s;
+typedef struct graph_render_pass_s graph_render_pass_s;
 typedef struct graph_pipe_s graph_pipe_s;
 typedef struct graph_gpipe_param_s graph_gpipe_param_s;
 
@@ -22,6 +24,12 @@ graph_viewports_scissors_s* graph_viewports_scissors_append_viewport(graph_viewp
 graph_viewports_scissors_s* graph_viewports_scissors_append_scissor(graph_viewports_scissors_s *restrict r, int32_t x, int32_t y, uint32_t w, uint32_t h);
 
 graph_pipe_layout_s* graph_pipe_layout_alloc(struct graph_dev_s *restrict dev, register const graph_pipe_layout_param_s *restrict param);
+
+graph_render_pass_param_s* graph_render_pass_param_alloc(uint32_t attachment_number, uint32_t subpass_number, uint32_t dependency_number, uint32_t aref_number);
+graph_render_pass_param_s* graph_render_pass_param_set_attachment(graph_render_pass_param_s *restrict r, uint32_t index, graph_format_t format, graph_sample_count_t sample, graph_attachment_load_op_t load, graph_attachment_store_op_t store, graph_attachment_load_op_t stencil_load, graph_attachment_store_op_t stencil_store, graph_image_layout_t initial, graph_image_layout_t final);
+graph_render_pass_param_s* graph_render_pass_param_set_subpass(graph_render_pass_param_s *restrict r, uint32_t index, graph_pipeline_bind_point_t type);
+graph_render_pass_param_s* graph_render_pass_param_set_subpass_color(graph_render_pass_param_s *restrict r, uint32_t index, uint32_t n, uint32_t at_index[], graph_image_layout_t layout[]);
+graph_render_pass_s* graph_render_pass_alloc(graph_render_pass_param_s *restrict param, struct graph_dev_s *restrict dev);
 
 graph_gpipe_param_s* graph_gpipe_param_alloc(struct graph_dev_s *restrict dev, uint32_t shader_number);
 graph_gpipe_param_s* graph_gpipe_param_append_shader(graph_gpipe_param_s *restrict r, const graph_shader_s *restrict shader, graph_shader_type_t type, const char *restrict entry, const graph_shader_spec_s *restrict spec);

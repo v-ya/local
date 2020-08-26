@@ -42,6 +42,25 @@ struct graph_pipe_layout_s {
 	graph_allocator_s *ga;
 };
 
+struct graph_render_pass_param_s {
+	uint32_t at_size;
+	uint32_t sp_size;
+	uint32_t dp_size;
+	uint32_t ar_size;
+	VkAttachmentDescription *attachment;
+	VkSubpassDescription *subpass;
+	VkSubpassDependency *dependency;
+	VkAttachmentReference *aref;
+	VkRenderPassCreateInfo info;
+};
+
+struct graph_render_pass_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkRenderPass render;
+	graph_allocator_s *ga;
+};
+
 struct graph_pipe_s {
 	;
 };

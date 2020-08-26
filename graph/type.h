@@ -362,6 +362,39 @@ typedef enum graph_sample_count_e {
 	graph_sample_count_64 = 0x40
 } graph_sample_count_t;
 
+typedef enum graph_attachment_load_op_e {
+	graph_attachment_load_op_load,
+	graph_attachment_load_op_clear,
+	graph_attachment_load_op_none,
+	graph_attachment_load_op$number
+} graph_attachment_load_op_t;
+
+typedef enum graph_attachment_store_op_e {
+	graph_attachment_store_op_store,
+	graph_attachment_store_op_none,
+	graph_attachment_store_op$number
+} graph_attachment_store_op_t;
+
+typedef enum graph_image_layout_e {
+    graph_image_layout_unknow,
+    graph_image_layout_general,
+    graph_image_layout_color_attachment_optimal,
+    graph_image_layout_depth_stencil_attachment_optimal,
+    graph_image_layout_depth_stencil_read_only_optimal,
+    graph_image_layout_shader_read_only_optimal,
+    graph_image_layout_transfer_src_optimal,
+    graph_image_layout_transfer_dst_optimal,
+    graph_image_layout_preinitialized,
+    graph_image_layout_khr_present_src,
+    graph_image_layout$number
+} graph_image_layout_t;
+
+typedef enum graph_pipeline_bind_point_e {
+    graph_pipeline_bind_point_graphics,
+    graph_pipeline_bind_point_compute,
+    graph_pipeline_bind_point$number
+} graph_pipeline_bind_point_t;
+
 typedef enum graph_pipe_flags_e {
 	graph_pipe_flags_disable_optimization         = 0x00000001,
 	graph_pipe_flags_allow_derivatives            = 0x00000002,

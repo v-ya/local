@@ -145,6 +145,129 @@ graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restri
 	return NULL;
 }
 
+graph_render_pass_param_s* graph_render_pass_param_alloc(uint32_t attachment_number, uint32_t subpass_number, uint32_t dependency_number, uint32_t aref_number)
+{
+	register graph_render_pass_param_s *restrict r;
+	r = (graph_render_pass_param_s *) refer_alloz(
+		sizeof(graph_render_pass_param_s) +
+		sizeof(VkAttachmentDescription) * attachment_number +
+		sizeof(VkSubpassDescription) * subpass_number +
+		sizeof(VkSubpassDependency) * dependency_number +
+		sizeof(VkAttachmentReference) * aref_number
+	);
+	if (r)
+	{
+		r->at_size = attachment_number;
+		r->sp_size = subpass_number;
+		r->dp_size = dependency_number;
+		r->ar_size = aref_number;
+		r->attachment = (VkAttachmentDescription *) (r + 1);
+		r->subpass = (VkSubpassDescription *) (r->attachment + attachment_number);
+		r->dependency = (VkSubpassDependency *) (r->subpass + subpass_number);
+		r->aref = (VkAttachmentReference *) (r->dependency + dependency_number);
+		r->info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		r->info.pAttachments = r->attachment;
+		r->info.pSubpasses = r->subpass;
+		r->info.pDependencies = r->dependency;
+	}
+	return r;
+}
+
+graph_render_pass_param_s* graph_render_pass_param_set_attachment(
+	register graph_render_pass_param_s *restrict r, uint32_t index,
+	graph_format_t format, graph_sample_count_t sample,
+	graph_attachment_load_op_t load, graph_attachment_store_op_t store,
+	graph_attachment_load_op_t stencil_load, graph_attachment_store_op_t stencil_store,
+	graph_image_layout_t initial, graph_image_layout_t final)
+{
+	register VkAttachmentDescription *restrict p;
+	if (index < r->at_size)
+	{
+		p = r->attachment + index;
+		p->flags = 0;
+		p->format = graph_format2vk(format);
+		p->samples = (VkSampleCountFlagBits) sample;
+		p->loadOp = graph_attachment_load_op2vk(load);
+		p->storeOp = graph_attachment_store_op2vk(store);
+		p->stencilLoadOp = graph_attachment_load_op2vk(stencil_load);
+		p->stencilStoreOp = graph_attachment_store_op2vk(stencil_store);
+		p->initialLayout = graph_image_layout2vk(initial);
+		p->finalLayout = graph_image_layout2vk(final);
+		if (index >= r->info.attachmentCount)
+			r->info.attachmentCount = index + 1;
+		return r;
+	}
+	return NULL;
+}
+
+graph_render_pass_param_s* graph_render_pass_param_set_subpass(register graph_render_pass_param_s *restrict r, uint32_t index, graph_pipeline_bind_point_t type)
+{
+	register VkSubpassDescription *restrict p;
+	if (index < r->sp_size && (uint32_t) type < graph_pipeline_bind_point$number)
+	{
+		p = r->subpass + index;
+		p->pipelineBindPoint = graph_pipeline_bind_point2vk(type);
+		if (index >= r->info.subpassCount)
+			r->info.subpassCount = index + 1;
+		return r;
+	}
+	return NULL;
+}
+
+graph_render_pass_param_s* graph_render_pass_param_set_subpass_color(register graph_render_pass_param_s *restrict r, uint32_t index, uint32_t n, uint32_t at_index[], graph_image_layout_t layout[])
+{
+	register VkSubpassDescription *restrict p;
+	if (index < r->sp_size && n < r->ar_size)
+	{
+		register VkAttachmentReference *pr;
+		register uint32_t i;
+		p = r->subpass + index;
+		pr = r->aref;
+		for (i = 0; i < n; ++i)
+		{
+			if (at_index[i] >= r->info.attachmentCount)
+				goto label_fail;
+			pr[i].attachment = at_index[i];
+			pr[i].layout = graph_image_layout2vk(layout[i]);
+		}
+		p->colorAttachmentCount = n;
+		p->pColorAttachments = r->aref;
+		r->ar_size -= n;
+		r->aref += n;
+		return r;
+	}
+	label_fail:
+	return NULL;
+}
+
+static void graph_render_pass_free_func(register graph_render_pass_s *restrict r)
+{
+	register void *v;
+	if ((v = r->render)) vkDestroyRenderPass(r->dev->dev, (VkRenderPass) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_render_pass_s* graph_render_pass_alloc(register graph_render_pass_param_s *restrict param, register struct graph_dev_s *restrict dev)
+{
+	register graph_render_pass_s *restrict r;
+	VkResult ret;
+	r = (graph_render_pass_s *) refer_alloz(sizeof(graph_render_pass_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_render_pass_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreateRenderPass(dev->dev, &param->info, &r->ga->alloc, &r->render);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_render_pass_alloc] vkCreateRenderPass = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}
+
 // graph_pipe_s* graph_pipe_alloc_graphics(register graph_gpipe_param_s *restrict param)
 // {
 // 	// VkGraphicsPipelineCreateInfo;

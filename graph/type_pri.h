@@ -22,29 +22,31 @@ const char* graph_physical_device_type$string(graph_physical_device_type_t r);
 
 graph_format_t graph_format4vk(VkFormat r);
 VkFormat graph_format2vk(graph_format_t r);
+
 const char* graph_format$string(graph_format_t r);
-
 const char* graph_color_space$string(graph_color_space_t r);
-
 const char* graph_present_mode$string(graph_present_mode_t r);
 
 // 128 bytes
-char* graph_queue_flags$list(register char *restrict s, register graph_queue_flags_t r);
+char* graph_queue_flags$list(char *restrict s, graph_queue_flags_t r);
 
 // 256 bytes
-char* graph_image_usage$list(register char *restrict s, register graph_image_usage_t r);
+char* graph_image_usage$list(char *restrict s, graph_image_usage_t r);
 
 graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r);
 VkImageViewType graph_image_view_type2vk(graph_image_view_type_t r);
 
 // 128 bytes
-char* graph_surface_transform$list(register char *restrict s, register graph_surface_transform_t r);
+char* graph_surface_transform$list(char *restrict s, graph_surface_transform_t r);
 
 // 64 bytes
-char* graph_composite_alpha$list(register char *restrict s, register graph_composite_alpha_t r);
+char* graph_composite_alpha$list(char *restrict s, graph_composite_alpha_t r);
 
 VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r);
-
 VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r);
+VkAttachmentLoadOp graph_attachment_load_op2vk(graph_attachment_load_op_t r);
+VkAttachmentStoreOp graph_attachment_store_op2vk(graph_attachment_store_op_t r);
+VkImageLayout graph_image_layout2vk(graph_image_layout_t r);
+VkPipelineBindPoint graph_pipeline_bind_point2vk(graph_pipeline_bind_point_t r);
 
 #endif

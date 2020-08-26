@@ -208,6 +208,19 @@ uint32_t graph_swapchain_image_number(register const graph_swapchain_s *restrict
 	return swapchain->image_number;
 }
 
+graph_format_t graph_swapchain_format(register const graph_swapchain_s *restrict swapchain)
+{
+	return graph_format4vk(swapchain->image_format);
+}
+
+void graph_swapchain_info(register const graph_swapchain_s *restrict swapchain, uint32_t *restrict image_number, graph_format_t *restrict format, uint32_t *restrict width, uint32_t *restrict height)
+{
+	if (image_number) *image_number = swapchain->image_number;
+	if (format) *format = graph_format4vk(swapchain->image_format);
+	if (width) *width = swapchain->image_size.width;
+	if (height) *height = swapchain->image_size.height;
+}
+
 static void graph_surface_attr_dump_capabilities(register mlog_s *restrict ml, register const VkSurfaceCapabilitiesKHR *restrict r)
 {
 	char buffer[128];

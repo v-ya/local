@@ -19,6 +19,8 @@ graph_surface_attr_s* graph_surface_attr_get(const graph_surface_s *restrict sur
 graph_swapchain_param_s* graph_swapchain_param_alloc(graph_surface_s *restrict surface, const graph_surface_attr_s *restrict attr, uint32_t queue_sharing_number);
 graph_swapchain_s* graph_swapchain_alloc(const graph_swapchain_param_s *restrict param, struct graph_dev_s *dev);
 uint32_t graph_swapchain_image_number(const graph_swapchain_s *restrict swapchain);
+graph_format_t graph_swapchain_format(const graph_swapchain_s *restrict swapchain);
+void graph_swapchain_info(const graph_swapchain_s *restrict swapchain, uint32_t *restrict image_number, graph_format_t *restrict format, uint32_t *restrict width, uint32_t *restrict height);
 
 void graph_surface_attr_dump(const graph_surface_attr_s *restrict attr);
 
