@@ -362,6 +362,66 @@ typedef enum graph_sample_count_e {
 	graph_sample_count_64 = 0x40
 } graph_sample_count_t;
 
+typedef enum graph_color_component_mask_e {
+	graph_color_component_mask_r   = 0x01,
+	graph_color_component_mask_g   = 0x02,
+	graph_color_component_mask_b   = 0x04,
+	graph_color_component_mask_a   = 0x08,
+	graph_color_component_mask_all = 0x0f,
+} graph_color_component_mask_t;
+
+typedef enum graph_blend_factor_e {
+	graph_blend_factor_zero,
+	graph_blend_factor_one,
+	graph_blend_factor_src_color,
+	graph_blend_factor_one_minus_src_color,
+	graph_blend_factor_dst_color,
+	graph_blend_factor_one_minus_dst_color,
+	graph_blend_factor_src_alpha,
+	graph_blend_factor_one_minus_src_alpha,
+	graph_blend_factor_dst_alpha,
+	graph_blend_factor_one_minus_dst_alpha,
+	graph_blend_factor_constant_color,
+	graph_blend_factor_one_minus_constant_color,
+	graph_blend_factor_constant_alpha,
+	graph_blend_factor_one_minus_constant_alpha,
+	graph_blend_factor_src_alpha_saturate,
+	graph_blend_factor_src1_color,
+	graph_blend_factor_one_minus_src1_color,
+	graph_blend_factor_src1_alpha,
+	graph_blend_factor_one_minus_src1_alpha,
+	graph_blend_factor$number
+} graph_blend_factor_t;
+
+typedef enum graph_blend_op_e {
+	graph_blend_op_add,
+	graph_blend_op_subtract,
+	graph_blend_op_reverse_subtract,
+	graph_blend_op_min,
+	graph_blend_op_max,
+	graph_blend_op$number
+} graph_blend_op_t;
+
+typedef enum graph_logic_op_e {
+	graph_logic_op_clear,
+	graph_logic_op_and,
+	graph_logic_op_and_reverse,
+	graph_logic_op_copy,
+	graph_logic_op_and_inverted,
+	graph_logic_op_no_op,
+	graph_logic_op_xor,
+	graph_logic_op_or,
+	graph_logic_op_nor,
+	graph_logic_op_equivalent,
+	graph_logic_op_invert,
+	graph_logic_op_or_reverse,
+	graph_logic_op_copy_inverted,
+	graph_logic_op_or_inverted,
+	graph_logic_op_nand,
+	graph_logic_op_set,
+	graph_logic_op$number
+} graph_logic_op_t;
+
 typedef enum graph_attachment_load_op_e {
 	graph_attachment_load_op_load,
 	graph_attachment_load_op_clear,
@@ -394,6 +454,19 @@ typedef enum graph_pipeline_bind_point_e {
     graph_pipeline_bind_point_compute,
     graph_pipeline_bind_point$number
 } graph_pipeline_bind_point_t;
+
+typedef enum graph_dynamic_e {
+	graph_dynamic_viewport,
+	graph_dynamic_scissor,
+	graph_dynamic_line_width,
+	graph_dynamic_depth_bias,
+	graph_dynamic_blend_constants,
+	graph_dynamic_depth_bounds,
+	graph_dynamic_stencil_compare_mask,
+	graph_dynamic_stencil_write_mask,
+	graph_dynamic_stencil_reference,
+	graph_dynamic$number
+} graph_dynamic_t;
 
 typedef enum graph_pipe_flags_e {
 	graph_pipe_flags_disable_optimization         = 0x00000001,

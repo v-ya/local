@@ -16,6 +16,15 @@ struct graph_shader_spec_s {
 	VkSpecializationInfo spec;
 };
 
+struct graph_vertex_input_description_s {
+	uint32_t bind_size;
+	uint32_t attr_size;
+	uint32_t bind_number;
+	uint32_t attr_number;
+	VkVertexInputBindingDescription *bind;
+	VkVertexInputAttributeDescription *attr;
+};
+
 struct graph_viewports_scissors_s {
 	uint32_t viewport_size;
 	uint32_t viewport_number;
@@ -25,11 +34,12 @@ struct graph_viewports_scissors_s {
 	VkRect2D *scissors;
 };
 
-typedef struct graph_shader_stage_t {
-	char *name;
-	graph_shader_s *gs;
-	graph_shader_spec_s *spec;
-} graph_shader_stage_t;
+struct graph_pipe_color_blend_s {
+	uint32_t at_size;
+	uint32_t at_number;
+	VkPipelineColorBlendStateCreateInfo info;
+	VkPipelineColorBlendAttachmentState attachment[];
+};
 
 struct graph_pipe_layout_param_s {
 	;
@@ -61,9 +71,23 @@ struct graph_render_pass_s {
 	graph_allocator_s *ga;
 };
 
-struct graph_pipe_s {
-	;
+struct graph_pipe_cache_s {
+	VkPipelineCache pipe_cache;
 };
+
+struct graph_pipe_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	graph_pipe_cache_s *cache;
+	VkPipeline pipe;
+	graph_allocator_s *ga;
+};
+
+typedef struct graph_pipe_shader_stage_t {
+	char *name;
+	graph_shader_s *gs;
+	graph_shader_spec_s *spec;
+} graph_pipe_shader_stage_t;
 
 struct graph_gpipe_param_s {
 	mlog_s *ml;
@@ -71,10 +95,13 @@ struct graph_gpipe_param_s {
 	VkGraphicsPipelineCreateInfo *pi;
 	uint32_t shader_number;
 	uint32_t res;
-	graph_shader_stage_t *shader_stages;
+	graph_pipe_shader_stage_t *shader_stages;
 	VkPipelineShaderStageCreateInfo *shaders;
+	graph_vertex_input_description_s *vertex;
 	graph_viewports_scissors_s *viewports_scissors;
+	graph_pipe_color_blend_s *color_blend;
 	graph_pipe_layout_s *pipe_layout;
+	graph_render_pass_s *render;
 	VkGraphicsPipelineCreateInfo info;
 	VkPipelineVertexInputStateCreateInfo vertex_input;
 	VkPipelineInputAssemblyStateCreateInfo input_assembly;
@@ -83,7 +110,6 @@ struct graph_gpipe_param_s {
 	VkPipelineRasterizationStateCreateInfo rasterization;
 	VkPipelineMultisampleStateCreateInfo multisample;
 	VkPipelineDepthStencilStateCreateInfo depth_stencil;
-	VkPipelineColorBlendStateCreateInfo color_blend;
 	VkPipelineDynamicStateCreateInfo dynamic;
 };
 

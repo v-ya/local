@@ -50,6 +50,22 @@ graph_shader_s* graph_shader_alloc(register struct graph_dev_s *restrict dev, co
 	goto label_return;
 }
 
+graph_vertex_input_description_s* graph_vertex_input_description_alloc(uint32_t bind_number, uint32_t attr_number)
+{
+	register graph_vertex_input_description_s *restrict r;
+	r = (graph_vertex_input_description_s *) refer_alloz(sizeof(graph_vertex_input_description_s) +
+		sizeof(VkVertexInputBindingDescription) * bind_number +
+		sizeof(VkVertexInputAttributeDescription) * attr_number);
+	if (r)
+	{
+		r->bind_size = bind_number;
+		r->attr_size = attr_number;
+		r->bind = (VkVertexInputBindingDescription *) (r + 1);
+		r->attr = (VkVertexInputAttributeDescription *) (r->bind + bind_number);
+	}
+	return r;
+}
+
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number)
 {
 	register graph_viewports_scissors_s *restrict r;
@@ -100,6 +116,61 @@ graph_viewports_scissors_s* graph_viewports_scissors_append_scissor(register gra
 		p->offset.y = y;
 		p->extent.width = w;
 		p->extent.height = h;
+		return r;
+	}
+	return NULL;
+}
+
+graph_pipe_color_blend_s* graph_pipe_color_blend_alloc(uint32_t attachment_number)
+{
+	register graph_pipe_color_blend_s *restrict r;
+	if (attachment_number)
+	{
+		r = (graph_pipe_color_blend_s *) refer_alloz(sizeof(graph_pipe_color_blend_s) + sizeof(VkPipelineColorBlendAttachmentState) * attachment_number);
+		if (r)
+		{
+			r->at_size = attachment_number;
+			r->info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+			r->info.pAttachments = r->attachment;
+			return r;
+		}
+		refer_free(r);
+	}
+	return NULL;
+}
+
+void graph_pipe_color_blend_set_logic(register graph_pipe_color_blend_s *restrict r, graph_bool_t logic_op, graph_logic_op_t op)
+{
+	r->info.logicOpEnable = !!logic_op;
+	r->info.logicOp = graph_logic_op2vk(op);
+}
+
+void graph_pipe_color_blend_set_constants(register graph_pipe_color_blend_s *restrict r, float constants[4])
+{
+	r->info.blendConstants[0] = constants[0];
+	r->info.blendConstants[1] = constants[1];
+	r->info.blendConstants[2] = constants[2];
+	r->info.blendConstants[3] = constants[3];
+}
+
+graph_pipe_color_blend_s* graph_pipe_color_blend_append_attachment(
+	register graph_pipe_color_blend_s *restrict r, graph_bool_t enable, graph_color_component_mask_t mask,
+	graph_blend_factor_t s_color, graph_blend_factor_t d_color, graph_blend_op_t op_color,
+	graph_blend_factor_t s_alpha, graph_blend_factor_t d_alpha, graph_blend_op_t op_alpha)
+{
+	if (r->at_number < r->at_size)
+	{
+		register VkPipelineColorBlendAttachmentState *restrict p;
+		p = r->attachment + r->at_number;
+		p->blendEnable = !!enable;
+		p->srcColorBlendFactor = graph_blend_factor2vk(s_color);
+		p->dstColorBlendFactor = graph_blend_factor2vk(d_color);
+		p->colorBlendOp = graph_blend_op2vk(op_color);
+		p->srcAlphaBlendFactor = graph_blend_factor2vk(s_alpha);
+		p->dstAlphaBlendFactor = graph_blend_factor2vk(d_alpha);
+		p->alphaBlendOp = graph_blend_op2vk(op_alpha);
+		p->colorWriteMask = (VkColorComponentFlags) mask;
+		r->info.attachmentCount = ++r->at_number;
 		return r;
 	}
 	return NULL;
@@ -268,20 +339,51 @@ graph_render_pass_s* graph_render_pass_alloc(register graph_render_pass_param_s 
 	return NULL;
 }
 
-// graph_pipe_s* graph_pipe_alloc_graphics(register graph_gpipe_param_s *restrict param)
-// {
-// 	// VkGraphicsPipelineCreateInfo;
-// 	// vkCreateGraphicsPipelines(, , , , , );
-// 	return NULL;
-// }
+static void graph_pipe_free_func(register graph_pipe_s *restrict r)
+{
+	register void *v;
+	if ((v = r->pipe)) vkDestroyPipeline(r->dev->dev, (VkPipeline) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->cache)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_pipe_s* graph_pipe_alloc_graphics(register const graph_gpipe_param_s *restrict param, register const graph_pipe_cache_s *restrict cache)
+{
+	register graph_pipe_s *restrict r;
+	VkResult ret;
+	if (param->pi)
+	{
+		r = (graph_pipe_s *) refer_alloz(sizeof(graph_pipe_s));
+		if (r)
+		{
+			refer_set_free(r, (refer_free_f) graph_pipe_free_func);
+			r->ml = (mlog_s *) refer_save(param->ml);
+			r->dev = (graph_dev_s *) refer_save(param->dev);
+			r->cache = (graph_pipe_cache_s *) refer_save(cache);
+			r->ga = (graph_allocator_s *) refer_save(param->dev->ga);
+			ret = vkCreateGraphicsPipelines(r->dev->dev, cache?cache->pipe_cache:NULL, 1, param->pi, &r->ga->alloc, &r->pipe);
+			if (!ret) return r;
+			mlog_printf(r->ml, "[graph_pipe_alloc_graphics] vkCreateGraphicsPipelines = %d\n", ret);
+			refer_free(r);
+		}
+	}
+	else mlog_printf(param->ml, "[graph_pipe_alloc_graphics] make sure call 'graph_gpipe_param_ok' ok\n");
+	return NULL;
+}
 
 static void graph_gpipe_param_free_func(register graph_gpipe_param_s *restrict r)
 {
 	register void *v;
-	register graph_shader_stage_t *p;
+	register graph_pipe_shader_stage_t *p;
 	register uint32_t n;
+	if ((v = (void *) r->dynamic.pDynamicStates)) free(v);
+	if ((v = r->vertex)) refer_free(v);
 	if ((v = r->viewports_scissors)) refer_free(v);
+	if ((v = r->color_blend)) refer_free(v);
 	if ((v = r->pipe_layout)) refer_free(v);
+	if ((v = r->render)) refer_free(v);
 	p = r->shader_stages;
 	n = r->shader_number;
 	do {
@@ -300,20 +402,19 @@ graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restri
 	if (shader_number)
 	{
 		r = (graph_gpipe_param_s *) refer_alloz(sizeof(graph_gpipe_param_s) +
-			(sizeof(graph_shader_stage_t) + sizeof(VkPipelineShaderStageCreateInfo)) * shader_number);
+			(sizeof(graph_pipe_shader_stage_t) + sizeof(VkPipelineShaderStageCreateInfo)) * shader_number);
 		if (r)
 		{
 			refer_set_free(r, (refer_free_f) graph_gpipe_param_free_func);
 			r->ml = (mlog_s *) refer_save(dev->ml);
 			r->dev = (graph_dev_s *) refer_save(dev);
 			r->shader_number = shader_number;
-			r->shader_stages = (graph_shader_stage_t *) (r + 1);
+			r->shader_stages = (graph_pipe_shader_stage_t *) (r + 1);
 			r->shaders = (VkPipelineShaderStageCreateInfo *) (r->shader_stages + shader_number);
-			r->info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			r->info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			r->info.pStages = r->shaders;
 			r->info.pRasterizationState = &r->rasterization;
 			r->info.pMultisampleState = &r->multisample;
-			r->info.pColorBlendState = &r->color_blend;
 			r->vertex_input.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			r->input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			r->tessellation.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
@@ -321,7 +422,6 @@ graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restri
 			r->rasterization.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			r->multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			r->depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-			r->color_blend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 			r->dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 			r->rasterization.lineWidth = 1.0f;
 			r->multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -338,7 +438,7 @@ graph_gpipe_param_s* graph_gpipe_param_alloc(register struct graph_dev_s *restri
 graph_gpipe_param_s* graph_gpipe_param_append_shader(register graph_gpipe_param_s *restrict r, const graph_shader_s *restrict shader, graph_shader_type_t type, const char *restrict entry, const graph_shader_spec_s *restrict spec)
 {
 	register VkPipelineShaderStageCreateInfo *restrict p;
-	register graph_shader_stage_t *restrict s;
+	register graph_pipe_shader_stage_t *restrict s;
 	uint32_t i;
 	r->pi = NULL;
 	if (!shader || !entry) goto label_arg;
@@ -368,9 +468,36 @@ graph_gpipe_param_s* graph_gpipe_param_append_shader(register graph_gpipe_param_
 	goto label_return_null;
 }
 
+void graph_gpipe_param_set_vertex(register graph_gpipe_param_s *restrict r, register const graph_vertex_input_description_s *restrict vertex)
+{
+	r->pi = NULL;
+	if (r->vertex)
+	{
+		refer_free(r->vertex);
+		r->vertex = NULL;
+	}
+	if (vertex)
+	{
+		r->vertex = (graph_vertex_input_description_s *) refer_save(vertex);
+		r->vertex_input.vertexBindingDescriptionCount = vertex->bind_number;
+		r->vertex_input.pVertexBindingDescriptions = vertex->bind;
+		r->vertex_input.vertexAttributeDescriptionCount = vertex->attr_number;
+		r->vertex_input.pVertexAttributeDescriptions = vertex->attr;
+	}
+	else
+	{
+		r->vertex_input.vertexBindingDescriptionCount = 0;
+		r->vertex_input.pVertexBindingDescriptions = NULL;
+		r->vertex_input.vertexAttributeDescriptionCount = 0;
+		r->vertex_input.pVertexAttributeDescriptions = NULL;
+	}
+	r->info.pVertexInputState = &r->vertex_input;
+}
+
 graph_gpipe_param_s* graph_gpipe_param_set_assembly(register graph_gpipe_param_s *restrict r, graph_primitive_topology_t pt, graph_bool_t primitive_restart)
 {
 	r->pi = NULL;
+	r->info.pInputAssemblyState = NULL;
 	if ((uint32_t) pt < graph_primitive_topology$number)
 	{
 		r->input_assembly.flags = 0;
@@ -385,20 +512,39 @@ graph_gpipe_param_s* graph_gpipe_param_set_assembly(register graph_gpipe_param_s
 graph_gpipe_param_s* graph_gpipe_param_set_viewport(register graph_gpipe_param_s *restrict r, const graph_viewports_scissors_s *restrict gvs)
 {
 	r->pi = NULL;
+	r->info.pViewportState = NULL;
 	if (r->viewports_scissors)
 	{
 		refer_free(r->viewports_scissors);
 		r->viewports_scissors = NULL;
 	}
-	r->info.pViewportState = NULL;
 	if (gvs && gvs->viewport_number && gvs->scissor_number)
 	{
-		r->viewport.flags = 0;
 		r->viewports_scissors = (graph_viewports_scissors_s *) refer_save(gvs);
+		r->viewport.flags = 0;
 		r->viewport.viewportCount = gvs->viewport_number;
 		r->viewport.pViewports = gvs->viewports;
 		r->viewport.scissorCount = gvs->scissor_number;
 		r->viewport.pScissors = gvs->scissors;
+		r->info.pViewportState = &r->viewport;
+		return r;
+	}
+	return NULL;
+}
+
+graph_gpipe_param_s* graph_gpipe_param_set_color_blend(register graph_gpipe_param_s *restrict r, register const graph_pipe_color_blend_s *restrict blend)
+{
+	r->pi = NULL;
+	r->info.pColorBlendState = NULL;
+	if (r->color_blend)
+	{
+		refer_free(r->color_blend);
+		r->color_blend = NULL;
+	}
+	if (blend)
+	{
+		r->color_blend = (graph_pipe_color_blend_s *) refer_save(blend);
+		r->info.pColorBlendState = &blend->info;
 		return r;
 	}
 	return NULL;
@@ -491,6 +637,38 @@ void graph_gpipe_param_set_multisample_alpha2one(register graph_gpipe_param_s *r
 	r->multisample.alphaToOneEnable = !!alpha2one;
 }
 
+graph_gpipe_param_s* graph_gpipe_param_set_dynamic(register graph_gpipe_param_s *restrict r, uint32_t n, const graph_dynamic_t dynamic[])
+{
+	VkDynamicState *restrict p;
+	uint32_t i;
+	r->pi = NULL;
+	r->info.pDynamicState = NULL;
+	r->dynamic.dynamicStateCount = 0;
+	if ((p = (VkDynamicState *) r->dynamic.pDynamicStates))
+	{
+		r->dynamic.pDynamicStates = NULL;
+		free(p);
+	}
+	if (n)
+	{
+		p = (VkDynamicState *) malloc(sizeof(VkDynamicState) * n);
+		if (!p) goto label_fail;
+		for (i = 0; i < n; ++i)
+		{
+			if ((uint32_t) dynamic[i] >= graph_dynamic$number)
+				goto label_fail;
+			p[i] = graph_dynamic2vk(dynamic[i]);
+		}
+		r->dynamic.pDynamicStates = p;
+		r->dynamic.dynamicStateCount = n;
+	}
+	r->info.pDynamicState = &r->dynamic;
+	return r;
+	label_fail:
+	if (p) free(p);
+	return NULL;
+}
+
 void graph_gpipe_param_set_layout(register graph_gpipe_param_s *restrict r, register const graph_pipe_layout_s *restrict layout)
 {
 	r->pi = NULL;
@@ -505,4 +683,45 @@ void graph_gpipe_param_set_layout(register graph_gpipe_param_s *restrict r, regi
 		r->pipe_layout = (graph_pipe_layout_s *) refer_save(layout);
 		r->info.layout = layout->layout;
 	}
+}
+
+void graph_gpipe_param_set_render(register graph_gpipe_param_s *restrict r, register const graph_render_pass_s *restrict render, uint32_t subpass_index)
+{
+	r->pi = NULL;
+	r->info.renderPass = NULL;
+	r->info.subpass = 0;
+	if (r->render)
+	{
+		refer_free(r->render);
+		r->render = NULL;
+	}
+	if (render)
+	{
+		r->render = (graph_render_pass_s *) refer_save(render);
+		r->info.renderPass = render->render;
+		r->info.subpass = subpass_index;
+	}
+}
+
+graph_gpipe_param_s* graph_gpipe_param_ok(register graph_gpipe_param_s *restrict r)
+{
+	static char empty[] = {0};
+	r->pi = NULL;
+	if (r->info.stageCount && r->info.pVertexInputState && r->info.pInputAssemblyState && r->info.pViewportState &&
+		r->info.pColorBlendState && r->info.pDynamicState && r->info.layout && r->info.renderPass)
+	{
+		r->pi = &r->info;
+		return r;
+	}
+	mlog_printf(r->ml, "[graph_gpipe_param_ok] (%s%s%s%s%s%s%s%s ) not set\n",
+		r->info.stageCount?empty:" shader",
+		r->info.pVertexInputState?empty:" vertex",
+		r->info.pInputAssemblyState?empty:" assembly",
+		r->info.pViewportState?empty:" viewport",
+		r->info.pColorBlendState?empty:" color_blend",
+		r->info.pDynamicState?empty:" dynamic",
+		r->info.layout?empty:" layout",
+		r->info.renderPass?empty:" render"
+	);
+	return NULL;
 }

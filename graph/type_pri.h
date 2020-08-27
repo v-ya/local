@@ -44,9 +44,13 @@ char* graph_composite_alpha$list(char *restrict s, graph_composite_alpha_t r);
 
 VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r);
 VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r);
+VkBlendFactor graph_blend_factor2vk(graph_blend_factor_t r);
+VkBlendOp graph_blend_op2vk(graph_blend_op_t r);
+VkLogicOp graph_logic_op2vk(graph_logic_op_t r);
 VkAttachmentLoadOp graph_attachment_load_op2vk(graph_attachment_load_op_t r);
 VkAttachmentStoreOp graph_attachment_store_op2vk(graph_attachment_store_op_t r);
 VkImageLayout graph_image_layout2vk(graph_image_layout_t r);
 VkPipelineBindPoint graph_pipeline_bind_point2vk(graph_pipeline_bind_point_t r);
+VkDynamicState graph_dynamic2vk(graph_dynamic_t r);
 
 #endif

@@ -609,6 +609,73 @@ VkPolygonMode graph_polygon_mode2vk(register graph_polygon_mode_t r)
 	return VK_POLYGON_MODE_MAX_ENUM;
 }
 
+VkBlendFactor graph_blend_factor2vk(register graph_blend_factor_t r)
+{
+	static const VkBlendFactor mapping[graph_blend_factor$number] = {
+		[graph_blend_factor_zero]                     = VK_BLEND_FACTOR_ZERO,
+		[graph_blend_factor_one]                      = VK_BLEND_FACTOR_ONE,
+		[graph_blend_factor_src_color]                = VK_BLEND_FACTOR_SRC_COLOR,
+		[graph_blend_factor_one_minus_src_color]      = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+		[graph_blend_factor_dst_color]                = VK_BLEND_FACTOR_DST_COLOR,
+		[graph_blend_factor_one_minus_dst_color]      = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+		[graph_blend_factor_src_alpha]                = VK_BLEND_FACTOR_SRC_ALPHA,
+		[graph_blend_factor_one_minus_src_alpha]      = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+		[graph_blend_factor_dst_alpha]                = VK_BLEND_FACTOR_DST_ALPHA,
+		[graph_blend_factor_one_minus_dst_alpha]      = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+		[graph_blend_factor_constant_color]           = VK_BLEND_FACTOR_CONSTANT_COLOR,
+		[graph_blend_factor_one_minus_constant_color] = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR,
+		[graph_blend_factor_constant_alpha]           = VK_BLEND_FACTOR_CONSTANT_ALPHA,
+		[graph_blend_factor_one_minus_constant_alpha] = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA,
+		[graph_blend_factor_src_alpha_saturate]       = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,
+		[graph_blend_factor_src1_color]               = VK_BLEND_FACTOR_SRC1_COLOR,
+		[graph_blend_factor_one_minus_src1_color]     = VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR,
+		[graph_blend_factor_src1_alpha]               = VK_BLEND_FACTOR_SRC1_ALPHA,
+		[graph_blend_factor_one_minus_src1_alpha]     = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_BLEND_FACTOR_ZERO;
+}
+
+VkBlendOp graph_blend_op2vk(register graph_blend_op_t r)
+{
+	static const VkBlendOp mapping[graph_blend_op$number] = {
+		[graph_blend_op_add]              = VK_BLEND_OP_ADD,
+		[graph_blend_op_subtract]         = VK_BLEND_OP_SUBTRACT,
+		[graph_blend_op_reverse_subtract] = VK_BLEND_OP_REVERSE_SUBTRACT,
+		[graph_blend_op_min]              = VK_BLEND_OP_MIN,
+		[graph_blend_op_max]              = VK_BLEND_OP_MAX
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_BLEND_OP_ADD;
+}
+
+VkLogicOp graph_logic_op2vk(register graph_logic_op_t r)
+{
+	static const VkLogicOp mapping[graph_logic_op$number] = {
+		[graph_logic_op_clear]         = VK_LOGIC_OP_CLEAR,
+		[graph_logic_op_and]           = VK_LOGIC_OP_AND,
+		[graph_logic_op_and_reverse]   = VK_LOGIC_OP_AND_REVERSE,
+		[graph_logic_op_copy]          = VK_LOGIC_OP_COPY,
+		[graph_logic_op_and_inverted]  = VK_LOGIC_OP_AND_INVERTED,
+		[graph_logic_op_no_op]         = VK_LOGIC_OP_NO_OP,
+		[graph_logic_op_xor]           = VK_LOGIC_OP_XOR,
+		[graph_logic_op_or]            = VK_LOGIC_OP_OR,
+		[graph_logic_op_nor]           = VK_LOGIC_OP_NOR,
+		[graph_logic_op_equivalent]    = VK_LOGIC_OP_EQUIVALENT,
+		[graph_logic_op_invert]        = VK_LOGIC_OP_INVERT,
+		[graph_logic_op_or_reverse]    = VK_LOGIC_OP_OR_REVERSE,
+		[graph_logic_op_copy_inverted] = VK_LOGIC_OP_COPY_INVERTED,
+		[graph_logic_op_or_inverted]   = VK_LOGIC_OP_OR_INVERTED,
+		[graph_logic_op_nand]          = VK_LOGIC_OP_NAND,
+		[graph_logic_op_set]           = VK_LOGIC_OP_SET
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_LOGIC_OP_CLEAR;
+}
+
 VkAttachmentLoadOp graph_attachment_load_op2vk(register graph_attachment_load_op_t r)
 {
 	static const VkAttachmentLoadOp mapping[graph_attachment_load_op$number] = {
@@ -660,4 +727,22 @@ VkPipelineBindPoint graph_pipeline_bind_point2vk(register graph_pipeline_bind_po
 	if ((uint32_t) r < graph_array_number(mapping))
 		return mapping[r];
 	return VK_PIPELINE_BIND_POINT_GRAPHICS;
+}
+
+VkDynamicState graph_dynamic2vk(register graph_dynamic_t r)
+{
+	static const VkDynamicState mapping[graph_dynamic$number] = {
+		[graph_dynamic_viewport]             = VK_DYNAMIC_STATE_VIEWPORT,
+		[graph_dynamic_scissor]              = VK_DYNAMIC_STATE_SCISSOR,
+		[graph_dynamic_line_width]           = VK_DYNAMIC_STATE_LINE_WIDTH,
+		[graph_dynamic_depth_bias]           = VK_DYNAMIC_STATE_DEPTH_BIAS,
+		[graph_dynamic_blend_constants]      = VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+		[graph_dynamic_depth_bounds]         = VK_DYNAMIC_STATE_DEPTH_BOUNDS,
+		[graph_dynamic_stencil_compare_mask] = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+		[graph_dynamic_stencil_write_mask]   = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+		[graph_dynamic_stencil_reference]    = VK_DYNAMIC_STATE_STENCIL_REFERENCE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_DYNAMIC_STATE_MAX_ENUM;
 }
