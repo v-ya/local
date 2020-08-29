@@ -1,5 +1,6 @@
 #include "surface_pri.h"
 #include "type_pri.h"
+#include "command_pri.h"
 #include <stdlib.h>
 
 const graph_s* graph_surface_init_check(const graph_s *restrict g)
@@ -219,6 +220,23 @@ void graph_swapchain_info(register const graph_swapchain_s *restrict swapchain, 
 	if (format) *format = graph_format4vk(swapchain->image_format);
 	if (width) *width = swapchain->image_size.width;
 	if (height) *height = swapchain->image_size.height;
+}
+
+uint32_t graph_swapchain_acquire(register graph_swapchain_s *restrict swapchain, uint64_t timeout, struct graph_semaphore_s *restrict semaphore, struct graph_fence_s *restrict fence)
+{
+	uint32_t r;
+	VkResult ret;
+	ret = vkAcquireNextImageKHR(
+		swapchain->dev->dev,
+		swapchain->swapchain,
+		timeout,
+		semaphore?semaphore->semaphore:NULL,
+		fence?fence->fence:NULL,
+		&r
+	);
+	if (!ret) return r;
+	mlog_printf(swapchain->ml, "[graph_swapchain_acquire] vkAcquireNextImageKHR = %d\n", ret);
+	return ~0;
 }
 
 static void graph_surface_attr_dump_capabilities(register mlog_s *restrict ml, register const VkSurfaceCapabilitiesKHR *restrict r)

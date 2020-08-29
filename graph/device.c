@@ -303,6 +303,7 @@ static void graph_dev_free_func(register graph_dev_s *restrict r)
 	register void *v;
 	register VkAllocationCallbacks *ga;
 	ga = &r->ga->alloc;
+	graph_dev_wait_idle(r);
 	if ((v = r->dev)) vkDestroyDevice((VkDevice) v, ga);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->g)) refer_free(v);
@@ -312,32 +313,77 @@ static void graph_dev_free_func(register graph_dev_s *restrict r)
 graph_dev_s* graph_dev_alloc(register const graph_dev_param_s *restrict param, register const struct graph_s *restrict g, register const graph_device_t *restrict gd)
 {
 	register graph_dev_s *restrict r;
+	VkDeviceCreateInfo info;
+	uint32_t i, n;
 	VkResult ret;
-	r = (graph_dev_s *) refer_alloz(sizeof(graph_dev_s));
-	if (r)
+	info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	info.pNext = NULL;
+	info.flags = 0;
+	info.queueCreateInfoCount = param->qf_number;
+	info.pQueueCreateInfos = param->queue_info;
+	info.enabledLayerCount = param->layer_number;
+	info.ppEnabledLayerNames = param->layer_list;
+	info.enabledExtensionCount = param->extension_number;
+	info.ppEnabledExtensionNames = param->extension_list;
+	info.pEnabledFeatures = &param->features;
+	for (i = n = 0; i < info.queueCreateInfoCount; ++i)
+		n += info.pQueueCreateInfos[i].queueCount;
+	if (n)
 	{
-		VkDeviceCreateInfo info;
-		refer_set_free(r, (refer_free_f) graph_dev_free_func);
-		r->ml = (mlog_s *) refer_save(g->ml);
-		r->g = (graph_s *) refer_save(g);
-		r->ga = (graph_allocator_s *) refer_save(g->ga);
-		info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		info.pNext = NULL;
-		info.flags = 0;
-		info.queueCreateInfoCount = param->qf_number;
-		info.pQueueCreateInfos = param->queue_info;
-		info.enabledLayerCount = param->layer_number;
-		info.ppEnabledLayerNames = param->layer_list;
-		info.enabledExtensionCount = param->extension_number;
-		info.ppEnabledExtensionNames = param->extension_list;
-		info.pEnabledFeatures = &param->features;
-		ret = vkCreateDevice(r->phydev = gd->phydev, &info, &r->ga->alloc, &r->dev);
-		if (ret) goto label_fail;
-		return r;
-		label_fail:
-		mlog_printf(gd->ml, "[graph_dev_alloc] vkCreateDevice = %d\n", ret);
-		refer_free(r);
+		r = (graph_dev_s *) refer_alloz(sizeof(graph_dev_s) + sizeof(graph_queue_t) * n);
+		if (r)
+		{
+			refer_set_free(r, (refer_free_f) graph_dev_free_func);
+			r->ml = (mlog_s *) refer_save(g->ml);
+			r->g = (graph_s *) refer_save(g);
+			r->ga = (graph_allocator_s *) refer_save(g->ga);
+			ret = vkCreateDevice(r->phydev = gd->phydev, &info, &r->ga->alloc, &r->dev);
+			if (ret) goto label_fail;
+			r->qf_number = info.queueCreateInfoCount;
+			r->q_number = n;
+			i = 0;
+			do {
+				for (n = 0; n < info.pQueueCreateInfos->queueCount; ++n)
+				{
+					vkGetDeviceQueue(
+						r->dev,
+						r->queue[i].qfi = info.pQueueCreateInfos->queueFamilyIndex,
+						r->queue[i].qi = n, &r->queue[i].queue
+					);
+					++i;
+				}
+				++info.pQueueCreateInfos;
+			} while (--info.queueCreateInfoCount);
+			return r;
+			label_fail:
+			mlog_printf(gd->ml, "[graph_dev_alloc] vkCreateDevice = %d\n", ret);
+			refer_free(r);
+		}
 	}
+	return NULL;
+}
+
+graph_queue_t* graph_dev_queue(register graph_dev_s *restrict dev, const graph_device_queue_t *restrict queue, uint32_t qi)
+{
+	register graph_queue_t *restrict r;
+	register uint32_t i, n;
+	i = (uint32_t) queue->index;
+	n = dev->q_number;
+	r = dev->queue;
+	do {
+		if (r->qfi == i && !qi--)
+			return r;
+		++r;
+	} while (--n);
+	return NULL;
+}
+
+graph_dev_s* graph_dev_wait_idle(register graph_dev_s *restrict dev)
+{
+	VkResult r;
+	r = vkDeviceWaitIdle(dev->dev);
+	if (!r) return dev;
+	mlog_printf(dev->ml, "[graph_dev_wait_idle] vkDeviceWaitIdle = %d\n", r);
 	return NULL;
 }
 

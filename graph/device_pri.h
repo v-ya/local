@@ -46,12 +46,21 @@ struct graph_dev_param_s {
 	VkDeviceQueueCreateInfo queue_info[];
 };
 
+struct graph_queue_t {
+	VkQueue queue;
+	uint32_t qfi;
+	uint32_t qi;
+};
+
 struct graph_dev_s {
 	mlog_s *ml;
 	graph_s *g;
 	VkDevice dev;
 	VkPhysicalDevice phydev;
 	graph_allocator_s *ga;
+	uint32_t qf_number;
+	uint32_t q_number;
+	graph_queue_t queue[];
 };
 
 #endif

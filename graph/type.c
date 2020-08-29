@@ -746,3 +746,14 @@ VkDynamicState graph_dynamic2vk(register graph_dynamic_t r)
 		return mapping[r];
 	return VK_DYNAMIC_STATE_MAX_ENUM;
 }
+
+VkSubpassContents graph_subpass_contents2vk(register graph_subpass_contents_t r)
+{
+	static const VkSubpassContents mapping[graph_subpass_contents$number] = {
+		[graph_subpass_contents_inline]    = VK_SUBPASS_CONTENTS_INLINE,
+		[graph_subpass_contents_secondary] = VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_SUBPASS_CONTENTS_INLINE;
+}

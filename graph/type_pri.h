@@ -52,5 +52,6 @@ VkAttachmentStoreOp graph_attachment_store_op2vk(graph_attachment_store_op_t r);
 VkImageLayout graph_image_layout2vk(graph_image_layout_t r);
 VkPipelineBindPoint graph_pipeline_bind_point2vk(graph_pipeline_bind_point_t r);
 VkDynamicState graph_dynamic2vk(graph_dynamic_t r);
+VkSubpassContents graph_subpass_contents2vk(graph_subpass_contents_t r);
 
 #endif

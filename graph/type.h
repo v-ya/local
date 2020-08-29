@@ -477,9 +477,45 @@ typedef enum graph_pipe_flags_e {
 } graph_pipe_flags_t;
 
 typedef enum graph_command_pool_flags_e {
-	graph_command_pool_flags_transient_bit            = 0x01,
-	graph_command_pool_flags_reset_command_buffer_bit = 0x02,
-	graph_command_pool_flags_protected_bit            = 0x04
+	graph_command_pool_flags_transient            = 0x01,
+	graph_command_pool_flags_reset_command_buffer = 0x02,
+	graph_command_pool_flags_protected            = 0x04
 } graph_command_pool_flags_t;
+
+typedef enum graph_command_buffer_usage_e {
+	graph_command_buffer_usage_one_time_submit      = 0x01,
+	graph_command_buffer_usage_render_pass_continue = 0x02,
+	graph_command_buffer_usage_simultaneous_use     = 0x04
+} graph_command_buffer_usage_t;
+
+typedef enum graph_subpass_contents_e {
+	graph_subpass_contents_inline,
+	graph_subpass_contents_secondary,
+	graph_subpass_contents$number
+} graph_subpass_contents_t;
+
+typedef enum graph_pipeline_stage_flags_e {
+	graph_pipeline_stage_flags_top_of_pipe                    = 0x00000001,
+	graph_pipeline_stage_flags_draw_indirect                  = 0x00000002,
+	graph_pipeline_stage_flags_vertex_input                   = 0x00000004,
+	graph_pipeline_stage_flags_vertex_shader                  = 0x00000008,
+	graph_pipeline_stage_flags_tessellation_control_shader    = 0x00000010,
+	graph_pipeline_stage_flags_tessellation_evaluation_shader = 0x00000020,
+	graph_pipeline_stage_flags_geometry_shader                = 0x00000040,
+	graph_pipeline_stage_flags_fragment_shader                = 0x00000080,
+	graph_pipeline_stage_flags_early_fragment_tests           = 0x00000100,
+	graph_pipeline_stage_flags_late_fragment_tests            = 0x00000200,
+	graph_pipeline_stage_flags_color_attachment_output        = 0x00000400,
+	graph_pipeline_stage_flags_compute_shader                 = 0x00000800,
+	graph_pipeline_stage_flags_transfer                       = 0x00001000,
+	graph_pipeline_stage_flags_bottom_of_pipe                 = 0x00002000,
+	graph_pipeline_stage_flags_host                           = 0x00004000,
+	graph_pipeline_stage_flags_all_graphics                   = 0x00008000,
+	graph_pipeline_stage_flags_all_commands                   = 0x00010000
+} graph_pipeline_stage_flags_t;
+
+typedef enum graph_fence_flags_e {
+	graph_fence_flags_signaled = 0x01
+} graph_fence_flags_t;
 
 #endif
