@@ -288,7 +288,7 @@ graph_render_pass_param_s* graph_render_pass_param_set_subpass(register graph_re
 graph_render_pass_param_s* graph_render_pass_param_set_subpass_color(register graph_render_pass_param_s *restrict r, uint32_t index, uint32_t n, uint32_t at_index[], graph_image_layout_t layout[])
 {
 	register VkSubpassDescription *restrict p;
-	if (index < r->sp_size && n < r->ar_size)
+	if (index < r->sp_size && n <= r->ar_size)
 	{
 		register VkAttachmentReference *pr;
 		register uint32_t i;

@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 #include "graph_pri.h"
 #include "surface_pri.h"
+#include "shader_pri.h"
 
 struct graph_image_view_param_s {
 	VkImageViewCreateFlags flags;
@@ -20,6 +21,14 @@ struct graph_image_view_s {
 	graph_dev_s *dev;
 	VkImage image;
 	VkImageView view;
+	graph_allocator_s *ga;
+};
+
+struct graph_frame_buffer_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	graph_render_pass_s *render;
+	VkFramebuffer frame_buffer;
 	graph_allocator_s *ga;
 };
 

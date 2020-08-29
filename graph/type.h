@@ -476,4 +476,10 @@ typedef enum graph_pipe_flags_e {
 	graph_pipe_flags_dispatch_base                = 0x00000010
 } graph_pipe_flags_t;
 
+typedef enum graph_command_pool_flags_e {
+	graph_command_pool_flags_transient_bit            = 0x01,
+	graph_command_pool_flags_reset_command_buffer_bit = 0x02,
+	graph_command_pool_flags_protected_bit            = 0x04
+} graph_command_pool_flags_t;
+
 #endif
