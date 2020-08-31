@@ -1,12 +1,32 @@
 #include "surface_pri.h"
 #include <xcb/xcb.h>
 #include <vulkan/vulkan_xcb.h>
+#include <stdlib.h>
 
 typedef struct graph_surface_xcb_s {
 	graph_surface_s surface;
 	xcb_connection_t *connect;
 	xcb_window_t winid;
 } graph_surface_xcb_s;
+
+static const graph_surface_s* graph_surface_xcb_geometry_func(register const graph_surface_xcb_s *restrict r, register graph_surface_geometry_t *restrict geometry)
+{
+	register xcb_get_geometry_reply_t *reply;
+	xcb_get_geometry_cookie_t cookie;
+	cookie = xcb_get_geometry_unchecked(r->connect, r->winid);
+	reply = xcb_get_geometry_reply(r->connect, cookie, NULL);
+	if (reply)
+	{
+		geometry->x = reply->x;
+		geometry->y = reply->y;
+		geometry->width = reply->width;
+		geometry->height = reply->height;
+		geometry->depth = reply->depth;
+		free(reply);
+		return &r->surface;
+	}
+	return NULL;
+}
 
 static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r)
 {
@@ -55,7 +75,10 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 				info.connection = r->connect;
 				info.window = r->winid;
 				if (graph_surface_init(&r->surface, g, (graph_surface_vk_create_f) func, &info))
+				{
+					r->surface.geometry = (graph_surface_geometry_f) graph_surface_xcb_geometry_func;
 					return &r->surface;
+				}
 				label_free:
 				refer_free(r);
 			}

@@ -64,7 +64,7 @@ graph_image_view_s* graph_image_view_alloc_by_swapchain(register const graph_ima
 			info.flags = param->flags;
 			info.image = r->image;
 			info.viewType = param->type;
-			info.format = param->format?param->format:swapchain->image_format;
+			info.format = param->format?param->format:swapchain->info->imageFormat;
 			info.components = param->components;
 			info.subresourceRange = param->range;
 			ret = vkCreateImageView(swapchain->dev->dev, &info, &r->ga->alloc, &r->view);

@@ -2,6 +2,7 @@
 #include "type_pri.h"
 #include "command_pri.h"
 #include <stdlib.h>
+#include <memory.h>
 
 const graph_s* graph_surface_init_check(const graph_s *restrict g)
 {
@@ -32,6 +33,12 @@ void graph_surface_uini(register graph_surface_s *restrict surface)
 	if ((v = surface->ga)) refer_free(v);
 	if ((v = surface->g)) refer_free(v);
 	if ((v = surface->ml)) refer_free(v);
+}
+
+static inline graph_surface_s* graph_surface_not_support(register const graph_surface_s *restrict surface, register const char *restrict func_name)
+{
+	mlog_printf(surface->ml, "[%s] surface not support\n", func_name);
+	return NULL;
 }
 
 static void graph_surface_attr_free_func(register graph_surface_attr_s *restrict r)
@@ -87,6 +94,13 @@ graph_surface_attr_s* graph_surface_attr_get(register const graph_surface_s *res
 	label_malloc:
 	mlog_printf(surface->ml, "[graph_surface_attr_get] malloc fail\n");
 	goto label_return;
+}
+
+graph_surface_s* graph_surface_geometry(register const graph_surface_s *restrict surface, register graph_surface_geometry_t *restrict geometry)
+{
+	if (surface->geometry)
+		return (graph_surface_s *) surface->geometry(surface, geometry);
+	return graph_surface_not_support(surface, "graph_surface_geometry");
 }
 
 static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register const VkPresentModeKHR *restrict p, register uint32_t n, register VkPresentModeKHR mode)
@@ -153,12 +167,15 @@ graph_swapchain_param_s* graph_swapchain_param_alloc(register graph_surface_s *r
 static void graph_swapchain_free_func(register graph_swapchain_s *restrict r)
 {
 	register void *v;
+	// if ((v = r->info->oldSwapchain))
+	// 	vkDestroySwapchainKHR(r->dev->dev, (VkSwapchainKHR) v, &r->ga->alloc);
 	if ((v = r->swapchain))
 		vkDestroySwapchainKHR(r->dev->dev, (VkSwapchainKHR) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->surface)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
+	if ((v = r->info)) free(v);
 	if ((v = r->image_array)) free(v);
 }
 
@@ -171,23 +188,31 @@ graph_swapchain_s* graph_swapchain_alloc(register const graph_swapchain_param_s 
 		r = (graph_swapchain_s *) refer_alloz(sizeof(graph_swapchain_s));
 		if (r)
 		{
-			refer_set_free(r, (refer_free_f) graph_swapchain_free_func);
-			if (!dev) dev = param->dev;
-			r->ml = (mlog_s *) refer_save(dev->ml);
-			r->ga = (graph_allocator_s *) refer_save(dev->ga);
-			r->dev = (graph_dev_s *) refer_save(dev);
-			r->surface = (graph_surface_s *) refer_save(param->surface);
-			ret = vkCreateSwapchainKHR(dev->dev, &param->info, &r->ga->alloc, &r->swapchain);
-			if (ret) goto label_fail;
-			ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, NULL);
-			if (ret) goto label_image;
-			r->image_array = (VkImage *) malloc(sizeof(VkImage) * r->image_number);
-			if (!r->image_array) goto label_malloc;
-			ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, r->image_array);
-			if (ret) goto label_image;
-			r->image_format = param->info.imageFormat;
-			r->image_size = param->info.imageExtent;
-			return r;
+			r->info = malloc(sizeof(VkSwapchainCreateInfoKHR) + sizeof(uint32_t) * param->info.queueFamilyIndexCount);
+			if (r->info)
+			{
+				refer_set_free(r, (refer_free_f) graph_swapchain_free_func);
+				memcpy(r->info, &param->info, sizeof(VkSwapchainCreateInfoKHR));
+				r->info->pQueueFamilyIndices = NULL;
+				if (param->info.queueFamilyIndexCount)
+					r->info->pQueueFamilyIndices = (uint32_t *) memcpy(r->info + 1,
+						param->info.pQueueFamilyIndices,
+						sizeof(uint32_t) * param->info.queueFamilyIndexCount);
+				if (!dev) dev = param->dev;
+				r->ml = (mlog_s *) refer_save(dev->ml);
+				r->ga = (graph_allocator_s *) refer_save(dev->ga);
+				r->dev = (graph_dev_s *) refer_save(dev);
+				r->surface = (graph_surface_s *) refer_save(param->surface);
+				ret = vkCreateSwapchainKHR(dev->dev, r->info, &r->ga->alloc, &r->swapchain);
+				if (ret) goto label_fail;
+				ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, NULL);
+				if (ret) goto label_image;
+				r->image_array = (VkImage *) malloc(sizeof(VkImage) * r->image_number);
+				if (!r->image_array) goto label_malloc;
+				ret = vkGetSwapchainImagesKHR(dev->dev, r->swapchain, &r->image_number, r->image_array);
+				if (ret) goto label_image;
+				return r;
+			}
 			label_free:
 			refer_free(r);
 		}
@@ -204,6 +229,59 @@ graph_swapchain_s* graph_swapchain_alloc(register const graph_swapchain_param_s 
 	goto label_free;
 }
 
+graph_swapchain_s* graph_swapchain_rebulid(register graph_swapchain_s *restrict swapchain)
+{
+	register VkSwapchainCreateInfoKHR *restrict info;
+	VkImage *image_array;
+	graph_surface_geometry_t geometry;
+	uint32_t n;
+	VkResult ret;
+	info = swapchain->info;
+	if (graph_surface_geometry(swapchain->surface, &geometry) && geometry.width && geometry.height)
+	{
+		if (geometry.width != info->imageExtent.width || geometry.height != info->imageExtent.height)
+		{
+			info->imageExtent.width = geometry.width;
+			info->imageExtent.height = geometry.height;
+			swapchain->info->oldSwapchain = swapchain->swapchain;
+			ret = vkCreateSwapchainKHR(swapchain->dev->dev, swapchain->info, &swapchain->ga->alloc, &swapchain->swapchain);
+			if (!ret)
+			{
+				image_array = NULL;
+				ret = vkGetSwapchainImagesKHR(swapchain->dev->dev, swapchain->swapchain, &n, NULL);
+				if (ret) goto label_image;
+				image_array = (VkImage *) malloc(sizeof(VkImage) * n);
+				if (!image_array) goto label_malloc;
+				ret = vkGetSwapchainImagesKHR(swapchain->dev->dev, swapchain->swapchain, &n, image_array);
+				if (ret) goto label_image;
+				swapchain->image_number = n;
+				free(swapchain->image_array);
+				swapchain->image_array = image_array;
+				vkDestroySwapchainKHR(swapchain->dev->dev, swapchain->info->oldSwapchain, &swapchain->ga->alloc);
+				swapchain->info->oldSwapchain = NULL;
+			}
+			else
+			{
+				mlog_printf(swapchain->ml, "[graph_swapchain_rebulid] vkCreateSwapchainKHR = %d\n", ret);
+				label_swap:
+				swapchain->swapchain = swapchain->info->oldSwapchain;
+				swapchain->info->oldSwapchain = NULL;
+				goto label_fail;
+				label_image:
+				if (image_array) free(image_array);
+				mlog_printf(swapchain->ml, "[graph_swapchain_rebulid] vkGetSwapchainImagesKHR = %d\n", ret);
+				goto label_swap;
+				label_malloc:
+				mlog_printf(swapchain->ml, "[graph_swapchain_rebulid] malloc fail\n");
+				goto label_swap;
+			}
+		}
+		return swapchain;
+	}
+	label_fail:
+	return NULL;
+}
+
 uint32_t graph_swapchain_image_number(register const graph_swapchain_s *restrict swapchain)
 {
 	return swapchain->image_number;
@@ -211,15 +289,17 @@ uint32_t graph_swapchain_image_number(register const graph_swapchain_s *restrict
 
 graph_format_t graph_swapchain_format(register const graph_swapchain_s *restrict swapchain)
 {
-	return graph_format4vk(swapchain->image_format);
+	return graph_format4vk(swapchain->info->imageFormat);
 }
 
 void graph_swapchain_info(register const graph_swapchain_s *restrict swapchain, uint32_t *restrict image_number, graph_format_t *restrict format, uint32_t *restrict width, uint32_t *restrict height)
 {
+	register const VkSwapchainCreateInfoKHR *restrict info;
+	info = swapchain->info;
 	if (image_number) *image_number = swapchain->image_number;
-	if (format) *format = graph_format4vk(swapchain->image_format);
-	if (width) *width = swapchain->image_size.width;
-	if (height) *height = swapchain->image_size.height;
+	if (format) *format = graph_format4vk(info->imageFormat);
+	if (width) *width = info->imageExtent.width;
+	if (height) *height = info->imageExtent.height;
 }
 
 uint32_t graph_swapchain_acquire(register graph_swapchain_s *restrict swapchain, uint64_t timeout, struct graph_semaphore_s *restrict semaphore, struct graph_fence_s *restrict fence)

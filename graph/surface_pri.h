@@ -6,11 +6,14 @@
 #include "graph_pri.h"
 #include "device_pri.h"
 
+typedef const graph_surface_s* (*graph_surface_geometry_f)(const graph_surface_s *restrict surface, graph_surface_geometry_t *restrict geometry);
+
 struct graph_surface_s {
 	mlog_s *ml;
 	graph_s *g;
 	VkSurfaceKHR surface;
 	graph_allocator_s *ga;
+	graph_surface_geometry_f geometry;
 };
 
 struct graph_surface_attr_s {
@@ -37,10 +40,9 @@ struct graph_swapchain_s {
 	graph_surface_s *surface;
 	VkSwapchainKHR swapchain;
 	graph_allocator_s *ga;
+	VkSwapchainCreateInfoKHR *info;
 	VkImage *image_array;
 	uint32_t image_number;
-	VkFormat image_format;
-	VkExtent2D image_size;
 };
 
 typedef VkResult (*graph_surface_vk_create_f)(VkInstance instance, const void *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkSurfaceKHR *pSurface);
