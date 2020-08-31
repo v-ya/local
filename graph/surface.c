@@ -140,8 +140,8 @@ graph_swapchain_param_s* graph_swapchain_param_alloc(register graph_surface_s *r
 			r->info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 			if (graph_surface_attr_test_VkPresentModeKHR(attr->modes, attr->mode_number, VK_PRESENT_MODE_MAILBOX_KHR))
 				r->info.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-			else if (graph_surface_attr_test_VkPresentModeKHR(attr->modes, attr->mode_number, VK_PRESENT_MODE_IMMEDIATE_KHR))
-				r->info.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+			else if (graph_surface_attr_test_VkPresentModeKHR(attr->modes, attr->mode_number, VK_PRESENT_MODE_FIFO_KHR))
+				r->info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 			else r->info.presentMode = *attr->modes;
 			r->info.clipped = VK_TRUE;
 			r->info.oldSwapchain = NULL;
