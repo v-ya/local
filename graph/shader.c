@@ -66,6 +66,35 @@ graph_vertex_input_description_s* graph_vertex_input_description_alloc(uint32_t 
 	return r;
 }
 
+void graph_vertex_input_description_set_bind(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate)
+{
+	if (index < desc->bind_size)
+	{
+		register VkVertexInputBindingDescription *restrict p;
+		p = desc->bind + index;
+		p->binding = binding;
+		p->stride = stride;
+		p->inputRate = graph_vertex_input_rate2vk(irate);
+		if (index >= desc->bind_number)
+			desc->bind_number = index + 1;
+	}
+}
+
+void graph_vertex_input_description_set_attr(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format)
+{
+	if (index < desc->attr_size)
+	{
+		register VkVertexInputAttributeDescription *restrict p;
+		p = desc->attr + index;
+		p->location = location;
+		p->binding = binding;
+		p->format = graph_format2vk(format);
+		p->offset = offset;
+		if (index >= desc->attr_number)
+			desc->attr_number = index + 1;
+	}
+}
+
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number)
 {
 	register graph_viewports_scissors_s *restrict r;

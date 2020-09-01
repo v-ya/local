@@ -301,10 +301,8 @@ void graph_dev_param_feature_enable_all(register graph_dev_param_s *restrict par
 static void graph_dev_free_func(register graph_dev_s *restrict r)
 {
 	register void *v;
-	register VkAllocationCallbacks *ga;
-	ga = &r->ga->alloc;
 	graph_dev_wait_idle(r);
-	if ((v = r->dev)) vkDestroyDevice((VkDevice) v, ga);
+	if ((v = r->dev)) vkDestroyDevice((VkDevice) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->g)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);

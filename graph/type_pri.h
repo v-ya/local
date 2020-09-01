@@ -42,6 +42,7 @@ char* graph_surface_transform$list(char *restrict s, graph_surface_transform_t r
 // 64 bytes
 char* graph_composite_alpha$list(char *restrict s, graph_composite_alpha_t r);
 
+VkVertexInputRate graph_vertex_input_rate2vk(graph_vertex_input_rate_t r);
 VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r);
 VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r);
 VkBlendFactor graph_blend_factor2vk(graph_blend_factor_t r);

@@ -3,6 +3,8 @@
 #include "surface_pri.h"
 #include "shader_pri.h"
 #include "image_pri.h"
+#include "buffer_pri.h"
+#include <alloca.h>
 
 static void graph_command_pool_free_func(register graph_command_pool_s *restrict r)
 {
@@ -142,6 +144,36 @@ void graph_command_bind_pipe(register graph_command_pool_s *restrict r, uint32_t
 	}
 	else if (ia < r->primary_size)
 		vkCmdBindPipeline(r->primary[ia], tp, pipe->pipe);
+}
+
+graph_command_pool_s* graph_command_bind_vertex_buffers(register graph_command_pool_s *restrict r, uint32_t ia, uint32_t first_binding, uint32_t n, const struct graph_buffer_s *const restrict *restrict buffers, const uint64_t *restrict offsets)
+{
+	VkBuffer *b;
+	VkDeviceSize *o;
+	if (n)
+	{
+		b = (VkBuffer *) alloca(sizeof(VkBuffer) * n);
+		o = (VkDeviceSize *) alloca(sizeof(VkDeviceSize) * n);
+		if (b && o)
+		{
+			register uint32_t i;
+			for (i = 0; i < n; ++i)
+			{
+				b[i] = buffers[i]->buffer;
+				o[i] = offsets[i];
+			}
+			if (!~ia)
+			{
+				for (ia = 0; ia < r->primary_size; ++ia)
+					vkCmdBindVertexBuffers(r->primary[ia], first_binding, n, b, o);
+			}
+			else if (ia < r->primary_size)
+				vkCmdBindVertexBuffers(r->primary[ia], first_binding, n, b, o);
+			return r;
+		
+		}
+	}
+	return NULL;
 }
 
 void graph_command_draw(register graph_command_pool_s *restrict r, uint32_t ia, uint32_t v_number, uint32_t i_number, uint32_t v_start, uint32_t i_start)

@@ -318,6 +318,12 @@ typedef enum graph_shader_type_e {
 	graph_shader_type_compute                 = 0x0020
 } graph_shader_type_t;
 
+typedef enum graph_vertex_input_rate_e {
+	graph_vertex_input_rate_vertex,
+	graph_vertex_input_rate_instance,
+	graph_vertex_input_rate$number
+} graph_vertex_input_rate_t;
+
 typedef enum graph_primitive_topology_e {
 	graph_primitive_topology_point_list,
 	graph_primitive_topology_line_list,
@@ -517,5 +523,41 @@ typedef enum graph_pipeline_stage_flags_e {
 typedef enum graph_fence_flags_e {
 	graph_fence_flags_signaled = 0x01
 } graph_fence_flags_t;
+
+typedef enum graph_buffer_flags_e {
+	graph_buffer_flags_sparse_binding                = 0x01,
+	graph_buffer_flags_sparse_residency              = 0x02,
+	graph_buffer_flags_sparse_aliased                = 0x04,
+	graph_buffer_flags_protected                     = 0x08,
+	graph_buffer_flags_device_address_capture_replay = 0x10
+} graph_buffer_flags_t;
+
+typedef enum graph_buffer_usage_e {
+	graph_buffer_usage_transfer_src                          = 0x00000001,
+	graph_buffer_usage_transfer_dst                          = 0x00000002,
+	graph_buffer_usage_uniform_texel_buffer                  = 0x00000004,
+	graph_buffer_usage_storage_texel_buffer                  = 0x00000008,
+	graph_buffer_usage_uniform_buffer                        = 0x00000010,
+	graph_buffer_usage_storage_buffer                        = 0x00000020,
+	graph_buffer_usage_index_buffer                          = 0x00000040,
+	graph_buffer_usage_vertex_buffer                         = 0x00000080,
+	graph_buffer_usage_indirect_buffer                       = 0x00000100,
+	graph_buffer_usage_conditional_rendering_ext             = 0x00000200,
+	graph_buffer_usage_ray_tracing_khr                       = 0x00000400,
+	graph_buffer_usage_transform_feedback_buffer_ext         = 0x00000800,
+	graph_buffer_usage_transform_feedback_counter_buffer_ext = 0x00001000,
+	graph_buffer_usage_shader_device_address                 = 0x00020000
+} graph_buffer_usage_t;
+
+typedef enum graph_memory_property_e {
+	graph_memory_property_device_local        = 0x01,
+	graph_memory_property_host_visible        = 0x02,
+	graph_memory_property_host_coherent       = 0x04,
+	graph_memory_property_host_cached         = 0x08,
+	graph_memory_property_lazily_allocated    = 0x10,
+	graph_memory_property_protected           = 0x20,
+	graph_memory_property_device_coherent_amd = 0x40,
+	graph_memory_property_device_uncached_amd = 0x80
+} graph_memory_property_t;
 
 #endif

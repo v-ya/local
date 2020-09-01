@@ -23,6 +23,8 @@ struct graph_dev_s;
 graph_shader_s* graph_shader_alloc(struct graph_dev_s *restrict dev, const void *restrict code, size_t size);
 
 graph_vertex_input_description_s* graph_vertex_input_description_alloc(uint32_t bind_number, uint32_t attr_number);
+void graph_vertex_input_description_set_bind(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate);
+void graph_vertex_input_description_set_attr(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format);
 
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number);
 graph_viewports_scissors_s* graph_viewports_scissors_append_viewport(graph_viewports_scissors_s *restrict r, float x, float y, float w, float h, float dmin, float dmax);

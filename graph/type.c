@@ -577,6 +577,17 @@ char* graph_composite_alpha$list(register char *restrict s, register graph_compo
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
+VkVertexInputRate graph_vertex_input_rate2vk(register graph_vertex_input_rate_t r)
+{
+	static const VkVertexInputRate mapping[graph_vertex_input_rate$number] = {
+		[graph_vertex_input_rate_vertex]   = VK_VERTEX_INPUT_RATE_VERTEX,
+		[graph_vertex_input_rate_instance] = VK_VERTEX_INPUT_RATE_INSTANCE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_VERTEX_INPUT_RATE_MAX_ENUM;
+}
+
 VkPrimitiveTopology graph_primitive_topology2vk(register graph_primitive_topology_t r)
 {
 	static const VkPrimitiveTopology mapping[graph_primitive_topology$number] = {
