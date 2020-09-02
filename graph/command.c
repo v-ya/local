@@ -198,6 +198,24 @@ void graph_command_end_render(register graph_command_pool_s *restrict r, uint32_
 		vkCmdEndRenderPass(r->primary[ia]);
 }
 
+void graph_command_copy_buffer(register graph_command_pool_s *restrict r, uint32_t ia, struct graph_buffer_s *restrict dst, const struct graph_buffer_s *restrict src, uint64_t dst_offset, uint64_t src_offset, uint64_t size)
+{
+	VkBuffer s, d;
+	VkBufferCopy copy;
+	copy.srcOffset = src_offset;
+	copy.dstOffset = dst_offset;
+	copy.size = size;
+	s = src->buffer;
+	d = dst->buffer;
+	if (!~ia)
+	{
+		for (ia = 0; ia < r->primary_size; ++ia)
+			vkCmdCopyBuffer(r->primary[ia], s, d, 1, &copy);
+	}
+	else if (ia < r->primary_size)
+		vkCmdCopyBuffer(r->primary[ia], s, d, 1, &copy);
+}
+
 struct graph_queue_t* graph_queue_submit(struct graph_queue_t *restrict queue, graph_command_pool_s *restrict pool, uint32_t index, graph_semaphore_s *restrict wait, graph_semaphore_s *restrict signal, graph_fence_s *restrict fence, graph_pipeline_stage_flags_t wait_mask)
 {
 	VkSubmitInfo info;
