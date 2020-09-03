@@ -7,8 +7,8 @@ HEADER		= phoneme_type.h phoneme_output.h phoneme_arg.h phoneme_pool.h phoneme.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -lpthread -lm -Wl,-soname,${TARGET-LIB}
-LDFLAGS-RES	= -shared -lrefer -ldylink -lm -L. -lphoneme -Wl,-soname,${TARGET-RES}
+LDFLAGS-LIB	= -shared -lm -lpthread -lrefer -lhashmap -ljson -lmlog -ldylink -lnote -soname ${TARGET-LIB}
+LDFLAGS-RES	= -shared -lm -lrefer -ldylink -L. -lphoneme -soname ${TARGET-RES}
 LDFLAGS-BIN	= -lrefer -lhashmap -lmlog -largs -lwav -L. -lphoneme -lphonemeres
 
 OBJECT-LIB	= phoneme_type.o phoneme_output.o phoneme_arg.o phoneme_pool.o phoneme.o phoneme_script.o
@@ -23,10 +23,10 @@ OBJECT-BIN	= phoneme-entry.o phoneme-entry-arg.o
 all: ${TARGET}
 
 ${TARGET-LIB}: ${OBJECT-LIB}
-	${CC} ${LDFLAGS-LIB} -o $@ ${OBJECT-LIB}
+	${LD} ${LDFLAGS-LIB} -o $@ ${OBJECT-LIB}
 
 ${TARGET-RES}: ${OBJECT-RES} ${TARGET-LIB}
-	${CC} ${LDFLAGS-RES} -o $@ ${OBJECT-RES}
+	${LD} ${LDFLAGS-RES} -o $@ ${OBJECT-RES}
 
 ${TARGET-BIN}: ${OBJECT-BIN} ${TARGET-LIB} ${TARGET-RES}
 	${CC} ${LDFLAGS-BIN} -o $@ ${OBJECT-BIN}

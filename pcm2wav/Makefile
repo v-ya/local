@@ -17,7 +17,7 @@ ${TARGET}: ${OBJECT}
 
 clear:
 	rm -f ${TARGET} *.o
-install: ${TARGET} ${HEADER}
+install: ${TARGET}
 	sudo cp ${TARGET} /usr/local/bin/
 uninstall:
 	sudo rm -f $(addprefix /usr/local/bin/, ${TARGET})

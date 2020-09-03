@@ -6,7 +6,7 @@ HEADER		= phloop.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS-LIB	= -shared -lrefer -lphonemeres -lphoneme -laudioloop -Wl,-soname,${TARGET-LIB}
+LDFLAGS-LIB	= -shared -lrefer -lphonemeres -lphoneme -laudioloop -soname ${TARGET-LIB}
 LDFLAGS-BIN	= -lrefer -lhashmap -lmlog -largs -lphoneme -L. -lphloop
 
 OBJECT-LIB	= phloop.o
@@ -20,7 +20,7 @@ OBJECT-BIN	= phloop-entry.o phloop-entry-arg.o
 all: ${TARGET}
 
 ${TARGET-LIB}: ${OBJECT-LIB}
-	${CC} ${LDFLAGS-LIB} -o $@ $^
+	${LD} ${LDFLAGS-LIB} -o $@ $^
 
 ${TARGET-BIN}: ${OBJECT-BIN} ${TARGET-LIB}
 	${CC} ${LDFLAGS-BIN} -o $@ ${OBJECT-BIN}

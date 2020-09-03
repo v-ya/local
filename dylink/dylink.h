@@ -2,6 +2,7 @@
 #define _dylink_h_
 
 #include <stdint.h>
+#include <stddef.h>
 #include <sys/types.h>
 
 #ifdef __GNUC__
@@ -11,6 +12,9 @@
 #  define dyl_export(_r,_n)  dyl_global(_n);\
 				dyl_alias(_r,_n)
 #endif
+
+void* xmem_alloc(size_t size);
+int xmem_free(void *xmem, size_t size);
 
 #define dylink_mechine_x86_64  "dyl.X86_64"
 

@@ -89,3 +89,11 @@ mlog_s* mlog_clear(mlog_s *restrict r)
 	return r;
 }
 
+// report func
+
+int mlog_report_stdout_func(const char *restrict msg, size_t length, refer_t pri)
+{
+	if (length) fwrite(msg, 1, length, stdout);
+	return 1;
+}
+

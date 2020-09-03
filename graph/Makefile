@@ -4,7 +4,7 @@ HEADER		= graph.h allocator.h support.h device.h surface.h image.h shader.h comm
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lhashmap -lmlog -lvulkan -lxcb -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lrefer -lhashmap -lmlog -lvulkan -lxcb -soname ${TARGET}
 
 OBJECT		= graph.o allocator.o support.o device.o surface.o surface_xcb.o image.o shader.o command.o buffer.o type.o vulkan_debug.o system.o
 
@@ -14,7 +14,7 @@ OBJECT		= graph.o allocator.o support.o device.o surface.o surface_xcb.o image.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

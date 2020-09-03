@@ -4,7 +4,7 @@ HEADER		= mlog.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lrefer -soname ${TARGET}
 
 OBJECT		= mlog.o
 
@@ -14,7 +14,7 @@ OBJECT		= mlog.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

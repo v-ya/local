@@ -1,5 +1,5 @@
 #define _DEFAULT_SOURCE
-#include "xmem.h"
+#include "dylink.h"
 #ifdef __unix__
 #include <sys/mman.h>
 

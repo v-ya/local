@@ -4,7 +4,7 @@ HEADER		= rbtree.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lhashmap -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lhashmap -soname ${TARGET}
 
 OBJECT		= rbtree.o
 
@@ -14,7 +14,7 @@ OBJECT		= rbtree.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

@@ -18,4 +18,6 @@ mlog_s* mlog_expand(mlog_s *restrict r);
 mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...) __attribute__ ((__format__ (__printf__, 2, 0)));
 mlog_s* mlog_clear(mlog_s *restrict r);
 
+int mlog_report_stdout_func(const char *restrict msg, size_t length, refer_t pri);
+
 #endif

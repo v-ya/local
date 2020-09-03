@@ -4,7 +4,7 @@ HEADER		= scatterplot.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lbmp -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lrefer -lbmp -soname ${TARGET}
 
 OBJECT		= scatterplot.o
 
@@ -14,7 +14,7 @@ OBJECT		= scatterplot.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

@@ -4,12 +4,6 @@
 #include <wav.h>
 #include <stdio.h>
 
-static int mlog_report_func(const char *restrict msg, size_t length, refer_t pri)
-{
-	if (length) fwrite(msg, 1, length, stdout);
-	return 1;
-}
-
 int main(int argc, const char *argv[])
 {
 	mlog_s *mlog;
@@ -24,7 +18,7 @@ int main(int argc, const char *argv[])
 		mlog = mlog_alloc(0);
 		if (mlog)
 		{
-			mlog_set_report(mlog, (mlog_report_f) mlog_report_func, NULL);
+			mlog_set_report(mlog, mlog_report_stdout_func, NULL);
 			r = args_init(&args, argc, argv);
 			if (r > 0) r = 0;
 			else if (!r && !(r = args_check(&args)))

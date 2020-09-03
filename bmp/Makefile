@@ -4,7 +4,7 @@ HEADER		= bmp.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
-LDFLAGS		= -shared -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -soname ${TARGET}
 
 OBJECT		= bmp.o
 
@@ -14,7 +14,7 @@ OBJECT		= bmp.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

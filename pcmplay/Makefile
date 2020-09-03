@@ -6,7 +6,7 @@ HEADER		= pcmplay.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS-LIB	= -shared -lrefer -lasound -Wl,-soname,${TARGET-LIB}
+LDFLAGS-LIB	= -shared -lrefer -lasound -soname ${TARGET-LIB}
 LDFLAGS-BIN	= -lrefer -lwav -L. -lpcmplay
 
 OBJECT-LIB	= pcmplay.o
@@ -20,7 +20,7 @@ OBJECT-BIN	= pcmplay-entry.o
 all: ${TARGET}
 
 ${TARGET-LIB}: ${OBJECT-LIB}
-	${CC} ${LDFLAGS-LIB} -o $@ $^
+	${LD} ${LDFLAGS-LIB} -o $@ $^
 
 ${TARGET-BIN}: ${OBJECT-BIN} ${TARGET-LIB}
 	${CC} ${LDFLAGS-BIN} -o $@ ${OBJECT-BIN}

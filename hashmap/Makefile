@@ -4,7 +4,7 @@ HEADER		= hashmap.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -soname ${TARGET}
 
 OBJECT		= hashmap.o
 
@@ -14,7 +14,7 @@ OBJECT		= hashmap.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o

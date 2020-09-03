@@ -4,7 +4,7 @@ HEADER		= note.h note_details.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lm -Wl,-soname,${TARGET}
+LDFLAGS		= -shared -lm -lrefer -soname ${TARGET}
 
 OBJECT		= note.o note_details.o
 
@@ -14,7 +14,7 @@ OBJECT		= note.o note_details.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${CC} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
 	rm -f ${TARGET} *.o
