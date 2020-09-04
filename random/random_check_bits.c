@@ -34,7 +34,7 @@ random_check_define_layer_dump(bits)
 
 random_check_s* random_check_layer_bits(random_check_s *restrict rc, uint32_t bits)
 {
-	if (bits && bits < 16)
+	if (bits && bits <= 24)
 	{
 		register struct random_check_layer_bits_s *restrict r;
 		register uint32_t n;
