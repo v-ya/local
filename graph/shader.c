@@ -1,4 +1,5 @@
 #include "shader_pri.h"
+#include "layout_pri.h"
 #include "type_pri.h"
 #include "system.h"
 
@@ -201,46 +202,6 @@ graph_pipe_color_blend_s* graph_pipe_color_blend_append_attachment(
 		p->colorWriteMask = (VkColorComponentFlags) mask;
 		r->info.attachmentCount = ++r->at_number;
 		return r;
-	}
-	return NULL;
-}
-
-void graph_pipe_layout_free_func(register graph_pipe_layout_s *restrict r)
-{
-	register void *v;
-	if ((v = r->layout)) vkDestroyPipelineLayout(r->dev->dev, (VkPipelineLayout) v, &r->ga->alloc);
-	if ((v = r->ml)) refer_free(v);
-	if ((v = r->dev)) refer_free(v);
-	if ((v = r->ga)) refer_free(v);
-}
-
-graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restrict dev, register const graph_pipe_layout_param_s *restrict param)
-{
-	register graph_pipe_layout_s *restrict r;
-	VkPipelineLayoutCreateInfo info;
-	VkResult ret;
-	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	info.pNext = NULL;
-	info.flags = 0;
-	info.setLayoutCount = 0;
-	info.pSetLayouts = NULL;
-	info.pushConstantRangeCount = 0;
-	info.pPushConstantRanges = NULL;
-	r = (graph_pipe_layout_s *) refer_alloz(sizeof(graph_pipe_layout_s));
-	if (r)
-	{
-		refer_set_free(r, (refer_free_f) graph_pipe_layout_free_func);
-		r->ml = (mlog_s *) refer_save(dev->ml);
-		r->dev = (graph_dev_s *) refer_save(dev);
-		r->ga = (graph_allocator_s *) refer_save(dev->ga);
-		if (param)
-		{
-			;
-		}
-		ret = vkCreatePipelineLayout(dev->dev, &info, &r->ga->alloc, &r->layout);
-		if (!ret) return r;
-		mlog_printf(r->ml, "[graph_pipe_layout_alloc] vkCreatePipelineLayout = %d\n", ret);
-		refer_free(r);
 	}
 	return NULL;
 }
@@ -698,7 +659,7 @@ graph_gpipe_param_s* graph_gpipe_param_set_dynamic(register graph_gpipe_param_s 
 	return NULL;
 }
 
-void graph_gpipe_param_set_layout(register graph_gpipe_param_s *restrict r, register const graph_pipe_layout_s *restrict layout)
+void graph_gpipe_param_set_layout(register graph_gpipe_param_s *restrict r, register const struct graph_pipe_layout_s *restrict layout)
 {
 	r->pi = NULL;
 	r->info.layout = NULL;

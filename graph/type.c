@@ -729,6 +729,26 @@ VkImageLayout graph_image_layout2vk(register graph_image_layout_t r)
 	return VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
+VkDescriptorType graph_desc_type2vk(register graph_desc_type_t r)
+{
+	static const VkDescriptorType mapping[graph_desc_type$number] = {
+		[graph_desc_type_sampler]                = VK_DESCRIPTOR_TYPE_SAMPLER,
+		[graph_desc_type_combined_image_sampler] = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		[graph_desc_type_sampled_image]          = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+		[graph_desc_type_storage_image]          = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+		[graph_desc_type_uniform_texel_buffer]   = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+		[graph_desc_type_storage_texel_buffer]   = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+		[graph_desc_type_uniform_buffer]         = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		[graph_desc_type_storage_buffer]         = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+		[graph_desc_type_uniform_buffer_dynamic] = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+		[graph_desc_type_storage_buffer_dynamic] = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+		[graph_desc_type_input_attachment]       = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+}
+
 VkPipelineBindPoint graph_pipeline_bind_point2vk(register graph_pipeline_bind_point_t r)
 {
 	static const VkPipelineBindPoint mapping[graph_pipeline_bind_point$number] = {
@@ -767,4 +787,15 @@ VkSubpassContents graph_subpass_contents2vk(register graph_subpass_contents_t r)
 	if ((uint32_t) r < graph_array_number(mapping))
 		return mapping[r];
 	return VK_SUBPASS_CONTENTS_INLINE;
+}
+
+VkIndexType graph_index_type2vk(register graph_index_type_t r)
+{
+	static const VkIndexType mapping[graph_index_type$number] = {
+		[graph_index_type_uint16] = VK_INDEX_TYPE_UINT16,
+		[graph_index_type_uint32] = VK_INDEX_TYPE_UINT32
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_INDEX_TYPE_MAX_ENUM;
 }

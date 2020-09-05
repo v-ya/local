@@ -27,8 +27,8 @@ struct graph_vertex_input_description_s {
 
 struct graph_viewports_scissors_s {
 	uint32_t viewport_size;
-	uint32_t viewport_number;
 	uint32_t scissor_size;
+	uint32_t viewport_number;
 	uint32_t scissor_number;
 	VkViewport *viewports;
 	VkRect2D *scissors;
@@ -39,17 +39,6 @@ struct graph_pipe_color_blend_s {
 	uint32_t at_number;
 	VkPipelineColorBlendStateCreateInfo info;
 	VkPipelineColorBlendAttachmentState attachment[];
-};
-
-struct graph_pipe_layout_param_s {
-	;
-};
-
-struct graph_pipe_layout_s {
-	mlog_s *ml;
-	graph_dev_s *dev;
-	VkPipelineLayout layout;
-	graph_allocator_s *ga;
 };
 
 struct graph_render_pass_param_s {
@@ -100,7 +89,7 @@ struct graph_gpipe_param_s {
 	graph_vertex_input_description_s *vertex;
 	graph_viewports_scissors_s *viewports_scissors;
 	graph_pipe_color_blend_s *color_blend;
-	graph_pipe_layout_s *pipe_layout;
+	struct graph_pipe_layout_s *pipe_layout;
 	graph_render_pass_s *render;
 	VkGraphicsPipelineCreateInfo info;
 	VkPipelineVertexInputStateCreateInfo vertex_input;

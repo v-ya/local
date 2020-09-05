@@ -262,28 +262,28 @@ typedef enum graph_present_mode_e {
 } graph_present_mode_t;
 
 typedef enum graph_image_usage_e {
-    graph_image_usage_transfer_src             = 0x0001,
-    graph_image_usage_transfer_dst             = 0x0002,
-    graph_image_usage_sampled                  = 0x0004,
-    graph_image_usage_storage                  = 0x0008,
-    graph_image_usage_color_attachment         = 0x0010,
-    graph_image_usage_depth_stencil_attachment = 0x0020,
-    graph_image_usage_transient_attachment     = 0x0040,
-    graph_image_usage_input_attachment         = 0x0080,
-    graph_image_usage_shading_rate_image_nv    = 0x0100,
-    graph_image_usage_fragment_density_map_ext = 0x0200
+	graph_image_usage_transfer_src             = 0x0001,
+	graph_image_usage_transfer_dst             = 0x0002,
+	graph_image_usage_sampled                  = 0x0004,
+	graph_image_usage_storage                  = 0x0008,
+	graph_image_usage_color_attachment         = 0x0010,
+	graph_image_usage_depth_stencil_attachment = 0x0020,
+	graph_image_usage_transient_attachment     = 0x0040,
+	graph_image_usage_input_attachment         = 0x0080,
+	graph_image_usage_shading_rate_image_nv    = 0x0100,
+	graph_image_usage_fragment_density_map_ext = 0x0200
 } graph_image_usage_t;
 
 
 typedef enum graph_image_view_type_e {
-    graph_image_view_type_1D,
-    graph_image_view_type_2D,
-    graph_image_view_type_3D,
-    graph_image_view_type_cube,
-    graph_image_view_type_1D_array,
-    graph_image_view_type_2D_array,
-    graph_image_view_type_cube_array,
-    graph_image_view_type$number
+	graph_image_view_type_1D,
+	graph_image_view_type_2D,
+	graph_image_view_type_3D,
+	graph_image_view_type_cube,
+	graph_image_view_type_1D_array,
+	graph_image_view_type_2D_array,
+	graph_image_view_type_cube_array,
+	graph_image_view_type$number
 } graph_image_view_type_t;
 
 typedef enum graph_sharing_mode_e {
@@ -303,10 +303,10 @@ typedef enum graph_surface_transform_e {
 } graph_surface_transform_t;
 
 typedef enum graph_composite_alpha_e {
-    graph_composite_alpha_opaque          = 0x01,
-    graph_composite_alpha_pre_multiplied  = 0x02,
-    graph_composite_alpha_post_multiplied = 0x04,
-    graph_composite_alpha_inherit         = 0x08
+	graph_composite_alpha_opaque          = 0x01,
+	graph_composite_alpha_pre_multiplied  = 0x02,
+	graph_composite_alpha_post_multiplied = 0x04,
+	graph_composite_alpha_inherit         = 0x08
 } graph_composite_alpha_t;
 
 typedef enum graph_shader_type_e {
@@ -354,8 +354,8 @@ typedef enum graph_cull_mode_flags_e {
 } graph_cull_mode_flags_t;
 
 typedef enum graph_front_face_e {
-    graph_front_face_counter_clockwise = 0,
-    graph_front_face_clockwise         = 1
+	graph_front_face_counter_clockwise = 0,
+	graph_front_face_clockwise         = 1
 } graph_front_face_t;
 
 typedef enum graph_sample_count_e {
@@ -442,23 +442,53 @@ typedef enum graph_attachment_store_op_e {
 } graph_attachment_store_op_t;
 
 typedef enum graph_image_layout_e {
-    graph_image_layout_unknow,
-    graph_image_layout_general,
-    graph_image_layout_color_attachment_optimal,
-    graph_image_layout_depth_stencil_attachment_optimal,
-    graph_image_layout_depth_stencil_read_only_optimal,
-    graph_image_layout_shader_read_only_optimal,
-    graph_image_layout_transfer_src_optimal,
-    graph_image_layout_transfer_dst_optimal,
-    graph_image_layout_preinitialized,
-    graph_image_layout_khr_present_src,
-    graph_image_layout$number
+	graph_image_layout_unknow,
+	graph_image_layout_general,
+	graph_image_layout_color_attachment_optimal,
+	graph_image_layout_depth_stencil_attachment_optimal,
+	graph_image_layout_depth_stencil_read_only_optimal,
+	graph_image_layout_shader_read_only_optimal,
+	graph_image_layout_transfer_src_optimal,
+	graph_image_layout_transfer_dst_optimal,
+	graph_image_layout_preinitialized,
+	graph_image_layout_khr_present_src,
+	graph_image_layout$number
 } graph_image_layout_t;
 
+typedef enum graph_desc_set_layout_flags_e {
+	graph_desc_set_layout_flags_push_descriptor        = 0x01,
+	graph_desc_set_layout_flags_update_after_bind_pool = 0x02
+} graph_desc_set_layout_flags_t;
+
+typedef enum graph_desc_type_e {
+	graph_desc_type_sampler,
+	graph_desc_type_combined_image_sampler,
+	graph_desc_type_sampled_image,
+	graph_desc_type_storage_image,
+	graph_desc_type_uniform_texel_buffer,
+	graph_desc_type_storage_texel_buffer,
+	graph_desc_type_uniform_buffer,
+	graph_desc_type_storage_buffer,
+	graph_desc_type_uniform_buffer_dynamic,
+	graph_desc_type_storage_buffer_dynamic,
+	graph_desc_type_input_attachment,
+	graph_desc_type$number
+} graph_desc_type_t;
+
+typedef enum graph_shader_stage_flags_e {
+	graph_shader_stage_flags_vertex                  = 0x00000001,
+	graph_shader_stage_flags_tessellation_control    = 0x00000002,
+	graph_shader_stage_flags_tessellation_evaluation = 0x00000004,
+	graph_shader_stage_flags_geometry                = 0x00000008,
+	graph_shader_stage_flags_fragment                = 0x00000010,
+	graph_shader_stage_flags_compute                 = 0x00000020,
+	graph_shader_stage_flags_all_graphics            = 0x0000001f
+} graph_shader_stage_flags_t;
+
 typedef enum graph_pipeline_bind_point_e {
-    graph_pipeline_bind_point_graphics,
-    graph_pipeline_bind_point_compute,
-    graph_pipeline_bind_point$number
+	graph_pipeline_bind_point_graphics,
+	graph_pipeline_bind_point_compute,
+	graph_pipeline_bind_point$number
 } graph_pipeline_bind_point_t;
 
 typedef enum graph_dynamic_e {
@@ -559,5 +589,11 @@ typedef enum graph_memory_property_e {
 	graph_memory_property_device_coherent_amd = 0x40,
 	graph_memory_property_device_uncached_amd = 0x80
 } graph_memory_property_t;
+
+typedef enum graph_index_type_e {
+	graph_index_type_uint16,
+	graph_index_type_uint32,
+	graph_index_type$number
+} graph_index_type_t;
 
 #endif

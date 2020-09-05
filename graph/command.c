@@ -176,6 +176,26 @@ graph_command_pool_s* graph_command_bind_vertex_buffers(register graph_command_p
 	return NULL;
 }
 
+graph_command_pool_s* graph_command_bind_index_buffer(register graph_command_pool_s *restrict r, uint32_t ia, const struct graph_buffer_s *restrict buffer, uint64_t offset, graph_index_type_t type)
+{
+	VkBuffer b;
+	VkIndexType t;
+	if ((uint32_t) type < graph_index_type$number)
+	{
+		b = buffer->buffer;
+		t = graph_index_type2vk(type);
+		if (!~ia)
+		{
+			for (ia = 0; ia < r->primary_size; ++ia)
+				vkCmdBindIndexBuffer(r->primary[ia], b, offset, t);
+		}
+		else if (ia < r->primary_size)
+			vkCmdBindIndexBuffer(r->primary[ia], b, offset, t);
+		return r;
+	}
+	return NULL;
+}
+
 void graph_command_draw(register graph_command_pool_s *restrict r, uint32_t ia, uint32_t v_number, uint32_t i_number, uint32_t v_start, uint32_t i_start)
 {
 	if (!~ia)
@@ -185,6 +205,17 @@ void graph_command_draw(register graph_command_pool_s *restrict r, uint32_t ia, 
 	}
 	else if (ia < r->primary_size)
 		vkCmdDraw(r->primary[ia], v_number, i_number, v_start, i_start);
+}
+
+void graph_command_draw_index(register graph_command_pool_s *restrict r, uint32_t ia, uint32_t idx_number, uint32_t i_number, uint32_t idx_start, uint32_t v_start, uint32_t i_start)
+{
+	if (!~ia)
+	{
+		for (ia = 0; ia < r->primary_size; ++ia)
+			vkCmdDrawIndexed(r->primary[ia], idx_number, i_number, idx_start, v_start, i_start);
+	}
+	else if (ia < r->primary_size)
+		vkCmdDrawIndexed(r->primary[ia], idx_number, i_number, idx_start, v_start, i_start);
 }
 
 void graph_command_end_render(register graph_command_pool_s *restrict r, uint32_t ia)

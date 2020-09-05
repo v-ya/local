@@ -9,8 +9,6 @@ typedef struct graph_shader_spec_s graph_shader_spec_s;
 typedef struct graph_vertex_input_description_s graph_vertex_input_description_s;
 typedef struct graph_viewports_scissors_s graph_viewports_scissors_s;
 typedef struct graph_pipe_color_blend_s graph_pipe_color_blend_s;
-typedef struct graph_pipe_layout_param_s graph_pipe_layout_param_s;
-typedef struct graph_pipe_layout_s graph_pipe_layout_s;
 typedef struct graph_render_pass_param_s graph_render_pass_param_s;
 typedef struct graph_render_pass_s graph_render_pass_s;
 typedef struct graph_pipe_cache_s graph_pipe_cache_s;
@@ -18,6 +16,7 @@ typedef struct graph_pipe_s graph_pipe_s;
 typedef struct graph_gpipe_param_s graph_gpipe_param_s;
 
 struct graph_dev_s;
+struct graph_pipe_layout_s;
 
 // size == 0 (code => path), size > 0 (code => data)
 graph_shader_s* graph_shader_alloc(struct graph_dev_s *restrict dev, const void *restrict code, size_t size);
@@ -34,8 +33,6 @@ graph_pipe_color_blend_s* graph_pipe_color_blend_alloc(uint32_t attachment_numbe
 void graph_pipe_color_blend_set_logic(graph_pipe_color_blend_s *restrict r, graph_bool_t logic_op, graph_logic_op_t op);
 void graph_pipe_color_blend_set_constants(graph_pipe_color_blend_s *restrict r, float constants[4]);
 graph_pipe_color_blend_s* graph_pipe_color_blend_append_attachment(graph_pipe_color_blend_s *restrict r, graph_bool_t enable, graph_color_component_mask_t mask, graph_blend_factor_t s_color, graph_blend_factor_t d_color, graph_blend_op_t op_color, graph_blend_factor_t s_alpha, graph_blend_factor_t d_alpha, graph_blend_op_t op_alpha);
-
-graph_pipe_layout_s* graph_pipe_layout_alloc(struct graph_dev_s *restrict dev, const graph_pipe_layout_param_s *restrict param);
 
 graph_render_pass_param_s* graph_render_pass_param_alloc(uint32_t attachment_number, uint32_t subpass_number, uint32_t dependency_number, uint32_t aref_number);
 graph_render_pass_param_s* graph_render_pass_param_set_attachment(graph_render_pass_param_s *restrict r, uint32_t index, graph_format_t format, graph_sample_count_t sample, graph_attachment_load_op_t load, graph_attachment_store_op_t store, graph_attachment_load_op_t stencil_load, graph_attachment_store_op_t stencil_store, graph_image_layout_t initial, graph_image_layout_t final);
@@ -62,7 +59,7 @@ void graph_gpipe_param_set_multisample_min_sample_shading(graph_gpipe_param_s *r
 void graph_gpipe_param_set_multisample_alpha2coverage(graph_gpipe_param_s *restrict r, graph_bool_t alpha2coverage);
 void graph_gpipe_param_set_multisample_alpha2one(graph_gpipe_param_s *restrict r, graph_bool_t alpha2one);
 graph_gpipe_param_s* graph_gpipe_param_set_dynamic(graph_gpipe_param_s *restrict r, uint32_t n, const graph_dynamic_t dynamic[]);
-void graph_gpipe_param_set_layout(graph_gpipe_param_s *restrict r, const graph_pipe_layout_s *restrict layout);
+void graph_gpipe_param_set_layout(graph_gpipe_param_s *restrict r, const struct graph_pipe_layout_s *restrict layout);
 void graph_gpipe_param_set_render(graph_gpipe_param_s *restrict r, const graph_render_pass_s *restrict render, uint32_t subpass_index);
 graph_gpipe_param_s* graph_gpipe_param_ok(graph_gpipe_param_s *restrict r);
 
