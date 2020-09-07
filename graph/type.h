@@ -475,6 +475,11 @@ typedef enum graph_desc_type_e {
 	graph_desc_type$number
 } graph_desc_type_t;
 
+typedef enum graph_desc_pool_flags_e {
+	graph_desc_pool_flags_free_descriptor_set = 0x01,
+	graph_desc_pool_flags_update_after_bind   = 0x02
+} graph_desc_pool_flags_t;
+
 typedef enum graph_shader_stage_flags_e {
 	graph_shader_stage_flags_vertex                  = 0x00000001,
 	graph_shader_stage_flags_tessellation_control    = 0x00000002,

@@ -40,4 +40,19 @@ struct graph_pipe_layout_s {
 	graph_allocator_s *ga;
 };
 
+struct graph_descriptor_pool_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkDescriptorPool pool;
+	graph_allocator_s *ga;
+};
+
+struct graph_descriptor_sets_s {
+	graph_descriptor_pool_s *pool;
+	uint32_t number;
+	uint32_t res;
+	graph_descriptor_set_layout_s **layout;
+	VkDescriptorSet *set;
+};
+
 #endif

@@ -8,6 +8,8 @@ typedef struct graph_descriptor_set_layout_param_s graph_descriptor_set_layout_p
 typedef struct graph_descriptor_set_layout_s graph_descriptor_set_layout_s;
 typedef struct graph_pipe_layout_param_s graph_pipe_layout_param_s;
 typedef struct graph_pipe_layout_s graph_pipe_layout_s;
+typedef struct graph_descriptor_pool_s graph_descriptor_pool_s;
+typedef struct graph_descriptor_sets_s graph_descriptor_sets_s;
 
 struct graph_dev_s;
 struct graph_sampler_s;
@@ -22,5 +24,8 @@ graph_pipe_layout_param_s* graph_pipe_layout_param_append_set_layout(graph_pipe_
 graph_pipe_layout_param_s* graph_pipe_layout_param_append_range(graph_pipe_layout_param_s *restrict param, graph_shader_stage_flags_t flags, uint32_t offset, uint32_t size);
 
 graph_pipe_layout_s* graph_pipe_layout_alloc(struct graph_dev_s *restrict dev, const graph_pipe_layout_param_s *restrict param);
+
+graph_descriptor_pool_s* graph_descriptor_pool_alloc(struct graph_dev_s *restrict dev, graph_desc_pool_flags_t flags, uint32_t max_sets, uint32_t pool_size_number, graph_desc_type_t pool_type[], uint32_t pool_desc_number[]);
+graph_descriptor_sets_s* graph_descriptor_sets_alloc(graph_descriptor_pool_s *restrict pool, uint32_t number, graph_descriptor_set_layout_s *set_layout[]);
 
 #endif

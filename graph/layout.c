@@ -1,5 +1,6 @@
 #include "layout_pri.h"
 #include "type_pri.h"
+#include <alloca.h>
 
 static void graph_descriptor_set_layout_param_free_func(register graph_descriptor_set_layout_param_s *restrict r)
 {
@@ -187,3 +188,110 @@ graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restri
 	return NULL;
 }
 
+static void graph_descriptor_pool_free_func(register graph_descriptor_pool_s *restrict r)
+{
+	register void *v;
+	if ((v = r->pool)) vkDestroyDescriptorPool(r->dev->dev, (VkDescriptorPool) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_descriptor_pool_s* graph_descriptor_pool_alloc(register struct graph_dev_s *restrict dev, graph_desc_pool_flags_t flags, uint32_t max_sets, uint32_t pool_size_number, graph_desc_type_t pool_type[], uint32_t pool_desc_number[])
+{
+	register graph_descriptor_pool_s *restrict r;
+	register VkDescriptorPoolSize *restrict p;
+	VkDescriptorPoolCreateInfo info;
+	VkResult ret;
+	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	info.pNext = NULL;
+	info.flags = (VkDescriptorPoolCreateFlags) flags;
+	info.maxSets = max_sets;
+	info.poolSizeCount = pool_size_number;
+	info.pPoolSizes = NULL;
+	if (pool_size_number)
+	{
+		p = (VkDescriptorPoolSize *) alloca(sizeof(VkDescriptorPoolSize) * pool_size_number);
+		if (!p) goto label_fail;
+		for (max_sets = 0; max_sets < pool_size_number; ++max_sets)
+		{
+			if (pool_type[max_sets] >= graph_desc_type$number)
+				goto label_type;
+			p->type = graph_desc_type2vk(pool_type[max_sets]);
+			p->descriptorCount = pool_desc_number[max_sets];
+		}
+		info.pPoolSizes = p;
+	}
+	r = (graph_descriptor_pool_s *) refer_alloz(sizeof(graph_descriptor_pool_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_descriptor_pool_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreateDescriptorPool(dev->dev, &info, &r->ga->alloc, &r->pool);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_descriptor_pool_alloc] vkCreateDescriptorPool = %d\n", ret);
+		refer_free(r);
+	}
+	label_fail:
+	return NULL;
+	label_type:
+	mlog_printf(dev->ml, "[graph_descriptor_pool_alloc] not find pool_type[%u] = %d\n", max_sets, pool_type[max_sets]);
+	goto label_fail;
+}
+
+static void graph_descriptor_sets_free_func(register graph_descriptor_sets_s *restrict r)
+{
+	register refer_t v;
+	register uint32_t i;
+	if (r->pool) refer_free(r->pool);
+	for (i = 0; i < r->number; ++i)
+	{
+		if ((v = r->layout[i]))
+			refer_free(v);
+	}
+}
+
+graph_descriptor_sets_s* graph_descriptor_sets_alloc(register graph_descriptor_pool_s *restrict pool, uint32_t number, graph_descriptor_set_layout_s *set_layout[])
+{
+	register graph_descriptor_sets_s *restrict r;
+	register VkDescriptorSetLayout *restrict p;
+	VkDescriptorSetAllocateInfo info;
+	uint32_t i;
+	VkResult ret;
+	if (number)
+	{
+		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		info.pNext = NULL;
+		info.descriptorPool = pool->pool;
+		info.descriptorSetCount = number;
+		p = (VkDescriptorSetLayout *) alloca(sizeof(VkDescriptorSetLayout) * number);
+		if (p)
+		{
+			info.pSetLayouts = p;
+			r = (graph_descriptor_sets_s *) refer_alloc(sizeof(graph_descriptor_sets_s) +
+				(sizeof(graph_descriptor_set_layout_s *) + sizeof(VkDescriptorSet)) * number);
+			if (r)
+			{
+				refer_set_free(r, (refer_free_f) graph_descriptor_sets_free_func);
+				r->pool = (graph_descriptor_pool_s *) refer_save(pool);
+				r->number = number;
+				r->res = 0;
+				r->layout = (graph_descriptor_set_layout_s **) (r + 1);
+				r->set = (VkDescriptorSet *) (r->layout + number);
+				for (i = 0; i < number; ++i)
+				{
+					p[i] = set_layout[i]->set_layout;
+					r->layout[i] = (graph_descriptor_set_layout_s *) refer_save(set_layout[i]);
+					r->set[i] = NULL;
+				}
+				ret = vkAllocateDescriptorSets(pool->dev->dev, &info, r->set);
+				if (!ret) return r;
+				mlog_printf(pool->ml, "[graph_descriptor_set_alloc] vkAllocateDescriptorSets = %d\n", ret);
+				refer_free(r);
+			}
+		}
+	}
+	return NULL;
+}
