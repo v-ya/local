@@ -55,4 +55,23 @@ struct graph_descriptor_sets_s {
 	VkDescriptorSet *set;
 };
 
+struct graph_descriptor_sets_info_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	graph_descriptor_sets_s *sets;
+	VkWriteDescriptorSet *write;
+	VkCopyDescriptorSet *copy;
+	VkDescriptorImageInfo *image;
+	VkDescriptorBufferInfo *buffer;
+	VkBufferView *view;
+	uint32_t write_size;
+	uint32_t copy_size;
+	uint32_t write_number;
+	uint32_t copy_number;
+	uint32_t image_size;
+	uint32_t buffer_size;
+	uint32_t view_size;
+	uint32_t res;
+};
+
 #endif

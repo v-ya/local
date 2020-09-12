@@ -16,6 +16,8 @@ struct graph_pipe_s;
 struct graph_swapchain_s;
 struct graph_frame_buffer_s;
 struct graph_buffer_s;
+struct graph_pipe_layout_s;
+struct graph_descriptor_sets_s;
 
 graph_command_pool_s* graph_command_pool_alloc(struct graph_dev_s *restrict dev, const struct graph_device_queue_t *restrict queue, graph_command_pool_flags_t flags, uint32_t number);
 // ia: (~0) all, ((index = ia) < number) index
@@ -25,6 +27,7 @@ void graph_command_begin_render(graph_command_pool_s *restrict r, uint32_t ia, c
 void graph_command_bind_pipe(graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_bind_point_t type, const struct graph_pipe_s *restrict pipe);
 graph_command_pool_s* graph_command_bind_vertex_buffers(graph_command_pool_s *restrict r, uint32_t ia, uint32_t first_binding, uint32_t n, const struct graph_buffer_s *const restrict *restrict buffers, const uint64_t *restrict offsets);
 graph_command_pool_s* graph_command_bind_index_buffer(graph_command_pool_s *restrict r, uint32_t ia, const struct graph_buffer_s *restrict buffer, uint64_t offset, graph_index_type_t type);
+graph_command_pool_s* graph_command_bind_desc_sets(graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_bind_point_t point, const struct graph_pipe_layout_s *restrict layout, const struct graph_descriptor_sets_s *restrict sets, uint32_t set_start, uint32_t set_number, uint32_t dy_offset_number, const uint32_t *restrict dy_offset);
 void graph_command_draw(graph_command_pool_s *restrict r, uint32_t ia, uint32_t v_number, uint32_t i_number, uint32_t v_start, uint32_t i_start);
 void graph_command_draw_index(graph_command_pool_s *restrict r, uint32_t ia, uint32_t idx_number, uint32_t i_number, uint32_t idx_start, uint32_t v_start, uint32_t i_start);
 void graph_command_end_render(graph_command_pool_s *restrict r, uint32_t ia);

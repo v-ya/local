@@ -1,5 +1,7 @@
 #include "layout_pri.h"
+#include "buffer_pri.h"
 #include "type_pri.h"
+#include <memory.h>
 #include <alloca.h>
 
 static void graph_descriptor_set_layout_param_free_func(register graph_descriptor_set_layout_param_s *restrict r)
@@ -294,4 +296,104 @@ graph_descriptor_sets_s* graph_descriptor_sets_alloc(register graph_descriptor_p
 		}
 	}
 	return NULL;
+}
+
+static void graph_descriptor_sets_info_free_func(register graph_descriptor_sets_info_s *restrict r)
+{
+	register void *v;
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->sets)) refer_free(v);
+}
+
+graph_descriptor_sets_info_s* graph_descriptor_sets_info_alloc(register graph_descriptor_sets_s *restrict sets, uint32_t n_write, uint32_t n_copy, uint32_t n_image_info, uint32_t n_buffer_info, uint32_t n_buffer_view)
+{
+	register graph_descriptor_sets_info_s *restrict r;
+	size_t size;
+	size = sizeof(graph_descriptor_sets_info_s);
+	size += sizeof(VkWriteDescriptorSet) * n_write;
+	size += sizeof(VkCopyDescriptorSet) * n_copy;
+	size += sizeof(VkDescriptorImageInfo) * n_image_info;
+	size += sizeof(VkDescriptorBufferInfo) * n_buffer_info;
+	size += sizeof(VkBufferView) * n_buffer_view;
+	r = (graph_descriptor_sets_info_s *) refer_alloc(size);
+	if (r)
+	{
+		r->ml = (mlog_s *) refer_save(sets->pool->ml);
+		r->dev = (graph_dev_s *) refer_save(sets->pool->dev);
+		r->sets = (graph_descriptor_sets_s *) refer_save(sets);
+		r->write = (VkWriteDescriptorSet *) (r + 1);
+		r->copy = (VkCopyDescriptorSet *) (r->write + n_write);
+		r->image = (VkDescriptorImageInfo *) (r->copy + n_copy);
+		r->buffer = (VkDescriptorBufferInfo *) (r->image + n_image_info);
+		r->view = (VkBufferView *) (r->buffer + n_buffer_info);
+		r->write_size = n_write;
+		r->copy_size = n_copy;
+		r->write_number = 0;
+		r->copy_number = 0;
+		r->image_size = n_image_info;
+		r->buffer_size = n_buffer_info;
+		r->view_size = n_buffer_view;
+		r->res = 0;
+		refer_set_free(r, (refer_free_f) graph_descriptor_sets_info_free_func);
+	}
+	return r;
+}
+
+uint32_t graph_descriptor_sets_info_append_write(register graph_descriptor_sets_info_s *restrict info, uint32_t set_index, uint32_t binding, graph_desc_type_t type, uint32_t offset, uint32_t count)
+{
+	register VkWriteDescriptorSet *restrict p;
+	register void *restrict v;
+	uint32_t r;
+	if ((r = info->write_number) < info->write_size && set_index < info->sets->number && count)
+	{
+		p = info->write + r;
+		p->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		p->pNext = NULL;
+		p->dstSet = info->sets->set[set_index];
+		p->dstBinding = binding;
+		p->dstArrayElement = offset;
+		p->descriptorCount = count;
+		p->descriptorType = graph_desc_type2vk(type);
+		p->pImageInfo = NULL;
+		p->pBufferInfo = NULL;
+		p->pTexelBufferView = NULL;
+		switch (type)
+		{
+			case graph_desc_type_uniform_buffer:
+				if (info->buffer_size < count)
+					goto label_fail;
+				p->pBufferInfo = v = info->buffer + (info->buffer_size -= count);
+				memset(v, 0, sizeof(VkDescriptorBufferInfo) * count);
+				break;
+			default:
+				goto label_fail;
+		}
+		info->write_number = r + 1;
+		return r;
+	}
+	label_fail:
+	return ~0;
+}
+
+void graph_descriptor_sets_info_set_write_buffer_info(register graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t buffer_info_index, const struct graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+{
+	register VkWriteDescriptorSet *restrict w;
+	register VkDescriptorBufferInfo *restrict p;
+	if (write_index < info->write_number && buffer_info_index < (w = info->write + write_index)->descriptorCount)
+	{
+		p = (VkDescriptorBufferInfo *) w->pBufferInfo + buffer_info_index;
+		p->buffer = buffer->buffer;
+		if (offset > buffer->require.size) offset = buffer->require.size;
+		if (size > buffer->require.size - offset) size = buffer->require.size - offset;
+		p->offset = offset;
+		p->range = size;
+	}
+}
+
+void graph_descriptor_sets_info_update(register graph_descriptor_sets_info_s *restrict info)
+{
+	vkUpdateDescriptorSets(info->dev->dev,
+		info->write_number, info->write_number?info->write:NULL,
+		info->copy_number, info->copy_number?info->copy:NULL);
 }

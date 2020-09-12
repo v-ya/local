@@ -4,6 +4,7 @@
 #include "shader_pri.h"
 #include "image_pri.h"
 #include "buffer_pri.h"
+#include "layout_pri.h"
 #include <alloca.h>
 
 static void graph_command_pool_free_func(register graph_command_pool_s *restrict r)
@@ -191,6 +192,28 @@ graph_command_pool_s* graph_command_bind_index_buffer(register graph_command_poo
 		}
 		else if (ia < r->primary_size)
 			vkCmdBindIndexBuffer(r->primary[ia], b, offset, t);
+		return r;
+	}
+	return NULL;
+}
+
+graph_command_pool_s* graph_command_bind_desc_sets(register graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_bind_point_t point, const struct graph_pipe_layout_s *restrict layout, const struct graph_descriptor_sets_s *restrict sets, uint32_t set_start, uint32_t set_number, uint32_t dy_offset_number, const uint32_t *restrict dy_offset)
+{
+	if ((uint32_t) point < graph_pipeline_bind_point$number && set_start + set_number <= sets->number)
+	{
+		const VkDescriptorSet *s;
+		VkPipelineBindPoint bp;
+		VkPipelineLayout ly;
+		bp = graph_pipeline_bind_point2vk(point);
+		ly = layout->layout;
+		s = sets->set + set_start;
+		if (!~ia)
+		{
+			for (ia = 0; ia < r->primary_size; ++ia)
+				vkCmdBindDescriptorSets(r->primary[ia], bp, ly, 0, set_number, s, dy_offset_number, dy_offset);
+		}
+		else if (ia < r->primary_size)
+			vkCmdBindDescriptorSets(r->primary[ia], bp, ly, 0, set_number, s, dy_offset_number, dy_offset);
 		return r;
 	}
 	return NULL;
