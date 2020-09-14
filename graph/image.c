@@ -2,6 +2,103 @@
 #include "type_pri.h"
 #include <memory.h>
 
+static void graph_image_info_init_data(VkImageCreateInfo *restrict info, const graph_image_param_s *restrict param)
+{
+	static VkImageCreateInfo s_info = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.imageType = VK_IMAGE_TYPE_MAX_ENUM,
+		.format = VK_FORMAT_UNDEFINED,
+		.extent = {1, 1, 1},
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = VK_SAMPLE_COUNT_1_BIT,
+		.tiling = VK_IMAGE_TILING_OPTIMAL,
+		.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = NULL,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+	};
+	if (!param) memcpy(info, &s_info, sizeof(s_info));
+	else memcpy(info, &param->info, sizeof(param->info));
+}
+
+static void graph_image_free_func(register graph_image_s *restrict r)
+{
+	register refer_t v;
+	if ((v = r->image))
+		vkDestroyImage(r->dev->dev, (VkImage) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+static graph_image_s* graph_image_alloc(register graph_dev_s *restrict dev, const VkImageCreateInfo *restrict info)
+{
+	register graph_image_s *restrict r;
+	VkResult ret;
+	r = (graph_image_s *) refer_alloz(sizeof(graph_image_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_image_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreateImage(dev->dev, info, &r->ga->alloc, &r->image);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_image_alloc] vkCreateImage = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}
+
+graph_image_s* graph_image_alloc_1d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t length, const graph_image_param_s *restrict param)
+{
+	VkImageCreateInfo info;
+	if (format < graph_format$number && length)
+	{
+		graph_image_info_init_data(&info, param);
+		info.imageType = VK_IMAGE_TYPE_1D;
+		info.format = graph_format2vk(format);
+		info.extent.width = length;
+		return graph_image_alloc(dev, &info);
+	}
+	return NULL;
+}
+
+graph_image_s* graph_image_alloc_2d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t width, uint32_t height, const graph_image_param_s *restrict param)
+{
+	VkImageCreateInfo info;
+	if (format < graph_format$number && width && height)
+	{
+		graph_image_info_init_data(&info, param);
+		info.imageType = VK_IMAGE_TYPE_2D;
+		info.format = graph_format2vk(format);
+		info.extent.width = width;
+		info.extent.height = height;
+		return graph_image_alloc(dev, &info);
+	}
+	return NULL;
+}
+
+graph_image_s* graph_image_alloc_3d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t width, uint32_t height, uint32_t depth, const graph_image_param_s *restrict param)
+{
+	VkImageCreateInfo info;
+	if (format < graph_format$number && width && height && depth)
+	{
+		graph_image_info_init_data(&info, param);
+		info.imageType = VK_IMAGE_TYPE_3D;
+		info.format = graph_format2vk(format);
+		info.extent.width = width;
+		info.extent.height = height;
+		info.extent.depth = depth;
+		return graph_image_alloc(dev, &info);
+	}
+	return NULL;
+}
+
 graph_image_view_param_s* graph_image_view_param_alloc(graph_image_view_type_t type)
 {
 	register graph_image_view_param_s *restrict r;

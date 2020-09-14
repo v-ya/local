@@ -7,6 +7,17 @@
 #include "surface_pri.h"
 #include "shader_pri.h"
 
+struct graph_image_param_s {
+	VkImageCreateInfo info;
+};
+
+struct graph_image_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkImage image;
+	graph_allocator_s *ga;
+};
+
 struct graph_image_view_param_s {
 	VkImageViewCreateFlags flags;
 	VkImageViewType type;
