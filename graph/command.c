@@ -270,6 +270,67 @@ void graph_command_copy_buffer(register graph_command_pool_s *restrict r, uint32
 		vkCmdCopyBuffer(r->primary[ia], s, d, 1, &copy);
 }
 
+graph_command_pool_s* graph_command_copy_buffer_to_image(register graph_command_pool_s *restrict r, uint32_t ia, struct graph_image_s *restrict dst, const struct graph_buffer_s *restrict src, graph_image_layout_t layout, uint64_t buffer_offset, graph_image_aspect_flags_t flags, const int32_t *restrict image_offset, const uint32_t *restrict image_extent)
+{
+	VkBuffer s;
+	VkImage d;
+	VkBufferImageCopy copy;
+	VkImageLayout ly;
+	if ((uint32_t) layout < graph_image_layout$number)
+	{
+		copy.bufferOffset = buffer_offset;
+		copy.bufferRowLength = 0;
+		copy.bufferImageHeight = 0;
+		copy.imageSubresource.aspectMask = (VkImageAspectFlags) flags;
+		copy.imageSubresource.mipLevel = 0;
+		copy.imageSubresource.baseArrayLayer = 0;
+		copy.imageSubresource.layerCount = 1;
+		copy.imageOffset.x = 0;
+		copy.imageOffset.y = 0;
+		copy.imageOffset.z = 0;
+		copy.imageExtent = dst->extent;
+		if (image_offset) switch (dst->type)
+		{
+			case VK_IMAGE_TYPE_3D:
+				copy.imageOffset.z = image_offset[2];
+				// fall through
+			case VK_IMAGE_TYPE_2D:
+				copy.imageOffset.y = image_offset[1];
+				// fall through
+			case VK_IMAGE_TYPE_1D:
+				copy.imageOffset.x = image_offset[0];
+				// fall through
+			default:
+				break;
+		}
+		if (image_extent) switch (dst->type)
+		{
+			case VK_IMAGE_TYPE_3D:
+				copy.imageExtent.depth = image_extent[2];
+				// fall through
+			case VK_IMAGE_TYPE_2D:
+				copy.imageExtent.height = image_extent[1];
+				// fall through
+			case VK_IMAGE_TYPE_1D:
+				copy.imageExtent.width = image_extent[0];
+				// fall through
+			default:
+				break;
+		}
+		s = src->buffer;
+		d = dst->image;
+		ly = graph_image_layout2vk(layout);
+		if (!~ia)
+		{
+			for (ia = 0; ia < r->primary_size; ++ia)
+				vkCmdCopyBufferToImage(r->primary[ia], s, d, ly, 1, &copy);
+		}
+		else if (ia < r->primary_size)
+			vkCmdCopyBufferToImage(r->primary[ia], s, d, ly, 1, &copy);
+	}
+	return NULL;
+}
+
 struct graph_queue_t* graph_queue_submit(struct graph_queue_t *restrict queue, graph_command_pool_s *restrict pool, uint32_t index, graph_semaphore_s *restrict wait, graph_semaphore_s *restrict signal, graph_fence_s *restrict fence, graph_pipeline_stage_flags_t wait_mask)
 {
 	VkSubmitInfo info;

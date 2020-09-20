@@ -601,4 +601,18 @@ typedef enum graph_index_type_e {
 	graph_index_type$number
 } graph_index_type_t;
 
+typedef enum graph_image_aspect_flags_e {
+	graph_image_aspect_flags_color          = 0x0001,
+	graph_image_aspect_flags_depth          = 0x0002,
+	graph_image_aspect_flags_stencil        = 0x0004,
+	graph_image_aspect_flags_metadata       = 0x0008,
+	graph_image_aspect_flags_plane_0        = 0x0010,
+	graph_image_aspect_flags_plane_1        = 0x0020,
+	graph_image_aspect_flags_plane_2        = 0x0040,
+	graph_image_aspect_flags_memory_plane_0 = 0x0080,
+	graph_image_aspect_flags_memory_plane_1 = 0x0100,
+	graph_image_aspect_flags_memory_plane_2 = 0x0200,
+	graph_image_aspect_flags_memory_plane_3 = 0x0400
+} graph_image_aspect_flags_t;
+
 #endif

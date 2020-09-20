@@ -1,4 +1,5 @@
 #include "image_pri.h"
+#include "buffer_pri.h"
 #include "type_pri.h"
 #include <memory.h>
 
@@ -30,31 +31,48 @@ static void graph_image_free_func(register graph_image_s *restrict r)
 	register refer_t v;
 	if ((v = r->image))
 		vkDestroyImage(r->dev->dev, (VkImage) v, &r->ga->alloc);
+	if ((v = r->memory))
+		vkFreeMemory(r->dev->dev, (VkDeviceMemory) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
+	if ((v = r->heap)) refer_free(v);
 }
 
-static graph_image_s* graph_image_alloc(register graph_dev_s *restrict dev, const VkImageCreateInfo *restrict info)
+static graph_image_s* graph_image_alloc(register struct graph_memory_heap_s *restrict heap, const VkImageCreateInfo *restrict info)
 {
 	register graph_image_s *restrict r;
+	VkDevice device;
 	VkResult ret;
 	r = (graph_image_s *) refer_alloz(sizeof(graph_image_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) graph_image_free_func);
-		r->ml = (mlog_s *) refer_save(dev->ml);
-		r->dev = (graph_dev_s *) refer_save(dev);
-		r->ga = (graph_allocator_s *) refer_save(dev->ga);
-		ret = vkCreateImage(dev->dev, info, &r->ga->alloc, &r->image);
-		if (!ret) return r;
-		mlog_printf(r->ml, "[graph_image_alloc] vkCreateImage = %d\n", ret);
+		r->ml = (mlog_s *) refer_save(heap->ml);
+		r->dev = (graph_dev_s *) refer_save(heap->dev);
+		r->ga = (graph_allocator_s *) refer_save(heap->ga);
+		r->heap = (graph_memory_heap_s *) refer_save(heap);
+		ret = vkCreateImage(device = r->dev->dev, info, &r->ga->alloc, &r->image);
+		if (!ret)
+		{
+			r->type = info->imageType;
+			r->extent = info->extent;
+			vkGetImageMemoryRequirements(device, r->image, &r->require);
+			r->memory = graph_memory_alloc(heap, &r->require, graph_memory_property_device_local);
+			if (r->memory)
+			{
+				ret = vkBindImageMemory(device, r->image, r->memory, 0);
+				if (!ret) return r;
+				mlog_printf(r->ml, "[graph_image_alloc] vkBindImageMemory = %d\n", ret);
+			}
+		}
+		else mlog_printf(r->ml, "[graph_image_alloc] vkCreateImage = %d\n", ret);
 		refer_free(r);
 	}
 	return NULL;
 }
 
-graph_image_s* graph_image_alloc_1d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t length, const graph_image_param_s *restrict param)
+graph_image_s* graph_image_alloc_1d(struct graph_memory_heap_s *restrict heap, graph_format_t format, uint32_t length, const graph_image_param_s *restrict param)
 {
 	VkImageCreateInfo info;
 	if (format < graph_format$number && length)
@@ -63,12 +81,12 @@ graph_image_s* graph_image_alloc_1d(struct graph_dev_s *restrict dev, graph_form
 		info.imageType = VK_IMAGE_TYPE_1D;
 		info.format = graph_format2vk(format);
 		info.extent.width = length;
-		return graph_image_alloc(dev, &info);
+		return graph_image_alloc(heap, &info);
 	}
 	return NULL;
 }
 
-graph_image_s* graph_image_alloc_2d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t width, uint32_t height, const graph_image_param_s *restrict param)
+graph_image_s* graph_image_alloc_2d(struct graph_memory_heap_s *restrict heap, graph_format_t format, uint32_t width, uint32_t height, const graph_image_param_s *restrict param)
 {
 	VkImageCreateInfo info;
 	if (format < graph_format$number && width && height)
@@ -78,12 +96,12 @@ graph_image_s* graph_image_alloc_2d(struct graph_dev_s *restrict dev, graph_form
 		info.format = graph_format2vk(format);
 		info.extent.width = width;
 		info.extent.height = height;
-		return graph_image_alloc(dev, &info);
+		return graph_image_alloc(heap, &info);
 	}
 	return NULL;
 }
 
-graph_image_s* graph_image_alloc_3d(struct graph_dev_s *restrict dev, graph_format_t format, uint32_t width, uint32_t height, uint32_t depth, const graph_image_param_s *restrict param)
+graph_image_s* graph_image_alloc_3d(struct graph_memory_heap_s *restrict heap, graph_format_t format, uint32_t width, uint32_t height, uint32_t depth, const graph_image_param_s *restrict param)
 {
 	VkImageCreateInfo info;
 	if (format < graph_format$number && width && height && depth)
@@ -94,7 +112,7 @@ graph_image_s* graph_image_alloc_3d(struct graph_dev_s *restrict dev, graph_form
 		info.extent.width = width;
 		info.extent.height = height;
 		info.extent.depth = depth;
-		return graph_image_alloc(dev, &info);
+		return graph_image_alloc(heap, &info);
 	}
 	return NULL;
 }

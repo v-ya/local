@@ -22,4 +22,6 @@ struct graph_buffer_s {
 	VkMemoryRequirements require;
 };
 
+VkDeviceMemory graph_memory_alloc(graph_memory_heap_s *restrict r, VkMemoryRequirements *restrict require, graph_memory_property_t property);
+
 #endif

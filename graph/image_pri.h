@@ -15,7 +15,12 @@ struct graph_image_s {
 	mlog_s *ml;
 	graph_dev_s *dev;
 	VkImage image;
+	VkDeviceMemory memory;
 	graph_allocator_s *ga;
+	struct graph_memory_heap_s *heap;
+	VkMemoryRequirements require;
+	VkImageType type;
+	VkExtent3D extent;
 };
 
 struct graph_image_view_param_s {

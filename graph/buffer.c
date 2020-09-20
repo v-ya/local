@@ -24,7 +24,7 @@ graph_memory_heap_s* graph_memory_heap_alloc(register struct graph_dev_s *restri
 	return r;
 }
 
-static VkDeviceMemory graph_memory_alloc(register graph_memory_heap_s *restrict r, register VkMemoryRequirements *restrict require, register graph_memory_property_t property)
+VkDeviceMemory graph_memory_alloc(register graph_memory_heap_s *restrict r, register VkMemoryRequirements *restrict require, register graph_memory_property_t property)
 {
 	VkDeviceMemory memory;
 	VkMemoryAllocateInfo info;
