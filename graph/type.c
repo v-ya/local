@@ -713,7 +713,7 @@ VkAttachmentStoreOp graph_attachment_store_op2vk(register graph_attachment_store
 VkImageLayout graph_image_layout2vk(register graph_image_layout_t r)
 {
 	static const VkImageLayout mapping[graph_image_layout$number] = {
-		[graph_image_layout_unknow]                           = VK_IMAGE_LAYOUT_UNDEFINED,
+		[graph_image_layout_undefined]                        = VK_IMAGE_LAYOUT_UNDEFINED,
 		[graph_image_layout_general]                          = VK_IMAGE_LAYOUT_GENERAL,
 		[graph_image_layout_color_attachment_optimal]         = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		[graph_image_layout_depth_stencil_attachment_optimal] = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,

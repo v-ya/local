@@ -442,7 +442,7 @@ typedef enum graph_attachment_store_op_e {
 } graph_attachment_store_op_t;
 
 typedef enum graph_image_layout_e {
-	graph_image_layout_unknow,
+	graph_image_layout_undefined,
 	graph_image_layout_general,
 	graph_image_layout_color_attachment_optimal,
 	graph_image_layout_depth_stencil_attachment_optimal,
@@ -614,5 +614,31 @@ typedef enum graph_image_aspect_flags_e {
 	graph_image_aspect_flags_memory_plane_2 = 0x0200,
 	graph_image_aspect_flags_memory_plane_3 = 0x0400
 } graph_image_aspect_flags_t;
+
+typedef enum graph_dependency_flags_e {
+	graph_dependency_flags_by_region    = 0x01,
+	graph_dependency_flags_view_local   = 0x02,
+	graph_dependency_flags_device_group = 0x04
+} graph_dependency_flags_t;
+
+typedef enum graph_access_flags_e {
+	graph_access_flags_indirect_command_read          = 0x00000001,
+	graph_access_flags_index_read                     = 0x00000002,
+	graph_access_flags_vertex_attribute_read          = 0x00000004,
+	graph_access_flags_uniform_read                   = 0x00000008,
+	graph_access_flags_input_attachment_read          = 0x00000010,
+	graph_access_flags_shader_read                    = 0x00000020,
+	graph_access_flags_shader_write                   = 0x00000040,
+	graph_access_flags_color_attachment_read          = 0x00000080,
+	graph_access_flags_color_attachment_write         = 0x00000100,
+	graph_access_flags_depth_stencil_attachment_read  = 0x00000200,
+	graph_access_flags_depth_stencil_attachment_write = 0x00000400,
+	graph_access_flags_transfer_read                  = 0x00000800,
+	graph_access_flags_transfer_write                 = 0x00001000,
+	graph_access_flags_host_read                      = 0x00002000,
+	graph_access_flags_host_write                     = 0x00004000,
+	graph_access_flags_memory_read                    = 0x00008000,
+	graph_access_flags_memory_write                   = 0x00010000
+} graph_access_flags_t;
 
 #endif

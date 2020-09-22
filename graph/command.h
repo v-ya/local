@@ -5,6 +5,7 @@
 #include "type.h"
 
 typedef struct graph_command_pool_s graph_command_pool_s;
+typedef struct graph_command_pipe_barrier_param_s graph_command_pipe_barrier_param_s;
 typedef struct graph_semaphore_s graph_semaphore_s;
 typedef struct graph_fence_s graph_fence_s;
 
@@ -34,6 +35,13 @@ void graph_command_draw_index(graph_command_pool_s *restrict r, uint32_t ia, uin
 void graph_command_end_render(graph_command_pool_s *restrict r, uint32_t ia);
 void graph_command_copy_buffer(graph_command_pool_s *restrict r, uint32_t ia, struct graph_buffer_s *restrict dst, const struct graph_buffer_s *restrict src, uint64_t dst_offset, uint64_t src_offset, uint64_t size);
 graph_command_pool_s* graph_command_copy_buffer_to_image(graph_command_pool_s *restrict r, uint32_t ia, struct graph_image_s *restrict dst, const struct graph_buffer_s *restrict src, graph_image_layout_t layout, uint64_t buffer_offset, graph_image_aspect_flags_t flags, const int32_t *restrict image_offset, const uint32_t *restrict image_extent);
+
+graph_command_pipe_barrier_param_s* graph_command_pipe_barrier_param_alloc(uint32_t memory_number, uint32_t buffer_number, uint32_t image_number);
+void graph_command_pipe_barrier_param_set_image(graph_command_pipe_barrier_param_s *restrict param, uint32_t index, const struct graph_image_s *restrict image, graph_image_aspect_flags_t flags, uint32_t mip_level_base, uint32_t mip_level_number, uint32_t layer_base, uint32_t layer_number);
+void graph_command_pipe_barrier_param_set_image_access(graph_command_pipe_barrier_param_s *restrict param, uint32_t index, graph_access_flags_t src, graph_access_flags_t dst);
+void graph_command_pipe_barrier_param_set_image_layout(graph_command_pipe_barrier_param_s *restrict param, uint32_t index, graph_image_layout_t old, graph_image_layout_t new);
+void graph_command_pipe_barrier_param_set_image_queue(graph_command_pipe_barrier_param_s *restrict param, uint32_t index, const struct graph_device_queue_t *restrict src, const struct graph_device_queue_t *restrict dst);
+void graph_command_pipe_barrier(graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_stage_flags_t src, graph_pipeline_stage_flags_t dst, graph_dependency_flags_t flags, const graph_command_pipe_barrier_param_s *restrict param);
 
 struct graph_queue_t* graph_queue_submit(struct graph_queue_t *restrict queue, graph_command_pool_s *restrict pool, uint32_t index, graph_semaphore_s *restrict wait, graph_semaphore_s *restrict signal, graph_fence_s *restrict fence, graph_pipeline_stage_flags_t wait_mask);
 struct graph_queue_t* graph_queue_present(struct graph_queue_t *restrict queue, struct graph_swapchain_s *restrict swapchain, uint32_t index, graph_semaphore_s *restrict wait);

@@ -17,6 +17,18 @@ struct graph_command_pool_s {
 	VkCommandBuffer primary[];
 };
 
+struct graph_command_pipe_barrier_param_s {
+	uint32_t memory_size;
+	uint32_t memory_number;
+	uint32_t buffer_size;
+	uint32_t buffer_number;
+	uint32_t image_size;
+	uint32_t image_number;
+	VkMemoryBarrier *memory;
+	VkBufferMemoryBarrier *buffer;
+	VkImageMemoryBarrier *image;
+};
+
 struct graph_semaphore_s {
 	mlog_s *ml;
 	graph_dev_s *dev;

@@ -331,6 +331,130 @@ graph_command_pool_s* graph_command_copy_buffer_to_image(register graph_command_
 	return NULL;
 }
 
+graph_command_pipe_barrier_param_s* graph_command_pipe_barrier_param_alloc(uint32_t memory_number, uint32_t buffer_number, uint32_t image_number)
+{
+	register graph_command_pipe_barrier_param_s *restrict r;
+	size_t n;
+	n = sizeof(graph_command_pipe_barrier_param_s) +
+		sizeof(VkMemoryBarrier) * memory_number + 
+		sizeof(VkBufferMemoryBarrier) * buffer_number +
+		sizeof(VkImageMemoryBarrier) * image_number;
+	r = (graph_command_pipe_barrier_param_s *) refer_alloz(n);
+	if (r)
+	{
+		r->memory_size = memory_number;
+		r->memory = (VkMemoryBarrier *) (r + 1);
+		r->buffer_size = buffer_number;
+		r->buffer = (VkBufferMemoryBarrier *) (r->memory + memory_number);
+		r->image_size = image_number;
+		r->image = (VkImageMemoryBarrier *) (r->buffer + buffer_number);
+		while (memory_number)
+			r->memory[--memory_number].sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		while (buffer_number)
+			r->buffer[--buffer_number].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		while (image_number)
+		{
+			r->image[--image_number].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			r->image[image_number].srcQueueFamilyIndex =
+				r->image[image_number].dstQueueFamilyIndex =
+				VK_QUEUE_FAMILY_IGNORED;
+		}
+	}
+	return r;
+}
+
+void graph_command_pipe_barrier_param_set_image(register graph_command_pipe_barrier_param_s *restrict param, uint32_t index, const struct graph_image_s *restrict image, graph_image_aspect_flags_t flags, uint32_t mip_level_base, uint32_t mip_level_number, uint32_t layer_base, uint32_t layer_number)
+{
+	if (index < param->image_size)
+	{
+		register VkImageMemoryBarrier *restrict p;
+		p = param->image + index;
+		p->image = image->image;
+		p->subresourceRange.aspectMask = (VkImageAspectFlags) flags;
+		p->subresourceRange.baseMipLevel = mip_level_base;
+		p->subresourceRange.levelCount = mip_level_number;
+		p->subresourceRange.baseArrayLayer = layer_base;
+		p->subresourceRange.layerCount = layer_number;
+		if (index >= param->image_number)
+			param->image_number = index + 1;
+	}
+}
+
+void graph_command_pipe_barrier_param_set_image_access(register graph_command_pipe_barrier_param_s *restrict param, uint32_t index, graph_access_flags_t src, graph_access_flags_t dst)
+{
+	if (index < param->image_size)
+	{
+		register VkImageMemoryBarrier *restrict p;
+		p = param->image + index;
+		p->srcAccessMask = (VkAccessFlags) src;
+		p->dstAccessMask = (VkAccessFlags) dst;
+	}
+}
+
+void graph_command_pipe_barrier_param_set_image_layout(register graph_command_pipe_barrier_param_s *restrict param, uint32_t index, graph_image_layout_t old, graph_image_layout_t new)
+{
+	if (index < param->image_size)
+	{
+		register VkImageMemoryBarrier *restrict p;
+		p = param->image + index;
+		p->oldLayout = (VkImageLayout) old;
+		p->newLayout = (VkImageLayout) new;
+	}
+}
+
+void graph_command_pipe_barrier_param_set_image_queue(register graph_command_pipe_barrier_param_s *restrict param, uint32_t index, const struct graph_device_queue_t *restrict src, const struct graph_device_queue_t *restrict dst)
+{
+	if (index < param->image_size)
+	{
+		register VkImageMemoryBarrier *restrict p;
+		p = param->image + index;
+		if (src) p->srcQueueFamilyIndex = (uint32_t) src->index;
+		else p->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		if (dst) p->dstQueueFamilyIndex = (uint32_t) dst->index;
+		else p->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	}
+}
+
+void graph_command_pipe_barrier(register graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_stage_flags_t src, graph_pipeline_stage_flags_t dst, graph_dependency_flags_t flags, register const graph_command_pipe_barrier_param_s *restrict param)
+{
+	const VkMemoryBarrier *memory;
+	const VkBufferMemoryBarrier *buffer;
+	const VkImageMemoryBarrier *image;
+	uint32_t n_memory, n_buffer, n_image;
+	n_memory = n_buffer = n_image = 0;
+	memory = NULL;
+	buffer = NULL;
+	image = NULL;
+	if (param)
+	{
+		if ((n_memory = param->memory_number))
+			memory = param->memory;
+		if ((n_buffer = param->buffer_number))
+			buffer = param->buffer;
+		if ((n_image = param->image_number))
+			image = param->image;
+	}
+	if (!~ia)
+	{
+		for (ia = 0; ia < r->primary_size; ++ia)
+			vkCmdPipelineBarrier(r->primary[ia],
+				(VkPipelineStageFlags) src,
+				(VkPipelineStageFlags) dst,
+				(VkDependencyFlags) flags,
+				n_memory, memory,
+				n_buffer, buffer,
+				n_image, image);
+	}
+	else if (ia < r->primary_size)
+		vkCmdPipelineBarrier(r->primary[ia],
+			(VkPipelineStageFlags) src,
+			(VkPipelineStageFlags) dst,
+			(VkDependencyFlags) flags,
+			n_memory, memory,
+			n_buffer, buffer,
+			n_image, image);
+}
+
 struct graph_queue_t* graph_queue_submit(struct graph_queue_t *restrict queue, graph_command_pool_s *restrict pool, uint32_t index, graph_semaphore_s *restrict wait, graph_semaphore_s *restrict signal, graph_fence_s *restrict fence, graph_pipeline_stage_flags_t wait_mask)
 {
 	VkSubmitInfo info;
