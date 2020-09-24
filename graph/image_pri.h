@@ -20,6 +20,7 @@ struct graph_image_s {
 	struct graph_memory_heap_s *heap;
 	VkMemoryRequirements require;
 	VkImageType type;
+	VkFormat format;
 	VkExtent3D extent;
 };
 

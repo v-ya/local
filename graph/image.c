@@ -56,6 +56,7 @@ static graph_image_s* graph_image_alloc(register struct graph_memory_heap_s *res
 		if (!ret)
 		{
 			r->type = info->imageType;
+			r->format = info->format;
 			r->extent = info->extent;
 			vkGetImageMemoryRequirements(device, r->image, &r->require);
 			r->memory = graph_memory_alloc(heap, &r->require, graph_memory_property_device_local);
@@ -156,6 +157,36 @@ static void graph_image_view_free_func(register graph_image_view_s *restrict r)
 	if ((v = r->depend)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
+}
+
+graph_image_view_s* graph_image_view_alloc(register const graph_image_view_param_s *restrict param, register graph_image_s *restrict image)
+{
+	register graph_image_view_s *restrict r;
+	VkImageViewCreateInfo info;
+	VkResult ret;
+	r = (graph_image_view_s *) refer_alloz(sizeof(graph_image_view_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_image_view_free_func);
+		r->ml = (mlog_s *) refer_save(image->ml);
+		r->depend = refer_save(image);
+		r->dev = (graph_dev_s *) refer_save(image->dev);
+		r->image = image->image;
+		r->ga = (graph_allocator_s *) refer_save(image->ga);
+		info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		info.pNext = NULL;
+		info.flags = param->flags;
+		info.image = r->image;
+		info.viewType = param->type;
+		info.format = param->format?param->format:image->format;
+		info.components = param->components;
+		info.subresourceRange = param->range;
+		ret = vkCreateImageView(image->dev->dev, &info, &r->ga->alloc, &r->view);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_image_view_alloc] vkCreateImageView = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
 }
 
 graph_image_view_s* graph_image_view_alloc_by_swapchain(register const graph_image_view_param_s *restrict param, register struct graph_swapchain_s *restrict swapchain, uint32_t index)
