@@ -1,4 +1,5 @@
 #include "layout_pri.h"
+#include "image_pri.h"
 #include "buffer_pri.h"
 #include "type_pri.h"
 #include <memory.h>
@@ -219,8 +220,8 @@ graph_descriptor_pool_s* graph_descriptor_pool_alloc(register struct graph_dev_s
 		{
 			if (pool_type[max_sets] >= graph_desc_type$number)
 				goto label_type;
-			p->type = graph_desc_type2vk(pool_type[max_sets]);
-			p->descriptorCount = pool_desc_number[max_sets];
+			p[max_sets].type = graph_desc_type2vk(pool_type[max_sets]);
+			p[max_sets].descriptorCount = pool_desc_number[max_sets];
 		}
 		info.pPoolSizes = p;
 	}
@@ -360,7 +361,18 @@ uint32_t graph_descriptor_sets_info_append_write(register graph_descriptor_sets_
 		p->pTexelBufferView = NULL;
 		switch (type)
 		{
+			case graph_desc_type_combined_image_sampler:
+			case graph_desc_type_sampled_image:
+			case graph_desc_type_storage_image:
+				if (info->image_size < count)
+					goto label_fail;
+				p->pImageInfo = v = info->image + (info->image_size -= count);
+				memset(v, 0, sizeof(VkDescriptorImageInfo) * count);
+				break;
 			case graph_desc_type_uniform_buffer:
+			case graph_desc_type_storage_buffer:
+			case graph_desc_type_uniform_buffer_dynamic:
+			case graph_desc_type_storage_buffer_dynamic:
 				if (info->buffer_size < count)
 					goto label_fail;
 				p->pBufferInfo = v = info->buffer + (info->buffer_size -= count);
@@ -376,13 +388,30 @@ uint32_t graph_descriptor_sets_info_append_write(register graph_descriptor_sets_
 	return ~0;
 }
 
+void graph_descriptor_sets_info_set_write_image_info(register graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t image_info_index, const struct graph_sampler_s *restrict sampler, const struct graph_image_view_s *restrict image_view, graph_image_layout_t layout)
+{
+	register VkWriteDescriptorSet *restrict w;
+	register VkDescriptorImageInfo *restrict p;
+	if (write_index < info->write_number &&
+		image_info_index < (w = info->write + write_index)->descriptorCount &&
+		(p = (VkDescriptorImageInfo *) w->pImageInfo))
+	{
+		p += image_info_index;
+		p->sampler = sampler?sampler->sampler:NULL;
+		p->imageView = image_view?image_view->view:NULL;
+		p->imageLayout = graph_image_layout2vk(layout);
+	}
+}
+
 void graph_descriptor_sets_info_set_write_buffer_info(register graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t buffer_info_index, const struct graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
 {
 	register VkWriteDescriptorSet *restrict w;
 	register VkDescriptorBufferInfo *restrict p;
-	if (write_index < info->write_number && buffer_info_index < (w = info->write + write_index)->descriptorCount)
+	if (write_index < info->write_number &&
+		buffer_info_index < (w = info->write + write_index)->descriptorCount &&
+		(p = (VkDescriptorBufferInfo *) w->pBufferInfo))
 	{
-		p = (VkDescriptorBufferInfo *) w->pBufferInfo + buffer_info_index;
+		p += buffer_info_index;
 		p->buffer = buffer->buffer;
 		if (offset > buffer->require.size) offset = buffer->require.size;
 		if (size > buffer->require.size - offset) size = buffer->require.size - offset;

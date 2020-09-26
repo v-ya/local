@@ -49,4 +49,15 @@ struct graph_frame_buffer_s {
 	graph_allocator_s *ga;
 };
 
+struct graph_sampler_param_s {
+	VkSamplerCreateInfo info;
+};
+
+struct graph_sampler_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkSampler sampler;
+	graph_allocator_s *ga;
+};
+
 #endif

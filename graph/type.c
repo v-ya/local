@@ -799,3 +799,74 @@ VkIndexType graph_index_type2vk(register graph_index_type_t r)
 		return mapping[r];
 	return VK_INDEX_TYPE_MAX_ENUM;
 }
+
+VkFilter graph_filter2vk(register graph_filter_t r)
+{
+	static const VkFilter mapping[graph_filter$number] = {
+		[graph_filter_nearest]   = VK_FILTER_NEAREST,
+		[graph_filter_linear]    = VK_FILTER_LINEAR,
+		[graph_filter_cubic_img] = VK_FILTER_CUBIC_IMG
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_FILTER_NEAREST;
+}
+
+VkSamplerMipmapMode graph_sampler_mipmap_mode2vk(register graph_sampler_mipmap_mode_t r)
+{
+	static const VkSamplerMipmapMode mapping[graph_sampler_mipmap_mode$number] = {
+		[graph_sampler_mipmap_mode_nearest] = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+		[graph_sampler_mipmap_mode_linear]  = VK_SAMPLER_MIPMAP_MODE_LINEAR
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+}
+
+VkSamplerAddressMode graph_sampler_address_mode2vk(register graph_sampler_address_mode_t r)
+{
+	static const VkSamplerAddressMode mapping[graph_sampler_address_mode$number] = {
+		[graph_sampler_address_mode_repeat]               = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		[graph_sampler_address_mode_mirrored_repeat]      = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT,
+		[graph_sampler_address_mode_clamp_to_edge]        = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		[graph_sampler_address_mode_clamp_to_border]      = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+		[graph_sampler_address_mode_mirror_clamp_to_edge] = VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+}
+
+VkCompareOp graph_compare_op2vk(register graph_compare_op_t r)
+{
+	static const VkCompareOp mapping[graph_compare_op$number] = {
+		[graph_compare_op_never]            = VK_COMPARE_OP_NEVER,
+		[graph_compare_op_less]             = VK_COMPARE_OP_LESS,
+		[graph_compare_op_equal]            = VK_COMPARE_OP_EQUAL,
+		[graph_compare_op_less_or_equal]    = VK_COMPARE_OP_LESS_OR_EQUAL,
+		[graph_compare_op_greater]          = VK_COMPARE_OP_GREATER,
+		[graph_compare_op_not_equal]        = VK_COMPARE_OP_NOT_EQUAL,
+		[graph_compare_op_greater_or_equal] = VK_COMPARE_OP_GREATER_OR_EQUAL,
+		[graph_compare_op_always]           = VK_COMPARE_OP_ALWAYS
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_COMPARE_OP_NEVER;
+}
+
+VkBorderColor graph_border_color2vk(register graph_border_color_t r)
+{
+	static const VkBorderColor mapping[graph_border_color$number] = {
+		[graph_border_color_float_transparent_black] = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+		[graph_border_color_int_transparent_black]   = VK_BORDER_COLOR_INT_TRANSPARENT_BLACK,
+		[graph_border_color_float_opaque_black]      = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+		[graph_border_color_int_opaque_black]        = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		[graph_border_color_float_opaque_white]      = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+		[graph_border_color_int_opaque_white]        = VK_BORDER_COLOR_INT_OPAQUE_WHITE,
+		[graph_border_color_float_custom]            = VK_BORDER_COLOR_FLOAT_CUSTOM_EXT,
+		[graph_border_color_int_custom]              = VK_BORDER_COLOR_INT_CUSTOM_EXT
+	};
+	if ((uint32_t) r < graph_array_number(mapping))
+		return mapping[r];
+	return VK_BORDER_COLOR_MAX_ENUM;
+}

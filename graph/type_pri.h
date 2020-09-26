@@ -56,5 +56,10 @@ VkPipelineBindPoint graph_pipeline_bind_point2vk(graph_pipeline_bind_point_t r);
 VkDynamicState graph_dynamic2vk(graph_dynamic_t r);
 VkSubpassContents graph_subpass_contents2vk(graph_subpass_contents_t r);
 VkIndexType graph_index_type2vk(graph_index_type_t r);
+VkFilter graph_filter2vk(graph_filter_t r);
+VkSamplerMipmapMode graph_sampler_mipmap_mode2vk(graph_sampler_mipmap_mode_t r);
+VkSamplerAddressMode graph_sampler_address_mode2vk(graph_sampler_address_mode_t r);
+VkCompareOp graph_compare_op2vk(graph_compare_op_t r);
+VkBorderColor graph_border_color2vk(graph_border_color_t r);
 
 #endif

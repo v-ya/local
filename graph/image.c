@@ -266,3 +266,88 @@ graph_frame_buffer_s* graph_frame_buffer_alloc(register struct graph_render_pass
 	}
 	return NULL;
 }
+
+graph_sampler_param_s* graph_sampler_param_alloc(void)
+{
+	register graph_sampler_param_s *restrict r;
+	r = (graph_sampler_param_s *) refer_alloz(sizeof(graph_sampler_param_s));
+	if (r) r->info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	return r;
+}
+
+void graph_sampler_param_set_flags(register graph_sampler_param_s *restrict param, graph_sampler_flags_t flags)
+{
+	param->info.flags = (VkSamplerCreateFlags) flags;
+}
+
+void graph_sampler_param_set_filter(register graph_sampler_param_s *restrict param, graph_filter_t mag, graph_filter_t min)
+{
+	param->info.magFilter = graph_filter2vk(mag);
+	param->info.minFilter = graph_filter2vk(min);
+}
+
+void graph_sampler_param_set_mipmap(register graph_sampler_param_s *restrict param, graph_sampler_mipmap_mode_t mode, float mip_lod_bias, float min_lod, float max_lod)
+{
+	param->info.mipmapMode = graph_sampler_mipmap_mode2vk(mode);
+	param->info.mipLodBias = mip_lod_bias;
+	param->info.minLod = min_lod;
+	param->info.maxLod = max_lod;
+}
+
+void graph_sampler_param_set_address(register graph_sampler_param_s *restrict param, graph_sampler_address_mode_t u, graph_sampler_address_mode_t v, graph_sampler_address_mode_t w)
+{
+	param->info.addressModeU = graph_sampler_address_mode2vk(u);
+	param->info.addressModeV = graph_sampler_address_mode2vk(v);
+	param->info.addressModeW = graph_sampler_address_mode2vk(w);
+}
+
+void graph_sampler_param_set_anisotropy(register graph_sampler_param_s *restrict param, graph_bool_t enable, float max)
+{
+	param->info.anisotropyEnable = !!enable;
+	param->info.maxAnisotropy = max;
+}
+
+void graph_sampler_param_set_compare(register graph_sampler_param_s *restrict param, graph_bool_t enable, graph_compare_op_t op)
+{
+	param->info.compareEnable = !!enable;
+	param->info.compareOp = graph_compare_op2vk(op);
+}
+
+void graph_sampler_param_set_border(register graph_sampler_param_s *restrict param, graph_border_color_t color)
+{
+	if ((uint32_t) color < graph_border_color$number)
+		param->info.borderColor = graph_border_color2vk(color);
+}
+
+void graph_sampler_param_set_coordinates(register graph_sampler_param_s *restrict param, graph_bool_t unnormalized)
+{
+	param->info.unnormalizedCoordinates = !!unnormalized;
+}
+
+static void graph_sampler_free_func(register graph_sampler_s *restrict r)
+{
+	register void *v;
+	if ((v = r->sampler)) vkDestroySampler(r->dev->dev, (VkSampler) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_sampler_s* graph_sampler_alloc(register const graph_sampler_param_s *restrict param, register struct graph_dev_s *restrict dev)
+{
+	register graph_sampler_s *restrict r;
+	VkResult ret;
+	r = (graph_sampler_s *) refer_alloz(sizeof(graph_sampler_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_sampler_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreateSampler(dev->dev, &param->info, &r->ga->alloc, &r->sampler);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_sampler_alloc] vkCreateSampler = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}

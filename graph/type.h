@@ -641,4 +641,55 @@ typedef enum graph_access_flags_e {
 	graph_access_flags_memory_write                   = 0x00010000
 } graph_access_flags_t;
 
+typedef enum graph_sampler_flags_e {
+	graph_sampler_flags_subsampled                       = 0x01,
+	graph_sampler_flags_subsampled_coarse_reconstruction = 0x02
+} graph_sampler_flags_t;
+
+typedef enum graph_filter_e {
+	graph_filter_nearest,
+	graph_filter_linear,
+	graph_filter_cubic_img,
+	graph_filter$number
+} graph_filter_t;
+
+typedef enum graph_sampler_mipmap_mode_e {
+	graph_sampler_mipmap_mode_nearest,
+	graph_sampler_mipmap_mode_linear,
+	graph_sampler_mipmap_mode$number
+} graph_sampler_mipmap_mode_t;
+
+typedef enum graph_sampler_address_mode_e {
+	graph_sampler_address_mode_repeat,
+	graph_sampler_address_mode_mirrored_repeat,
+	graph_sampler_address_mode_clamp_to_edge,
+	graph_sampler_address_mode_clamp_to_border,
+	graph_sampler_address_mode_mirror_clamp_to_edge,
+	graph_sampler_address_mode$number
+} graph_sampler_address_mode_t;
+
+typedef enum graph_compare_op_e {
+	graph_compare_op_never,
+	graph_compare_op_less,
+	graph_compare_op_equal,
+	graph_compare_op_less_or_equal,
+	graph_compare_op_greater,
+	graph_compare_op_not_equal,
+	graph_compare_op_greater_or_equal,
+	graph_compare_op_always,
+	graph_compare_op$number
+} graph_compare_op_t;
+
+typedef enum graph_border_color_e {
+	graph_border_color_float_transparent_black,
+	graph_border_color_int_transparent_black,
+	graph_border_color_float_opaque_black,
+	graph_border_color_int_opaque_black,
+	graph_border_color_float_opaque_white,
+	graph_border_color_int_opaque_white,
+	graph_border_color_float_custom,
+	graph_border_color_int_custom,
+	graph_border_color$number
+} graph_border_color_t;
+
 #endif
