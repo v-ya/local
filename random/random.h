@@ -62,8 +62,8 @@ union random_s {
 ///               |: r32   |= [last--]
 ///               +: r32   += [last--]
 ///               -: r32   -= [last--]
-///               <: r32 r<<= [last--] & 0x31
-///               >: r32 r>>= [last--] & 0x31
+///               <: r32 r<<= [last--] & 31
+///               >: r32 r>>= [last--] & 31
 ///              <n: r32 r<<= n
 ///              >n: r32 r>>= n
 ///               ## loop end ##
@@ -88,8 +88,8 @@ random_s* random32_alloc_sequence(uint32_t level, const char *restrict method);
 ///               |: r64   |= [last--]
 ///               +: r64   += [last--]
 ///               -: r64   -= [last--]
-///               <: r64 r<<= [last--] & 0x63
-///               >: r64 r>>= [last--] & 0x63
+///               <: r64 r<<= [last--] & 63
+///               >: r64 r>>= [last--] & 63
 ///              <n: r64 r<<= n
 ///              >n: r64 r>>= n
 ///               ## loop end ##
