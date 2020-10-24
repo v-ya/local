@@ -105,9 +105,17 @@ uint64_t* rhash64_final(rhash64_s *restrict r)
 	do {
 		x ^= rdata[--n];
 	} while (n);
-	n = r->header.size;
+	rdata += (n = r->header.index);
+	n = r->header.size - n;
 	do {
 		x ^= (*rdata++ ^= random64_set(random, x));
 	} while (--n);
+	if ((n = r->header.index))
+	{
+		rdata = r->rdata;
+		do {
+			x ^= (*rdata++ ^= random64_set(random, x));
+		} while (--n);
+	}
 	return r->rdata;
 }

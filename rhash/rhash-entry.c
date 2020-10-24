@@ -157,18 +157,23 @@ int rhash_args_send_64(rhash64_s *restrict rh64, const args_t *restrict args)
 			else fd = STDIN_FILENO;
 			if (~fd)
 			{
+				n = 0;
 				do {
-					length = read(fd, data, size);
+					length = read(fd, (uint8_t *) data + n, size - n);
 					if (length < 0) break;
-					if ((nb = (n = length) >> 3))
-						rhash64_send(rh64, data, nb);
-					if ((n &= 7))
+					if ((nb = (n += (size_t) length) >> 3))
 					{
-						res = 0;
-						memcpy(&res, data + nb, n);
-						rhash64_send(rh64, &res, 1);
+						rhash64_send(rh64, data, nb);
+						if ((n &= 7)) memmove(data, data + nb, n);
 					}
 				} while (length);
+				if (n)
+				{
+					
+					res = 0;
+					memcpy(&res, data + nb, n);
+					rhash64_send(rh64, &res, 1);
+				}
 				if (args->input) close(fd);
 			}
 			free(data);
