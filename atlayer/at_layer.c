@@ -141,6 +141,8 @@ at_node_t* at_layer_node_alloc(register at_layer_t *restrict layer, uintptr_t ty
 		{
 			r->op = op;
 			r->parent = NULL;
+			r->next = NULL;
+			r->last = NULL;
 			r->slots = NULL;
 			r->slots_number = 0;
 			r->free = free_func;
@@ -155,11 +157,16 @@ at_node_t* at_layer_node_alloc(register at_layer_t *restrict layer, uintptr_t ty
 
 void at_layer_node_free(register at_layer_t *restrict layer, register at_node_t *restrict node)
 {
-	if (node->slots)
-		at_layer_node_slots_clear(layer, node);
-	if (node->free)
-		node->free(node->data);
-	atc_push(layer, at_node_t, node);
+	register at_node_t *restrict p;
+	while ((p = node))
+	{
+		node = p->next;
+		if (p->slots)
+			at_layer_node_slots_clear(layer, p);
+		if (p->free)
+			p->free(p->data);
+		atc_push(layer, at_node_t, p);
+	}
 }
 
 void at_layer_node_slots_clear(register at_layer_t *restrict layer, register at_node_t *restrict node)
@@ -224,8 +231,116 @@ void at_layer_node_slots_unset(at_layer_t *restrict layer, register at_node_t *r
 at_node_t* at_layer_node_run(at_layer_t *restrict layer, register at_node_t *restrict node, void *env)
 {
 	register at_node_run_f func;
-	if ((func = node->op->run))
-		return func(node, layer, env, node->data);
+	register at_node_t *restrict r;
+	r = NULL;
+	while (node)
+	{
+		if (r)
+		{
+			at_layer_node_free(layer, r);
+			r = NULL;
+		}
+		if ((func = node->op->run))
+			r = func(node, layer, env, node->data);
+		node = node->next;
+	}
+	return r;
+}
+
+void at_node_append(register at_node_t *restrict node, register at_node_t *restrict v, register at_node_t *restrict *restrict tail_cache)
+{
+	if (tail_cache && *tail_cache)
+		node = *tail_cache;
+	else while (node->next)
+		node = node->next;
+	node->next = v;
+	v->last = node;
+	if (tail_cache)
+	{
+		while ((node = v->next))
+			v = node;
+		*tail_cache = v;
+	}
+}
+
+void at_node_insert_after(register at_node_t *restrict node, register at_node_t *restrict v)
+{
+	register at_node_t *restrict next, *restrict v_tail;
+	v_tail = v;
+	while ((next = v_tail->next))
+		v_tail = next;
+	if ((next = node->next))
+		next->last = v_tail;
+	v_tail->next = next;
+	node->next = v;
+	v->last = node;
+}
+
+void at_node_insert_before(register at_node_t *restrict node, register at_node_t *restrict v)
+{
+	register at_node_t *restrict last, *restrict v_tail;
+	v_tail = v;
+	while ((last = v_tail->next))
+		v_tail = last;
+	if ((last = node->next))
+		last->next = v;
+	v->last = last;
+	node->last = v_tail;
+	v_tail->next = node;
+	if (!last)
+	{
+		if ((v->parent = node->parent))
+		{
+			if ((last = (at_node_t *) at_node_address_by_slots(node, NULL)))
+				*(at_node_t **) last = v;
+			node->parent = NULL;
+		}
+	}
+}
+
+at_node_t* at_node_takeout(register at_node_t *restrict node, register at_node_t *restrict *restrict p_list)
+{
+	register at_node_t *restrict p;
+	if ((p = node->last))
+	{
+		// must node->parent == NULL
+		if ((p->next = node->next))
+			p->next->last = p;
+		if (p_list)
+		{
+			while (p->last)
+				p = p->last;
+			*p_list = p;
+		}
+		node->next = NULL;
+		node->last = NULL;
+		return node;
+	}
+	else
+	{
+		if ((p = node->next))
+		{
+			p->parent = node->parent;
+			p->last = NULL;
+		}
+		if (p_list) *p_list = p;
+		if ((p_list = at_node_address_by_slots(node, NULL)))
+			*p_list = p;
+		node->parent = NULL;
+		node->next = NULL;
+		node->last = NULL;
+		return node;
+	}
+}
+
+at_node_t* at_node_slots_takeout(register at_node_t *restrict node, uintptr_t index)
+{
+	register at_node_t *restrict *restrict slots;
+	if (index < node->slots_number && (node = *(slots = node->slots + index)))
+	{
+		*slots = NULL;
+		return node;
+	}
 	return NULL;
 }
 
@@ -254,41 +369,48 @@ static inline const at_node_t* _at_node_slots_next(register const at_node_t *res
 	return NULL;
 }
 
-at_node_t* at_node_first(register const at_node_t *restrict node)
+at_node_t* at_node_tree_first(register const at_node_t *restrict node)
 {
 	if (node) node = _at_node_first(node);
 	return (at_node_t *) node;
 }
 
-at_node_t* at_node_next(register const at_node_t *restrict node)
+at_node_t* at_node_tree_next(register const at_node_t *restrict node)
 {
 	if (node)
 	{
-		register const at_node_t *restrict parent;
-		parent = node->parent;
-		if (parent)
+		register const at_node_t *restrict p;
+		if ((p = node->next))
+			return (at_node_t *) p;
+		else while ((p = node->last))
+			node = p;
+		if ((p = node->parent))
 		{
-			if ((node = _at_node_slots_next(parent, node)))
-				parent = _at_node_first(node);
-			return (at_node_t *) parent;
+			if ((node = _at_node_slots_next(p, node)))
+				p = _at_node_first(node);
+			return (at_node_t *) p;
 		}
 	}
 	return NULL;
 }
 
-at_node_t** at_node_address(register const at_node_t *restrict node)
+at_node_t** at_node_address_by_slots(register const at_node_t *restrict node, uintptr_t *restrict index)
 {
 	register at_node_t *restrict parent;
 	register at_node_t *restrict *restrict slots;
-	register uintptr_t n;
+	register uintptr_t i, n;
 	if ((parent = node->parent) && (n = parent->slots_number))
 	{
 		slots = parent->slots;
-		do {
-			if (*slots == node)
+		for (i = 0; i < n; ++i)
+		{
+			if (slots[i] == node)
+			{
+				if (index) *index = i;
 				return (at_node_t **) slots;
-			++slots;
-		} while (--n);
+			}
+		}
 	}
+	if (index) *index = ~(uintptr_t) 0;
 	return NULL;
 }
