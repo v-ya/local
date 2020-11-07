@@ -8,7 +8,7 @@ typedef struct at_op_t at_op_t;
 typedef struct at_node_t at_node_t;
 typedef void (*at_free_f)(void *restrict data);
 typedef at_node_t* (*at_node_run_f)(at_node_t *restrict node, at_layer_t *restrict layer, void *env, void *node_data);
-typedef void (*at_node_transform_f)(at_node_t *restrict *restrict node, at_layer_t *restrict layer, void *env);
+typedef at_node_t* (*at_node_transform_f)(at_node_t *restrict node, at_layer_t *restrict layer, void *env);
 
 struct at_op_t {
 	uintptr_t type;
@@ -41,8 +41,16 @@ typedef struct at_layer_param_t {
 /// @param _name function name
 /// @param _env_t type of env | void *
 /// @param _node_data_t type of node_data | void *
+/// @param return new at_node_t
 /// @return at_node_t* (*)(at_node_t *restrict node, at_layer_t *restrict layer, void *env, void *node_data)
 #define at_node_run_f$def(_name, _env_t, _node_data_t)  at_node_t* _name(at_node_t *restrict node, at_layer_t *restrict layer, _env_t env, _node_data_t node_data)
+
+/// @brief define at_node_transform_f
+/// @param _name function name
+/// @param _env_t type of env | void *
+/// @param return first modify at_node_t
+/// @return at_node_t* (*)(at_node_t *restrict node, at_layer_t *restrict layer, void *env)
+#define at_node_transform_f$def(_name, _env_t)  at_node_t* _name(at_node_t *restrict node, at_layer_t *restrict layer, _env_t env)
 
 /// @brief alloc at_layer_t
 /// @param param maybe NULL
@@ -82,6 +90,9 @@ void at_layer_node_slots_unset(at_layer_t *restrict layer, at_node_t *restrict n
 
 /// @brief 对 node 节点链中的每一节点按顺序执行该节点类型对应的操作，返回最后一个节点执行的返回值，所有中间结果将被忽略和释放
 at_node_t* at_layer_node_run(at_layer_t *restrict layer, at_node_t *restrict node, void *env);
+
+/// @brief 对 node 节点链中的每一节点按顺序执行执行对应的 at_node_transform_f 操作
+void at_layer_node_transform(at_layer_t *restrict layer, at_node_t *restrict node, void *env, at_node_transform_f tf_array[], uintptr_t tf_number, at_node_transform_f tf_default);
 
 /// @brief 向 node 节点链最后追加 v 节点链
 /// @param node 节点链链头

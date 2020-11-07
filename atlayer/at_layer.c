@@ -247,6 +247,37 @@ at_node_t* at_layer_node_run(at_layer_t *restrict layer, register at_node_t *res
 	return r;
 }
 
+void at_layer_node_transform(at_layer_t *restrict layer, at_node_t *restrict node, void *env, at_node_transform_f tf_array[], uintptr_t tf_number, at_node_transform_f tf_default)
+{
+	at_node_t *restrict save;
+	at_node_transform_f tf;
+	uintptr_t type;
+	if (tf_default) for (node = at_node_tree_first(node); (save = node); node = at_node_tree_next(node))
+	{
+		if ((type = node->op->type) < tf_number && (tf = tf_array[type]))
+		{
+			node = tf(node, layer, env);
+			if (node && node != save)
+				continue;
+		}
+		else
+		{
+			node = tf_default(node, layer, env);
+			if (node && node != save)
+				continue;
+		}
+	}
+	else for (node = at_node_tree_first(node); (save = node); node = at_node_tree_next(node))
+	{
+		if ((type = node->op->type) < tf_number && (tf = tf_array[type]))
+		{
+			node = tf(node, layer, env);
+			if (node && node != save)
+				continue;
+		}
+	}
+}
+
 void at_node_append(register at_node_t *restrict node, register at_node_t *restrict v, register at_node_t *restrict *restrict tail_cache)
 {
 	if (tail_cache && *tail_cache)
@@ -381,7 +412,7 @@ at_node_t* at_node_tree_next(register const at_node_t *restrict node)
 	{
 		register const at_node_t *restrict p;
 		if ((p = node->next))
-			return (at_node_t *) p;
+			return (at_node_t *) _at_node_first(p);
 		else while ((p = node->last))
 			node = p;
 		if ((p = node->parent))
