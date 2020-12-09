@@ -33,6 +33,8 @@ void graph_surface_uini(register graph_surface_s *restrict surface)
 	if ((v = surface->ga)) refer_free(v);
 	if ((v = surface->g)) refer_free(v);
 	if ((v = surface->ml)) refer_free(v);
+	if ((v = (void *) surface->report.data))
+		refer_free(v);
 }
 
 static inline graph_surface_s* graph_surface_not_support(register const graph_surface_s *restrict surface, register const char *restrict func_name)
@@ -96,11 +98,50 @@ graph_surface_attr_s* graph_surface_attr_get(register const graph_surface_s *res
 	goto label_return;
 }
 
-graph_surface_s* graph_surface_geometry(register const graph_surface_s *restrict surface, register graph_surface_geometry_t *restrict geometry)
+graph_surface_s* graph_surface_do_event(register graph_surface_s *restrict surface)
 {
-	if (surface->geometry)
-		return (graph_surface_s *) surface->geometry(surface, geometry);
-	return graph_surface_not_support(surface, "graph_surface_geometry");
+	if (surface->control.do_event)
+		return (graph_surface_s *) surface->control.do_event(surface);
+	return NULL;
+}
+
+void graph_surface_do_events(register graph_surface_s *restrict surface)
+{
+	register graph_surface_do_event_f func;
+	if ((func = surface->control.do_event))
+		while (func(surface)) ;
+}
+
+void graph_surface_set_event_data(register graph_surface_s *restrict surface, refer_t data)
+{
+	if (surface->report.data)
+		refer_free(surface->report.data);
+	surface->report.data = refer_save(data);
+}
+
+#define graph_surface_register_event$def(_name)  void graph_surface_register_event_##_name(register graph_surface_s *restrict surface, graph_surface_do_event_##_name##_f func) {surface->report.do_##_name = func;}
+graph_surface_register_event$def(close)
+graph_surface_register_event$def(expose)
+graph_surface_register_event$def(key)
+graph_surface_register_event$def(button)
+graph_surface_register_event$def(pointer)
+graph_surface_register_event$def(area)
+graph_surface_register_event$def(focus)
+graph_surface_register_event$def(resize)
+#undef graph_surface_register_event$def
+
+graph_surface_s* graph_surface_set_event(register graph_surface_s *restrict surface, register const graph_surface_event_t *restrict events)
+{
+	if (surface->control.set_event)
+		return (graph_surface_s *) surface->control.set_event(surface, events);
+	return graph_surface_not_support(surface, "graph_surface_set_event");
+}
+
+graph_surface_s* graph_surface_get_geometry(register const graph_surface_s *restrict surface, register graph_surface_geometry_t *restrict geometry)
+{
+	if (surface->control.get_geometry)
+		return (graph_surface_s *) surface->control.get_geometry(surface, geometry);
+	return graph_surface_not_support(surface, "graph_surface_get_geometry");
 }
 
 static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register const VkPresentModeKHR *restrict p, register uint32_t n, register VkPresentModeKHR mode)
@@ -237,7 +278,7 @@ graph_swapchain_s* graph_swapchain_rebulid(register graph_swapchain_s *restrict 
 	uint32_t n;
 	VkResult ret;
 	info = swapchain->info;
-	if (graph_surface_geometry(swapchain->surface, &geometry) && geometry.width && geometry.height)
+	if (graph_surface_get_geometry(swapchain->surface, &geometry) && geometry.width && geometry.height)
 	{
 		if (geometry.width != info->imageExtent.width || geometry.height != info->imageExtent.height)
 		{
