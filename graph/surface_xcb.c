@@ -6,6 +6,7 @@
 typedef struct graph_surface_xcb_s {
 	graph_surface_s surface;
 	xcb_connection_t *connect;
+	xcb_colormap_t colormap;
 	xcb_window_t winid;
 	xcb_atom_t atom_close;
 } graph_surface_xcb_s;
@@ -196,14 +197,55 @@ static const graph_surface_s* graph_surface_xcb_get_geometry_func(register const
 	return NULL;
 }
 
+static const xcb_screen_t* graph_surface_xcb_get_screen(xcb_connection_t *restrict c, uint32_t depth, xcb_visualid_t *restrict visual)
+{
+	const xcb_setup_t *restrict setup;
+	const xcb_screen_t *restrict screen;
+	const xcb_depth_t *restrict d;
+	const xcb_visualtype_t *vt;
+	setup = xcb_get_setup(c);
+	if (setup)
+	{
+		xcb_screen_iterator_t screen_iterator;
+		xcb_depth_iterator_t depth_iterator;
+		for (screen_iterator = xcb_setup_roots_iterator(setup);
+			(screen = screen_iterator.data) && screen_iterator.rem > 0;
+			xcb_screen_next(&screen_iterator))
+		{
+			if (!depth || screen->root_depth == depth)
+			{
+				*visual = screen->root_visual;
+				return screen;
+			}
+			if (screen->allowed_depths_len)
+			{
+				for (depth_iterator = xcb_screen_allowed_depths_iterator(screen_iterator.data);
+					(d = depth_iterator.data) && depth_iterator.rem > 0;
+					xcb_depth_next(&depth_iterator))
+				{
+					if (d->visuals_len && d->depth == depth && (vt = xcb_depth_visuals(d)))
+					{
+						*visual = vt->visual_id;
+						return screen;
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
 static graph_surface_xcb_s* graph_surface_xcb_set_atom_close(graph_surface_xcb_s *restrict r, mlog_s *restrict ml)
 {
 	xcb_connection_t *restrict c;
 	xcb_intern_atom_reply_t *restrict r_protocols;
 	xcb_intern_atom_reply_t *restrict r_delete_window;
+	xcb_intern_atom_cookie_t c_protocols, c_delete_window;
 	c = r->connect;
-	r_protocols = xcb_intern_atom_reply(c, xcb_intern_atom(c, 1, 12, "WM_PROTOCOLS"), NULL);
-	r_delete_window = xcb_intern_atom_reply(c, xcb_intern_atom(c, 1, 16, "WM_DELETE_WINDOW"), NULL);
+	c_protocols = xcb_intern_atom(c, 1, 12, "WM_PROTOCOLS");
+	c_delete_window = xcb_intern_atom(c, 1, 16, "WM_DELETE_WINDOW");
+	r_protocols = xcb_intern_atom_reply(c, c_protocols, NULL);
+	r_delete_window = xcb_intern_atom_reply(c, c_delete_window, NULL);
 	if (r_protocols && r_delete_window)
 	{
 		r->atom_close = r_delete_window->atom;
@@ -221,6 +263,8 @@ static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r
 	{
 		if (r->winid)
 			xcb_destroy_window(r->connect, r->winid);
+		if (r->colormap)
+			xcb_free_colormap(r->connect, r->colormap);
 		xcb_flush(r->connect);
 		xcb_disconnect(r->connect);
 	}
@@ -230,9 +274,11 @@ static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r
 graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, graph_surface_s *restrict parent, int x, int y, unsigned int width, unsigned int height, unsigned int depth)
 {
 	register graph_surface_xcb_s *restrict r;
+	const xcb_screen_t *screen;
+	xcb_generic_error_t *error;
 	PFN_vkCreateXcbSurfaceKHR func;
-	xcb_screen_t *screen;
 	VkXcbSurfaceCreateInfoKHR info;
+	xcb_visualid_t visual;
 	int rflush;
 	if (graph_surface_init_check(g) &&
 		(!parent || refer_get_free(parent) == (refer_free_f) graph_surface_xcb_free_func) &&
@@ -247,14 +293,24 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 				refer_set_free(r, (refer_free_f) graph_surface_xcb_free_func);
 				r->connect = xcb_connect(NULL, NULL);
 				if (!r->connect) goto label_connect;
-				screen = (xcb_screen_t *) xcb_setup_roots_iterator(xcb_get_setup(r->connect)).data;
+				screen = graph_surface_xcb_get_screen(r->connect, depth, &visual);
 				if (!screen) goto label_screen;
+				r->colormap = xcb_generate_id(r->connect);
+				error = xcb_request_check(r->connect,
+					xcb_create_colormap_checked(r->connect, XCB_COLORMAP_ALLOC_NONE,
+					r->colormap, screen->root, visual));
+				if (error) goto label_colormap;
 				r->winid = xcb_generate_id(r->connect);
-				xcb_create_window(r->connect, depth, r->winid, screen->root,
-					(int16_t) x, (int16_t) y, (uint16_t) width, (uint16_t) height, 0,
-					XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, 0, NULL);
+				error = xcb_request_check(r->connect,
+					xcb_create_window_checked(r->connect, depth, r->winid, screen->root,
+						(int16_t) x, (int16_t) y, (uint16_t) width, (uint16_t) height, 0,
+						XCB_WINDOW_CLASS_INPUT_OUTPUT, visual,
+						XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_COLORMAP,
+						(uint32_t []) {0, 0, r->colormap}));
+				if (error) goto label_window;
 				if (!graph_surface_xcb_set_atom_close(r, g->ml)) goto label_set;
-				xcb_map_window(r->connect, r->winid);
+				error = xcb_request_check(r->connect, xcb_map_window_checked(r->connect, r->winid));
+				if (error) goto label_map;
 				if ((rflush = xcb_flush(r->connect)) <= 0) goto label_flush;
 				// set info
 				info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
@@ -282,8 +338,20 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 	label_screen:
 	mlog_printf(g->ml, "[graph_surface_xcb_create_window] get screen fail\n");
 	goto label_free;
+	label_colormap:
+	mlog_printf(g->ml, "[graph_surface_xcb_create_window] create colormap fail, error code: %u\n", error->error_code);
+	free(error);
+	goto label_free;
+	label_window:
+	mlog_printf(g->ml, "[graph_surface_xcb_create_window] create window fail, error code: %u\n", error->error_code);
+	free(error);
+	goto label_free;
 	label_set:
 	mlog_printf(g->ml, "[graph_surface_xcb_create_window] xcb set get atom fail\n");
+	goto label_free;
+	label_map:
+	mlog_printf(g->ml, "[graph_surface_xcb_create_window] map window fail, error code: %u\n", error->error_code);
+	free(error);
 	goto label_free;
 	label_flush:
 	mlog_printf(g->ml, "[graph_surface_xcb_create_window] xcb_flush = %d\n", rflush);

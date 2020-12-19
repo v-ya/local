@@ -34,15 +34,34 @@ graph_s* iyii_graph_create_graph(mlog_s *restrict mlog, const char *restrict app
 	return NULL;
 }
 
-graph_device_t* iyii_graph_select_device(const graph_devices_s *devices)
+const graph_device_t* iyii_graph_select_device(const graph_devices_s *restrict devices, const graph_surface_s *restrict surface)
 {
-	uint32_t i, n;
+	static graph_queue_flags_t queue_need_flags = graph_queue_flags_graphics | graph_queue_flags_transfer;
+	graph_device_queues_s *restrict queues;
+	const graph_device_t *restrict device, *save;
+	const graph_device_queue_t *restrict queue;
+	uint32_t i, n, j, m;
+	save = NULL;
 	n = graph_devices_number(devices);
 	for (i = 0; i < n; ++i)
 	{
-		graph_device_dump(graph_devices_index(devices, i));
-		// graph_device_queue_surface_support;
+		if ((device = graph_devices_index(devices, i)) && (queues = graph_device_queues_get(device)))
+		{
+			m = graph_device_queues_number(queues);
+			for (j = 0; j < m; ++j)
+			{
+				if ((queue = graph_device_queues_index(queues, j)) &&
+					(graph_device_queue_flags(queue) & queue_need_flags) == queue_need_flags)
+				{
+					if (graph_device_queue_surface_support(queue, surface) && !save)
+					{
+						save = device;
+					}
+				}
+			}
+			refer_free(queues);
+		}
 	}
-	return NULL;
+	return save;
 }
 

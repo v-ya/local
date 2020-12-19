@@ -3,36 +3,24 @@
 #include <stdlib.h>
 #include <signal.h>
 
-volatile uint32_t running = 1;
-
-static void signal_int(int sig)
-{
-	if (running) running = 0;
-	else exit(-1);
-}
+void usleep(int);
 
 int main(void)
 {
 	mlog_s *mlog;
 	iyii_s *iyii;
-	signal(SIGINT, signal_int);
 	mlog = mlog_alloc(0);
 	if (mlog)
 	{
 		mlog_set_report(mlog, mlog_report_stdout_func, NULL);
-		iyii = iyii_alloc(mlog);
+		iyii = iyii_alloc(mlog, 1);
 		if (iyii)
 		{
 			mlog_printf(mlog, "iyii alloc ok\n");
-			while (running)
-			{
-				void usleep(int);
-				if (iyii_do_events(iyii))
-					break;
-				usleep(10000);
-			}
+			iyii_wait_exit(iyii);
 			refer_free(iyii);
 		}
+		mlog_printf(mlog, "mlog number: %lu\n", refer_save_number(mlog));
 		refer_free(mlog);
 	}
 	return 0;

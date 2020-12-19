@@ -385,6 +385,29 @@ graph_dev_s* graph_dev_wait_idle(register graph_dev_s *restrict dev)
 	return NULL;
 }
 
+graph_queue_flags_t graph_device_queue_flags(register const graph_device_queue_t *restrict q)
+{
+	return (graph_queue_flags_t) q->properties->queueFlags;
+}
+
+uint32_t graph_device_queue_count(register const graph_device_queue_t *restrict q)
+{
+	return q->properties->queueCount;
+}
+
+uint32_t graph_device_queue_timestamp_valid_bits(register const graph_device_queue_t *restrict q)
+{
+	return q->properties->timestampValidBits;
+}
+
+void graph_device_queue_min_image_transfer_granularity(register const graph_device_queue_t *restrict q, uint32_t *restrict width, uint32_t *restrict height, uint32_t *restrict depth)
+{
+	register const VkExtent3D *restrict e = &q->properties->minImageTransferGranularity;
+	if (width) *width = e->width;
+	if (height) *height = e->height;
+	if (depth) *depth = e->depth;
+}
+
 graph_bool_t graph_device_features_test(register const graph_device_t *restrict gd, register graph_device_feature_t feature)
 {
 	if ((uint32_t) feature < graph_device_feature$number)
