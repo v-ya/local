@@ -5,7 +5,7 @@ LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -lrefer -lmlog -lgraph
 
-OBJECT		= iyaa.o iyii/iyii.o iyii/iyii_graph.o
+OBJECT		= iyaa.o iyii/iyii.o iyii/iyii_graph.o iyii/iyii_swapchain.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

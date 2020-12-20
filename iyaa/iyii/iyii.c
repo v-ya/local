@@ -1,6 +1,7 @@
 #define _DEFAULT_SOURCE
 #include "iyii.h"
 #include "iyii_graph.h"
+#include "iyii_swapchain.h"
 #include <unistd.h>
 
 typedef struct iyii_event_s {
@@ -14,9 +15,14 @@ struct iyii_s {
 	graph_surface_s *surface;
 	graph_devices_s *devices;
 	graph_device_queues_s *queues;
+	graph_dev_s *dev;
+	iyii_swapchain_s *swapchain;
+	// not need free
 	const graph_device_t *physical_device;
 	const graph_device_queue_t *device_queue_graphics;
 	const graph_device_queue_t *device_queue_transfer;
+	graph_queue_t *queue_graphics;
+	graph_queue_t *queue_transfer;
 	volatile uint32_t closing;
 };
 
@@ -70,6 +76,8 @@ static iyii_s* iyii_select_device_queue(iyii_s *restrict r)
 
 static void iyii_free_func(iyii_s *restrict r)
 {
+	if (r->swapchain) refer_free(r->swapchain);
+	if (r->dev) refer_free(r->dev);
 	if (r->queues) refer_free(r->queues);
 	if (r->devices) refer_free(r->devices);
 	if (r->surface) refer_free(r->surface);
@@ -85,14 +93,18 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) iyii_free_func);
+		// save mlog
 		r->mlog = (mlog_s *) refer_save(mlog);
+		// create graph
 		r->graph = iyii_graph_create_graph(mlog, "iyaa", "iyii", enable_validation);
 		if (!r->graph) goto label_fail;
+		// create window surface
 		r->event_data = (iyii_event_s *) refer_alloz(sizeof(iyii_event_s));
 		if (!r->event_data) goto label_fail;
 		r->event_data->iyii = r;
 		r->surface = graph_surface_xcb_create_window(r->graph, NULL, 0, 0, 1920, 1080, 0);
 		if (!r->surface) goto label_fail;
+		// set window event
 		graph_surface_set_event_data(r->surface, r->event_data);
 		graph_surface_register_event_close(r->surface, (graph_surface_do_event_close_f) iyii_surface_event_close_func);
 		graph_surface_register_event_key(r->surface, (graph_surface_do_event_key_f) iyii_surface_event_key_func);
@@ -109,13 +121,38 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 			// graph_surface_event_resize,
 			graph_surface_event_null
 		})) goto label_fail;
+		// select phtsical device
 		r->devices = graph_instance_devices_get(r->graph);
 		if (!r->devices) goto label_fail;
 		r->physical_device = iyii_graph_select_device(r->devices, r->surface);
 		if (!r->physical_device) goto label_fail;
+		mlog_printf(r->mlog, "===== select device =====\n");
+		graph_device_dump(r->physical_device);
+		// select queue
 		r->queues = graph_device_queues_get(r->physical_device);
 		if (!r->queues) goto label_fail;
 		if (!iyii_select_device_queue(r)) goto label_fail;
+		mlog_printf(r->mlog, "===== graphics queue =====\n");
+		graph_device_queue_dump(r->device_queue_graphics);
+		mlog_printf(r->mlog, "===== transfer queue =====\n");
+		graph_device_queue_dump(r->device_queue_transfer);
+		// create device
+		r->dev = iyii_graph_create_device(
+			r->graph, r->physical_device,
+			r->device_queue_graphics,
+			r->device_queue_transfer,
+			NULL);
+		if (!r->dev) goto label_fail;
+		// get queue
+		r->queue_graphics = graph_dev_queue(r->dev, r->device_queue_graphics, 0);
+		r->queue_transfer = graph_dev_queue(r->dev, r->device_queue_transfer, 0);
+		if (!r->queue_graphics || !r->queue_transfer) goto label_fail;
+		// create swapchain
+		r->swapchain = iyii_swapchain_alloc(r->dev, r->physical_device, r->surface);
+		if (!r->swapchain) goto label_fail;
+		mlog_printf(r->mlog, "[swapchain] image: %u, format: %d, size: %ux%u\n",
+			r->swapchain->image_number, r->swapchain->format,
+			r->swapchain->width, r->swapchain->height);
 		return r;
 		label_fail:
 		refer_free(r);
