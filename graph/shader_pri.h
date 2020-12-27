@@ -61,7 +61,10 @@ struct graph_render_pass_s {
 };
 
 struct graph_pipe_cache_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
 	VkPipelineCache pipe_cache;
+	graph_allocator_s *ga;
 };
 
 struct graph_pipe_s {

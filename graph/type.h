@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define graph_bool_true   1
+#define graph_bool_false  0
 typedef uint32_t graph_bool_t;
 
 typedef enum graph_layer_e {

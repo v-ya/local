@@ -151,6 +151,38 @@ graph_viewports_scissors_s* graph_viewports_scissors_append_scissor(register gra
 	return NULL;
 }
 
+graph_viewports_scissors_s* graph_viewports_scissors_update_viewport(register graph_viewports_scissors_s *restrict r, uint32_t index, float x, float y, float w, float h, float dmin, float dmax)
+{
+	register VkViewport *restrict p;
+	if (index < r->viewport_number)
+	{
+		p = r->viewports + index;
+		p->x = x;
+		p->y = y;
+		p->width = w;
+		p->height = h;
+		p->minDepth = dmin;
+		p->maxDepth = dmax;
+		return r;
+	}
+	return NULL;
+}
+
+graph_viewports_scissors_s* graph_viewports_scissors_update_scissor(register graph_viewports_scissors_s *restrict r, uint32_t index, int32_t x, int32_t y, uint32_t w, uint32_t h)
+{
+	register VkRect2D *restrict p;
+	if (index < r->scissor_number)
+	{
+		p = r->scissors + index;
+		p->offset.x = x;
+		p->offset.y = y;
+		p->extent.width = w;
+		p->extent.height = h;
+		return r;
+	}
+	return NULL;
+}
+
 graph_pipe_color_blend_s* graph_pipe_color_blend_alloc(uint32_t attachment_number)
 {
 	register graph_pipe_color_blend_s *restrict r;
@@ -324,6 +356,40 @@ graph_render_pass_s* graph_render_pass_alloc(register graph_render_pass_param_s 
 		ret = vkCreateRenderPass(dev->dev, &param->info, &r->ga->alloc, &r->render);
 		if (!ret) return r;
 		mlog_printf(r->ml, "[graph_render_pass_alloc] vkCreateRenderPass = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}
+
+static void graph_pipe_cache_free_func(register graph_pipe_cache_s *restrict r)
+{
+	register void *v;
+	if ((v = r->pipe_cache)) vkDestroyPipelineCache(r->dev->dev, (VkPipelineCache) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_pipe_cache_s* graph_pipe_cache_alloc(register struct graph_dev_s *restrict dev)
+{
+	register graph_pipe_cache_s *restrict r;
+	VkPipelineCacheCreateInfo info;
+	VkResult ret;
+	info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	info.pNext = NULL;
+	info.flags = 0;
+	info.initialDataSize = 0;
+	info.pInitialData = NULL;
+	r = (graph_pipe_cache_s *) refer_alloz(sizeof(graph_pipe_cache_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_pipe_cache_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreatePipelineCache(dev->dev, &info, &r->ga->alloc, &r->pipe_cache);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_pipe_cache_alloc] vkCreatePipelineCache = %d\n", ret);
 		refer_free(r);
 	}
 	return NULL;

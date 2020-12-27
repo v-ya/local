@@ -28,6 +28,8 @@ void graph_vertex_input_description_set_attr(graph_vertex_input_description_s *r
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number);
 graph_viewports_scissors_s* graph_viewports_scissors_append_viewport(graph_viewports_scissors_s *restrict r, float x, float y, float w, float h, float dmin, float dmax);
 graph_viewports_scissors_s* graph_viewports_scissors_append_scissor(graph_viewports_scissors_s *restrict r, int32_t x, int32_t y, uint32_t w, uint32_t h);
+graph_viewports_scissors_s* graph_viewports_scissors_update_viewport(graph_viewports_scissors_s *restrict r, uint32_t index, float x, float y, float w, float h, float dmin, float dmax);
+graph_viewports_scissors_s* graph_viewports_scissors_update_scissor(graph_viewports_scissors_s *restrict r, uint32_t index, int32_t x, int32_t y, uint32_t w, uint32_t h);
 
 graph_pipe_color_blend_s* graph_pipe_color_blend_alloc(uint32_t attachment_number);
 void graph_pipe_color_blend_set_logic(graph_pipe_color_blend_s *restrict r, graph_bool_t logic_op, graph_logic_op_t op);
@@ -39,6 +41,8 @@ graph_render_pass_param_s* graph_render_pass_param_set_attachment(graph_render_p
 graph_render_pass_param_s* graph_render_pass_param_set_subpass(graph_render_pass_param_s *restrict r, uint32_t index, graph_pipeline_bind_point_t type);
 graph_render_pass_param_s* graph_render_pass_param_set_subpass_color(graph_render_pass_param_s *restrict r, uint32_t index, uint32_t n, uint32_t at_index[], graph_image_layout_t layout[]);
 graph_render_pass_s* graph_render_pass_alloc(graph_render_pass_param_s *restrict param, struct graph_dev_s *restrict dev);
+
+graph_pipe_cache_s* graph_pipe_cache_alloc(struct graph_dev_s *restrict dev);
 
 graph_pipe_s* graph_pipe_alloc_graphics(const graph_gpipe_param_s *restrict param, const graph_pipe_cache_s *restrict cache);
 graph_gpipe_param_s* graph_gpipe_param_alloc(struct graph_dev_s *restrict dev, uint32_t shader_number);

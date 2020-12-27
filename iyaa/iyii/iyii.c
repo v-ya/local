@@ -2,6 +2,7 @@
 #include "iyii.h"
 #include "iyii_graph.h"
 #include "iyii_swapchain.h"
+#include "iyii_pipeline.h"
 #include <unistd.h>
 
 typedef struct iyii_event_s {
@@ -17,6 +18,7 @@ struct iyii_s {
 	graph_device_queues_s *queues;
 	graph_dev_s *dev;
 	iyii_swapchain_s *swapchain;
+	iyii_pipeline_s *pipeline;
 	// not need free
 	const graph_device_t *physical_device;
 	const graph_device_queue_t *device_queue_graphics;
@@ -76,6 +78,7 @@ static iyii_s* iyii_select_device_queue(iyii_s *restrict r)
 
 static void iyii_free_func(iyii_s *restrict r)
 {
+	if (r->pipeline) refer_free(r->pipeline);
 	if (r->swapchain) refer_free(r->swapchain);
 	if (r->dev) refer_free(r->dev);
 	if (r->queues) refer_free(r->queues);
@@ -153,6 +156,10 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		mlog_printf(r->mlog, "[swapchain] image: %u, format: %d, size: %ux%u\n",
 			r->swapchain->image_number, r->swapchain->format,
 			r->swapchain->width, r->swapchain->height);
+		// create pipeline
+		r->pipeline = iyii_pipeline_alloc(r->dev, r->swapchain->format,
+			0, 0, r->swapchain->width, r->swapchain->height);
+		if (!r->pipeline) goto label_fail;
 		return r;
 		label_fail:
 		refer_free(r);
