@@ -2,6 +2,7 @@
 #include "iyii.h"
 #include "iyii_graph.h"
 #include "iyii_swapchain.h"
+#include "iyii_render.h"
 #include "iyii_pipeline.h"
 #include <unistd.h>
 
@@ -160,6 +161,7 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		r->pipeline = iyii_pipeline_alloc(r->dev, r->swapchain->format,
 			0, 0, r->swapchain->width, r->swapchain->height);
 		if (!r->pipeline) goto label_fail;
+		if (!iyii_pipeline_set_swapchain(r->pipeline, r->swapchain)) goto label_fail;
 		return r;
 		label_fail:
 		refer_free(r);

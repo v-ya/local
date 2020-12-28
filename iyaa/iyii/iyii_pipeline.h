@@ -2,6 +2,8 @@
 #define _iyii_pipeline_h_
 
 #include "iyii_graph.h"
+#include "iyii_swapchain.h"
+#include "iyii_render.h"
 
 typedef struct iyii_pipeline_s {
 	graph_dev_s *dev;
@@ -16,6 +18,7 @@ typedef struct iyii_pipeline_s {
 	graph_render_pass_s *render_pass;
 	graph_gpipe_param_s *gpipe_param;
 	graph_pipe_s *gpipe;
+	iyii_render_s *render;
 	int32_t output_x;
 	int32_t output_y;
 	uint32_t output_width;
@@ -24,5 +27,6 @@ typedef struct iyii_pipeline_s {
 } iyii_pipeline_s;
 
 iyii_pipeline_s* iyii_pipeline_alloc(graph_dev_s *restrict dev, graph_format_t format, int32_t x, int32_t y, uint32_t w, uint32_t h);
+iyii_pipeline_s* iyii_pipeline_set_swapchain(iyii_pipeline_s *restrict pipe, iyii_swapchain_s *restrict swapchain);
 
 #endif

@@ -167,6 +167,7 @@ static iyii_pipeline_s* iyii_pipeline_create_graphics_pipe(iyii_pipeline_s *rest
 
 static void iyii_pipeline_free_func(iyii_pipeline_s *restrict r)
 {
+	if (r->render) refer_free(r->render);
 	if (r->gpipe) refer_free(r->gpipe);
 	if (r->gpipe_param) refer_free(r->gpipe_param);
 	if (r->render_pass) refer_free(r->render_pass);
@@ -209,3 +210,10 @@ iyii_pipeline_s* iyii_pipeline_alloc(graph_dev_s *restrict dev, graph_format_t f
 	return NULL;
 }
 
+iyii_pipeline_s* iyii_pipeline_set_swapchain(iyii_pipeline_s *restrict pipe, iyii_swapchain_s *restrict swapchain)
+{
+	if (pipe->render) refer_free(pipe->render);
+	if ((pipe->render = iyii_render_alloc(pipe->render_pass, swapchain)))
+		return pipe;
+	return NULL;
+}
