@@ -63,6 +63,7 @@ graph_command_pool_s* graph_command_pool_begin(register graph_command_pool_s *re
 	info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	info.pNext = NULL;
 	info.flags = (VkCommandBufferUsageFlags) usage;
+	info.pInheritanceInfo = NULL;
 	// 只用于辅助指令缓冲
 	info.pInheritanceInfo = NULL;
 	if (!~ia)
@@ -145,6 +146,28 @@ void graph_command_bind_pipe(register graph_command_pool_s *restrict r, uint32_t
 	}
 	else if (ia < r->primary_size)
 		vkCmdBindPipeline(r->primary[ia], tp, pipe->pipe);
+}
+
+void graph_command_set_viewport(register graph_command_pool_s *restrict r, uint32_t ia, const struct graph_viewports_scissors_s *restrict vs)
+{
+	if (!~ia)
+	{
+		for (ia = 0; ia < r->primary_size; ++ia)
+			vkCmdSetViewport(r->primary[ia], 0, vs->viewport_number, vs->viewports);
+	}
+	else if (ia < r->primary_size)
+		vkCmdSetViewport(r->primary[ia], 0, vs->viewport_number, vs->viewports);
+}
+
+void graph_command_set_scissor(register graph_command_pool_s *restrict r, uint32_t ia, const struct graph_viewports_scissors_s *restrict vs)
+{
+	if (!~ia)
+	{
+		for (ia = 0; ia < r->primary_size; ++ia)
+			vkCmdSetScissor(r->primary[ia], 0, vs->scissor_number, vs->scissors);
+	}
+	else if (ia < r->primary_size)
+		vkCmdSetScissor(r->primary[ia], 0, vs->scissor_number, vs->scissors);
 }
 
 graph_command_pool_s* graph_command_bind_vertex_buffers(register graph_command_pool_s *restrict r, uint32_t ia, uint32_t first_binding, uint32_t n, const struct graph_buffer_s *const restrict *restrict buffers, const uint64_t *restrict offsets)

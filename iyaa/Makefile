@@ -5,7 +5,7 @@ LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -lrefer -lmlog -lgraph
 
-OBJECT		= iyaa.o iyii/iyii.o iyii/iyii_graph.o iyii/iyii_swapchain.o iyii/iyii_render.o iyii/iyii_pipeline.o
+OBJECT		= iyaa.o iyii/iyii.o iyii/iyii_graph.o iyii/iyii_swapchain.o iyii/iyii_pipeline.o iyii/iyii_source.o iyii/iyii_render.o iyii/iyii_desc.o
 SHADER		= $(addprefix iyii/shader/, iyii.vert.spv iyii.frag.spv)
 
 %.o: %.c

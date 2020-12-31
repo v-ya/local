@@ -2,8 +2,10 @@
 #include "iyii.h"
 #include "iyii_graph.h"
 #include "iyii_swapchain.h"
-#include "iyii_render.h"
 #include "iyii_pipeline.h"
+#include "iyii_source.h"
+#include "iyii_render.h"
+#include "iyii_desc.h"
 #include <unistd.h>
 
 typedef struct iyii_event_s {
@@ -20,6 +22,9 @@ struct iyii_s {
 	graph_dev_s *dev;
 	iyii_swapchain_s *swapchain;
 	iyii_pipeline_s *pipeline;
+	iyii_source_s *source;
+	iyii_render_s *render;
+	iyii_desc_s *desc;
 	// not need free
 	const graph_device_t *physical_device;
 	const graph_device_queue_t *device_queue_graphics;
@@ -77,8 +82,66 @@ static iyii_s* iyii_select_device_queue(iyii_s *restrict r)
 	return NULL;
 }
 
+static graph_command_pool_s* iyii_build_draw_command(graph_command_pool_s *restrict cpool_draw, iyii_s *restrict iyii)
+{
+	iyii_pipeline_s *restrict pipeline = iyii->pipeline;
+	iyii_source_s *restrict source = iyii->source;
+	iyii_render_s *restrict render = iyii->render;
+	iyii_desc_s *restrict desc = iyii->desc;
+	if (graph_command_pool_begin(cpool_draw, ~0, graph_command_buffer_usage_simultaneous_use))
+	{
+		uint32_t i, n;
+		n = render->image_number;
+		for (i = 0; i < n; ++i)
+		{
+			graph_command_begin_render(
+				cpool_draw, i,
+				render->render_pass,
+				render->frame_buffer[i],
+				0, 0,
+				render->width, render->height
+			);
+		}
+		graph_command_bind_pipe(
+			cpool_draw, ~0,
+			graph_pipeline_bind_point_graphics,
+			pipeline->gpipe);
+		graph_command_set_viewport(cpool_draw, ~0, pipeline->viewports);
+		graph_command_set_scissor(cpool_draw, ~0, pipeline->viewports);
+		graph_command_bind_vertex_buffers(
+			cpool_draw, ~0,
+			0, 1,
+			(const graph_buffer_s *[]) {source->buffer_dev},
+			(uint64_t []) {source->vertex$offset});
+		graph_command_bind_index_buffer(
+			cpool_draw, ~0,
+			source->buffer_dev,
+			source->index$offset,
+			graph_index_type_uint16);
+		for (i = 0; i < n; ++i)
+		{
+			graph_command_bind_desc_sets(
+				cpool_draw, i,
+				graph_pipeline_bind_point_graphics,
+				pipeline->layout,
+				desc->sets, i, 1,
+				0, NULL
+			);
+		}
+		graph_command_draw_index(cpool_draw, ~0, 6, 1, 0, 0, 0);
+		graph_command_end_render(cpool_draw, ~0);
+		if (graph_command_pool_end(cpool_draw, ~0))
+			return cpool_draw;
+	}
+	return NULL;
+}
+
 static void iyii_free_func(iyii_s *restrict r)
 {
+	if (r->dev) graph_dev_wait_idle(r->dev);
+	if (r->desc) refer_free(r->desc);
+	if (r->render) refer_free(r->render);
+	if (r->source) refer_free(r->source);
 	if (r->pipeline) refer_free(r->pipeline);
 	if (r->swapchain) refer_free(r->swapchain);
 	if (r->dev) refer_free(r->dev);
@@ -161,7 +224,27 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		r->pipeline = iyii_pipeline_alloc(r->dev, r->swapchain->format,
 			0, 0, r->swapchain->width, r->swapchain->height);
 		if (!r->pipeline) goto label_fail;
-		if (!iyii_pipeline_set_swapchain(r->pipeline, r->swapchain)) goto label_fail;
+		// create source
+		r->source = iyii_source_alloc(r->dev, r->device_queue_transfer);
+		if (!r->source) goto label_fail;
+		if (!iyii_source_ready(
+			r->source,
+			1024, 1024,
+			1024, 1024,
+			1024, r->swapchain->image_number
+		)) goto label_fail;
+		if (!iyii_source_build_transfer(r->source))
+			goto label_fail;
+		// create render
+		r->render = iyii_render_alloc(r->pipeline->render_pass, r->swapchain,
+			r->dev, r->device_queue_graphics);
+		if (!r->render) goto label_fail;
+		// create desc
+		r->desc = iyii_desc_alloc(r->dev, r->source, r->pipeline->desc_set_layout);
+		if (!r->desc) goto label_fail;
+		// build draw command
+		if (!iyii_build_draw_command(r->render->cpool_draw, r))
+			goto label_fail;
 		return r;
 		label_fail:
 		refer_free(r);

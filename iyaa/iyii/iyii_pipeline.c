@@ -151,8 +151,12 @@ static iyii_pipeline_s* iyii_pipeline_create_graphics_pipe(iyii_pipeline_s *rest
 				graph_gpipe_param_set_rasterization_cull(r->gpipe_param, graph_cull_mode_flags_back),
 				graph_gpipe_param_set_rasterization_front_face(r->gpipe_param, graph_front_face_clockwise),
 			1) &&
-			graph_gpipe_param_set_dynamic(r->gpipe_param, 2,
-				(graph_dynamic_t []) {graph_dynamic_viewport, graph_dynamic_line_width}
+			graph_gpipe_param_set_dynamic(r->gpipe_param, 3,
+				(graph_dynamic_t []) {
+					graph_dynamic_viewport,
+					graph_dynamic_scissor,
+					graph_dynamic_line_width
+				}
 			) &&
 			(graph_gpipe_param_set_layout(r->gpipe_param, r->layout), 1) &&
 			(graph_gpipe_param_set_render(r->gpipe_param, r->render_pass, 0), 1) &&
@@ -167,7 +171,6 @@ static iyii_pipeline_s* iyii_pipeline_create_graphics_pipe(iyii_pipeline_s *rest
 
 static void iyii_pipeline_free_func(iyii_pipeline_s *restrict r)
 {
-	if (r->render) refer_free(r->render);
 	if (r->gpipe) refer_free(r->gpipe);
 	if (r->gpipe_param) refer_free(r->gpipe_param);
 	if (r->render_pass) refer_free(r->render_pass);
@@ -207,13 +210,5 @@ iyii_pipeline_s* iyii_pipeline_alloc(graph_dev_s *restrict dev, graph_format_t f
 		label_fail:
 		refer_free(r);
 	}
-	return NULL;
-}
-
-iyii_pipeline_s* iyii_pipeline_set_swapchain(iyii_pipeline_s *restrict pipe, iyii_swapchain_s *restrict swapchain)
-{
-	if (pipe->render) refer_free(pipe->render);
-	if ((pipe->render = iyii_render_alloc(pipe->render_pass, swapchain)))
-		return pipe;
 	return NULL;
 }

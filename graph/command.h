@@ -14,6 +14,7 @@ struct graph_dev_s;
 struct graph_queue_t;
 struct graph_render_pass_s;
 struct graph_pipe_s;
+struct graph_viewports_scissors_s;
 struct graph_swapchain_s;
 struct graph_frame_buffer_s;
 struct graph_buffer_s;
@@ -27,6 +28,8 @@ graph_command_pool_s* graph_command_pool_begin(graph_command_pool_s *restrict r,
 graph_command_pool_s* graph_command_pool_end(graph_command_pool_s *restrict r, uint32_t ia);
 void graph_command_begin_render(graph_command_pool_s *restrict r, uint32_t ia, const struct graph_render_pass_s *restrict render, struct graph_frame_buffer_s *restrict frame, int32_t x, int32_t y, uint32_t width, uint32_t height);
 void graph_command_bind_pipe(graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_bind_point_t type, const struct graph_pipe_s *restrict pipe);
+void graph_command_set_viewport(graph_command_pool_s *restrict r, uint32_t ia, const struct graph_viewports_scissors_s *restrict vs);
+void graph_command_set_scissor(graph_command_pool_s *restrict r, uint32_t ia, const struct graph_viewports_scissors_s *restrict vs);
 graph_command_pool_s* graph_command_bind_vertex_buffers(graph_command_pool_s *restrict r, uint32_t ia, uint32_t first_binding, uint32_t n, const struct graph_buffer_s *const restrict *restrict buffers, const uint64_t *restrict offsets);
 graph_command_pool_s* graph_command_bind_index_buffer(graph_command_pool_s *restrict r, uint32_t ia, const struct graph_buffer_s *restrict buffer, uint64_t offset, graph_index_type_t type);
 graph_command_pool_s* graph_command_bind_desc_sets(graph_command_pool_s *restrict r, uint32_t ia, graph_pipeline_bind_point_t point, const struct graph_pipe_layout_s *restrict layout, const struct graph_descriptor_sets_s *restrict sets, uint32_t set_start, uint32_t set_number, uint32_t dy_offset_number, const uint32_t *restrict dy_offset);
