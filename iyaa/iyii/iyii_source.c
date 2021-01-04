@@ -1,4 +1,5 @@
 #include "iyii_source.h"
+#include <memory.h>
 
 static void iyii_source_free_func(iyii_source_s *restrict r)
 {
@@ -202,5 +203,49 @@ iyii_source_s* iyii_source_build_transfer(iyii_source_s *restrict source)
 	if (!graph_command_pool_end(source->cpool_tran, ~0)) goto label_fail;
 	return source;
 	label_fail:
+	return NULL;
+}
+
+static inline uint64_t iyii_source_resize(register uint64_t size, register uint64_t offset, register uint64_t max)
+{
+	if (offset < max) max -= offset;
+	else max = 0;
+	if (size > max) size = max;
+	return size;
+}
+
+iyii_source_s* iyii_source_copy_vertex(iyii_source_s *restrict source, const void *restrict data, uint64_t offset, uint64_t size)
+{
+	void *restrict dst;
+	if ((size = iyii_source_resize(size, offset, source->vertex$size)) &&
+		(dst = graph_buffer_map(source->buffer_host, source->vertex$offset, source->vertex$size)))
+	{
+		memcpy(dst + offset, data, size);
+		graph_buffer_unmap(source->buffer_host);
+		return source;
+	}
+	return NULL;
+}
+
+iyii_source_s* iyii_source_copy_index(iyii_source_s *restrict source, const void *restrict data, uint64_t offset, uint64_t size)
+{
+	void *restrict dst;
+	if ((size = iyii_source_resize(size, offset, source->index$size)) &&
+		(dst = graph_buffer_map(source->buffer_host, source->index$offset, source->index$size)))
+	{
+		memcpy(dst + offset, data, size);
+		graph_buffer_unmap(source->buffer_host);
+		return source;
+	}
+	return NULL;
+}
+
+iyii_source_s* iyii_source_submit(iyii_source_s *restrict source, graph_queue_t *restrict transfer, iyii_source_transfer_t type)
+{
+	if ((uint32_t) type < iyii_source_transfer_number)
+	{
+		if (graph_queue_submit(transfer, source->cpool_tran, type, NULL, NULL, NULL, 0))
+			return source;
+	}
 	return NULL;
 }

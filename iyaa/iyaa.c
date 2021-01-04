@@ -16,7 +16,8 @@ int main(void)
 		iyii = iyii_alloc(mlog, 1);
 		if (iyii)
 		{
-			mlog_printf(mlog, "iyii alloc ok\n");
+			mlog_printf(mlog, "iyii alloc ok, mloh number: %lu\n", refer_save_number(mlog));
+			iyii_present(iyii);
 			iyii_wait_exit(iyii);
 			refer_free(iyii);
 		}

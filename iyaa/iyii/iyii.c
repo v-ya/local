@@ -136,6 +136,27 @@ static graph_command_pool_s* iyii_build_draw_command(graph_command_pool_s *restr
 	return NULL;
 }
 
+static iyii_s* iyii_load_source(iyii_s *restrict r)
+{
+	static float vertex[] = {
+		-0.8f, -0.8f, 1.0f, 0.0f, 0.0f,
+		 0.8f, -0.8f, 0.0f, 1.0f, 0.0f,
+		-0.8f,  0.8f, 0.0f, 0.0f, 1.0f,
+		 0.8f,  0.8f, 1.0f, 1.0f, 1.0f,
+	};
+	static uint16_t index[] = {
+		0, 1, 2, 2, 1, 3
+	};
+	iyii_source_copy_vertex(r->source, vertex, 0, sizeof(vertex));
+	iyii_source_copy_index(r->source, index, 0, sizeof(index));
+	if (iyii_source_submit(r->source, r->queue_transfer, iyii_source_transfer$transfer))
+	{
+		graph_dev_wait_idle(r->dev);
+		return r;
+	}
+	return NULL;
+}
+
 static void iyii_free_func(iyii_s *restrict r)
 {
 	if (r->dev) graph_dev_wait_idle(r->dev);
@@ -245,11 +266,23 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		// build draw command
 		if (!iyii_build_draw_command(r->render->cpool_draw, r))
 			goto label_fail;
+		// load source
+		if (!iyii_load_source(r))
+			goto label_fail;
 		return r;
 		label_fail:
 		refer_free(r);
 	}
 	return NULL;
+}
+
+void iyii_present(iyii_s *restrict iyii)
+{
+	uint32_t index, i;
+	if (iyii_swapchain_acquire(iyii->swapchain, &index, &i))
+	{
+		iyii_swapchain_render(iyii->swapchain, iyii->queue_graphics, iyii->render->cpool_draw, index, i);
+	}
 }
 
 iyii_s* iyii_do_events(iyii_s *restrict iyii)
