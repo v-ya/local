@@ -240,6 +240,60 @@ iyii_source_s* iyii_source_copy_index(iyii_source_s *restrict source, const void
 	return NULL;
 }
 
+iyii_source_texture_t* iyii_source_map_texture(iyii_source_s *restrict source, iyii_source_texture_t *restrict texture)
+{
+	if (texture)
+	{
+		texture->pixels = (uint32_t *) graph_buffer_map(texture->buffer = source->buffer_texture, 0, source->texture$size);
+		if (texture->pixels)
+		{
+			texture->width = source->texture$width;
+			texture->height = source->texture$height;
+			return texture;
+		}
+		texture->buffer = NULL;
+		texture->width = texture->height = 0;
+	}
+	return NULL;
+}
+
+void iyii_source_unmap_texture(iyii_source_texture_t *restrict texture)
+{
+	if (texture)
+	{
+		graph_buffer_unmap(texture->buffer);
+		texture->buffer = NULL;
+		texture->pixels = NULL;
+		texture->width = texture->height = 0;
+	}
+}
+
+void iyii_source_texture_copy(iyii_source_texture_t *restrict texture, const uint32_t *restrict data, int32_t dx, int32_t dy, uint32_t sw, uint32_t sh)
+{
+	uint32_t *restrict dst;
+	uintptr_t px, py, pw, ph, i;
+	if (texture && (dst = texture->pixels))
+	{
+		if (dx < 0) px = -dx, dx = 0;
+		else px = 0;
+		if (dy < 0) py = -dy, dy = 0;
+		else py = 0;
+		pw = (px < sw)?(sw - px):0;
+		ph = (py < sh)?(sh - py):0;
+		if ((uintptr_t) dx >= texture->width) pw = 0;
+		else if (pw > texture->width - dx) pw = texture->width - dx;
+		if ((uintptr_t) dy >= texture->height) ph = 0;
+		else if (ph > texture->height - dy) ph = texture->height - dy;
+		if (pw && ph)
+		{
+			dst += dy * texture->width + dx;
+			data += py * sw + px;
+			for (i = 0; i < ph; ++i)
+				memcpy(dst + texture->width * i, data + sw * i, pw * sizeof(uint32_t));
+		}
+	}
+}
+
 iyii_source_s* iyii_source_submit(iyii_source_s *restrict source, graph_queue_t *restrict transfer, iyii_source_transfer_t type)
 {
 	if ((uint32_t) type < iyii_source_transfer_number)

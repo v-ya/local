@@ -127,7 +127,7 @@ graph_surface_register_event$def(button)
 graph_surface_register_event$def(pointer)
 graph_surface_register_event$def(area)
 graph_surface_register_event$def(focus)
-graph_surface_register_event$def(resize)
+graph_surface_register_event$def(config)
 #undef graph_surface_register_event$def
 
 graph_surface_s* graph_surface_set_event(register graph_surface_s *restrict surface, register const graph_surface_event_t *restrict events)
@@ -142,6 +142,13 @@ graph_surface_s* graph_surface_get_geometry(register const graph_surface_s *rest
 	if (surface->control.get_geometry)
 		return (graph_surface_s *) surface->control.get_geometry(surface, geometry);
 	return graph_surface_not_support(surface, "graph_surface_get_geometry");
+}
+
+graph_surface_s* graph_surface_resize(register graph_surface_s *restrict surface, register uint32_t width, register uint32_t height)
+{
+	if (surface->control.resize)
+		return surface->control.resize(surface, width, height);
+	return graph_surface_not_support(surface, "graph_surface_resize");
 }
 
 static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register const VkPresentModeKHR *restrict p, register uint32_t n, register VkPresentModeKHR mode)

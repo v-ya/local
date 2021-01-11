@@ -28,6 +28,13 @@ typedef struct iyii_source_s {
 	uintptr_t uniform$number;
 } iyii_source_s;
 
+typedef struct iyii_source_texture_t {
+	graph_buffer_s *buffer;
+	uint32_t *pixels;
+	uintptr_t width;
+	uintptr_t height;
+} iyii_source_texture_t;
+
 typedef enum iyii_source_transfer_e {
 	iyii_source_transfer$transfer,
 	iyii_source_transfer$vertex,
@@ -41,6 +48,9 @@ iyii_source_s* iyii_source_ready(iyii_source_s *restrict source, uintptr_t textu
 iyii_source_s* iyii_source_build_transfer(iyii_source_s *restrict source);
 iyii_source_s* iyii_source_copy_vertex(iyii_source_s *restrict source, const void *restrict data, uint64_t offset, uint64_t size);
 iyii_source_s* iyii_source_copy_index(iyii_source_s *restrict source, const void *restrict data, uint64_t offset, uint64_t size);
+iyii_source_texture_t* iyii_source_map_texture(iyii_source_s *restrict source, iyii_source_texture_t *restrict texture);
+void iyii_source_unmap_texture(iyii_source_texture_t *restrict texture);
+void iyii_source_texture_copy(iyii_source_texture_t *restrict texture, const uint32_t *restrict data, int32_t dx, int32_t dy, uint32_t sw, uint32_t sh);
 iyii_source_s* iyii_source_submit(iyii_source_s *restrict source, graph_queue_t *restrict transfer, iyii_source_transfer_t type);
 
 #endif

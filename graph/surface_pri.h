@@ -9,11 +9,13 @@
 typedef const graph_surface_s* (*graph_surface_do_event_f)(graph_surface_s *restrict surface);
 typedef const graph_surface_s* (*graph_surface_set_event_f)(graph_surface_s *restrict surface, const graph_surface_event_t *restrict events);
 typedef const graph_surface_s* (*graph_surface_get_geometry_f)(const graph_surface_s *restrict surface, graph_surface_geometry_t *restrict geometry);
+typedef graph_surface_s* (*graph_surface_resize_f)(graph_surface_s *restrict surface, uint32_t width, uint32_t height);
 
 typedef struct graph_surface_control_t {
 	graph_surface_do_event_f do_event;
 	graph_surface_set_event_f set_event;
 	graph_surface_get_geometry_f get_geometry;
+	graph_surface_resize_f resize;
 } graph_surface_control_t;
 
 typedef struct graph_surface_report_t {
@@ -25,7 +27,7 @@ typedef struct graph_surface_report_t {
 	graph_surface_do_event_pointer_f do_pointer;
 	graph_surface_do_event_area_f do_area;
 	graph_surface_do_event_focus_f do_focus;
-	graph_surface_do_event_resize_f do_resize;
+	graph_surface_do_event_config_f do_config;
 } graph_surface_report_t;
 
 struct graph_surface_s {

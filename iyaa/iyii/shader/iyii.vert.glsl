@@ -7,9 +7,8 @@ out gl_PerVertex {
 
 layout (location = 0) in vec2 pos;
 layout (location = 1) in vec3 color;
-// layout (location = 2) in vec2 tex;
 layout (location = 0) out vec3 fragColor;
-// layout (location = 1) out vec2 fragTex;
+layout (location = 1) out vec2 fragTex;
 
 // layout (binding = 0) uniform uf {
 // 	vec2 pos_fix;
@@ -19,4 +18,5 @@ void main(void)
 {
 	gl_Position = vec4(pos, 0.0, 1.0);
 	fragColor = color;
+	fragTex = pos;
 }

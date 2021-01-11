@@ -106,13 +106,15 @@ static const graph_surface_s* graph_surface_xcb_do_event_func(register graph_sur
 					);
 				}
 				break;
-			case XCB_RESIZE_REQUEST:
-				if ((func = r->surface.report.do_resize))
+			case XCB_CONFIGURE_NOTIFY:
+				if ((func = r->surface.report.do_config))
 				{
-					((graph_surface_do_event_resize_f) func)(
+					((graph_surface_do_event_config_f) func)(
 						r->surface.report.data, &r->surface,
-						((xcb_resize_request_event_t *) e)->width,
-						((xcb_resize_request_event_t *) e)->height
+						((xcb_configure_notify_event_t *) e)->x,
+						((xcb_configure_notify_event_t *) e)->y,
+						((xcb_configure_notify_event_t *) e)->width,
+						((xcb_configure_notify_event_t *) e)->height
 					);
 				}
 				break;
@@ -163,8 +165,8 @@ static const graph_surface_s* graph_surface_xcb_set_event_func(register graph_su
 			case graph_surface_event_focus:
 				value |= XCB_EVENT_MASK_FOCUS_CHANGE;
 				break;
-			case graph_surface_event_resize:
-				value |= XCB_EVENT_MASK_RESIZE_REDIRECT;
+			case graph_surface_event_config:
+				value |= XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 				break;
 			default:
 				break;
@@ -182,7 +184,7 @@ static const graph_surface_s* graph_surface_xcb_get_geometry_func(register const
 {
 	register xcb_get_geometry_reply_t *reply;
 	xcb_get_geometry_cookie_t cookie;
-	cookie = xcb_get_geometry_unchecked(r->connect, r->winid);
+	cookie = xcb_get_geometry(r->connect, r->winid);
 	reply = xcb_get_geometry_reply(r->connect, cookie, NULL);
 	if (reply)
 	{
@@ -193,6 +195,23 @@ static const graph_surface_s* graph_surface_xcb_get_geometry_func(register const
 		geometry->depth = reply->depth;
 		free(reply);
 		return &r->surface;
+	}
+	return NULL;
+}
+
+static graph_surface_s* graph_surface_xcb_resize_func(register graph_surface_xcb_s *restrict r, uint32_t width, uint32_t height)
+{
+	xcb_generic_error_t *error;
+	xcb_void_cookie_t cookie;
+	if (width && height)
+	{
+		cookie = xcb_configure_window_checked(
+			r->connect, r->winid,
+			XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+			(uint32_t []) {width, height});
+		error = xcb_request_check(r->connect, cookie);
+		if (!error) return &r->surface;
+		free(error);
 	}
 	return NULL;
 }
@@ -323,6 +342,7 @@ graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, gra
 					r->surface.control.do_event = (graph_surface_do_event_f) graph_surface_xcb_do_event_func;
 					r->surface.control.set_event = (graph_surface_set_event_f) graph_surface_xcb_set_event_func;
 					r->surface.control.get_geometry = (graph_surface_get_geometry_f) graph_surface_xcb_get_geometry_func;
+					r->surface.control.resize = (graph_surface_resize_f) graph_surface_xcb_resize_func;
 					return &r->surface;
 				}
 				label_free:

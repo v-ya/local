@@ -39,6 +39,12 @@ static void iyii_surface_event_close_func(iyii_event_s *restrict data, graph_sur
 	data->iyii->closing = 1;
 }
 
+void iyii_surface_event_expose_func(iyii_event_s *restrict data, graph_surface_s *surface, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+	mlog_printf(data->iyii->mlog, "expose: (%u, %u)+(%u, %u)\n", x, y, width, height);
+	iyii_present(data->iyii);
+}
+
 static void iyii_surface_event_key_func(iyii_event_s *restrict data, graph_surface_s *surface, uint32_t key, uint32_t press, graph_surface_do_event_state_t *restrict state)
 {
 	mlog_printf(data->iyii->mlog, "%s[%u:0x%04x]: (%d, %d) + (%d, %d), %04x\n",
@@ -57,6 +63,13 @@ static void iyii_surface_event_pointer_func(iyii_event_s *restrict data, graph_s
 {
 	mlog_printf(data->iyii->mlog, "move: (%d, %d) + (%d, %d), %04x\n",
 		state->x - state->root_x, state->root_y - state->y, state->x, state->y, state->state);
+}
+
+static void iyii_surface_event_config_func(iyii_event_s *restrict data, graph_surface_s *surface, int32_t x, int32_t y, uint32_t width, uint32_t height)
+{
+	mlog_printf(data->iyii->mlog, "config: (%d, %d)+(%u, %u)\n", x, y, width, height);
+	iyii_resize(data->iyii, width, height);
+	iyii_present(data->iyii);
 }
 
 static iyii_s* iyii_select_device_queue(iyii_s *restrict r)
@@ -147,9 +160,22 @@ static iyii_s* iyii_load_source(iyii_s *restrict r)
 	static uint16_t index[] = {
 		0, 1, 2, 2, 1, 3
 	};
+	static uint32_t pixel[] = {
+		0x00ff0000, 0xff00ff00, 0x00ff0000, 0xff00ff00,
+		0xff00ff00, 0x00ff0000, 0xff00ff00, 0x00ff0000,
+		0x00ff0000, 0xff00ff00, 0x00ff0000, 0xff00ff00,
+		0xff00ff00, 0x00ff0000, 0xff00ff00, 0x00ff0000,
+	};
+	iyii_source_texture_t texture;
 	iyii_source_copy_vertex(r->source, vertex, 0, sizeof(vertex));
 	iyii_source_copy_index(r->source, index, 0, sizeof(index));
-	if (iyii_source_submit(r->source, r->queue_transfer, iyii_source_transfer$transfer))
+	if (iyii_source_map_texture(r->source, &texture))
+	{
+		iyii_source_texture_copy(&texture, pixel, 0, 0, 4, 4);
+		iyii_source_unmap_texture(&texture);
+	}
+	if (iyii_source_submit(r->source, r->queue_transfer, iyii_source_transfer$transfer) &&
+		iyii_source_submit(r->source, r->queue_transfer, iyii_source_transfer$texture))
 	{
 		graph_dev_wait_idle(r->dev);
 		return r;
@@ -195,18 +221,20 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		// set window event
 		graph_surface_set_event_data(r->surface, r->event_data);
 		graph_surface_register_event_close(r->surface, (graph_surface_do_event_close_f) iyii_surface_event_close_func);
+		graph_surface_register_event_expose(r->surface, (graph_surface_do_event_expose_f) iyii_surface_event_expose_func);
 		graph_surface_register_event_key(r->surface, (graph_surface_do_event_key_f) iyii_surface_event_key_func);
 		graph_surface_register_event_button(r->surface, (graph_surface_do_event_button_f) iyii_surface_event_button_func);
 		graph_surface_register_event_pointer(r->surface, (graph_surface_do_event_pointer_f) iyii_surface_event_pointer_func);
+		graph_surface_register_event_config(r->surface, (graph_surface_do_event_config_f) iyii_surface_event_config_func);
 		if (!graph_surface_set_event(r->surface, (const graph_surface_event_t []) {
 			graph_surface_event_close,
-			// graph_surface_event_expose,
+			graph_surface_event_expose,
 			graph_surface_event_key,
 			graph_surface_event_button,
 			// graph_surface_event_pointer,
 			// graph_surface_event_area,
 			// graph_surface_event_focus,
-			// graph_surface_event_resize,
+			graph_surface_event_config,
 			graph_surface_event_null
 		})) goto label_fail;
 		// select phtsical device
@@ -250,7 +278,7 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		if (!r->source) goto label_fail;
 		if (!iyii_source_ready(
 			r->source,
-			1024, 1024,
+			4, 4,
 			1024, 1024,
 			1024, r->swapchain->image_number
 		)) goto label_fail;
@@ -272,6 +300,21 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		return r;
 		label_fail:
 		refer_free(r);
+	}
+	return NULL;
+}
+
+iyii_s* iyii_resize(iyii_s *restrict iyii, uint32_t width, uint32_t height)
+{
+	iyii_swapchain_s *swapchain;
+	if ((swapchain = iyii->swapchain) && width && height)
+	{
+		if (swapchain->width == width || swapchain->height == height)
+			return iyii;
+		else
+		{
+			;
+		}
 	}
 	return NULL;
 }

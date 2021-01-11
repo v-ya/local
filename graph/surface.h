@@ -32,7 +32,7 @@ typedef enum graph_surface_event_e {
 	graph_surface_event_pointer,   // 鼠标移动事件
 	graph_surface_event_area,      // 鼠标进出窗口事件
 	graph_surface_event_focus,     // 窗口焦点事件
-	graph_surface_event_resize,    // 窗口大小变更事件
+	graph_surface_event_config,    // 窗口配置变更事件
 	graph_surface_event$number
 } graph_surface_event_t;
 
@@ -51,7 +51,7 @@ typedef void (*graph_surface_do_event_button_f)(refer_t data, graph_surface_s *s
 typedef void (*graph_surface_do_event_pointer_f)(refer_t data, graph_surface_s *surface, graph_surface_do_event_state_t *restrict state);
 typedef void (*graph_surface_do_event_area_f)(refer_t data, graph_surface_s *surface, graph_surface_do_event_state_t *restrict state);
 typedef void (*graph_surface_do_event_focus_f)(refer_t data, graph_surface_s *surface, uint32_t focus);
-typedef void (*graph_surface_do_event_resize_f)(refer_t data, graph_surface_s *surface, uint32_t width, uint32_t height);
+typedef void (*graph_surface_do_event_config_f)(refer_t data, graph_surface_s *surface, int32_t x, int32_t y, uint32_t width, uint32_t height);
 
 graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, graph_surface_s *restrict parent, int x, int y, unsigned int width, unsigned int height, unsigned int depth);
 graph_surface_attr_s* graph_surface_attr_get(const graph_surface_s *restrict surface, const struct graph_device_t *restrict device);
@@ -67,10 +67,11 @@ void graph_surface_register_event_button(graph_surface_s *restrict surface, grap
 void graph_surface_register_event_pointer(graph_surface_s *restrict surface, graph_surface_do_event_pointer_f func);
 void graph_surface_register_event_area(graph_surface_s *restrict surface, graph_surface_do_event_area_f func);
 void graph_surface_register_event_focus(graph_surface_s *restrict surface, graph_surface_do_event_focus_f func);
-void graph_surface_register_event_resize(graph_surface_s *restrict surface, graph_surface_do_event_resize_f func);
+void graph_surface_register_event_config(graph_surface_s *restrict surface, graph_surface_do_event_config_f func);
 
 graph_surface_s* graph_surface_set_event(graph_surface_s *restrict surface, const graph_surface_event_t *restrict events);
 graph_surface_s* graph_surface_get_geometry(const graph_surface_s *restrict surface, graph_surface_geometry_t *restrict geometry);
+graph_surface_s* graph_surface_resize(graph_surface_s *restrict surface, uint32_t width, uint32_t height);
 
 graph_swapchain_param_s* graph_swapchain_param_alloc(graph_surface_s *restrict surface, const graph_surface_attr_s *restrict attr, uint32_t queue_sharing_number);
 graph_swapchain_s* graph_swapchain_alloc(const graph_swapchain_param_s *restrict param, struct graph_dev_s *dev);
