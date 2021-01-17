@@ -42,7 +42,8 @@ static void iyii_surface_event_close_func(iyii_event_s *restrict data, graph_sur
 void iyii_surface_event_expose_func(iyii_event_s *restrict data, graph_surface_s *surface, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
 	mlog_printf(data->iyii->mlog, "expose: (%u, %u)+(%u, %u)\n", x, y, width, height);
-	iyii_present(data->iyii);
+	if (!data->iyii->closing)
+		iyii_present(data->iyii);
 }
 
 static void iyii_surface_event_key_func(iyii_event_s *restrict data, graph_surface_s *surface, uint32_t key, uint32_t press, graph_surface_do_event_state_t *restrict state)
@@ -65,11 +66,27 @@ static void iyii_surface_event_pointer_func(iyii_event_s *restrict data, graph_s
 		state->x - state->root_x, state->root_y - state->y, state->x, state->y, state->state);
 }
 
+static graph_command_pool_s* iyii_build_draw_command(graph_command_pool_s *restrict cpool_draw, iyii_s *restrict iyii);
 static void iyii_surface_event_config_func(iyii_event_s *restrict data, graph_surface_s *surface, int32_t x, int32_t y, uint32_t width, uint32_t height)
 {
-	mlog_printf(data->iyii->mlog, "config: (%d, %d)+(%u, %u)\n", x, y, width, height);
-	iyii_resize(data->iyii, width, height);
-	iyii_present(data->iyii);
+	iyii_s *iyii;
+	iyii_swapchain_s *swapchain;
+	if ((swapchain = (iyii = data->iyii)->swapchain) && width && height)
+	{
+		if (swapchain->width != width && swapchain->height != height)
+		{
+			if (graph_dev_wait_idle(iyii->dev) &&
+				iyii_swapchain_rebuild(iyii->swapchain) &&
+				iyii_render_rebuild(iyii->render) &&
+				iyii_pipeline_update_output(iyii->pipeline, 0, 0, width, height) &&
+				iyii_build_draw_command(iyii->render->cpool_draw, iyii))
+			{
+				iyii_present(iyii);
+				return ;
+			}
+			iyii->closing = 1;
+		}
+	}
 }
 
 static iyii_s* iyii_select_device_queue(iyii_s *restrict r)
@@ -300,21 +317,6 @@ iyii_s* iyii_alloc(mlog_s *restrict mlog, uint32_t enable_validation)
 		return r;
 		label_fail:
 		refer_free(r);
-	}
-	return NULL;
-}
-
-iyii_s* iyii_resize(iyii_s *restrict iyii, uint32_t width, uint32_t height)
-{
-	iyii_swapchain_s *swapchain;
-	if ((swapchain = iyii->swapchain) && width && height)
-	{
-		if (swapchain->width == width || swapchain->height == height)
-			return iyii;
-		else
-		{
-			;
-		}
 	}
 	return NULL;
 }

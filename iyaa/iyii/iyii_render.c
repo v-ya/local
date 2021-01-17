@@ -5,8 +5,10 @@ static void iyii_render_free_func(iyii_render_s *restrict r)
 {
 	uint32_t i;
 	for (i = 0; i < r->image_number; ++i)
+	{
 		if (r->frame_buffer[i])
 			refer_free(r->frame_buffer[i]);
+	}
 	if (r->cpool_draw) refer_free(r->cpool_draw);
 	if (r->swapchain) refer_free(r->swapchain);
 	if (r->render_pass) refer_free(r->render_pass);
@@ -22,7 +24,7 @@ iyii_render_s* iyii_render_alloc(graph_render_pass_s *restrict render_pass, iyii
 		refer_set_free(r, (refer_free_f) iyii_render_free_func);
 		r->render_pass = (graph_render_pass_s *) refer_save(render_pass);
 		r->swapchain = (iyii_swapchain_s *) refer_save(swapchain);
-		r->cpool_draw = graph_command_pool_alloc(dev, graphics, 0, n);
+		r->cpool_draw = graph_command_pool_alloc(dev, graphics, graph_command_pool_flags_reset_command_buffer, n);
 		if (!r->cpool_draw) goto label_fail;
 		r->image_number = n;
 		r->format = swapchain->format;
@@ -42,5 +44,39 @@ iyii_render_s* iyii_render_alloc(graph_render_pass_s *restrict render_pass, iyii
 		label_fail:
 		refer_free(r);
 	}
+	return NULL;
+}
+
+iyii_render_s* iyii_render_rebuild(iyii_render_s *restrict render)
+{
+	iyii_swapchain_s *restrict swapchain;
+	uint32_t i, n;
+	if ((n = render->image_number) >= (swapchain = render->swapchain)->image_number)
+	{
+		for (i = 0; i < n; ++i)
+		{
+			if (render->frame_buffer[i])
+			{
+				refer_free(render->frame_buffer[i]);
+				render->frame_buffer[i] = NULL;
+			}
+		}
+		render->image_number = n = swapchain->image_number;
+		render->format = swapchain->format;
+		render->width = swapchain->width;
+		render->height = swapchain->height;
+		for (i = 0; i < n; ++i)
+		{
+			if (!(render->frame_buffer[i] = graph_frame_buffer_alloc(
+				render->render_pass,
+				swapchain->image_view[i],
+				render->width,
+				render->height,
+				1
+			))) goto label_fail;
+		}
+		return render;
+	}
+	label_fail:
 	return NULL;
 }

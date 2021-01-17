@@ -16,5 +16,6 @@ typedef struct iyii_render_s {
 } iyii_render_s;
 
 iyii_render_s* iyii_render_alloc(graph_render_pass_s *restrict render_pass, iyii_swapchain_s *restrict swapchain, graph_dev_s *dev, const graph_device_queue_t *restrict graphics);
+iyii_render_s* iyii_render_rebuild(iyii_render_s *restrict render);
 
 #endif

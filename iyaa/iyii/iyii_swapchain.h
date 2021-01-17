@@ -20,5 +20,6 @@ typedef struct iyii_swapchain_s {
 iyii_swapchain_s* iyii_swapchain_alloc(graph_dev_s *restrict dev, const graph_device_t *restrict device, graph_surface_s *restrict surface);
 iyii_swapchain_s* iyii_swapchain_acquire(iyii_swapchain_s *restrict swapchain, uint32_t *restrict index, uint32_t *restrict i);
 iyii_swapchain_s* iyii_swapchain_render(iyii_swapchain_s *restrict swapchain, graph_queue_t *restrict graphics, graph_command_pool_s *restrict cpool_draw, uint32_t index, uint32_t i);
+iyii_swapchain_s* iyii_swapchain_rebuild(iyii_swapchain_s *restrict swapchain);
 
 #endif

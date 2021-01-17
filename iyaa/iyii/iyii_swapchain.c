@@ -2,28 +2,21 @@
 #include "iyii_render.h"
 #include <stdlib.h>
 
+static void iyii_swapchain_free_refer_array(refer_t *restrict array, uint32_t n)
+{
+	for (uint32_t i = 0; i < n; ++i)
+		if (array[i]) refer_free(array[i]);
+	free(array);
+}
+
 static void iyii_swapchain_free_func(iyii_swapchain_s *restrict r)
 {
-	refer_t *restrict array;
-	uint32_t i, n;
-	if ((array = (refer_t *) r->semaphore))
-	{
-		for (i = 0, n = r->image_number * 2; i < n; ++i)
-			if (array[i]) refer_free(array[i]);
-		free((void *) array);
-	}
-	if ((array = (refer_t *) r->fence))
-	{
-		for (i = 0, n = r->image_number; i < n; ++i)
-			if (array[i]) refer_free(array[i]);
-		free((void *) array);
-	}
-	if ((array = (refer_t *) r->image_view))
-	{
-		for (i = 0, n = r->image_number; i < n; ++i)
-			if (array[i]) refer_free(array[i]);
-		free((void *) array);
-	}
+	if (r->semaphore)
+		iyii_swapchain_free_refer_array((refer_t *) r->semaphore, r->image_number * 2);
+	if (r->fence)
+		iyii_swapchain_free_refer_array((refer_t *) r->fence, r->image_number);
+	if (r->image_view)
+		iyii_swapchain_free_refer_array((refer_t *) r->image_view, r->image_number);
 	if (r->image_view_param) refer_free(r->image_view_param);
 	if (r->swapchain) refer_free(r->swapchain);
 }
@@ -110,6 +103,32 @@ iyii_swapchain_s* iyii_swapchain_render(iyii_swapchain_s *restrict swapchain, gr
 			index,
 			swapchain->semaphore[j]))
 			return swapchain;
+	}
+	return NULL;
+}
+
+iyii_swapchain_s* iyii_swapchain_rebuild(iyii_swapchain_s *restrict swapchain)
+{
+	if (graph_swapchain_rebulid(swapchain->swapchain))
+	{
+		graph_image_view_s **restrict iv;
+		uint32_t i, n;
+		graph_swapchain_info(swapchain->swapchain, &n, &swapchain->format, &swapchain->width, &swapchain->height);
+		if (n > swapchain->image_number)
+			n = swapchain->image_number;
+		iv = (graph_image_view_s **) calloc(n, sizeof(graph_image_view_s *));
+		if (!iv) goto label_fail;
+		for (i = 0; i < n; ++i)
+		{
+			if (!(iv[i] = graph_image_view_alloc_by_swapchain(swapchain->image_view_param, swapchain->swapchain, i)))
+				goto label_fail;
+		}
+		iyii_swapchain_free_refer_array((refer_t *) swapchain->image_view, swapchain->image_number);
+		swapchain->image_view = iv;
+		swapchain->image_number = n;
+		return swapchain;
+		label_fail:
+		if (iv) iyii_swapchain_free_refer_array((refer_t *) iv, n);
 	}
 	return NULL;
 }

@@ -212,3 +212,24 @@ iyii_pipeline_s* iyii_pipeline_alloc(graph_dev_s *restrict dev, graph_format_t f
 	}
 	return NULL;
 }
+
+iyii_pipeline_s* iyii_pipeline_update_output(iyii_pipeline_s *restrict pipeline, int32_t x, int32_t y, uint32_t w, uint32_t h)
+{
+	if (w && h)
+	{
+		pipeline->output_x = x;
+		pipeline->output_y = y;
+		pipeline->output_width = w;
+		pipeline->output_height = h;
+		graph_viewports_scissors_update_viewport(
+			pipeline->viewports, 0,
+			(float) x, (float) y,
+			(float) w, (float) h,
+			0, 1);
+		graph_viewports_scissors_update_scissor(
+			pipeline->viewports, 0,
+			x, y, w, h);
+		return pipeline;
+	}
+	return NULL;
+}
