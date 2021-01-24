@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static rbtree_t* rbtree_balance_insert(rbtree_t *vn, rbtree_t **pr)
+static rbtree_t* rbtree_balance_insert(rbtree_t *restrict vn, rbtree_t *restrict *restrict pr)
 {
 	register rbtree_t *v, *p, *pp, *pf;
 	v = vn;
@@ -97,7 +97,7 @@ static rbtree_t* rbtree_balance_insert(rbtree_t *vn, rbtree_t **pr)
 	return vn;
 }
 
-static void rbtree_balance_delete(register rbtree_t *v, rbtree_t **pr)
+static void rbtree_balance_delete(register rbtree_t *restrict v, rbtree_t *restrict *restrict pr)
 {
 	register rbtree_t *p, *f, *l, *r;
 	while (v->color == rbtree_color_black && (p = v->u))
@@ -260,7 +260,7 @@ static void rbtree_balance_delete(register rbtree_t *v, rbtree_t **pr)
 	if (v->color == rbtree_color_red) v->color = rbtree_color_black;
 }
 
-static rbtree_t* rbtree_balance_delete_void(register rbtree_t *p, rbtree_t **pr)
+static rbtree_t* rbtree_balance_delete_void(register rbtree_t *restrict p, rbtree_t *restrict *restrict pr)
 {
 	register rbtree_t *f, *l, *r;
 	if (!p) return *pr = NULL;
@@ -421,9 +421,9 @@ static rbtree_t* rbtree_balance_delete_void(register rbtree_t *p, rbtree_t **pr)
 	else return p;
 }
 
-rbtree_t* rbtree_insert(rbtree_t **pr, const char *name, uint64_t index, const void *value, rbtree_func_free_t freeFunc)
+rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f freeFunc)
 {
-	register rbtree_t *v, *p, **pv;
+	register rbtree_t *v, *p, *restrict *restrict pv;
 	int s_cmp;
 	pv = pr;
 	p = NULL;
@@ -478,7 +478,7 @@ rbtree_t* rbtree_insert(rbtree_t **pr, const char *name, uint64_t index, const v
 	return rbtree_balance_insert(v, pr);
 }
 
-void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
+void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, register rbtree_t *restrict p)
 {
 	register rbtree_t *v, *pp;
 	uint32_t color;
@@ -532,7 +532,7 @@ void rbtree_delete_by_pointer(rbtree_t **pr, register rbtree_t *p)
 	}
 }
 
-void rbtree_delete(register rbtree_t **pr, const char *name, uint64_t index)
+void rbtree_delete(register rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index)
 {
 	register rbtree_t *p;
 	int s_cmp;
@@ -567,7 +567,7 @@ void rbtree_delete(register rbtree_t **pr, const char *name, uint64_t index)
 	if (p) rbtree_delete_by_pointer(pr, p);
 }
 
-rbtree_t* rbtree_find(rbtree_t **pr, const char *name, uint64_t index)
+rbtree_t* rbtree_find(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index)
 {
 	register rbtree_t *p;
 	int s_cmp;
@@ -602,7 +602,7 @@ rbtree_t* rbtree_find(rbtree_t **pr, const char *name, uint64_t index)
 	return NULL;
 }
 
-void rbtree_clear(rbtree_t **pr)
+void rbtree_clear(rbtree_t *restrict *restrict pr)
 {
 	register rbtree_t *v, *c;
 	v = *pr;
@@ -633,7 +633,7 @@ void rbtree_clear(rbtree_t **pr)
 	}
 }
 
-void rbtree_call(rbtree_t **pr, rbtree_func_call_t callFunc, void *data)
+void rbtree_call(rbtree_t *restrict *restrict pr, rbtree_func_call_f callFunc, void *data)
 {
 	register rbtree_t *v;
 	v = *pr;
@@ -659,7 +659,7 @@ void rbtree_call(rbtree_t **pr, rbtree_func_call_t callFunc, void *data)
 	}
 }
 
-void rbtree_isfree(rbtree_t **pr, rbtree_func_isfree_t callFunc, void *data)
+void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f callFunc, void *data)
 {
 	register rbtree_t *v, *n;
 	v = *pr;

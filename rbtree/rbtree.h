@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 typedef struct rbtree_t rbtree_t;
-typedef void (*rbtree_func_free_t)(rbtree_t *);
-typedef void (*rbtree_func_call_t)(rbtree_t *, void *);
-typedef int (*rbtree_func_isfree_t)(rbtree_t *, void *);
+typedef void (*rbtree_func_free_f)(rbtree_t *restrict);
+typedef void (*rbtree_func_call_f)(rbtree_t *restrict, void *);
+typedef int (*rbtree_func_isfree_f)(rbtree_t *restrict, void *);
 
 struct rbtree_t {
 	rbtree_t *u;
@@ -17,18 +17,18 @@ struct rbtree_t {
 	uint32_t color;
 	uint32_t mode;
 	void *value;
-	rbtree_func_free_t freeFunc;
+	rbtree_func_free_f freeFunc;
 };
 
 #define rbtree_color_red        0
 #define rbtree_color_black      1
 
-rbtree_t* rbtree_insert(rbtree_t **pr, const char *name, uint64_t index, const void *value, rbtree_func_free_t freeFunc);
-void rbtree_delete_by_pointer(rbtree_t **pr, rbtree_t *p);
-void rbtree_delete(rbtree_t **pr, const char *name, uint64_t index);
-rbtree_t* rbtree_find(rbtree_t **pr, const char *name, uint64_t index);
-void rbtree_clear(rbtree_t **pr);
-void rbtree_call(rbtree_t **pr, rbtree_func_call_t callFunc, void *data);
-void rbtree_isfree(rbtree_t **pr, rbtree_func_isfree_t callFunc, void *data);
+rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f freeFunc);
+void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, rbtree_t *restrict p);
+void rbtree_delete(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index);
+rbtree_t* rbtree_find(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index);
+void rbtree_clear(rbtree_t *restrict *restrict pr);
+void rbtree_call(rbtree_t *restrict *restrict pr, rbtree_func_call_f callFunc, void *data);
+void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f callFunc, void *data);
 
 #endif

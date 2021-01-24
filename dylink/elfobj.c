@@ -467,13 +467,13 @@ uint8_t* elf64obj_build_strpool(elf64obj_t *e, size_t *psize)
 	hashmap_call(&e->symtab, (hashmap_func_call_f) elf64obj_build_namelist_func, &argv);
 	if (!argv) goto Err;
 	argv = e;
-	rbtree_call(&namelist, (rbtree_func_call_t) elf64obj_build_strpool_offset_func, &argv);
+	rbtree_call(&namelist, (rbtree_func_call_f) elf64obj_build_strpool_offset_func, &argv);
 	if (!argv) goto Err;
 	if (e->strpool_size)
 	{
 		e->strpool_data = (uint8_t *) calloc(1, e->strpool_size);
 		if (!e->strpool_data) goto Err;
-		rbtree_call(&namelist, (rbtree_func_call_t) elf64obj_build_strpool_data_func, e);
+		rbtree_call(&namelist, (rbtree_func_call_f) elf64obj_build_strpool_data_func, e);
 	}
 	End:
 	if (namelist) rbtree_clear(&namelist);
