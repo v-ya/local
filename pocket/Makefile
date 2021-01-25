@@ -1,12 +1,17 @@
-TARGET		= libpocket.so
-HEADER		= pocket.h
+TARGET-POCKET	= libpocket.so
+TARGET-SAVER	= libpocket-saver.so
+TARGET		= ${TARGET-POCKET} ${TARGET-SAVER}
+HEADER		= pocket.h pocket-saver.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -soname ${TARGET}
+LDFLAGS-POCKET	= -shared -soname ${TARGET-POCKET} -lrefer -lrbtree
+LDFLAGS-SAVER	= -shared -soname ${TARGET-SAVER} -lrefer -lhashmap -lrbtree
 
-OBJECT		= pocket.o
+OBJECT-POCKET	= pocket.o
+OBJECT-SAVER	= pocket-saver.o
+OBJECT		= ${OBJECT-POCKET} ${OBJECT-SAVER}
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
@@ -14,7 +19,8 @@ OBJECT		= pocket.o
 .PHONY: clear install uninstall
 
 ${TARGET}: ${OBJECT}
-	${LD} ${LDFLAGS} -o $@ $^
+	${LD} ${LDFLAGS-POCKET} -o ${TARGET-POCKET} ${OBJECT-POCKET}
+	${LD} ${LDFLAGS-SAVER} -o ${TARGET-SAVER} ${OBJECT-SAVER}
 
 clear:
 	rm -f ${TARGET} *.o

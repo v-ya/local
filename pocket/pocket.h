@@ -2,6 +2,7 @@
 #define _pocket_h_
 
 #include <stdint.h>
+#include <refer.h>
 
 // 文件分区
 //    文件头
@@ -74,8 +75,8 @@ typedef struct pocket_header_t {
 	uint64_t index$size;          // 索引区-大小
 	uint64_t data$offset;         // 数据区-起始位置，16 字节对齐
 	uint64_t data$size;           // 数据区-大小
-	uint64_t system;              // 系统根索引位置，相对于 index$offset 的第 n 个 attr
-	uint64_t user;                // 用户根索引位置，相对于 index$offset 的第 n 个 attr
+	uint64_t system;              // 系统根索引位置
+	uint64_t user;                // 用户根索引位置
 	pocket_string_t tag;          // 该 pocket 的类型
 	pocket_string_t version;      // 该 pocket 的版本
 	pocket_string_t author;       // 该 pocket 的作者
@@ -91,5 +92,9 @@ typedef struct pocket_attr_t {
 	pocket_ptr_t data;     // 实体
 	uint64_t size;         // 大小
 } pocket_attr_t;
+
+typedef struct pocket_s pocket_s;
+
+pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size);
 
 #endif

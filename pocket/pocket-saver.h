@@ -34,5 +34,7 @@ pocket_saver_s* pocket_saver_create_s64(pocket_saver_s *restrict saver, pocket_s
 pocket_saver_s* pocket_saver_create_f32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const float *restrict data, uint64_t n, uintptr_t align);
 pocket_saver_s* pocket_saver_create_f64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const double *restrict data, uint64_t n, uintptr_t align);
 pocket_saver_s* pocket_saver_create_custom(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const char *tag, const void *restrict data, uint64_t size, uintptr_t align);
+uint8_t* pocket_saver_build(pocket_saver_s *restrict saver, uint64_t *restrict size);
+void pocket_saver_build_free(uint8_t *restrict pocket);
 
 #endif

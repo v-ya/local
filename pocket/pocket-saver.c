@@ -14,6 +14,7 @@ struct pocket_saver_attr_t {
 	rbtree_t *restrict *restrict string_pool_list;
 	pocket_saver_attr_t **pr;
 	pocket_saver_attr_t *next;
+	uint64_t attr_offset;
 };
 
 struct pocket_saver_attr_index_t {
@@ -201,6 +202,7 @@ static pocket_saver_attr_data_t* pocket_saver_attr_data_alloc(const char *restri
 	else if (tag == pocket_tag$string)
 	{
 		if (!data) goto label_fail;
+		tag_string = tag_string_array[pocket_tag$string];
 		size = 0;
 		align = 0;
 	}
@@ -495,8 +497,13 @@ pocket_saver_s* pocket_saver_create_string(pocket_saver_s *restrict saver, pocke
 {
 	if (string && (index = pocket_saver_attr_insert_path(index, &path)))
 	{
-		if (pocket_saver_attr_index_insert_data(index, *path, pocket_tag$string, NULL, string, 0, 0))
-			return saver;
+		pocket_saver_attr_data_t *v;
+		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$string, NULL, string, 0, 0)))
+		{
+			if (pocket_saver_link_data(saver, v))
+				return saver;
+			pocket_saver_attr_index_delete(index, *path);
+		}
 	}
 	return NULL;
 }
@@ -713,18 +720,176 @@ static void pocket_saver_appoint_string_pool_layer_func(rbtree_t *restrict v, vo
 		hashmap_call((hashmap_t *) v->value, (hashmap_func_call_f) pocket_saver_appoint_string_pool_do_func, argv);
 }
 
-static uint64_t pocket_saver_appoint(pocket_saver_s *restrict saver, hashmap_t *restrict string_pool, uint64_t *restrict string_offset, uint64_t *restrict index_offset, uint64_t *restrict data_offset)
+static void pocket_saver_appoint_attr_appoint(pocket_saver_attr_t *restrict attr, uint64_t *restrict offset, uint64_t *restrict n)
+{
+	pocket_saver_attr_t *restrict p;
+	*n = 0;
+	for (p = attr; p; p = p->next)
+	{
+		p->attr_offset = *offset;
+		*offset += sizeof(pocket_attr_t);
+		++*n;
+	}
+	for (p = attr; p; p = p->next)
+	{
+		if (p->tag == pocket_tag$index && (attr = ((pocket_saver_attr_index_t *) p)->head))
+		{
+			p->attr.data.offset = *offset;
+			pocket_saver_appoint_attr_appoint(attr, offset, &p->attr.size);
+			if (!p->attr.size) p->attr.data.offset = 0;
+		}
+	}
+}
+
+static uint64_t pocket_saver_appoint_root_index_appoint(pocket_saver_attr_index_t *restrict index, uint64_t *restrict offset)
+{
+	uint64_t n;
+	if (index->head)
+	{
+		pocket_saver_appoint_attr_appoint(&index->attr, offset, &n);
+		return index->attr.attr_offset;
+	}
+	return 0;
+}
+
+static inline void pocket_saver_appoint_align(register uint64_t *restrict offset, register uintptr_t align)
+{
+	if (align > 1)
+	{
+		register uint64_t n = *offset + align - 1;
+		*offset = n - n % align;
+	}
+}
+
+static void pocket_saver_appoint_data_align_list_func(rbtree_t *restrict v, void *argv[2])
+{
+	pocket_saver_attr_data_t *restrict p;
+	hashmap_t *restrict string_pool;
+	uint64_t *restrict offset;
+	if (argv[0])
+	{
+		p = (pocket_saver_attr_data_t *) v->value;
+		string_pool = (hashmap_t *) argv[0];
+		offset = (uint64_t *) argv[1];
+		while (p)
+		{
+			if (p->attr.tag == pocket_tag$string)
+			{
+				if (!(p->attr.attr.data.offset = (uintptr_t) hashmap_get_name(string_pool, (const char *) p->data)))
+					goto label_fail;
+			}
+			else if (p->attr.attr.size)
+			{
+				pocket_saver_appoint_align(offset, p->align);
+				p->attr.attr.data.offset = *offset;
+				*offset += p->attr.attr.size;
+				pocket_saver_appoint_align(offset, p->align);
+			}
+			p = p->next;
+		}
+	}
+	return ;
+	label_fail:
+	argv[0] = NULL;
+}
+
+static uint64_t pocket_saver_appoint(pocket_saver_s *restrict saver, hashmap_t *restrict string_pool, pocket_header_t *restrict header)
 {
 	void *argv[2];
 	uint64_t offset;
+	memset(header, 0, sizeof(pocket_header_t));
+	header->magic = pocket_magic;
 	offset = sizeof(pocket_header_t);
-	*string_offset = offset;
+	header->string$offset = offset;
 	argv[0] = string_pool;
 	argv[1] = &offset;
 	rbtree_call(&saver->string_pool_list, (rbtree_func_call_f) pocket_saver_appoint_string_pool_layer_func, argv);
 	if (!argv[0]) goto label_fail;
-	offset = (offset + 0xf) & ~(uint64_t) 0xf;
+	header->string$size = offset - header->string$offset;
+	pocket_saver_appoint_align(&offset, 16);
+	header->index$offset = offset;
+	header->system = pocket_saver_appoint_root_index_appoint(saver->system, &offset);
+	header->user = pocket_saver_appoint_root_index_appoint(saver->user, &offset);
+	header->index$size = offset - header->index$offset;
+	header->data$offset = offset;
+	rbtree_call(&saver->data_align_list, (rbtree_func_call_f) pocket_saver_appoint_data_align_list_func, argv);
+	if (!argv[0]) goto label_fail;
+	header->data$size = offset - header->data$offset;
+	#define set_string(_n)  if (saver->_n) header->_n.offset = (uintptr_t) hashmap_get_name(string_pool, saver->_n)
+	set_string(verify);
+	set_string(tag);
+	set_string(version);
+	set_string(author);
+	set_string(time);
+	set_string(description);
+	set_string(flag);
+	#undef set_string
 	return offset;
 	label_fail:
 	return 0;
+}
+
+static void pocket_saver_write_string_pool_func(hashmap_vlist_t *restrict vl, uint8_t *restrict pocket)
+{
+	strcpy((char *) (pocket + (uintptr_t) vl->value), vl->name);
+}
+
+static void pocket_saver_write_attr(pocket_saver_attr_t *restrict attr, uint8_t *restrict pocket, hashmap_t *restrict string_pool)
+{
+	while (attr)
+	{
+		register pocket_attr_t *p;
+		p = (pocket_attr_t *) (pocket + attr->attr_offset);
+		p->name.offset = attr->attr.name.string?(uintptr_t) hashmap_get_name(string_pool, attr->attr.name.string):0;
+		p->tag.offset = attr->attr.tag.string?(uintptr_t) hashmap_get_name(string_pool, attr->attr.tag.string):0;
+		p->data.offset = attr->attr.data.offset;
+		p->size = attr->attr.size;
+		if (attr->tag == pocket_tag$index)
+			pocket_saver_write_attr(((pocket_saver_attr_index_t *) attr)->head, pocket, string_pool);
+		attr = attr->next;
+	}
+}
+
+static void pocket_saver_write_data_func(rbtree_t *restrict v, uint8_t *restrict pocket)
+{
+	pocket_saver_attr_data_t *restrict p;
+	p = (pocket_saver_attr_data_t *) v->value;
+	while (p)
+	{
+		if (p->attr.attr.size)
+			memcpy(pocket + p->attr.attr.data.offset, p->data, p->attr.attr.size);
+		p = p->next;
+	}
+}
+
+static void pocket_saver_write(pocket_saver_s *restrict saver, hashmap_t *restrict string_pool, pocket_header_t *restrict header, uint8_t *pocket)
+{
+	memcpy(pocket, header, sizeof(pocket_header_t));
+	hashmap_call(string_pool, (hashmap_func_call_f) pocket_saver_write_string_pool_func, pocket);
+	if (header->system) pocket_saver_write_attr(&saver->system->attr, pocket, string_pool);
+	if (header->user) pocket_saver_write_attr(&saver->user->attr, pocket, string_pool);
+	rbtree_call(&saver->data_align_list, (rbtree_func_call_f) pocket_saver_write_data_func, pocket);
+}
+
+uint8_t* pocket_saver_build(pocket_saver_s *restrict saver, uint64_t *restrict size)
+{
+	uint8_t *pocket;
+	hashmap_t string_pool;
+	pocket_header_t header;
+	pocket = NULL;
+	if (hashmap_init(&string_pool))
+	{
+		if ((*size = pocket_saver_appoint(saver, &string_pool, &header)))
+		{
+			pocket = (uint8_t *) calloc(1, (size_t) *size);
+			if (pocket) pocket_saver_write(saver, &string_pool, &header, pocket);
+		}
+		hashmap_uini(&string_pool);
+	}
+	return pocket;
+}
+
+void pocket_saver_build_free(uint8_t *restrict pocket)
+{
+	free(pocket);
 }
