@@ -567,7 +567,7 @@ void rbtree_delete(register rbtree_t *restrict *restrict pr, const char *restric
 	if (p) rbtree_delete_by_pointer(pr, p);
 }
 
-rbtree_t* rbtree_find(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index)
+rbtree_t* rbtree_find(rbtree_t *const restrict *restrict pr, const char *restrict name, uint64_t index)
 {
 	register rbtree_t *p;
 	int s_cmp;
@@ -633,7 +633,7 @@ void rbtree_clear(rbtree_t *restrict *restrict pr)
 	}
 }
 
-void rbtree_call(rbtree_t *restrict *restrict pr, rbtree_func_call_f callFunc, void *data)
+void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f callFunc, void *data)
 {
 	register rbtree_t *v;
 	v = *pr;
