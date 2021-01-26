@@ -808,8 +808,8 @@ static uint64_t pocket_saver_appoint(pocket_saver_s *restrict saver, hashmap_t *
 	header->string$size = offset - header->string$offset;
 	pocket_saver_appoint_align(&offset, 16);
 	header->index$offset = offset;
-	header->system = pocket_saver_appoint_root_index_appoint(saver->system, &offset);
-	header->user = pocket_saver_appoint_root_index_appoint(saver->user, &offset);
+	header->system.offset = pocket_saver_appoint_root_index_appoint(saver->system, &offset);
+	header->user.offset = pocket_saver_appoint_root_index_appoint(saver->user, &offset);
 	header->index$size = offset - header->index$offset;
 	header->data$offset = offset;
 	rbtree_call(&saver->data_align_list, (rbtree_func_call_f) pocket_saver_appoint_data_align_list_func, argv);
@@ -866,8 +866,8 @@ static void pocket_saver_write(pocket_saver_s *restrict saver, hashmap_t *restri
 {
 	memcpy(pocket, header, sizeof(pocket_header_t));
 	hashmap_call(string_pool, (hashmap_func_call_f) pocket_saver_write_string_pool_func, pocket);
-	if (header->system) pocket_saver_write_attr(&saver->system->attr, pocket, string_pool);
-	if (header->user) pocket_saver_write_attr(&saver->user->attr, pocket, string_pool);
+	if (header->system.offset) pocket_saver_write_attr(&saver->system->attr, pocket, string_pool);
+	if (header->user.offset) pocket_saver_write_attr(&saver->user->attr, pocket, string_pool);
 	rbtree_call(&saver->data_align_list, (rbtree_func_call_f) pocket_saver_write_data_func, pocket);
 }
 

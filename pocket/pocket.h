@@ -75,8 +75,8 @@ typedef struct pocket_header_t {
 	uint64_t index$size;          // 索引区-大小
 	uint64_t data$offset;         // 数据区-起始位置，16 字节对齐
 	uint64_t data$size;           // 数据区-大小
-	uint64_t system;              // 系统根索引位置
-	uint64_t user;                // 用户根索引位置
+	pocket_ptr_t system;          // 系统根索引位置
+	pocket_ptr_t user;            // 用户根索引位置
 	pocket_string_t tag;          // 该 pocket 的类型
 	pocket_string_t version;      // 该 pocket 的版本
 	pocket_string_t author;       // 该 pocket 的作者
@@ -95,6 +95,18 @@ typedef struct pocket_attr_t {
 
 typedef struct pocket_s pocket_s;
 
-pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size);
+struct pocket_verify_s;
+
+pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify);
+
+const pocket_header_t* pocket_header(const pocket_s *restrict p);
+const pocket_attr_t* pocket_system(const pocket_s *restrict p);
+const pocket_attr_t* pocket_user(const pocket_s *restrict p);
+pocket_tag_t pocket_preset_tag(const pocket_s *restrict p, const pocket_attr_t *restrict attr);
+const pocket_attr_t* pocket_is_tag(const pocket_s *restrict p, const pocket_attr_t *restrict attr, pocket_tag_t tag, const char *restrict custom);
+const pocket_attr_t* pocket_find(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *restrict name);
+const pocket_attr_t* pocket_find_path(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path);
+const pocket_attr_t* pocket_find_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *restrict name, pocket_tag_t tag, const char *restrict custom);
+const pocket_attr_t* pocket_find_path_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path, pocket_tag_t tag, const char *restrict custom);
 
 #endif

@@ -1,12 +1,17 @@
 #include "pocket.h"
+#include "pocket-verify.h"
 #include <rbtree.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define pocket_attr_bits  5
 
 typedef struct pocket_hash_slot_t pocket_hash_slot_t;
 struct pocket_hash_slot_t {
 	pocket_hash_slot_t *slot;
 	pocket_hash_slot_t *next;
+	const pocket_attr_t *attr;
+	uintptr_t hash;
 };
 
 typedef struct pocket_edge_t {
@@ -25,6 +30,8 @@ struct pocket_s {
 	pocket_edge_t edge;
 	const char *preset_tag_index;
 	const char *preset_tag_string;
+	pocket_attr_t *attr$begin;
+	pocket_attr_t *attr$end;
 };
 
 static pocket_header_t* pocket_check_size(uint8_t *restrict pocket, uint64_t size)
@@ -131,13 +138,13 @@ static pocket_edge_t* pocket_check_header(pocket_edge_t *restrict edge, pocket_h
 	if (!pocket_check_string(edge, header->time)) goto label_fail;
 	if (!pocket_check_string(edge, header->description)) goto label_fail;
 	if (!pocket_check_string(edge, header->flag)) goto label_fail;
-	if ((offset = header->system))
+	if ((offset = header->system.offset))
 	{
 		if (offset < edge->index$begin) goto label_fail;
 		if (offset >= edge->index$end) goto label_fail;
 		if ((offset - edge->index$begin) & 0x1f) goto label_fail;
 	}
-	if ((offset = header->user))
+	if ((offset = header->user.offset))
 	{
 		if (offset < edge->index$begin) goto label_fail;
 		if (offset >= edge->index$end) goto label_fail;
@@ -205,15 +212,86 @@ static pocket_s* pocket_check_attr(pocket_s *restrict r)
 	return NULL;
 }
 
+static void pocket_header_magic(pocket_header_t *restrict h, uint64_t start)
+{
+	#define magic(_)  if (h->_.offset) h->_.offset += start
+	magic(verify);
+	magic(system);
+	magic(user);
+	magic(tag);
+	magic(version);
+	magic(author);
+	magic(time);
+	magic(description);
+	magic(flag);
+	#undef magic
+}
+
 static void pocket_attr_magic(pocket_attr_t *restrict p, pocket_attr_t *restrict e, uint64_t start)
 {
 	while (p < e)
 	{
-		if (p->name.offset) p->name.offset += start;
-		if (p->tag.offset) p->tag.offset += start;
-		if (p->data.offset) p->data.offset += start;
+		#define magic(_)  if (p->_.offset) p->_.offset += start
+		magic(name);
+		magic(tag);
+		magic(data);
+		#undef magic
 		++p;
 	}
+}
+
+static inline uintptr_t pocket_string_hash(register const char *restrict s)
+{
+	register uintptr_t mix = 0;
+	do {
+		// mix = mix*11 + mix/4 + *name
+		mix += (mix << 3) + (mix >> 2) + (mix << 1) + *(uint8_t *) s;
+	} while (*++s);
+	return mix;
+}
+
+static pocket_hash_slot_t* pocket_attr_hash_block(pocket_hash_slot_t *restrict p, const pocket_attr_t *restrict index, uint64_t n)
+{
+	pocket_hash_slot_t *restrict v, *restrict s;
+	uint64_t m;
+	v = p;
+	m = n;
+	do {
+		if (v->attr) goto label_fail;
+		v->attr = index;
+		if (index->name.string)
+		{
+			s = p + (v->hash = pocket_string_hash(index->name.string)) % m;
+			v->next = s->slot;
+			s->slot = v;
+		}
+		++v;
+		++index;
+	} while (--n);
+	return p;
+	label_fail:
+	return NULL;
+}
+
+static pocket_s* pocket_attr_hash(pocket_s *restrict r, const pocket_attr_t *restrict index)
+{
+	uint64_t n;
+	if ((n = index->size))
+	{
+		index = (const pocket_attr_t *) index->data.ptr;
+		if (!pocket_attr_hash_block(
+			r->slots + (((uintptr_t) index - (uintptr_t) r->attr$begin) >> pocket_attr_bits),
+			index,
+			n)) goto label_fail;
+		do {
+			if (index->tag.string == r->preset_tag_index)
+				pocket_attr_hash(r, index);
+			++index;
+		} while (--n);
+	}
+	return r;
+	label_fail:
+	return NULL;
 }
 
 static void pocket_free_func(pocket_s *restrict r)
@@ -224,9 +302,9 @@ static void pocket_free_func(pocket_s *restrict r)
 
 static void pocket_free_magic_func(pocket_s *restrict r)
 {
-	pocket_attr_magic((pocket_attr_t *) ((uint8_t *) r->pocket + r->edge.index$begin),
-			(pocket_attr_t *) ((uint8_t *) r->pocket + r->edge.index$end),
-			-(uint64_t) (uintptr_t) r->pocket);
+	uint64_t magic = -(uint64_t) (uintptr_t) r->pocket;
+	pocket_header_magic(r->pocket, magic);
+	pocket_attr_magic(r->attr$begin, r->attr$end, magic);
 	pocket_free_func(r);
 }
 
@@ -236,10 +314,11 @@ static void pocket_free_ntr_func(pocket_s *restrict r)
 	pocket_free_func(r);
 }
 
-pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size)
+pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify)
 {
 	pocket_s *restrict r;
 	pocket_header_t *h;
+	uint64_t magic;
 	r = (pocket_s *) refer_alloz(sizeof(pocket_s));
 	if (r)
 	{
@@ -254,21 +333,106 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size)
 		r->edge.data$end = h->data$offset + h->data$size;
 		if (!pocket_build_preset_tag(r, (const char *) pocket + r->edge.string$begin, (const char *) pocket + r->edge.string$end))
 			goto label_fail;
-		if (!pocket_check_header(&r->edge, r->pocket))
+		if (!pocket_check_header(&r->edge, h))
 			goto label_fail;
 		if (!pocket_check_attr(r))
 			goto label_fail;
+		r->attr$begin = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$begin);
+		r->attr$end = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$end);
 		// check verify
+		if (verify)
+		{
+			;
+		}
 		// magic attr
-		r->slots = (pocket_hash_slot_t *) calloc(r->pocket->index$size >> 5, sizeof(pocket_hash_slot_t));
+		r->slots = (pocket_hash_slot_t *) calloc(h->index$size >> pocket_attr_bits, sizeof(pocket_hash_slot_t));
 		if (!r->slots) goto label_fail;
-		pocket_attr_magic((pocket_attr_t *) ((uint8_t *) r->pocket + r->edge.index$begin),
-				(pocket_attr_t *) ((uint8_t *) r->pocket + r->edge.index$end),
-				(uint64_t) (uintptr_t) r->pocket);
+		magic = (uint64_t) (uintptr_t) h;
+		pocket_header_magic(h, magic);
+		pocket_attr_magic(r->attr$begin, r->attr$end, magic);
 		refer_set_free(r, (refer_free_f) pocket_free_magic_func);
-		return r;
+		if ((!h->system.ptr || pocket_attr_hash(r, (pocket_attr_t *) h->system.ptr)) &&
+			(!h->user.ptr || pocket_attr_hash(r, (pocket_attr_t *) h->user.ptr)))
+			return r;
 		label_fail:
 		refer_free(r);
 	}
 	return NULL;
+}
+
+const pocket_header_t* pocket_header(const pocket_s *restrict p)
+{
+	return p->pocket;
+}
+
+const pocket_attr_t* pocket_system(const pocket_s *restrict p)
+{
+	return (pocket_attr_t *) p->pocket->system.ptr;
+}
+
+const pocket_attr_t* pocket_user(const pocket_s *restrict p)
+{
+	return (pocket_attr_t *) p->pocket->user.ptr;
+}
+
+pocket_tag_t pocket_preset_tag(const pocket_s *restrict p, const pocket_attr_t *restrict attr)
+{
+	if (attr->tag.string)
+	{
+		rbtree_t *restrict v;
+		if ((v = rbtree_find(&p->preset_tag, NULL, attr->tag.offset)))
+			return (pocket_tag_t) (uintptr_t) v->value;
+		return pocket_tag$custom;
+	}
+	return pocket_tag$null;
+}
+
+const pocket_attr_t* pocket_is_tag(const pocket_s *restrict p, const pocket_attr_t *restrict attr, pocket_tag_t tag, const char *restrict custom)
+{
+	pocket_tag_t t;
+	if (!attr) goto label_null;
+	if ((t = pocket_preset_tag(p, attr)) != tag)
+		goto label_null;
+	if (tag == pocket_tag$custom && (!custom || strcmp(attr->tag.string, custom)))
+		goto label_null;
+	return attr;
+	label_null:
+	return NULL;
+}
+
+const pocket_attr_t* pocket_find(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *restrict name)
+{
+	if (index->tag.string == p->preset_tag_index && index->size)
+	{
+		register pocket_hash_slot_t *restrict v;
+		uintptr_t hash;
+		hash = pocket_string_hash(name);
+		v = p->slots + (((uintptr_t) index->data.ptr - (uintptr_t) p->attr$begin) >> pocket_attr_bits) + (hash % index->size);
+		v = v->slot;
+		while (v)
+		{
+			if (v->hash == hash && !strcmp((index = v->attr)->name.string, name))
+				return index;
+			v = v->next;
+		}
+	}
+	return NULL;
+}
+
+const pocket_attr_t* pocket_find_path(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path)
+{
+	register const char *restrict name;
+	while (index && (name = *path++))
+		index = pocket_find(p, index, name);
+	return index;
+}
+
+const pocket_attr_t* pocket_find_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *restrict name, pocket_tag_t tag, const char *restrict custom)
+{
+	return pocket_is_tag(p, pocket_find(p, index, name), tag, custom);
+}
+
+const pocket_attr_t* pocket_find_path_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path, pocket_tag_t tag, const char *restrict custom)
+{
+	return pocket_is_tag(p, pocket_find_path(p, index, path), tag, custom);
 }
