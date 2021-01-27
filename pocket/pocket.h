@@ -98,6 +98,7 @@ typedef struct pocket_s pocket_s;
 struct pocket_verify_s;
 
 pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify);
+pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *restrict verify);
 
 const pocket_header_t* pocket_header(const pocket_s *restrict p);
 const pocket_attr_t* pocket_system(const pocket_s *restrict p);

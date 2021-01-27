@@ -9,11 +9,11 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-POCKET	= -shared -soname ${TARGET-POCKET} -lrefer -lrbtree
 LDFLAGS-SAVER	= -shared -soname ${TARGET-SAVER} -lrefer -lhashmap -lrbtree
-LDFLAGS-VERIFY	= -shared -soname ${TARGET-POCKET} -lrefer -lhashmap
+LDFLAGS-VERIFY	= -shared -soname ${TARGET-VERIFY} -lrefer -lhashmap
 
 OBJECT-POCKET	= pocket.o
 OBJECT-SAVER	= pocket-saver.o
-OBJECT-VERIFY	= pocket-verify.o
+OBJECT-VERIFY	= pocket-verify.o $(patsubst %.c, %.o, $(wildcard verify/*.c))
 OBJECT		= ${OBJECT-POCKET} ${OBJECT-SAVER} ${OBJECT-VERIFY}
 
 %.o: %.c

@@ -3,6 +3,7 @@
 #include <rbtree.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define pocket_attr_bits  5
 
@@ -314,6 +315,42 @@ static void pocket_free_ntr_func(pocket_s *restrict r)
 	pocket_free_func(r);
 }
 
+static pocket_s* pocket_verify(pocket_s *restrict p, uint64_t size, const pocket_verify_s *restrict verify)
+{
+	const pocket_header_t *restrict header;
+	const pocket_verify_entry_s *restrict entry;
+	const pocket_attr_t *restrict v;
+	uint64_t n;
+	header = p->pocket;
+	if (!header->system.offset) goto label_fail;
+	entry = verify->method(verify, (const char *) header + header->verify.offset);
+	if (!entry || !entry->check) goto label_fail;
+	v = (const pocket_attr_t *) ((const uint8_t *) header + header->system.offset);
+	// check system{index[>0]}
+	if ((const char *) header + v->tag.offset != p->preset_tag_index)
+		goto label_fail;
+	if (!(n = v->size)) goto label_fail;
+	v = (const pocket_attr_t *) ((const uint8_t *) header + v->data.offset);
+	do {
+		if (v->name.offset && !strcmp((const char *) header + v->name.offset, pocket_verify_attr_name))
+		{
+			// check tag && size
+			const rbtree_t *restrict tag;
+			if (v->size != entry->size)
+				goto label_fail;
+			tag = rbtree_find(&p->preset_tag, NULL, (uintptr_t) header + v->tag.offset);
+			if (!tag || (pocket_tag_t) (uintptr_t) tag->value != entry->tag)
+				goto label_fail;
+			if (!entry->check(entry, (uint8_t *) header + v->data.offset, (const uint8_t *) header, size))
+				goto label_fail;
+			return p;
+		}
+		++v;
+	} while (--n);
+	label_fail:
+	return NULL;
+}
+
 pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify)
 {
 	pocket_s *restrict r;
@@ -340,10 +377,8 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct poc
 		r->attr$begin = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$begin);
 		r->attr$end = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$end);
 		// check verify
-		if (verify)
-		{
-			;
-		}
+		if (verify && h->verify.offset && !pocket_verify(r, size, verify))
+			goto label_fail;
 		// magic attr
 		r->slots = (pocket_hash_slot_t *) calloc(h->index$size >> pocket_attr_bits, sizeof(pocket_hash_slot_t));
 		if (!r->slots) goto label_fail;
@@ -358,6 +393,33 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct poc
 		refer_free(r);
 	}
 	return NULL;
+}
+
+pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *restrict verify)
+{
+	pocket_s *r;
+	FILE *fp;
+	r = NULL;
+	fp = fopen(path, "rb");
+	if (fp)
+	{
+		size_t n;
+		fseek(fp, 0, SEEK_END);
+		if ((n = ftell(fp)) >= sizeof(pocket_header_t))
+		{
+			uint8_t *data;
+			data = (uint8_t *) malloc(n);
+			if (data)
+			{
+				fseek(fp, 0, SEEK_SET);
+				if (fread(data, 1, n, fp) == n && (r = pocket_alloc(data, n, verify)))
+					refer_set_free(r, (refer_free_f) pocket_free_ntr_func);
+				else free(data);
+			}
+		}
+		fclose(fp);
+	}
+	return r;
 }
 
 const pocket_header_t* pocket_header(const pocket_s *restrict p)
