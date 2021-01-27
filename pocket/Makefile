@@ -2,7 +2,7 @@ TARGET-POCKET	= libpocket.so
 TARGET-SAVER	= libpocket-saver.so
 TARGET-VERIFY	= libpocket-verify.so
 TARGET		= ${TARGET-POCKET} ${TARGET-SAVER} ${TARGET-VERIFY}
-HEADER		= pocket.h pocket-saver.h
+HEADER		= pocket.h pocket-saver.h pocket-verify.h
 
 CC		= gcc
 LD		= ld
