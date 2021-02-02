@@ -28,6 +28,7 @@ struct pocket_s {
 	pocket_header_t *pocket;
 	pocket_hash_slot_t *slots;
 	rbtree_t *preset_tag;
+	uint64_t pocket_size;
 	pocket_edge_t edge;
 	const char *preset_tag_index;
 	const char *preset_tag_string;
@@ -35,7 +36,7 @@ struct pocket_s {
 	pocket_attr_t *attr$end;
 };
 
-static pocket_header_t* pocket_check_size(uint8_t *restrict pocket, uint64_t size)
+static pocket_header_t* pocket_check_size(const uint8_t *restrict pocket, uint64_t size)
 {
 	pocket_header_t *h;
 	uint64_t n;
@@ -315,42 +316,6 @@ static void pocket_free_ntr_func(pocket_s *restrict r)
 	pocket_free_func(r);
 }
 
-static pocket_s* pocket_verify(pocket_s *restrict p, uint64_t size, const pocket_verify_s *restrict verify)
-{
-	const pocket_header_t *restrict header;
-	const pocket_verify_entry_s *restrict entry;
-	const pocket_attr_t *restrict v;
-	uint64_t n;
-	header = p->pocket;
-	if (!header->system.offset) goto label_fail;
-	entry = verify->method(verify, (const char *) header + header->verify.offset);
-	if (!entry || !entry->check) goto label_fail;
-	v = (const pocket_attr_t *) ((const uint8_t *) header + header->system.offset);
-	// check system{index[>0]}
-	if ((const char *) header + v->tag.offset != p->preset_tag_index)
-		goto label_fail;
-	if (!(n = v->size)) goto label_fail;
-	v = (const pocket_attr_t *) ((const uint8_t *) header + v->data.offset);
-	do {
-		if (v->name.offset && !strcmp((const char *) header + v->name.offset, pocket_verify_attr_name))
-		{
-			// check tag && size
-			const rbtree_t *restrict tag;
-			if (v->size != entry->size)
-				goto label_fail;
-			tag = rbtree_find(&p->preset_tag, NULL, (uintptr_t) header + v->tag.offset);
-			if (!tag || (pocket_tag_t) (uintptr_t) tag->value != entry->tag)
-				goto label_fail;
-			if (!entry->check(entry, (uint8_t *) header + v->data.offset, (const uint8_t *) header, size))
-				goto label_fail;
-			return p;
-		}
-		++v;
-	} while (--n);
-	label_fail:
-	return NULL;
-}
-
 pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify)
 {
 	pocket_s *restrict r;
@@ -362,6 +327,7 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct poc
 		refer_set_free(r, (refer_free_f) pocket_free_func);
 		if (!(r->pocket = h = pocket_check_size(pocket, size)))
 			goto label_fail;
+		r->pocket_size = size;
 		r->edge.string$begin = h->string$offset;
 		r->edge.string$end = h->string$offset + h->string$size;
 		r->edge.index$begin = h->index$offset;
@@ -377,7 +343,7 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct poc
 		r->attr$begin = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$begin);
 		r->attr$end = (pocket_attr_t *) ((uint8_t *) h + r->edge.index$end);
 		// check verify
-		if (verify && h->verify.offset && !pocket_verify(r, size, verify))
+		if (verify && h->verify.offset && !pocket_check_verify(verify, pocket, size))
 			goto label_fail;
 		// magic attr
 		r->slots = (pocket_hash_slot_t *) calloc(h->index$size >> pocket_attr_bits, sizeof(pocket_hash_slot_t));
@@ -420,6 +386,22 @@ pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *r
 		fclose(fp);
 	}
 	return r;
+}
+
+uint8_t* pocket_pull(const pocket_s *restrict p, uint64_t *restrict size)
+{
+	if (refer_get_free(p) == (refer_free_f) pocket_free_ntr_func)
+	{
+		refer_set_free(p, (refer_free_f) pocket_free_magic_func);
+		if (size) *size = p->pocket_size;
+		return (uint8_t *) p->pocket;
+	}
+	return NULL;
+}
+
+void pocket_pull_free(uint8_t *restrict pocket)
+{
+	free(pocket);
 }
 
 const pocket_header_t* pocket_header(const pocket_s *restrict p)
@@ -497,4 +479,126 @@ const pocket_attr_t* pocket_find_tag(const pocket_s *restrict p, const pocket_at
 const pocket_attr_t* pocket_find_path_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path, pocket_tag_t tag, const char *restrict custom)
 {
 	return pocket_is_tag(p, pocket_find_path(p, index, path), tag, custom);
+}
+
+// orginal pocket data
+
+static const char* pocket_tag2string(pocket_tag_t tag)
+{
+	static const char *tag2string[pocket_tag$custom] = {
+		#define pocket_tag_def(_t)  [pocket_tag$##_t] = pocket_tag_string$##_t
+		pocket_tag_def(null),
+		pocket_tag_def(index),
+		pocket_tag_def(string),
+		pocket_tag_def(text),
+		pocket_tag_def(u8),
+		pocket_tag_def(s8),
+		pocket_tag_def(u16),
+		pocket_tag_def(s16),
+		pocket_tag_def(u32),
+		pocket_tag_def(s32),
+		pocket_tag_def(u64),
+		pocket_tag_def(s64),
+		pocket_tag_def(f16),
+		pocket_tag_def(f32),
+		pocket_tag_def(f64),
+		pocket_tag_def(f128),
+		pocket_tag_def(largeN),
+		#undef pocket_tag_def
+	};
+	if ((uint32_t) tag < pocket_tag$custom)
+		return tag2string[tag];
+	return NULL;
+}
+
+static void* pocket_find_verify(const uint8_t *restrict pocket, uint64_t size, pocket_tag_t verify_tag, uint64_t verify_size)
+{
+	const char *restrict tag_string;
+	const pocket_header_t *restrict header;
+	const pocket_attr_t *restrict attr;
+	uint64_t offset;
+	if ((tag_string = pocket_tag2string(verify_tag)) && size)
+	{
+		if ((header = pocket_check_size(pocket, size)) &&
+			(offset = header->system.offset) &&
+			offset >= header->index$offset &&
+			header->index$size >= sizeof(pocket_attr_t) &&
+			(offset -= header->index$offset) <= (header->index$size - sizeof(pocket_attr_t)) &&
+			!(offset % sizeof(pocket_attr_t)) &&
+			(attr = (const pocket_attr_t *) (pocket + header->system.offset))->tag.offset &&
+			attr->tag.offset >= header->string$offset &&
+			(attr->tag.offset - header->string$offset) < header->string$size &&
+			!strcmp((const char *) (pocket + attr->tag.offset), pocket_tag2string(pocket_tag$index)) &&
+			(offset = attr->size * sizeof(pocket_attr_t)) &&
+			offset < header->index$size &&
+			attr->data.offset >= header->index$offset &&
+			(attr->data.offset - header->index$offset) <= (header->index$size - offset) &&
+			!((attr->data.offset - header->index$offset) % sizeof(pocket_attr_t)))
+		{
+			offset = attr->size;
+			attr = (const pocket_attr_t *) (pocket + attr->data.offset);
+			do {
+				if (attr->name.offset >= header->string$offset &&
+					(attr->name.offset - header->string$offset) < header->string$size &&
+					!strcmp((const char *) (pocket + attr->name.offset), pocket_verify_attr_name))
+				{
+					if (attr->size == verify_size && attr->tag.offset >= header->string$offset &&
+						(attr->tag.offset - header->string$offset) < header->string$size &&
+						!strcmp((const char *) (pocket + attr->tag.offset), tag_string) &&
+						attr->data.offset >= header->data$offset &&
+						(attr->data.offset - header->data$offset) <= header->data$size)
+						return (void *) (pocket + attr->data.offset);
+					break;
+				}
+				++attr;
+			} while (--offset);
+		}
+	}
+	return NULL;
+}
+
+const struct pocket_verify_s* pocket_check_verify(const struct pocket_verify_s *restrict verify, const uint8_t *restrict pocket, uint64_t size)
+{
+	const pocket_header_t *restrict header;
+	const pocket_verify_entry_s *restrict entry;
+	void *restrict vdata;
+	if ((header = pocket_check_size(pocket, size)))
+	{
+		if (!header->verify.offset) goto label_ok;
+		if (header->verify.offset >= header->string$offset &&
+			(header->verify.offset - header->string$offset) < header->string$size &&
+			(entry = verify->method(verify, (const char *) (pocket + header->verify.offset))) &&
+			entry->check && (vdata = pocket_find_verify(pocket, size, entry->tag, entry->size)))
+		{
+			if (entry->check(entry, vdata, pocket, size))
+			{
+				label_ok:
+				return verify;
+			}
+		}
+	}
+	return NULL;
+}
+
+const struct pocket_verify_s* pocket_build_verify(const struct pocket_verify_s *restrict verify, uint8_t *restrict pocket, uint64_t size)
+{
+	const pocket_header_t *restrict header;
+	const pocket_verify_entry_s *restrict entry;
+	void *restrict vdata;
+	if ((header = pocket_check_size(pocket, size)))
+	{
+		if (!header->verify.offset) goto label_ok;
+		if (header->verify.offset >= header->string$offset &&
+			(header->verify.offset - header->string$offset) < header->string$size &&
+			(entry = verify->method(verify, (const char *) (pocket + header->verify.offset))) &&
+			entry->build && (vdata = pocket_find_verify(pocket, size, entry->tag, entry->size)))
+		{
+			if (entry->build(entry, vdata, pocket, size))
+			{
+				label_ok:
+				return verify;
+			}
+		}
+	}
+	return NULL;
 }

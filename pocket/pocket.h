@@ -99,6 +99,8 @@ struct pocket_verify_s;
 
 pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify);
 pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *restrict verify);
+uint8_t* pocket_pull(const pocket_s *restrict p, uint64_t *restrict size);
+void pocket_pull_free(uint8_t *restrict pocket);
 
 const pocket_header_t* pocket_header(const pocket_s *restrict p);
 const pocket_attr_t* pocket_system(const pocket_s *restrict p);
@@ -109,5 +111,8 @@ const pocket_attr_t* pocket_find(const pocket_s *restrict p, const pocket_attr_t
 const pocket_attr_t* pocket_find_path(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path);
 const pocket_attr_t* pocket_find_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *restrict name, pocket_tag_t tag, const char *restrict custom);
 const pocket_attr_t* pocket_find_path_tag(const pocket_s *restrict p, const pocket_attr_t *restrict index, const char *const restrict *restrict path, pocket_tag_t tag, const char *restrict custom);
+
+const struct pocket_verify_s* pocket_check_verify(const struct pocket_verify_s *restrict verify, const uint8_t *restrict pocket, uint64_t size);
+const struct pocket_verify_s* pocket_build_verify(const struct pocket_verify_s *restrict verify, uint8_t *restrict pocket, uint64_t size);
 
 #endif

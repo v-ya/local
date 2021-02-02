@@ -31,8 +31,13 @@ struct pocket_verify_s {
 };
 
 pocket_verify_entry_s* pocket_verify_entry_alloc(pocket_verify_build_f build, pocket_verify_check_f check, uint64_t size, pocket_tag_t tag, uint32_t align);
+void pocket_verify_entry_init(pocket_verify_entry_s *restrict r, pocket_verify_build_f build, pocket_verify_check_f check, uint64_t size, pocket_tag_t tag, uint32_t align);
 
 pocket_verify_s* pocket_verify_empty(void);
+
+// "xor.1", "xor.2", "xor.4", "xor.8"
+// "*>^~32.4", "*>^~32.8", "*>^~32.16", "*>^~32.32"
+// "*>^~64.4", "*>^~64.8", "*>^~64.16", "*>^~64.32"
 pocket_verify_s* pocket_verify_default(void);
 
 #endif

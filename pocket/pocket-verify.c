@@ -63,6 +63,7 @@ static pocket_verify_inst_s* pocket_verify_inst_set_not_save(pocket_verify_inst_
 {
 	if (entry && hashmap_set_name(&inst->pool, name, entry, pocket_verify_inst_pool_free_func))
 		return inst;
+	refer_free(entry);
 	return NULL;
 }
 
@@ -80,6 +81,15 @@ pocket_verify_entry_s* pocket_verify_entry_alloc(pocket_verify_build_f build, po
 	return r;
 }
 
+void pocket_verify_entry_init(pocket_verify_entry_s *restrict r, pocket_verify_build_f build, pocket_verify_check_f check, uint64_t size, pocket_tag_t tag, uint32_t align)
+{
+	r->build = build;
+	r->check = check;
+	r->size = size;
+	r->tag = tag;
+	r->align = align;
+}
+
 pocket_verify_s* pocket_verify_empty(void)
 {
 	return &pocket_verify_inst_alloc()->interface;
@@ -93,13 +103,26 @@ pocket_verify_s* pocket_verify_default(void)
 	if ((r = pocket_verify_inst_alloc()))
 	{
 		#define verify_set(name, version)  pocket_verify_inst_set_not_save(r, #name "." #version, pocket_verify$##name##$##version())
+		#define verify_sete(nv, nf, version)  pocket_verify_inst_set_not_save(r, #nv "." #version, pocket_verify$##nf##$##version())
 		if (
+			// xor
 			verify_set(xor, 1) &&
 			verify_set(xor, 2) &&
 			verify_set(xor, 4) &&
 			verify_set(xor, 8) &&
+			// rhash32
+			verify_sete(*>^~32, rhash32, 4) &&
+			verify_sete(*>^~32, rhash32, 8) &&
+			verify_sete(*>^~32, rhash32, 16) &&
+			verify_sete(*>^~32, rhash32, 32) &&
+			// rhash64
+			verify_sete(*>^~64, rhash64, 4) &&
+			verify_sete(*>^~64, rhash64, 8) &&
+			verify_sete(*>^~64, rhash64, 16) &&
+			verify_sete(*>^~64, rhash64, 32) &&
 		1) return &r->interface;
 		#undef verify_set
+		#undef verify_sete
 		refer_free(r);
 	}
 	return NULL;
