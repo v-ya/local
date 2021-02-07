@@ -1,10 +1,12 @@
 #include "queue_ring.h"
+#include "queue.h"
 
 struct queue_ring_s {
+	queue_s interface;
 	uintptr_t size;
 	uintptr_t mask;
 	volatile uintptr_t number;
-	volatile uintptr_t res;
+	volatile uintptr_t reserve;
 	volatile uintptr_t head;
 	volatile uintptr_t tail;
 	volatile uintptr_t seq_head;
@@ -39,10 +41,12 @@ queue_ring_s* queue_ring_alloc(size_t size)
 		if (r)
 		{
 			refer_set_free(r, (refer_free_f) queue_ring_free_func);
+			r->interface.push = (queue_push_f) queue_ring_push;
+			r->interface.pull = (queue_pull_f) queue_ring_pull;
 			r->size = size;
 			r->mask = n;
 			r->number = 0;
-			r->res = size;
+			r->reserve = size;
 			return r;
 		}
 	}
@@ -64,7 +68,7 @@ static inline uintptr_t atomic_dec_uintptr(volatile uintptr_t *p)
 
 queue_ring_s* queue_ring_push(register queue_ring_s *q, refer_t v)
 {
-	if (v && atomic_dec_uintptr(&q->res))
+	if (v && atomic_dec_uintptr(&q->reserve))
 	{
 		register uintptr_t n, nn;
 		q->ring[(n = __sync_fetch_and_add(&q->tail, 1)) & q->mask] = refer_save(v);
@@ -79,15 +83,28 @@ queue_ring_s* queue_ring_push(register queue_ring_s *q, refer_t v)
 refer_t queue_ring_pull(register queue_ring_s *q)
 {
 	refer_t v = NULL;
-	refer_t *restrict p;
 	if (atomic_dec_uintptr(&q->number))
 	{
 		register uintptr_t n, nn;
-		v = *(p = q->ring + ((n = __sync_fetch_and_add(&q->head, 1)) & q->mask));
-		*p = NULL;
+		v = (refer_t) __sync_lock_test_and_set(q->ring + ((n = __sync_fetch_and_add(&q->head, 1)) & q->mask), NULL);
 		nn = n + 1;
 		while (!__sync_bool_compare_and_swap(&q->seq_head, n, nn)) ;
-		__sync_add_and_fetch(&q->res, 1);
+		__sync_add_and_fetch(&q->reserve, 1);
 	}
 	return v;
+}
+
+size_t queue_ring_size(const queue_ring_s *q)
+{
+	return q->size;
+}
+
+size_t queue_ring_number(const queue_ring_s *q)
+{
+	return q->number;
+}
+
+size_t queue_ring_reserve(const queue_ring_s *q)
+{
+	return q->reserve;
 }
