@@ -18,9 +18,9 @@ typedef const posky_candy_s* (*posky_feeding_f)(refer_t lady, const posky_candy_
 struct posky_candy_s {
 	uint64_t target;
 	uint64_t report;
-	uint64_t stamp;
 	uint32_t type;
 	uint32_t level;
+	uint64_t stamp;
 };
 
 posky_s* posky_alloc(queue_s *we, size_t adorable_size);
@@ -32,10 +32,17 @@ void posky_set_monster_fail(posky_s *restrict posky, posky_feeding_f feeding, re
 void posky_set_adorable_monster_filter(posky_s *restrict posky, posky_feeding_f feeding, refer_t monster);
 void posky_set_adorable_monster_fail(posky_s *restrict posky, posky_feeding_f feeding, refer_t monster);
 
+// candy => we
 const posky_candy_s* posky_feeding(posky_s *restrict posky, const posky_candy_s *restrict candy);
+// we => candy
 const posky_candy_s* posky_catch_gift(posky_s *posky);
+// candy =route> me
 const posky_candy_s* posky_feeding_adorable(posky_s *restrict posky, const posky_candy_s *restrict candy);
+// loop (we => candy =route> me)
 void posky_clear_gift(posky_s *restrict posky);
+
+// delete all lonely adorable (refer number <= 1)
+void posky_clear_lonely_adorable(posky_s *restrict posky);
 
 uint64_t posky_create_group(posky_s *restrict posky, const char *restrict name);
 void posky_delete_group(posky_s *restrict posky, const char *restrict name, uint64_t address);
@@ -61,9 +68,15 @@ void posky_adorable_set_type_finally(posky_adorable_s *restrict adorable, posky_
 void posky_adorable_set_monster_filter(posky_adorable_s *restrict adorable, posky_feeding_f feeding, refer_t monster);
 void posky_adorable_set_monster_fail(posky_adorable_s *restrict adorable, posky_feeding_f feeding, refer_t monster);
 
+// candy => we
 const posky_candy_s* posky_adorable_feeding(posky_adorable_s *restrict adorable, const posky_candy_s *restrict candy);
+// candy => me
+const posky_candy_s* posky_adorable_surprise(posky_adorable_s *adorable, const posky_candy_s *restrict candy);
+// me => candy
 const posky_candy_s* posky_adorable_catch_gift(posky_adorable_s *adorable);
+// candy => do
 const posky_candy_s* posky_adorable_open_gift(posky_adorable_s *restrict adorable, const posky_candy_s *restrict candy);
+// loop (me => candy => do)
 void posky_adorable_clear_gift(posky_adorable_s *restrict adorable);
 
 #endif

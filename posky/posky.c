@@ -190,6 +190,26 @@ void posky_clear_gift(posky_s *restrict posky)
 	}
 }
 
+void posky_clear_lonely_adorable(posky_s *restrict posky)
+{
+	posky_slot_t *restrict slot;
+	uint32_t i, n, k;
+	n = posky->size;
+	k = posky->number;
+	for (i = 0; k && i < n; ++i)
+	{
+		if ((slot = posky->slot + i)->address)
+		{
+			--k;
+			if (refer_save_number(slot->adorable) <= 1)
+			{
+				posky_slot_delete(posky->slot, posky->map, posky->size, slot->index);
+				--posky->number;
+			}
+		}
+	}
+}
+
 uint64_t posky_create_group(posky_s *restrict posky, const char *restrict name)
 {
 	rbtree_t *restrict g;

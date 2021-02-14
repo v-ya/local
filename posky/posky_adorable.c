@@ -70,6 +70,15 @@ const posky_candy_s* posky_adorable_feeding(posky_adorable_s *restrict adorable,
 	return posky_monster_do(&adorable->fail, candy, NULL);
 }
 
+const posky_candy_s* posky_adorable_surprise(posky_adorable_s *adorable, const posky_candy_s *restrict candy)
+{
+	register queue_s *restrict me;
+	me = adorable->me;
+	if (me->push(me, candy))
+		return candy;
+	return NULL;
+}
+
 const posky_candy_s* posky_adorable_catch_gift(posky_adorable_s *adorable)
 {
 	register queue_s *restrict me;

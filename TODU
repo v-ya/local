@@ -3,5 +3,7 @@
 
 短期规划
 	* pocket 构建脚本解析器
+	* pocket + dylink | mapping tag parse
+		init, final
 	* graph: load(pocket) => posky
 	* ttf, ttc 解析实现
