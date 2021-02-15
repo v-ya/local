@@ -476,7 +476,7 @@ pocket_saver_index_t* pocket_saver_cd(pocket_saver_index_t *restrict index, cons
 {
 	while (index && *path)
 	{
-		index = (pocket_saver_attr_index_t *) hashmap_find_name(&index->pool, *path);
+		index = (pocket_saver_attr_index_t *) hashmap_get_name(&index->pool, *path);
 		if (index && index->attr.tag != pocket_tag$index)
 			return NULL;
 		++path;
