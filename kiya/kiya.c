@@ -207,7 +207,7 @@ static void* kiya_kirakira_dylib(kiya_t *restrict kiya, const char *restrict nam
 	vl = hashmap_put_name(&kiya->dylib, name, NULL, kiya_dylib_free_func);
 	if (vl)
 	{
-		if ((vl->value = r = dlopen(name, RTLD_LOCAL)))
+		if ((vl->value = r = dlopen(name, RTLD_LOCAL | RTLD_NOW)))
 		{
 			label_ok:
 			return r;
