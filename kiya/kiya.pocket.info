@@ -1,3 +1,5 @@
+: tag = "kiya"
+
 # kiya layer (必须)
 [$ "kiya"]
 	"name" @string => ""                      # 全局唯一 id
@@ -6,12 +8,6 @@
 [$ "kiya" "like"]
 	"kiya-1" @null
 	"kiya-2" @null
-	# ...
-
-# kiya 解析器列表 (可选)
-[$ "kiya" "parse"]
-	"parse-id-1" @null                        # 将调用 parse-id-1([])
-	"parse-id-2" @string => "user-index-name" # 将调用 parse-id-1(["user-index-name"])
 	# ...
 
 # kiya 执行器 (可选)
@@ -23,14 +19,26 @@
 	"dylink-2" @"dylink" => &"dylink-2.dy"    # 可以有多个，所有的公共符号将导入到该 kiya 自用的符号池，而不会自动导出到公用的符号池
 	# ...
 
+# kiya 解析器列表 (可选)
+[$ "kiya" "parse"]
+	"parse-id-1" @null                        # 将调用 parse-id-1([])
+	"parse-id-2" @string => "user-index-name" # 将调用 parse-id-1(["user-index-name"])
+	# ...
+
 # kiya 执行器预定义符号
 # initial finally 能够保证互斥执行
 [$ "kiya"]
-	# const char* initial(const pocket_s *restrict pocket, uintptr_t argc, const char *argv[])
+	# const char* initial(uintptr_t argc, const char *argv[])
 	# void finally(void)
 	"initial" @string => "init"               # 初始化执行(在解析器执行之后，在加载下一个 kiya pocket 之前), argv[0] == [$ "kiya" "name"]
 	"finally" @string => "uini"               # 终止化执行(在最后按照加载顺序倒序执行)
 
 # kiya 预定义内容
+symbol:
 	$parse   ((hashmap_t *) => (kiya_parse_f))     解析器映射
 	$symbol  ((hashmap_t *) => (dylink_pool_t *))  符号池映射
+parse:
+	"kiya.export"                                  将本地符号池的符号映射到公共符号池
+		[root "kiya.export"]
+			"src-symbol" @string => "dst-symbol"
+			# ...

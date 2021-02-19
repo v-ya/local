@@ -205,9 +205,11 @@ int dylink_pool_set_func(dylink_pool_t *restrict dp, const char *restrict symbol
 	void **plt;
 	if (!hashmap_find_name(&dp->symbol, symbol))
 	{
-		if (dp->xmem_offset + dp->plt_size <= dp->xmem_size)
+		dylink_pool_t *restrict entry;
+		entry = dp->entry;
+		if (entry->xmem_offset + entry->plt_size <= entry->xmem_size)
 		{
-			func = dp->dylink_plt_set(dp->xmemory + dp->xmem_offset, func, &plt);
+			func = entry->dylink_plt_set(entry->xmemory + entry->xmem_offset, func, &plt);
 			if (hashmap_set_name(&dp->symbol, symbol, func, NULL))
 			{
 				if (hashmap_set_name(&dp->symplt, symbol, plt, NULL))
@@ -220,7 +222,7 @@ int dylink_pool_set_func(dylink_pool_t *restrict dp, const char *restrict symbol
 						plt
 					))
 					{
-						dp->xmem_offset += dp->plt_size;
+						entry->xmem_offset += entry->plt_size;
 						return 0;
 					}
 					hashmap_delete_name(&dp->symplt, symbol);
@@ -432,18 +434,19 @@ dylink_pool_t* dylink_pool_upper(dylink_pool_t *restrict dp)
 	return dp->upper;
 }
 
-int dylink_pool_sync_symbol(const dylink_pool_t *restrict dp, const char *restrict symbol)
+int dylink_pool_sync_symbol(const dylink_pool_t *restrict dp, const char *restrict symbol, const char *restrict upper_symbol)
 {
 	dylink_pool_t *restrict upper;
-	if ((upper = dp->upper))
+	if ((upper = dp->upper) && symbol)
 	{
 		void *ptr;
 		hashmap_vlist_t *restrict vl;
+		if (!upper_symbol) upper_symbol = symbol;
 		if ((ptr = hashmap_get_name(&dp->symbol, symbol)) &&
-			(vl = hashmap_put_name(&upper->symbol, symbol, ptr, NULL)) &&
+			(vl = hashmap_put_name(&upper->symbol, upper_symbol, ptr, NULL)) &&
 			vl->value == ptr)
 		{
-			if (hashmap_set_name(&upper->symplt, symbol, ptr = hashmap_get_name(&dp->symplt, symbol), NULL))
+			if (hashmap_set_name(&upper->symplt, upper_symbol, ptr = hashmap_get_name(&dp->symplt, symbol), NULL))
 			{
 				if (!dp->report_func || !dp->report_func(
 					dp->report_pri,
@@ -452,9 +455,9 @@ int dylink_pool_sync_symbol(const dylink_pool_t *restrict dp, const char *restri
 					vl->value,
 					(void **) ptr
 				)) return 0;
-				hashmap_delete_name(&upper->symplt, symbol);
+				hashmap_delete_name(&upper->symplt, upper_symbol);
 			}
-			hashmap_delete_name(&upper->symbol, symbol);
+			hashmap_delete_name(&upper->symbol, upper_symbol);
 		}
 	}
 	return -1;

@@ -362,7 +362,7 @@ static pocket_saver_s* pocket_saver_link_data(pocket_saver_s *restrict saver, po
 {
 	rbtree_t *v;
 	pocket_saver_attr_data_t *next;
-	if (!data->attr.attr.size) goto label_ok;
+	if (!data->attr.attr.size && data->attr.tag != pocket_tag$string) goto label_ok;
 	v = rbtree_find(&saver->data_align_list, NULL, data->align);
 	if (v)
 	{
