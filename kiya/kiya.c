@@ -1,4 +1,5 @@
 #include "kiya.h"
+#include "kiya_args.h"
 #include <dylink.h>
 #include <hashmap.h>
 #include <dlfcn.h>
@@ -17,12 +18,13 @@ struct kiya_kirakira_t {
 
 struct kiya_t {
 	hashmap_t kiya;       // =weak> (kiya_kirakira_t *)
-	hashmap_t args;       // =weak> ?
+	hashmap_t args;       // =weak> (kiya_args_t *)
 	hashmap_t parse;      // =weak> (kiya_parse_f)
 	hashmap_t pocket;     // =weak> (pocket_s *)
 	hashmap_t dylink;     // =weak> (dylink_pool_t *)
 	hashmap_t dylib;      // => dlopen()
 	dylink_pool_t *pool;
+	kiya_args_pool_t *ap;
 	kiya_kirakira_t *kirakira;
 	mlog_s *mlog;
 };
@@ -41,14 +43,13 @@ kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize)
 			hashmap_init(&kiya->dylink) &&
 			hashmap_init(&kiya->dylib))
 		{
+			kiya->mlog = (mlog_s *) refer_save(mlog);
 			kiya->pool = dylink_pool_alloc(dylink_mechine_x86_64, m_x86_64_dylink_set, m_x86_64_dylink_plt_set, xsize);
-			if (kiya->pool)
+			kiya->ap = kiya_args_pool_alloc();
+			if (kiya->pool && kiya->ap)
 			{
 				if (kiya_load_core(kiya))
-				{
-					kiya->mlog = (mlog_s *) refer_save(mlog);
 					return kiya;
-				}
 			}
 		}
 		kiya_free(kiya);
@@ -71,6 +72,7 @@ void kiya_free(register kiya_t *restrict kiya)
 		free(kira);
 	}
 	if (kiya->pool) dylink_pool_free(kiya->pool);
+	if (kiya->ap) kiya_args_pool_free(kiya->ap);
 	if (kiya->mlog) refer_free(kiya->mlog);
 	hashmap_uini(&kiya->dylib);
 	hashmap_uini(&kiya->dylink);
@@ -79,6 +81,29 @@ void kiya_free(register kiya_t *restrict kiya)
 	hashmap_uini(&kiya->args);
 	hashmap_uini(&kiya->kiya);
 	free(kiya);
+}
+
+static void kiya_args_free_func(hashmap_vlist_t *restrict vl);
+kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const char *restrict value)
+{
+	kiya_args_t *restrict args;
+	if (name && value)
+	{
+		if ((args = hashmap_get_name(&kiya->args, name))) goto go;
+		else if ((args = kiya_args_alloc()))
+		{
+			register hashmap_vlist_t *restrict vl;
+			if ((vl =  hashmap_set_name(&kiya->args, name, args, kiya_args_free_func)))
+			{
+				kiya_args_idol(args, vl->name);
+				go:
+				if (kiya_args_set(kiya->ap, args, value))
+					return kiya;
+			}
+			kiya_args_free(args);
+		}
+	}
+	return NULL;
 }
 
 static const pocket_attr_t* kiya_kirakira_check(kiya_t *restrict kiya, const pocket_s *restrict pocket);
@@ -122,13 +147,17 @@ kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict ma
 {
 	dylink_pool_t *pool;
 	kiya_main_f func;
+	const kiya_args_t *restrict args;
+	int r;
 	if (name) pool = hashmap_get_name(&kiya->dylink, name);
 	else pool = kiya->pool;
 	if (pool && main && (func = (kiya_main_f) dylink_pool_get_symbol(pool, main, NULL)))
 	{
-		// 暂时不处理 kiya->args
 		if (!name) name = main;
-		*ret = func(1, &name);
+		if ((args = (kiya_args_t *) hashmap_get_name(&kiya->args, name)))
+			r = func(args->n, args->argv);
+		else r = func(1, &name);
+		if (ret) *ret = r;
 		return kiya;
 	}
 	return NULL;
@@ -220,17 +249,29 @@ static void* kiya_kirakira_dylib(kiya_t *restrict kiya, const char *restrict nam
 static dylink_pool_t* kiya_kirakira_dylib_import(dylink_pool_t *restrict pool, const pocket_s *restrict pocket, const pocket_attr_t *restrict v, void *dl, const char *restrict *restrict p_symbol)
 {
 	uint64_t n;
+	const char *restrict name;
 	void *symbol;
 	n = v->size;
 	v = (const pocket_attr_t *) v->data.ptr;
 	while (n)
 	{
 		--n;
-		if (!v->name.string || pocket_preset_tag(pocket, v) != pocket_tag$string || !v->data.ptr)
+		if (!v->name.string)
 			goto label_fail;
-		symbol = dlsym(dl, v->name.string);
-		if (!symbol) goto label_fail;
-		if (dylink_pool_set_func(pool, (const char *) v->data.ptr, symbol))
+		switch (pocket_preset_tag(pocket, v))
+		{
+			case pocket_tag$null:
+				name = v->name.string;
+				break;
+			case pocket_tag$string:
+				if (!(name = (const char *) v->data.ptr))
+					goto label_fail;
+				break;
+			default:
+				goto label_fail;
+		}
+		if (!(symbol = dlsym(dl, v->name.string))) goto label_fail;
+		if (dylink_pool_set_func(pool, name, symbol))
 			goto label_fail;
 		++v;
 	}
@@ -363,15 +404,33 @@ static kiya_kirakira_t* kiya_kirakira_initial(kiya_kirakira_t *restrict kira, ki
 {
 	if (kira->initial)
 	{
+		const kiya_args_t *restrict args;
 		const char *error;
-		// 暂时不处理 kiya->args
-		if ((error = kira->initial(1, &kira->name)))
+		if ((args = (kiya_args_t *) hashmap_get_name(&kiya->args, kira->name)))
+			error = kira->initial(args->n, args->argv);
+		else error = kira->initial(1, &kira->name);
+		if (error)
 		{
 			mlog_printf(kiya->mlog, "kiya initial fail: %s\n", error);
 			return NULL;
 		}
 	}
 	return kira;
+}
+
+static void kiya_args_free_func(hashmap_vlist_t *restrict vl)
+{
+	if (vl->value)
+		kiya_args_free((kiya_args_t *) vl->value);
+}
+
+static int kiya_dylink_pool_report(mlog_s *mlog, dylink_pool_report_type_t type, const char *restrict symbol, void *ptr, void **plt)
+{
+	if (type == dylink_pool_report_type_import_fail)
+		mlog_printf(mlog, "[dylink] import (%s) fail\n", symbol);
+	else if (type == dylink_pool_report_type_export_fail)
+		mlog_printf(mlog, "[dylink] export (%s) fail\n", symbol);
+	return 0;
 }
 
 static kiya_t* kiya_load_core(kiya_t *restrict kiya)
@@ -386,6 +445,7 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 	void *v;
 	kiya_t *r;
 	r = NULL;
+	dylink_pool_set_report(kiya->pool, (dylink_pool_report_f) kiya_dylink_pool_report, kiya->mlog);
 	pool = dylink_pool_alloc_local(kiya->pool);
 	if (pool)
 	{

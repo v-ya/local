@@ -419,6 +419,8 @@ dylink_pool_t* dylink_pool_alloc_local(dylink_pool_t *restrict dp)
 			{
 				dp->entry = upper->entry;
 				dp->upper = upper;
+				dp->report_func = upper->report_func;
+				dp->report_pri = upper->report_pri;
 				return dp;
 			}
 			hashmap_uini(&dp->symbol);

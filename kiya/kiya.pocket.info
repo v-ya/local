@@ -13,7 +13,8 @@
 # kiya 执行器 (可选)
 [$ "kiya" "dylink"]
 	"lib?.so" @index                          # 加载动态库(导入到自用的符号池)
-		# "symbol" @string => "symbol.mapping" 将 so 中 "symbol" 映射成 "symbol.mapping"
+		# "symbol" @null                        将 so 中 "symbol" 映射成 "symbol"
+		# "symbol" @string => "symbol.mapping"  将 so 中 "symbol" 映射成 "symbol.mapping"
 		# ...
 	"dylink-1" @"dylink" => &"dylink-1.dy"    # dylink 文件，名称无所谓, tag 必须是 "dylink"
 	"dylink-2" @"dylink" => &"dylink-2.dy"    # 可以有多个，所有的公共符号将导入到该 kiya 自用的符号池，而不会自动导出到公用的符号池
@@ -40,5 +41,6 @@ symbol:
 parse:
 	"kiya.export"                                  将本地符号池的符号映射到公共符号池
 		[root "kiya.export"]
+			"symbol" @null
 			"src-symbol" @string => "dst-symbol"
 			# ...
