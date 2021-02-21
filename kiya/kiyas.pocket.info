@@ -1,0 +1,11 @@
+: tag = "kiyas"
+
+# kiyas 选择器 (可选)
+	[$] "kiyas" @string => "select"
+
+# 加载列表 (可选)
+	# [root] = []          # 无合法选择器
+	# [root] = ["select"]  # 选择器指定
+	[root]
+		"any" @"kiya" => &"kiya.pocket"
+		# ...

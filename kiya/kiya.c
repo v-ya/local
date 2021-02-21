@@ -11,6 +11,7 @@ struct kiya_kirakira_t {
 	kiya_kirakira_t *next;
 	const char *name;
 	pocket_s *pocket;
+	pocket_s *owner;
 	dylink_pool_t *pool;
 	kiya_initial_f initial;
 	kiya_finally_f finally;
@@ -69,6 +70,7 @@ void kiya_free(register kiya_t *restrict kiya)
 		hashmap_delete_name(&kiya->kiya, kira->name);
 		dylink_pool_free(kira->pool);
 		refer_free(kira->pocket);
+		if (kira->owner) refer_free(kira->owner);
 		free(kira);
 	}
 	if (kiya->pool) dylink_pool_free(kiya->pool);
@@ -106,41 +108,10 @@ kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const cha
 	return NULL;
 }
 
-static const pocket_attr_t* kiya_kirakira_check(kiya_t *restrict kiya, const pocket_s *restrict pocket);
-static kiya_kirakira_t* kiya_kirakira_dylink(kiya_kirakira_t *restrict kira, kiya_t *restrict kiya, const pocket_s *restrict pocket, const pocket_attr_t *restrict v);
-static kiya_kirakira_t* kiya_kirakira_symbol(kiya_kirakira_t *restrict kira, const pocket_s *restrict pocket, const pocket_attr_t *restrict index_kiya, mlog_s *restrict mlog);
-static kiya_t* kiya_kirakira_parse(kiya_t *restrict kiya, pocket_s *restrict pocket, const pocket_attr_t *restrict v, const char *restrict name);
-static kiya_kirakira_t* kiya_kirakira_initial(kiya_kirakira_t *restrict kira, kiya_t *restrict kiya);
-
+static kiya_t* kiya_load_select(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner);
 kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket)
 {
-	const pocket_attr_t *restrict index_kiya;
-	kiya_kirakira_t *restrict kira;
-	if ((index_kiya = kiya_kirakira_check(kiya, pocket)) &&
-		(kira = (kiya_kirakira_t *) calloc(1, sizeof(kiya_kirakira_t))))
-	{
-		kira->name = (const char *) pocket_find_tag(pocket, index_kiya, "name", pocket_tag$string, NULL)->data.ptr;
-		kira->pocket = (pocket_s *) refer_save(pocket);
-		if (kiya_kirakira_dylink(kira, kiya, pocket, pocket_find_tag(pocket, index_kiya, "dylink", pocket_tag$index, NULL)) &&
-			kiya_kirakira_symbol(kira, pocket, index_kiya, kiya->mlog) &&
-			hashmap_set_name(&kiya->kiya, kira->name, kira, NULL) &&
-			hashmap_set_name(&kiya->pocket, kira->name, kira->pocket, NULL) &&
-			hashmap_set_name(&kiya->dylink, kira->name, kira->pool, NULL) &&
-			kiya_kirakira_parse(kiya, pocket, pocket_find_tag(pocket, index_kiya, "parse", pocket_tag$index, NULL), kira->name) &&
-			kiya_kirakira_initial(kira, kiya))
-		{
-			kira->next = kiya->kirakira;
-			kiya->kirakira = kira;
-			return kiya;
-		}
-		hashmap_delete_name(&kiya->dylink, kira->name);
-		hashmap_delete_name(&kiya->pocket, kira->name);
-		hashmap_delete_name(&kiya->kiya, kira->name);
-		if (kira->pool) dylink_pool_free(kira->pool);
-		if (kira->pocket) refer_free(kira->pocket);
-		free(kira);
-	}
-	return NULL;
+	return kiya_load_select(kiya, pocket, pocket);
 }
 
 kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret)
@@ -416,6 +387,91 @@ static kiya_kirakira_t* kiya_kirakira_initial(kiya_kirakira_t *restrict kira, ki
 		}
 	}
 	return kira;
+}
+
+static kiya_t* kiya_load_kiya(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
+{
+	const pocket_attr_t *restrict index_kiya;
+	kiya_kirakira_t *restrict kira;
+	if ((index_kiya = kiya_kirakira_check(kiya, pocket)) &&
+		(kira = (kiya_kirakira_t *) calloc(1, sizeof(kiya_kirakira_t))))
+	{
+		kira->name = (const char *) pocket_find_tag(pocket, index_kiya, "name", pocket_tag$string, NULL)->data.ptr;
+		kira->pocket = (pocket_s *) refer_save(pocket);
+		kira->owner = (pocket_s *) refer_save(owner);
+		if (kiya_kirakira_dylink(kira, kiya, pocket, pocket_find_tag(pocket, index_kiya, "dylink", pocket_tag$index, NULL)) &&
+			kiya_kirakira_symbol(kira, pocket, index_kiya, kiya->mlog) &&
+			hashmap_set_name(&kiya->kiya, kira->name, kira, NULL) &&
+			hashmap_set_name(&kiya->pocket, kira->name, kira->pocket, NULL) &&
+			hashmap_set_name(&kiya->dylink, kira->name, kira->pool, NULL) &&
+			kiya_kirakira_parse(kiya, pocket, pocket_find_tag(pocket, index_kiya, "parse", pocket_tag$index, NULL), kira->name) &&
+			kiya_kirakira_initial(kira, kiya))
+		{
+			kira->next = kiya->kirakira;
+			kiya->kirakira = kira;
+			return kiya;
+		}
+		hashmap_delete_name(&kiya->dylink, kira->name);
+		hashmap_delete_name(&kiya->pocket, kira->name);
+		hashmap_delete_name(&kiya->kiya, kira->name);
+		if (kira->pool) dylink_pool_free(kira->pool);
+		if (kira->pocket) refer_free(kira->pocket);
+		free(kira);
+	}
+	return NULL;
+}
+
+static kiya_t* kiya_load_kiyas(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
+{
+	const pocket_attr_t *restrict v, *restrict root;
+	pocket_s *restrict p;
+	if ((v = pocket_system(pocket)))
+		v = pocket_find_tag(pocket, v, "kiyas", pocket_tag$string, NULL);
+	if ((root = pocket_user(pocket)) && v && v->data.ptr)
+		root = pocket_find_tag(pocket, root, (const char *) v->data.ptr, pocket_tag$index, NULL);
+	if (root)
+	{
+		uint64_t n;
+		n = root->size;
+		v = (const pocket_attr_t *) root->data.ptr;
+		while (n)
+		{
+			--n;
+			if (!v->tag.string || strcmp(v->tag.string, "kiya") || !v->size)
+				goto label_tag;
+			p = pocket_alloc((uint8_t *) v->data.ptr, v->size, NULL);
+			if (!p) goto label_load;
+			if (!kiya_load_select(kiya, p, owner))
+				goto label_load;
+			refer_free(p);
+			++v;
+		}
+	}
+	return kiya;
+	label_fail:
+	return NULL;
+	label_tag:
+	mlog_printf(kiya->mlog, "kiyas parse(%s) fail: tag(%s)\n", v->name.string, v->tag.string);
+	goto label_fail;
+	label_load:
+	if (p) refer_free(p);
+	mlog_printf(kiya->mlog, "kiyas load(%s) fail\n", v->name.string);
+	goto label_fail;
+}
+
+static kiya_t* kiya_load_select(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
+{
+	const char *restrict tag;
+	tag = pocket_header(pocket)->tag.string;
+	if (tag)
+	{
+		if (!strcmp(tag, "kiya"))
+			return kiya_load_kiya(kiya, pocket, (owner == pocket)?NULL:owner);
+		else if (!strcmp(tag, "kiyas"))
+			return kiya_load_kiyas(kiya, pocket, owner);
+	}
+	mlog_printf(kiya->mlog, "pocket unknow tag(%s)\n", tag);
+	return NULL;
 }
 
 static void kiya_args_free_func(hashmap_vlist_t *restrict vl)
