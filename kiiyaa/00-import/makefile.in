@@ -1,0 +1,8 @@
+pocket-builder	= pocket-builder
+
+${target}.kiya: kiya.builder
+	${pocket-builder} $< -o $@
+
+.PHONY: clear
+clear:
+	rm -f *.kiya

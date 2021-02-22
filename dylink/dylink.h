@@ -83,5 +83,6 @@ int dylink_pool_load_file(dylink_pool_t *restrict dp, const char *restrict path)
 dylink_pool_t* dylink_pool_alloc_local(dylink_pool_t *restrict dp);
 dylink_pool_t* dylink_pool_upper(dylink_pool_t *restrict dp);
 int dylink_pool_sync_symbol(const dylink_pool_t *restrict dp, const char *restrict symbol, const char *restrict upper_symbol);
+int dylink_pool_sync_symbol_all(const dylink_pool_t *restrict dp);
 
 #endif

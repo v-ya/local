@@ -464,3 +464,22 @@ int dylink_pool_sync_symbol(const dylink_pool_t *restrict dp, const char *restri
 	}
 	return -1;
 }
+
+static void dylink_pool_sync_symbol_all_func(hashmap_vlist_t *restrict vl, const dylink_pool_t *restrict dp)
+{
+	dylink_pool_sync_symbol(dp, vl->name, NULL);
+}
+
+int dylink_pool_sync_symbol_all(const dylink_pool_t *restrict dp)
+{
+	dylink_pool_t *upper;
+	if ((upper = dp->upper))
+	{
+		uint32_t want;
+		want = upper->symbol.number + dp->symbol.number;
+		hashmap_call(&dp->symbol, (hashmap_func_call_f) dylink_pool_sync_symbol_all_func, dp);
+		if (upper->symbol.number == want)
+			return 0;
+	}
+	return -1;
+}

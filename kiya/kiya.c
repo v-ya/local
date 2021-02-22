@@ -505,10 +505,12 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 	pool = dylink_pool_alloc_local(kiya->pool);
 	if (pool)
 	{
-		if (!dylink_pool_set_func(pool, "hashmap_get_name", hashmap_get_name) &&
-			!dylink_pool_set_func(pool, "pocket_find_tag", pocket_find_tag) &&
+		if (!dylink_pool_set_func(pool, "strcmp", strcmp) &&
+			!dylink_pool_set_func(pool, "hashmap_get_name", hashmap_get_name) &&
 			!dylink_pool_set_func(pool, "pocket_preset_tag", pocket_preset_tag) &&
+			!dylink_pool_set_func(pool, "pocket_find", pocket_find) &&
 			!dylink_pool_set_func(pool, "dylink_pool_sync_symbol", dylink_pool_sync_symbol) &&
+			!dylink_pool_set_func(pool, "dylink_pool_sync_symbol_all", dylink_pool_sync_symbol_all) &&
 			!dylink_pool_load(pool, dy_core, dy_core_size))
 		{
 			#define set_hashmap(k)  \

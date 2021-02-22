@@ -49,9 +49,9 @@ hashmap_vlist_t* hashmap_set_head(hashmap_t *restrict hm, uint64_t head, const v
 void* hashmap_get_name(const hashmap_t *restrict hm, const char *restrict name);
 void* hashmap_get_head(const hashmap_t *restrict hm, uint64_t head);
 // 遍历每一个子节点调用 callFunc
-void hashmap_call(hashmap_t *restrict hm, hashmap_func_call_f callFunc, void *data);
-void hashmap_call_v2(hashmap_t *restrict hm, hashmap_func_call_v2_f callFunc, void *v1, void *v2);
+void hashmap_call(const hashmap_t *restrict hm, hashmap_func_call_f callFunc, const void *data);
+void hashmap_call_v2(const hashmap_t *restrict hm, hashmap_func_call_v2_f callFunc, const void *v1, const void *v2);
 // 遍历每一个子节点调用 isfreeFunc，如果函数返回非零则释放改子节点
-void hashmap_isfree(hashmap_t *restrict hm, hashmap_func_isfree_f isfreeFunc, void *data);
+void hashmap_isfree(hashmap_t *restrict hm, hashmap_func_isfree_f isfreeFunc, const void *data);
 
 #endif

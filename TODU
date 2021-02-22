@@ -2,6 +2,5 @@
 	1. dylink 局部非 rip 偏移预链接会出问题
 
 短期规划
-	* kiya
 	* graph: load(pocket) => posky
 	* ttf, ttc 解析实现

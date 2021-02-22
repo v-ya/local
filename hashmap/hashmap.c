@@ -340,7 +340,7 @@ void* hashmap_get_head(register const hashmap_t *restrict hm, register uint64_t 
 	else return NULL;
 }
 
-void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f callFunc, void *data)
+void hashmap_call(register const hashmap_t *restrict hm, register hashmap_func_call_f callFunc, const void *data)
 {
 	register hashmap_vlist_t *vl;
 	if (hm->map)
@@ -352,7 +352,7 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f 
 			vl = hm->map[i];
 			while(vl)
 			{
-				callFunc(vl, data);
+				callFunc(vl, (void *) data);
 				vl = vl->next;
 			}
 		}
@@ -360,7 +360,7 @@ void hashmap_call(register hashmap_t *restrict hm, register hashmap_func_call_f 
 	}
 }
 
-void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call_v2_f callFunc, void *v1, void *v2)
+void hashmap_call_v2(register const hashmap_t *restrict hm, register hashmap_func_call_v2_f callFunc, const void *v1, const void *v2)
 {
 	register hashmap_vlist_t *vl;
 	if (hm->map)
@@ -372,7 +372,7 @@ void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call
 			vl = hm->map[i];
 			while(vl)
 			{
-				callFunc(vl, v1, v2);
+				callFunc(vl, (void *) v1, (void *) v2);
 				vl = vl->next;
 			}
 		}
@@ -380,7 +380,7 @@ void hashmap_call_v2(register hashmap_t *restrict hm, register hashmap_func_call
 	}
 }
 
-void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfree_f isfreeFunc, void *data)
+void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfree_f isfreeFunc, const void *data)
 {
 	register hashmap_vlist_t *vl, **pvl;
 	if (hm->map)
@@ -392,7 +392,7 @@ void hashmap_isfree(register hashmap_t *restrict hm, register hashmap_func_isfre
 			pvl = hm->map + i;
 			while((vl = *pvl))
 			{
-				if (isfreeFunc(vl, data))
+				if (isfreeFunc(vl, (void *) data))
 				{
 					// free
 					*pvl = vl->next;
