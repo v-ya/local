@@ -1,5 +1,5 @@
 output	= output
-list	= $(wildcard */*/Makefile)
+list	= $(patsubst %/Makefile,%,$(wildcard */*/Makefile))
 
 %/:
 	@mkdir $@
@@ -7,10 +7,8 @@ list	= $(wildcard */*/Makefile)
 .PHONY: all clear
 all: ${output}/
 	@$(foreach path, ${list},\
-		n1=$(word 2,$(subst -, ,$(word 1,$(subst /, ,${path})))) &&\
-		n2=$(word 2,$(subst -, ,$(word 2,$(subst /, ,${path})))) &&\
-		make --no-print-directory -C $(dir ${path}) &&\
-		cp $(dir ${path})$$n1.$$n2.kiya ${output}/$$n1.$$n2;)
+		make --no-print-directory -C ${path}/ &&\
+		cp ${path}/$(subst /,.,${path}).kiya ${output}/$(subst /,.,${path});)
 clear:
 	@rm -f ${output}/*
 	@$(foreach path, ${list}, make -s -C $(dir ${path}) clear;)
