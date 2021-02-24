@@ -1,6 +1,6 @@
 : verify   = "*>^~64.4"
 : tag      = "kiya"
-: version  = "1.0"
+: version  = "kirakira"
 : author   = "vya"
 [$] "description" @text => @"desc.txt"
 : desc     = "description"

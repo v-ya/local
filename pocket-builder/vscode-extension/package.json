@@ -1,0 +1,34 @@
+{
+	"name": "pocket-builder",
+	"displayName": "pocket-builder 脚本",
+	"description": "pocket-builder 脚本支持",
+	"version": "1.0.0",
+	"publisher": "vya",
+	"engines": {
+		"vscode": "^1.0.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "pocket-builder",
+				"aliases": [
+					"pocket-builder"
+				],
+				"extensions": [
+					".builder"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "pocket-builder",
+				"scopeName": "source.pocket-builder",
+				"path": "./pocket-builder.tmLanguage"
+			}
+		]
+	}
+}
