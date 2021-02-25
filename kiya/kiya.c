@@ -11,7 +11,6 @@ struct kiya_kirakira_t {
 	kiya_kirakira_t *next;
 	const char *name;
 	pocket_s *pocket;
-	pocket_s *owner;
 	dylink_pool_t *pool;
 	kiya_initial_f initial;
 	kiya_finally_f finally;
@@ -20,6 +19,7 @@ struct kiya_kirakira_t {
 struct kiya_t {
 	hashmap_t kiya;       // =weak> (kiya_kirakira_t *)
 	hashmap_t args;       // =weak> (kiya_args_t *)
+	hashmap_t tag;        // =weak> (kiya_tag_f)
 	hashmap_t parse;      // =weak> (kiya_parse_f)
 	hashmap_t pocket;     // =weak> (pocket_s *)
 	hashmap_t dylink;     // =weak> (dylink_pool_t *)
@@ -39,6 +39,7 @@ kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize)
 	{
 		if (hashmap_init(&kiya->kiya) &&
 			hashmap_init(&kiya->args) &&
+			hashmap_init(&kiya->tag) &&
 			hashmap_init(&kiya->parse) &&
 			hashmap_init(&kiya->pocket) &&
 			hashmap_init(&kiya->dylink) &&
@@ -70,7 +71,6 @@ void kiya_free(register kiya_t *restrict kiya)
 		hashmap_delete_name(&kiya->kiya, kira->name);
 		dylink_pool_free(kira->pool);
 		refer_free(kira->pocket);
-		if (kira->owner) refer_free(kira->owner);
 		free(kira);
 	}
 	if (kiya->pool) dylink_pool_free(kiya->pool);
@@ -80,6 +80,7 @@ void kiya_free(register kiya_t *restrict kiya)
 	hashmap_uini(&kiya->dylink);
 	hashmap_uini(&kiya->pocket);
 	hashmap_uini(&kiya->parse);
+	hashmap_uini(&kiya->tag);
 	hashmap_uini(&kiya->args);
 	hashmap_uini(&kiya->kiya);
 	free(kiya);
@@ -108,10 +109,18 @@ kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const cha
 	return NULL;
 }
 
-static kiya_t* kiya_load_select(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner);
 kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket)
 {
-	return kiya_load_select(kiya, pocket, pocket);
+	const char *restrict tag;
+	kiya_tag_f parse;
+	tag = pocket_header(pocket)->tag.string;
+	if (tag && (parse = (kiya_tag_f) hashmap_get_name(&kiya->tag, tag)))
+	{
+		if (parse(pocket))
+			return kiya;
+	}
+	else mlog_printf(kiya->mlog, "pocket unknow tag(%s)\n", tag);
+	return NULL;
 }
 
 kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret)
@@ -389,7 +398,7 @@ static kiya_kirakira_t* kiya_kirakira_initial(kiya_kirakira_t *restrict kira, ki
 	return kira;
 }
 
-static kiya_t* kiya_load_kiya(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
+static pocket_s* kiya_load_kiya(pocket_s *restrict pocket, kiya_t *restrict kiya)
 {
 	const pocket_attr_t *restrict index_kiya;
 	kiya_kirakira_t *restrict kira;
@@ -398,7 +407,6 @@ static kiya_t* kiya_load_kiya(kiya_t *restrict kiya, pocket_s *pocket, pocket_s 
 	{
 		kira->name = (const char *) pocket_find_tag(pocket, index_kiya, "name", pocket_tag$string, NULL)->data.ptr;
 		kira->pocket = (pocket_s *) refer_save(pocket);
-		kira->owner = (pocket_s *) refer_save(owner);
 		if (kiya_kirakira_dylink(kira, kiya, pocket, pocket_find_tag(pocket, index_kiya, "dylink", pocket_tag$index, NULL)) &&
 			kiya_kirakira_symbol(kira, pocket, index_kiya, kiya->mlog) &&
 			hashmap_set_name(&kiya->kiya, kira->name, kira, NULL) &&
@@ -409,7 +417,7 @@ static kiya_t* kiya_load_kiya(kiya_t *restrict kiya, pocket_s *pocket, pocket_s 
 		{
 			kira->next = kiya->kirakira;
 			kiya->kirakira = kira;
-			return kiya;
+			return pocket;
 		}
 		hashmap_delete_name(&kiya->dylink, kira->name);
 		hashmap_delete_name(&kiya->pocket, kira->name);
@@ -421,12 +429,12 @@ static kiya_t* kiya_load_kiya(kiya_t *restrict kiya, pocket_s *pocket, pocket_s 
 	return NULL;
 }
 
-static kiya_t* kiya_load_kiyas(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
+static pocket_s* kiya_load_kiiyaa(pocket_s *restrict pocket, kiya_t *restrict kiya)
 {
 	const pocket_attr_t *restrict v, *restrict root;
 	pocket_s *restrict p;
 	if ((v = pocket_system(pocket)))
-		v = pocket_find_tag(pocket, v, "kiyas", pocket_tag$string, NULL);
+		v = pocket_find_tag(pocket, v, "kiiyaa", pocket_tag$string, NULL);
 	if ((root = pocket_user(pocket)) && v && v->data.ptr)
 		root = pocket_find_tag(pocket, root, (const char *) v->data.ptr, pocket_tag$index, NULL);
 	if (root)
@@ -441,37 +449,23 @@ static kiya_t* kiya_load_kiyas(kiya_t *restrict kiya, pocket_s *pocket, pocket_s
 				goto label_tag;
 			p = pocket_alloc((uint8_t *) v->data.ptr, v->size, NULL);
 			if (!p) goto label_load;
-			if (!kiya_load_select(kiya, p, owner))
+			pocket_set_depend(p, pocket);
+			if (!kiya_load(kiya, p))
 				goto label_load;
 			refer_free(p);
 			++v;
 		}
 	}
-	return kiya;
+	return pocket;
 	label_fail:
 	return NULL;
 	label_tag:
-	mlog_printf(kiya->mlog, "kiyas parse(%s) fail: tag(%s)\n", v->name.string, v->tag.string);
+	mlog_printf(kiya->mlog, "kiiyaa parse(%s) fail: tag(%s)\n", v->name.string, v->tag.string);
 	goto label_fail;
 	label_load:
 	if (p) refer_free(p);
-	mlog_printf(kiya->mlog, "kiyas load(%s) fail\n", v->name.string);
+	mlog_printf(kiya->mlog, "kiiyaa load(%s) fail\n", v->name.string);
 	goto label_fail;
-}
-
-static kiya_t* kiya_load_select(kiya_t *restrict kiya, pocket_s *pocket, pocket_s *owner)
-{
-	const char *restrict tag;
-	tag = pocket_header(pocket)->tag.string;
-	if (tag)
-	{
-		if (!strcmp(tag, "kiya"))
-			return kiya_load_kiya(kiya, pocket, (owner == pocket)?NULL:owner);
-		else if (!strcmp(tag, "kiyas"))
-			return kiya_load_kiyas(kiya, pocket, owner);
-	}
-	mlog_printf(kiya->mlog, "pocket unknow tag(%s)\n", tag);
-	return NULL;
 }
 
 static void kiya_args_free_func(hashmap_vlist_t *restrict vl)
@@ -493,9 +487,11 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 {
 	static const char *restrict s_kiya = "$kiya";
 	static const char *restrict s_args = "$args";
+	static const char *restrict s_tag = "$tag";
 	static const char *restrict s_parse = "$parse";
 	static const char *restrict s_pocket = "$pocket";
 	static const char *restrict s_dylink = "$dylink";
+	static const char *restrict s_mlog = "$mlog";
 	#include "core/core.h"
 	dylink_pool_t *restrict pool;
 	void *v;
@@ -513,19 +509,45 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 			!dylink_pool_set_func(pool, "dylink_pool_sync_symbol_all", dylink_pool_sync_symbol_all) &&
 			!dylink_pool_load(pool, dy_core, dy_core_size))
 		{
+			if (!(v = dylink_pool_get_symbol(pool, "kiya", NULL)))
+				goto label_fail;
+			*(kiya_t **) v = kiya;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$load$kiya", NULL)))
+				goto label_fail;
+			*(void **) v = kiya_load_kiya;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$load$kiiyaa", NULL)))
+				goto label_fail;
+			*(void **) v = kiya_load_kiiyaa;
 			#define set_hashmap(k)  \
 				if (!(v = dylink_pool_get_symbol(pool, s_##k, NULL))) goto label_fail;\
 				*(hashmap_t **) v = &kiya->k;\
 				if (dylink_pool_sync_symbol(pool, s_##k, s_##k)) goto label_fail
+			#define set_pointer(k)  \
+				if (!(v = dylink_pool_get_symbol(pool, s_##k, NULL))) goto label_fail;\
+				*(void **) v = (void *) kiya->k;\
+				if (dylink_pool_sync_symbol(pool, s_##k, s_##k)) goto label_fail
 			set_hashmap(kiya);
 			set_hashmap(args);
+			set_hashmap(tag);
 			set_hashmap(parse);
 			set_hashmap(pocket);
 			set_hashmap(dylink);
+			set_pointer(mlog);
 			#undef set_hashmap
-			if (!(v = dylink_pool_get_symbol(pool, "kiya$parse$export", NULL))) goto label_fail;
-			if (hashmap_set_name(&kiya->parse, "kiya.export", v, NULL))
-				r = kiya;
+			#undef set_pointer
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$tag$kiya", NULL)))
+				goto label_fail;
+			if (!hashmap_set_name(&kiya->tag, "kiya", v, NULL))
+				goto label_fail;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$tag$kiiyaa", NULL)))
+				goto label_fail;
+			if (!hashmap_set_name(&kiya->tag, "kiiyaa", v, NULL))
+				goto label_fail;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$parse$export", NULL)))
+				goto label_fail;
+			if (!hashmap_set_name(&kiya->parse, "kiya.export", v, NULL))
+				goto label_fail;
+			r = kiya;
 		}
 		label_fail:
 		dylink_pool_free(pool);

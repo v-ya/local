@@ -99,6 +99,7 @@ struct pocket_verify_s;
 
 pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct pocket_verify_s *restrict verify);
 pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *restrict verify);
+void pocket_set_depend(pocket_s *restrict pocket, refer_t depend);
 uint8_t* pocket_pull(const pocket_s *restrict p, uint64_t *restrict size);
 void pocket_pull_free(uint8_t *restrict pocket);
 

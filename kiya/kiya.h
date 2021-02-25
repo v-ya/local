@@ -6,6 +6,7 @@
 
 typedef struct kiya_t kiya_t;
 
+typedef pocket_s* (*kiya_tag_f)(pocket_s *restrict pocket);
 typedef pocket_s* (*kiya_parse_f)(pocket_s *restrict pocket, const pocket_attr_t *restrict root, const char *restrict name, const char *restrict *restrict error);
 
 typedef const char* (*kiya_initial_f)(uintptr_t argc, const char *const argv[]);

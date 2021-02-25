@@ -29,7 +29,7 @@ static void pocket_dump_desc(const pocket_s *restrict pocket, const pocket_heade
 static void pocket_dump_tree(const pocket_s *restrict pocket, const pocket_attr_t *restrict attr, uint32_t n)
 {
 	++n;
-	printf("%*c%-16s | %10lu | %s\n",
+	printf("%*c%-48s | %10lu | %s\n",
 		n << 1, 0,
 		attr->name.string?attr->name.string:"",
 		attr->size,

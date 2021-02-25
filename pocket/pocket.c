@@ -34,6 +34,7 @@ struct pocket_s {
 	const char *preset_tag_string;
 	pocket_attr_t *attr$begin;
 	pocket_attr_t *attr$end;
+	refer_t depend;
 };
 
 static pocket_header_t* pocket_check_size(const uint8_t *restrict pocket, uint64_t size)
@@ -300,6 +301,7 @@ static void pocket_free_func(pocket_s *restrict r)
 {
 	if (r->slots) free(r->slots);
 	rbtree_clear(&r->preset_tag);
+	if (r->depend) refer_free(r->depend);
 }
 
 static void pocket_free_magic_func(pocket_s *restrict r)
@@ -386,6 +388,13 @@ pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *r
 		fclose(fp);
 	}
 	return r;
+}
+
+void pocket_set_depend(pocket_s *restrict pocket, refer_t depend)
+{
+	if (pocket->depend)
+		refer_free(pocket->depend);
+	pocket->depend = refer_save(depend);
 }
 
 uint8_t* pocket_pull(const pocket_s *restrict p, uint64_t *restrict size)

@@ -125,29 +125,32 @@ int main(int argc, const char *argv[])
 	{
 		ret = -1;
 		inst.mlog = mlog_alloc(0);
-		inst.kiya = kiya_alloc(inst.mlog, inst.xmsize);
-		inst.verify = pocket_verify_default();
-		if (inst.mlog && inst.kiya && inst.verify)
+		if (inst.mlog)
 		{
 			mlog_set_report(inst.mlog, mlog_report_stdout_func, NULL);
-			if (arg_dash(&inst, rargc, rargv, arg_set) &&
-				arg_dash(&inst, rargc, rargv, arg_load))
+			inst.kiya = kiya_alloc(inst.mlog, inst.xmsize);
+			inst.verify = pocket_verify_default();
+			if (inst.kiya && inst.verify)
 			{
-				if (!kiya_do(inst.kiya, inst.name, inst.main, &ret))
+				if (arg_dash(&inst, rargc, rargv, arg_set) &&
+					arg_dash(&inst, rargc, rargv, arg_load))
 				{
-					mlog_printf(inst.mlog, "call %c%s%c%c%s fail\n",
-						inst.name?'[':0,
-						inst.name?inst.name:"",
-						inst.name?']':0,
-						inst.name?'.':0,
-						inst.main
-					);
+					if (!kiya_do(inst.kiya, inst.name, inst.main, &ret))
+					{
+						mlog_printf(inst.mlog, "call %c%s%c%c%s fail\n",
+							inst.name?'[':0,
+							inst.name?inst.name:"",
+							inst.name?']':0,
+							inst.name?'.':0,
+							inst.main
+						);
+					}
 				}
 			}
+			if (inst.kiya) kiya_free(inst.kiya);
+			if (inst.verify) refer_free(inst.verify);
+			refer_free(inst.mlog);
 		}
-		if (inst.mlog) refer_free(inst.mlog);
-		if (inst.kiya) kiya_free(inst.kiya);
-		if (inst.verify) refer_free(inst.verify);
 	}
 	return ret;
 }

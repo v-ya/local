@@ -36,7 +36,7 @@ core/core.dy: core/kiya.r.o
 core/kiya.%.o: core/kiya.%.c
 	${CC} ${CCFLAGS-DYLINK} -c -o $@ $<
 
-core/kiya.r.o: core/kiya.var.o core/kiya.export.o
+core/kiya.r.o: core/kiya.var.o core/kiya.load.o core/kiya.export.o
 	${LD} -r -o $@ $^
 
 clear:
