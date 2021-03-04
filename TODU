@@ -2,5 +2,18 @@
 	1. dylink 局部非 rip 偏移预链接会出问题
 
 短期规划
+	* thread
+	* posky 邮递系统
+	* graph 资源 pocket 解析系统
+		- 实例
+		- 设备
+		- 窗口
+		? 图像
+		- 着色器
+		? 光源
+		- 模型 (vertex index texture)
+		- 渲染实体 (uniform action)
+		? 渲染组
+	* pocket-builder 支持多个 index 指向同一块数据区 (数据复引用)
 	* graph: load(pocket) => posky
 	* ttf, ttc 解析实现

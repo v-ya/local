@@ -84,13 +84,22 @@ script_t* script_header_parse(script_t *restrict script, pocket_saver_s *restric
 			{
 				++s;
 				skip_space(s);
-				if (*s == '\"' && (s = json_decode(*p = s, &v)) &&
-					func(script, saver, v->value.string))
+				if (*s == '\"')
 				{
-					json_free(v);
-					skip_space(s);
-					*p = s;
-					return script;
+					if ((s = json_decode(*p = s, &v)) && func(script, saver, v->value.string))
+					{
+						json_free(v);
+						label_ok:
+						skip_space(s);
+						*p = s;
+						return script;
+					}
+				}
+				else if (s[0] == 'n' && s[1] == 'u' && s[2] == 'l' && s[3] == 'l')
+				{
+					s += 4;
+					if (func(script, saver, NULL))
+						goto label_ok;
 				}
 			}
 		}

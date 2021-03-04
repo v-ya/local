@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>scopeName</key>
+	<string>source.pocket-builder</string>
 	<key>fileTypes</key>
 	<array>
 		<string>builder</string>
@@ -26,25 +28,19 @@
 			<key>name</key>
 			<string>constant.numeric</string>
 			<key>match</key>
-			<string>=&gt;\s*".*?(?&lt;![^\\][\\])"</string>
+			<string>=[0-9]*&gt;\s*".*?(?&lt;![^\\][\\])"</string>
 		</dict>
 		<dict>
 			<key>name</key>
 			<string>support.function</string>
 			<key>match</key>
-			<string>=&gt;\s*(&amp;|@)".*?(?&lt;![^\\][\\])"</string>
-		</dict>
-		<dict>
-			<key>name</key>
-			<string>constant.numeric</string>
-			<key>match</key>
-			<string>=&gt;\s*".*?(?&lt;![^\\][\\])"</string>
+			<string>=[0-9]*&gt;\s*(&amp;|@)".*?(?&lt;![^\\][\\])"</string>
 		</dict>
 		<dict>
 			<key>name</key>
 			<string>string.quoted</string>
 			<key>match</key>
-			<string>".*?(?&lt;![^\\][\\])"</string>
+			<string>(".*?(?&lt;![^\\][\\])"|null)</string>
 		</dict>
 		<dict>
 			<key>name</key>
@@ -79,7 +75,7 @@
 			<key>name</key>
 			<string>support.function</string>
 			<key>begin</key>
-			<string>=&gt;\s*\(\s*(u8|s8|u16|s16|u32|s32|u64|s64|f32|f64)\s*(\[\s*[0-9a-fx]*\s*\])?\)\s*\{</string>
+			<string>=[0-9]*&gt;\s*\(\s*(u8|s8|u16|s16|u32|s32|u64|s64|f32|f64)\s*(\[\s*[0-9a-fx]*\s*\])?\)\s*\{</string>
 			<key>end</key>
 			<string>\}</string>
 			<key>patterns</key>
@@ -105,7 +101,5 @@
 			</array>
 		</dict>
 	</array>
-	<key>scopeName</key>
-	<string>source.pocket-builder</string>
 </dict>
 </plist>
