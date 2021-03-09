@@ -34,6 +34,6 @@ extern slime_attr_t slime_attr;
 
 slime_t* slime_motto(slime_do_f func, void *arg, const slime_attr_t *restrict attr);
 void slime_catch(slime_t *restrict slime, int *restrict rstatus);
-void slime_free(slime_t *restrict slime);
+void slime_byebye(slime_t *restrict slime);
 
 #endif

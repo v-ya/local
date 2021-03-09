@@ -74,7 +74,7 @@ void slime_catch(slime_t *restrict slime, int *restrict rstatus)
 	}
 }
 
-void slime_free(slime_t *restrict slime)
+void slime_byebye(slime_t *restrict slime)
 {
 	if (!(slime->attr.flags & slime_flag$detach))
 	{
