@@ -1,0 +1,24 @@
+cc		= gcc
+ld		= ld
+dylink		= dylink
+ccflags		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
+pocket-builder	= pocket-builder
+
+%.o: %.c
+	${cc} ${ccflags} -c $< -o $@
+
+%.o: %.S
+	${cc} ${ccflags} -c $< -o $@
+
+${target}.kiya: kiya.builder ${target}.dy
+	${pocket-builder} $< -o $@
+
+${target}.dy: ${target}.r.o
+	${dylink} $< -o $@
+
+${target}.r.o: ${object}
+	${ld} -r $^ -o $@
+
+.PHONY: clear
+clear:
+	rm -f *.o *.dy *.kiya
