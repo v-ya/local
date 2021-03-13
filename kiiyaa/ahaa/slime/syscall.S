@@ -1,3 +1,4 @@
+#include "define.h"
 	.file	"syscall.S"
 	.text
 
@@ -74,12 +75,33 @@ syscall_futex:
 	ret
 	.size	syscall_futex, .-syscall_futex
 
+// void inner_mclear(void *dst, uintptr_t size);
+	.p2align 4
+	.globl	inner_mclear
+	.type	inner_mclear, @function
+inner_mclear:
+	movq	%rsi, %rcx
+	xorl	%eax, %eax
+	rep stos %al, %es:(%rdi)
+	ret
+	.size	inner_mclear, .-inner_mclear
+
+// void inner_mcopy(void *dst, const void *src, uintptr_t size);
+	.p2align 4
+	.globl	inner_mcopy
+	.type	inner_mcopy, @function
+inner_mcopy:
+	movq	%rdx, %rcx
+	rep movsb %ds:(%rsi), %es:(%rdi)
+	ret
+	.size	inner_mcopy, .-inner_mcopy
+
 // struct slime_t* get_self(void);
 	.p2align 4
 	.globl	get_self
 	.type	get_self, @function
 get_self:
-	movq %gs:0, %rax
+	movq	%fs:slime_fs_offset, %rax
 	ret
 	.size	get_self, .-get_self
 
@@ -93,9 +115,8 @@ get_self:
 	.local	slime_initial
 	.type	slime_initial, @function
 slime_initial:
-	popq %rsi
-	wrgsbase %rsi
-	popq %rdi
+	popq	%rsi
+	popq	%rdi
 	ret
 	.size	slime_initial, .-slime_initial
 
@@ -105,7 +126,7 @@ slime_initial:
 	.local	slime_finally
 	.type	slime_finally, @function
 slime_finally:
-	movq %gs:0, %rdi
+	movq	%fs:slime_fs_offset, %rdi
 	ret
 	.size	slime_finally, .-slime_finally
 

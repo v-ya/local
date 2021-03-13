@@ -11,7 +11,12 @@
 	"ahaa.slime" @"dylink" => &"ahaa.slime.dy"
 
 ["kiya.export"]
-	"slime_attr"   @null
-	"slime_motto"  @null
-	"slime_catch"  @null
-	"slime_byebye" @null
+	"slime_attr"    @null
+	"slime_motto"   @null
+	"slime_catch"   @null
+	"slime_byebye"  @null
+	"slime_me"      @null
+	"slime_box"     @null
+	"slime_box_put" @null
+	"slime_box_get" @null
+

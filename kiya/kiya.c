@@ -501,7 +501,11 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 	pool = dylink_pool_alloc_local(kiya->pool);
 	if (pool)
 	{
-		if (!dylink_pool_set_func(pool, "strcmp", strcmp) &&
+		if (!dylink_pool_set_func(kiya->pool, "malloc", malloc) &&
+			!dylink_pool_set_func(kiya->pool, "calloc", calloc) &&
+			!dylink_pool_set_func(kiya->pool, "realloc", realloc) &&
+			!dylink_pool_set_func(kiya->pool, "free", free) &&
+			!dylink_pool_set_func(pool, "strcmp", strcmp) &&
 			!dylink_pool_set_func(pool, "hashmap_get_name", hashmap_get_name) &&
 			!dylink_pool_set_func(pool, "pocket_preset_tag", pocket_preset_tag) &&
 			!dylink_pool_set_func(pool, "pocket_find", pocket_find) &&

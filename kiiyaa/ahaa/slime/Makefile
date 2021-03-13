@@ -1,3 +1,3 @@
 target	= ahaa.slime
-object	= slime.o syscall.o
+object	= slime.o dtv.o syscall.o
 include ../makefile.in

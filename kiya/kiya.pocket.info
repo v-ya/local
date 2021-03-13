@@ -39,6 +39,10 @@ symbol:
 	$tag     ((hashmap_t *) => (kiya_tag_f))         类型映射池
 	$parse   ((hashmap_t *) => (kiya_parse_f))       解析映射池
 	$symbol  ((hashmap_t *) => (dylink_pool_t *))    符号映射池
+	malloc
+	calloc
+	realloc
+	free
 parse:
 	"kiya.export"                                    将本地符号池的符号映射到公共符号池
 		[root] "kiya.export" @"kiya.export.all"  导出全部符号

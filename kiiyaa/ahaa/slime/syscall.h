@@ -13,6 +13,9 @@ int syscall_clone(uintptr_t flags, void *child_stack, uintptr_t *parent_pid, uin
 void syscall_exit(int status);
 int syscall_futex(uintptr_t *uaddr, int futex_op, uintptr_t val, const struct timespec *timeout, uintptr_t *uaddr2, uintptr_t val3);
 
+void inner_mclear(void *dst, uintptr_t size);
+void inner_mcopy(void *dst, const void *src, uintptr_t size);
+
 struct slime_t* get_self(void);
 
 void* slime_initial_get(void);
