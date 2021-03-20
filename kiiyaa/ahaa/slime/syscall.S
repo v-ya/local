@@ -75,6 +75,28 @@ syscall_futex:
 	ret
 	.size	syscall_futex, .-syscall_futex
 
+// int syscall_yield(void);
+	.p2align 4
+	.globl	syscall_yield
+	.type	syscall_yield, @function
+syscall_yield:
+	movq	$24, %rax
+	syscall
+	ret
+	.size	syscall_yield, .-syscall_yield
+
+// int syscall_nanosleep(const struct timespec *req, struct timespec *rem);
+// req:  %rdi
+// rem:  %rsi
+	.p2align 4
+	.globl	syscall_nanosleep
+	.type	syscall_nanosleep, @function
+syscall_nanosleep:
+	movq	$35, %rax
+	syscall
+	ret
+	.size	syscall_nanosleep, .-syscall_nanosleep
+
 // void inner_mclear(void *dst, uintptr_t size);
 	.p2align 4
 	.globl	inner_mclear

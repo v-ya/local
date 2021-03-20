@@ -9,6 +9,8 @@ typedef struct slime_attr_t slime_attr_t;
 // maybe void (*slime_do_f)(void *arg, slime_t *restrict slime)
 typedef void (*slime_do_f)(void *arg);
 
+typedef void* (*slime_wait_f)(void *data, uint32_t step);
+
 typedef enum slime_flag_t {
 	slime_flag$detach = 0x01,
 } slime_flag_t;
@@ -23,6 +25,10 @@ struct slime_attr_t {
 extern slime_attr_t slime_attr;
 
 slime_t* slime_motto(slime_do_f func, void *arg, const slime_attr_t *restrict attr);
+
+void slime_sleep(uintptr_t sec, uintptr_t nano);
+uint32_t slime_weak(volatile uint32_t *slot, uint32_t step, uint32_t number);
+void* slime_wait(volatile uint32_t *slot, slime_wait_f func, void *data);
 
 // only used at parent
 

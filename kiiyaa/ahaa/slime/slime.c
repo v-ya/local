@@ -105,6 +105,31 @@ slime_t* slime_motto(slime_do_f func, void *arg, const slime_attr_t *restrict at
 	return NULL;
 }
 
+void slime_sleep(uintptr_t sec, uintptr_t nano)
+{
+	struct timespec req;
+	req.tv_sec = sec + nano / 1000000000;
+	req.tv_nsec = nano % 1000000000;
+	do {} while (syscall_nanosleep(&req, &req) == -EINTR);
+}
+
+uint32_t slime_weak(volatile uint32_t *slot, uint32_t step, uint32_t number)
+{
+	if (!number) number = ~number;
+	if (number > 0x7fffffffu) number = 0x7fffffffu;
+	*slot = step;
+	return (uint32_t) syscall_futex((uintptr_t *) slot, FUTEX_WAKE_PRIVATE, number, NULL, NULL, 0);
+}
+
+void* slime_wait(volatile uint32_t *slot, slime_wait_f func, void *data)
+{
+	register uint32_t step;
+	register void *r;
+	while (!(r = func(data, step = *slot)))
+		syscall_futex((uintptr_t *) slot, FUTEX_WAIT_PRIVATE, step, NULL, NULL, 0);
+	return r;
+}
+
 void slime_catch(slime_t *restrict slime)
 {
 	uintptr_t tpid;

@@ -2,7 +2,6 @@
 	1. dylink 局部非 rip 偏移预链接会出问题
 
 短期规划
-	* thread
 	* posky 邮递系统
 	* graph 资源 pocket 解析系统
 		- 实例

@@ -13,6 +13,9 @@
 ["kiya.export"]
 	"slime_attr"    @null
 	"slime_motto"   @null
+	"slime_sleep"   @null
+	"slime_weak"    @null
+	"slime_wait"    @null
 	"slime_catch"   @null
 	"slime_byebye"  @null
 	"slime_me"      @null
