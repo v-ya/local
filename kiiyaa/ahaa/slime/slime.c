@@ -107,10 +107,14 @@ slime_t* slime_motto(slime_do_f func, void *arg, const slime_attr_t *restrict at
 
 void slime_sleep(uintptr_t sec, uintptr_t nano)
 {
-	struct timespec req;
-	req.tv_sec = sec + nano / 1000000000;
-	req.tv_nsec = nano % 1000000000;
-	do {} while (syscall_nanosleep(&req, &req) == -EINTR);
+	if (sec || nano)
+	{
+		struct timespec req;
+		req.tv_sec = sec + nano / 1000000000;
+		req.tv_nsec = nano % 1000000000;
+		do {} while (syscall_nanosleep(&req, &req) == -EINTR);
+	}
+	else syscall_yield();
 }
 
 uint32_t slime_weak(volatile uint32_t *slot, uint32_t step, uint32_t number)

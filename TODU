@@ -1,5 +1,6 @@
 问题
 	1. dylink 局部非 rip 偏移预链接会出问题
+	2. dylink 非 static 函数取函数指针过程需要 plt，预链接过程中不提供 plt
 
 短期规划
 	* pocket-builder 支持多个 index 指向同一块数据区 (数据复引用)
@@ -15,4 +16,5 @@
 		- 渲染实体 (uniform action)
 		? 渲染组
 	* graph: load(pocket) => posky
+	* kiiyaa/ahaa.slime 线程优先级
 	* ttf, ttc 解析实现
