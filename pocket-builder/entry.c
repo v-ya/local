@@ -25,6 +25,21 @@ static pocket_saver_s* saver_set_time(pocket_saver_s *restrict saver)
 	return pocket_saver_set_time(saver, st);
 }
 
+static const uint8_t* save_file(const char *restrict path, const uint8_t *restrict data, size_t size)
+{
+	FILE *fp;
+	const uint8_t *r;
+	r = NULL;
+	fp = fopen(path, "wb");
+	if (fp)
+	{
+		if (fwrite(data, 1, (size_t) size, fp) == (size_t) size)
+			r = data;
+		fclose(fp);
+	}
+	return r;
+}
+
 static void script_error(register const char *restrict start, register const char *restrict rpos)
 {
 	uintptr_t line, col;
@@ -59,12 +74,41 @@ static int do_script(const char *restrict input, const char *restrict output)
 			if (saver && verify && saver_set_time(saver))
 			{
 				const char *restrict rpos;
-				rpos = script_build(script, saver, (const char *) buffer->data);
+				const char *restrict linker;
+				rpos = script_build(script, saver, (const char *) buffer->data, &linker);
 				if (!rpos)
 				{
-					if (pocket_saver_save(saver, output, verify))
-						ret = 0;
-					else printf("save pocket[%s] fail\n", output);
+					uint8_t *data;
+					uint64_t size;
+					data = pocket_saver_build(saver, &size, verify);
+					if (data)
+					{
+						if (linker)
+						{
+							pocket_s *pocket;
+							pocket = pocket_alloc(data, size, verify);
+							if (pocket)
+							{
+								rpos = script_link(pocket, linker);
+								refer_free(pocket);
+								if (!rpos)
+								{
+									if (pocket_build_verify(verify, data, size))
+										linker = NULL;
+									else printf("rebuild pocket verify fail\n");
+								}
+								else script_error((const char *) buffer->data, rpos);
+							}
+						}
+						if (!linker)
+						{
+							if (save_file(output, data, (size_t) size))
+								ret = 0;
+							else printf("save pocket[%s] fail\n", output);
+							pocket_saver_build_free(data);
+						}
+					}
+					else printf("build pocket fail\n");
 				}
 				else script_error((const char *) buffer->data, rpos);
 			}

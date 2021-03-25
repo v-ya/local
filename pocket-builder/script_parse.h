@@ -3,7 +3,8 @@
 
 #include "buffer.h"
 
-#define skip_space(s)  while (*s == ' ' || *s == '\t') ++s
+#define skip_space(s)    while (*s == ' ' || *s == '\t') ++s
+#define skip_comment(s)  while (*s && *s != '\n') ++s
 
 const char* parse_key(buffer_t *restrict buffer, const char *restrict *restrict p);
 buffer_t* parse_value(buffer_t *restrict buffer, const char *restrict *restrict p, uintptr_t *restrict align);

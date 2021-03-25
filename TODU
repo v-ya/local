@@ -3,7 +3,6 @@
 	2. dylink 非 static 函数取函数指针过程需要 plt，预链接过程中不提供 plt
 
 短期规划
-	* pocket-builder 支持多个 index 指向同一块数据区 (数据复引用)
 	* posky 邮递系统
 	* graph 资源 pocket 解析系统
 		- 实例

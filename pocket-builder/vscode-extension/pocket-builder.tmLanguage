@@ -38,6 +38,18 @@
 		</dict>
 		<dict>
 			<key>name</key>
+			<string>keyword.control</string>
+			<key>match</key>
+			<string>~|&lt;|&gt;</string>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>keyword.control</string>
+			<key>match</key>
+			<string>-((0x[0-9A-Fa-f]*)|([0-9]*))?(\+((0x[0-9A-Fa-f]*)|([0-9]*))?)?&gt;</string>
+		</dict>
+		<dict>
+			<key>name</key>
 			<string>string.quoted</string>
 			<key>match</key>
 			<string>(".*?(?&lt;![^\\][\\])"|null)</string>
