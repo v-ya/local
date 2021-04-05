@@ -1,0 +1,175 @@
+ftyp						*	file type and compatibility						文件类型和兼容性
+pdin							progressive download information					渐进式下载信息
+moov						*	container for all the metadata						所有元数据的容器
+	mvhd					*	movie header, overall declarations					电影标题，整体声明
+	meta						metadata								元数据
+	trak					*	container for an individual track or stream				单个轨道或流的容器
+		tkhd				*	track header, overall information about the track			轨道标题，有关重点的总体信息
+		tref					track reference container						轨道参考容器
+		trgr					track grouping indication						轨道分组指示
+		edts					edit list container							编辑列表容器
+			elst				an edit list								一个编辑列表
+		meta					metadata								元数据
+		mdia				*	container for the media information in a track				轨道中媒体信息的容器
+			mdhd			*	media header, overall information about the media			媒体标题，有关媒体的总体信息
+			hdlr			*	handler, declares the media (handler) type				处理程序，声明媒体(处理程序)类型
+			elng				extended language tag							扩展语言标签
+			minf			*	media information container						媒体信息容器
+				vmhd			video media header, overall information (video track only)		视频媒体标题，总体信息(仅视频轨道)
+				smhd			sound media header, overall information (sound track only)		声音媒体标题，总体信息(仅音轨轨道)
+				hmhd			hint media header, overall information (hint track only)		提示媒体标题，总体信息(仅提示轨道)
+				sthd			subtitle media header, overall information (subtitle track only)	字幕媒体标题，总体信息(仅字幕轨道)
+				nmhd			Null media header, overall information (some tracks only)		空媒体标题，总体信息(仅某些轨道)
+				dinf		*	data information box, container						数据信息盒，容器
+					dref	*	data reference box, declares source(s) of media data in track		数据参考盒，在轨道中声明媒体数据的源
+				stbl		*	sample table box, container for the time/space map			样品表盒，时间/空间图的容器
+					stsd	*	sample descriptions (codec types, initialization etc.)			样本描述(编解码器类型，初始化等)
+					stts	*	(decoding) time-to-sample						(解码)采样时间		
+					ctts		(composition) time to sample						(组成)采样时间
+					cslg		composition to decode timeline mapping					组合解码时间轴映射
+					stsc	*	sample-to-chunk, partial data-offset information			样本到块的部分数据移位信息
+					stsz		sample sizes (framing)							样本大小(框架)
+					stz2		compact sample sizes (framing)						精细的样本量(框架)
+					stco	*	chunk offset, partial data-offset information				块偏移量,部分数据偏移量信息
+					co64		64-bit chunk offset							64位块偏移
+					stss		sync sample table							同步样本表
+					stsh		shadow sync sample table						阴影同步样本表
+					padb		sample padding bits							样本填充位
+					stdp		sample degradation priority						样品降解优先级
+					sdtp		independent and disposable samples					独立和一次性样品
+					sbgp		sample-to-group								样本到组
+					sgpd		sample group description						样本组描述
+					subs		sub-sample information							子样本信息
+					saiz		sample auxiliary information sizes					样本辅助信息大小
+					saio		sample auxiliary information offsets					样本辅助信息偏移
+		udta					user-data								用户数据
+	mvex						movie extends box							电影扩展盒
+		mehd					movie extends header box						电影扩展媒体盒
+		trex				*	track extends defaults							轨道扩展默认值
+		leva					level assignment							等级分配
+moof							movie fragment								电影片段
+	mfhd					*	movie fragment header							电影片段标题
+	meta						metadata								元数据
+	traf						track fragment								轨道片段
+		tfhd				*	track fragment header							轨道片段标题
+		trun					track fragment run							轨道片段运行
+		sbgp					sample-to-group								样本到组
+		sgpd					sample group description						样本组描述
+		subs					sub-sample information							子样本信息
+		saiz					sample auxiliary information sizes					样本辅助信息大小
+		saio					sample auxiliary information offsets					样本辅助信息偏移
+		tfdt					track fragment decode time						轨道片段解码时间
+		meta					metadata								元数据
+mfra							movie fragment random access						电影片段随机访问
+	tfra						track fragment random access						轨道片段随机访问
+	mfro					*	movie fragment random access offset					电影片段随机访问偏移
+	mdat						media data container							媒体数据容器
+	free						free space								自由空间
+	skip						free space								自由空间
+		udta					user-data								用户数据
+			cprt				copyright etc.								版权等
+			tsel				track selection box							轨道选择盒
+			strk				sub track box								子轨道盒
+				stri			sub track information box						子轨道信息盒
+				strd			sub track definition box						子轨道定义盒
+meta							metadata								元数据
+	hdlr					*	handler, declares the metadata (handler) type				处理程序，声明元数据(处理程序)类型
+	dinf						data information box, container						数据信息盒，容器
+		dref					data reference box, declares source(s) of metadata items		数据参考盒，声明元数据项的来源
+	iloc						item location								项目位置
+	ipro						item protection								项目保护
+		sinf					protection scheme information box					保护方案信息盒
+			frma				original format box							原始格式盒
+			schm				scheme type box								计划类型盒
+			schi				scheme information box							计划信息盒
+	iinf						item information							项目信息
+	xml						XML container								xml 容器
+	bxml						binary XML container							二进制 xml 容器
+	pitm						primary item reference							主要项目参考
+	fiin						file delivery item information						文件传递项目信息
+		paen					partition entry								分区条目
+			fire				file reservoir								文件库
+			fpar				file partition								文件分区
+			fecr				FEC reservoir								FEC 库
+		segr					file delivery session group						文件传递会话组
+		gitn					group id to name							组ID命名
+	idat						item data								项目数据
+	iref						item reference								项目参考
+meco							additional metadata container						额外的元数据容器
+	mere						metabox relation							元数据盒子关系
+		meta					metadata								元数据
+styp							segment type								片段类型
+sidx							segment index								片段索引
+ssix							subsegment index							子片段索引
+prft							producer reference time							制作者参考时间
+
+=====
+$Box:
+	uint32_t size;
+	uint32_t type;
+	if (size == 1)
+		uint64_t large_size;
+	else if (size == 0)
+		; // box extends to end of file
+	if (type == 'uuid')
+		uint8_t usertype[16];
+
+$FullBox:
+	$Box box;
+	uint8_t version;
+	bit flags[24];
+
+ftyp (file)* [1]:
+$FileTypeBox:
+	$Box box(type = 'ftyp');
+	uint32_t major_brand;
+	uint32_t minor_version;
+	uint32_t compatible_brands[];
+
+mdat (file)  [0+]:
+$MediaDataBox:
+	$Box box(type = 'mdat');
+	uint8_t data[];
+
+free (file|other)  [0+]:
+skip (file|other)  [0+]:
+$FreeSpaceBox:
+	$Box box(type = 'free'|'skip');
+	uint8_t data[];
+
+moov (file)* [1]:
+$MovieBox:
+	$Box box(type = 'moov');
+	...
+
+mvhd ('moov')* [1]:
+$MovieHeaderBox:
+	$FullBox fullbox(box.type = 'mvhd', version = 0|1, flags = 0);
+	if (version == 1)
+	{
+		uint64_t creation_time;
+		uint64_t modification_time;
+		uint32_t timescale;
+		uint64_t duration;
+	}
+	else if (version == 0)
+	{
+		uint32_t creation_time;
+		uint32_t modification_time;
+		uint32_t timescale;
+		uint32_t duration;
+	}
+	fix16.16 rate; // maybe 1.0
+	fix8.8 volume; // maybe 1.0
+	uint16_t reserved = 0;
+	uint32_t reserved[2] = 0;
+	fix32 matrix[9] = {
+		a, b, u,
+		c, d, v,
+		x, y, w
+	};
+	// fix16.16 a, b, c, d, x, y;
+	// fix2.30 u, v, w;
+	// maybe E
+	uint32_t pre_defined[6] = 0;
+	uint32_t next_track_id;
