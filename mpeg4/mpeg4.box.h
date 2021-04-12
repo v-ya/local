@@ -52,10 +52,5 @@ typedef union mpeg4_full_box_suffix_t {
 #define mpeg4_fix_point(_n, _a, _b)  (_n * (1.0 / (1ul << _b)))
 
 uint64_t mpeg4_box_border_parse(const uint8_t *restrict data, uint64_t size, mpeg4_box_extend_size_t *restrict rsize, mpeg4_box_type_t *restrict rtype);
-uint32_t mpeg4_full_box_suffix_parse(mpeg4_full_box_suffix_t suffix, uint32_t *restrict flags);
-// buffer[32]
-const char* mpeg4_time1904_string(char *restrict buffer, uint64_t t1904);
-// buffer[64]
-const char* mpeg4_duration_string(char *restrict buffer, double duration);
 
 #endif

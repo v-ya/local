@@ -1,4 +1,4 @@
-#include "box.func.h"
+#include "box.include.h"
 
 typedef struct file_type_t {
 	mpeg4_box_type_t major_brand;

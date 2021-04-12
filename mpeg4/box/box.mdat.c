@@ -1,4 +1,4 @@
-#include "box.func.h"
+#include "box.include.h"
 
 mpeg4$define$dump(box, mdat)
 {
