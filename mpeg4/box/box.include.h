@@ -2,57 +2,53 @@
 #define _mpeg4_box_include_h_
 
 #include "../mpeg4.box.h"
-#include "../mpeg4.inst.h"
+#include "../mpeg4.atom.h"
 
-struct mpeg4_dump_data_t {
+struct mpeg4_atom_dump_t {
+	uint32_t dump_level;
 	uint32_t dump_samples;
 	uint32_t timescale;
 };
 
-mpeg4$define$dump(box, unknow);
+mpeg4$define$alloc(container);
+mpeg4$define$alloc(container_full);
+mpeg4$define$alloc(container_count);
 
-mpeg4$define$dump(box, container);
-
-mpeg4$define$dump(box, container_count);
-
-mpeg4$define$dump(box, ftyp);
-
-mpeg4$define$dump(box, free_skip);
-
-mpeg4$define$dump(box, mdat);
-
-mpeg4$define$dump(box, mvhd);
-
-mpeg4$define$dump(box, tkhd);
-
-mpeg4$define$dump(box, mdhd);
-
-mpeg4$define$dump(box, hdlr);
-
-mpeg4$define$dump(box, nmhd);
-
-mpeg4$define$dump(box, elng);
-
-mpeg4$define$dump(box, url_);
-
-mpeg4$define$dump(box, urn_);
-
-mpeg4$define$dump(box, stts);
-
-mpeg4$define$dump(box, ctts);
-
-mpeg4$define$dump(box, stss);
-
-mpeg4$define$dump(box, stsz);
-
-mpeg4$define$dump(box, stsc);
-
-mpeg4$define$dump(box, stco);
-
-mpeg4$define$dump(box, co64);
-
-mpeg4$define$dump(box, elst);
-
-mpeg4$define$dump(box, meta);
+mpeg4$define$find(unknow);
+mpeg4$define$find(free_skip);
+mpeg4$define$find(file);
+mpeg4$define$find(ftyp);
+mpeg4$define$find(mdat);
+mpeg4$define$find(moov);
+mpeg4$define$find(mvhd);
+mpeg4$define$find(iods);
+mpeg4$define$find(trak);
+mpeg4$define$find(tkhd);
+mpeg4$define$find(edts);
+mpeg4$define$find(elst);
+mpeg4$define$find(mdia);
+mpeg4$define$find(mdhd);
+mpeg4$define$find(hdlr);
+mpeg4$define$find(elng);
+mpeg4$define$find(minf);
+mpeg4$define$find(nmhd);
+mpeg4$define$find(dinf);
+mpeg4$define$find(dref);
+mpeg4$define$find(url_);
+mpeg4$define$find(urn_);
+mpeg4$define$find(stbl);
+mpeg4$define$find(stsd);
+mpeg4$define$find(stts);
+mpeg4$define$find(ctts);
+mpeg4$define$find(stss);
+mpeg4$define$find(stsz);
+mpeg4$define$find(stsc);
+mpeg4$define$find(stco);
+mpeg4$define$find(co64);
+mpeg4$define$find(udta);
+mpeg4$define$find(meta);
+mpeg4$define$find(ilst);
+mpeg4$define$find(ilst_copyright);
+mpeg4$define$find(ilst_copyright_data);
 
 #endif

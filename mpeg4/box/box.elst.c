@@ -1,7 +1,7 @@
 #include "box.include.h"
 #include "inner.fullbox.h"
 #include "inner.timespec.h"
-#include <memory.h>
+#include "inner.data.h"
 
 typedef struct edit_list_time32_t {
 	uint32_t segment_duration;
@@ -28,11 +28,8 @@ typedef struct edit_list_t {
 static inline edit_list_t* mpeg4$define(inner, edit_list_rate, get)(edit_list_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
 {
 	edit_list_rate_t rate;
-	if (*size >= sizeof(rate))
+	if (mpeg4$define(inner, data, get)(&rate, sizeof(rate), data, size))
 	{
-		memcpy(&rate, *data, sizeof(rate));
-		*data += sizeof(rate);
-		*size -= sizeof(rate);
 		r->media_rate_integer = (uint32_t) mpeg4_n16(rate.media_rate_integer);
 		r->media_rate_fraction = (uint32_t) mpeg4_n16(rate.media_rate_fraction);
 		return r;
@@ -43,11 +40,8 @@ static inline edit_list_t* mpeg4$define(inner, edit_list_rate, get)(edit_list_t 
 static inline edit_list_t* mpeg4$define(inner, edit_list_32, get)(edit_list_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
 {
 	edit_list_time32_t t;
-	if (*size >= sizeof(t))
+	if (mpeg4$define(inner, data, get)(&t, sizeof(t), data, size))
 	{
-		memcpy(&t, *data, sizeof(t));
-		*data += sizeof(t);
-		*size -= sizeof(t);
 		r->segment_duration = mpeg4_n32(t.segment_duration);
 		r->media_time = mpeg4_n32(t.media_time);
 		return mpeg4$define(inner, edit_list_rate, get)(r, data, size);
@@ -58,11 +52,8 @@ static inline edit_list_t* mpeg4$define(inner, edit_list_32, get)(edit_list_t *r
 static inline edit_list_t* mpeg4$define(inner, edit_list_64, get)(edit_list_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
 {
 	edit_list_time64_t t;
-	if (*size >= sizeof(t))
+	if (mpeg4$define(inner, data, get)(&t, sizeof(t), data, size))
 	{
-		memcpy(&t, *data, sizeof(t));
-		*data += sizeof(t);
-		*size -= sizeof(t);
 		r->segment_duration = mpeg4_n64(t.segment_duration);
 		r->media_time = mpeg4_n64(t.media_time);
 		return mpeg4$define(inner, edit_list_rate, get)(r, data, size);
@@ -70,7 +61,7 @@ static inline edit_list_t* mpeg4$define(inner, edit_list_64, get)(edit_list_t *r
 	return NULL;
 }
 
-static void mpeg4$define(inner, edit_list_t, dump)(mlog_s *restrict mlog, uint32_t level, edit_list_t *restrict r, mpeg4_dump_data_t *restrict unidata)
+static void mpeg4$define(inner, edit_list_t, dump)(mlog_s *restrict mlog, uint32_t level, edit_list_t *restrict r, mpeg4_atom_dump_t *restrict unidata)
 {
 	char buffer[64];
 	mlog_level_dump("segment duration:    %s (%lu)\n", mpeg4$define(inner, duration, string)(buffer, (double) r->segment_duration / unidata->timescale), r->segment_duration);
@@ -79,23 +70,21 @@ static void mpeg4$define(inner, edit_list_t, dump)(mlog_s *restrict mlog, uint32
 	mlog_level_dump("media rate fraction: %u\n", r->media_rate_fraction);
 }
 
-mpeg4$define$dump(box, elst)
+static mpeg4$define$dump(elst)
 {
 	edit_list_t edit;
 	inner_fullbox_t fullbox;
 	uint32_t entry_count;
+	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
-	mlog_level_dump("version = %u, flags = %06x\n", fullbox.version, fullbox.flags);
+	mpeg4$define(inner, fullbox, dump)(mlog, &fullbox, NULL, level);
 	if (fullbox.version > 1)
 		goto label_fail;
-	if (size < sizeof(entry_count))
+	if (!mpeg4$define(inner, uint32_t, get)(&entry_count, &data, &size))
 		goto label_fail;
-	entry_count = mpeg4_n32(*(const uint32_t *) data);
-	data += sizeof(entry_count);
-	size -= sizeof(entry_count);
 	mlog_level_dump("entry count: %u\n", entry_count);
-	level += 1;
+	level += mlog_level_width;
 	if (!fullbox.version)
 	{
 		while (entry_count && size)
@@ -118,7 +107,24 @@ mpeg4$define$dump(box, elst)
 	}
 	if (size || entry_count)
 		goto label_fail;
-	return inst;
+	return atom;
 	label_fail:
 	return NULL;
+}
+
+static const mpeg4$define$alloc(elst)
+{
+	mpeg4_atom_t *restrict r;
+	r = mpeg4_atom_alloc_empty();
+	if (r)
+	{
+		r->interface.dump = mpeg4$define(atom, elst, dump);
+	}
+	return r;
+}
+
+mpeg4$define$find(elst)
+{
+	static const mpeg4_box_type_t type = { .c = "elst" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, elst, alloc), type.v, 0);
 }

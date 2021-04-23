@@ -1,5 +1,6 @@
 #include "box.include.h"
 #include "inner.fullbox.h"
+#include "inner.data.h"
 
 typedef struct composition_offset_t {
 	uint32_t sample_count;
@@ -9,25 +10,23 @@ typedef struct composition_offset_t {
 	} sample_offset;
 } __attribute__ ((packed)) composition_offset_t;
 
-mpeg4$define$dump(box, ctts)
+static mpeg4$define$dump(ctts)
 {
 	inner_fullbox_t fullbox;
 	const composition_offset_t *offset;
 	uint64_t all_sample_count;
 	uint32_t entry_count, sample_count;
+	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
+	mpeg4$define(inner, fullbox, dump)(mlog, &fullbox, NULL, level);
 	if (fullbox.version > 1)
 		goto label_fail;
-	mlog_level_dump("version = %u, flags = %06x\n", fullbox.version, fullbox.flags);
-	if (size < sizeof(entry_count))
+	if (!mpeg4$define(inner, uint32_t, get)(&entry_count, &data, &size))
 		goto label_fail;
-	entry_count = mpeg4_n32(*(const uint32_t *) data);
-	data += sizeof(entry_count);
-	size -= sizeof(entry_count);
 	mlog_level_dump("entry count: %u\n", entry_count);
 	offset = (const composition_offset_t *) data;
-	level += 1;
+	level += mlog_level_width;
 	all_sample_count = 0;
 	while (entry_count && size >= sizeof(composition_offset_t))
 	{
@@ -48,7 +47,24 @@ mpeg4$define$dump(box, ctts)
 	if (size || entry_count)
 		goto label_fail;
 	mlog_level_dump("all sample_count = %lu\n", all_sample_count);
-	return inst;
+	return atom;
 	label_fail:
 	return NULL;
+}
+
+static const mpeg4$define$alloc(ctts)
+{
+	mpeg4_atom_t *restrict r;
+	r = mpeg4_atom_alloc_empty();
+	if (r)
+	{
+		r->interface.dump = mpeg4$define(atom, ctts, dump);
+	}
+	return r;
+}
+
+mpeg4$define$find(ctts)
+{
+	static const mpeg4_box_type_t type = { .c = "ctts" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, ctts, alloc), type.v, 0);
 }

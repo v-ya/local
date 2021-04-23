@@ -1,13 +1,23 @@
 #include "box.include.h"
-#include "inner.fullbox.h"
+#include "inner.type.h"
 
-mpeg4$define$dump(box, meta)
+static const mpeg4$define$alloc(meta)
 {
-	inner_fullbox_t fullbox;
-	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
-		goto label_fail;
-	mlog_level_dump("version = %u, flags = %06x\n", fullbox.version, fullbox.flags);
-	return mpeg4$define(box, container, dump)(inst, mlog, data, size, unidata, level);
-	label_fail:
+	mpeg4_atom_t *restrict r;
+	r = mpeg4$define(atom, container_full, alloc)(inst);
+	if (r)
+	{
+		if (
+			mpeg4$inner$type$alloc$layer(r, inst, hdlr) &&
+			mpeg4$inner$type$alloc$layer(r, inst, ilst)
+		) return r;
+		refer_free(r);
+	}
 	return NULL;
+}
+
+mpeg4$define$find(meta)
+{
+	static const mpeg4_box_type_t type = { .c = "meta" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, meta, alloc), type.v, 0);
 }

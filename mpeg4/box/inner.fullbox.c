@@ -40,3 +40,9 @@ const char* mpeg4$define(inner, flags, string)(char *restrict buffer, uint32_t f
 	*buffer = 0;
 	return r;
 }
+
+void mpeg4$define(inner, fullbox, dump)(mlog_s *restrict mlog, const inner_fullbox_t *restrict r, const char *restrict flags, uint32_t level)
+{
+	if (!flags) mlog_level_dump("version = %u, flags = %06x\n", r->version, r->flags);
+	else mlog_level_dump("version = %u, flags = %06x (%s)\n", r->version, r->flags, flags);
+}

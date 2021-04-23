@@ -1,30 +1,29 @@
 #include "box.include.h"
 #include "inner.fullbox.h"
+#include "inner.data.h"
 
 typedef struct time2sample_delta_t {
 	uint32_t sample_count;
 	uint32_t sample_delta;
 } __attribute__ ((packed)) time2sample_delta_t;
 
-mpeg4$define$dump(box, stts)
+static mpeg4$define$dump(stts)
 {
 	inner_fullbox_t fullbox;
 	const time2sample_delta_t *delta;
 	uint64_t all_sample_count;
 	uint32_t entry_count, sample_count;
+	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
-	mlog_level_dump("version = %u, flags = %06x\n", fullbox.version, fullbox.flags);
+	mpeg4$define(inner, fullbox, dump)(mlog, &fullbox, NULL, level);
 	if (fullbox.version)
 		goto label_fail;
-	if (size < sizeof(entry_count))
+	if (!mpeg4$define(inner, uint32_t, get)(&entry_count, &data, &size))
 		goto label_fail;
-	entry_count = mpeg4_n32(*(const uint32_t *) data);
-	data += sizeof(entry_count);
-	size -= sizeof(entry_count);
 	mlog_level_dump("entry count: %u\n", entry_count);
 	delta = (const time2sample_delta_t *) data;
-	level += 1;
+	level += mlog_level_width;
 	all_sample_count = 0;
 	while (entry_count && size >= sizeof(time2sample_delta_t))
 	{
@@ -40,7 +39,24 @@ mpeg4$define$dump(box, stts)
 	if (size || entry_count)
 		goto label_fail;
 	mlog_level_dump("all sample_count = %lu\n", all_sample_count);
-	return inst;
+	return atom;
 	label_fail:
 	return NULL;
+}
+
+static const mpeg4$define$alloc(stts)
+{
+	mpeg4_atom_t *restrict r;
+	r = mpeg4_atom_alloc_empty();
+	if (r)
+	{
+		r->interface.dump = mpeg4$define(atom, stts, dump);
+	}
+	return r;
+}
+
+mpeg4$define$find(stts)
+{
+	static const mpeg4_box_type_t type = { .c = "stts" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, stts, alloc), type.v, 0);
 }

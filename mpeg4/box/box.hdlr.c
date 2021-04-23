@@ -1,33 +1,53 @@
 #include "box.include.h"
 #include "inner.fullbox.h"
+#include "inner.data.h"
 
 typedef struct handler_uni_t {
 	uint32_t pre_defined;
-	uint32_t handler_type;
+	mpeg4_box_type_t handler_type;
 	uint32_t reserved[3];
 	char name[];
 } __attribute__ ((packed)) handler_uni_t;
 
-mpeg4$define$dump(box, hdlr)
+static mpeg4$define$dump(hdlr)
 {
 	inner_fullbox_t fullbox;
-	mpeg4_box_type_t type;
+	handler_uni_t header;
+	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
-	mlog_level_dump("version = %u, flags = %06x\n", fullbox.version, fullbox.flags);
-	if (fullbox.version != 0)
+	mpeg4$define(inner, fullbox, dump)(mlog, &fullbox, NULL, level);
+	if (fullbox.version)
 		goto label_fail;
-	if (size < sizeof(handler_uni_t))
+	if (!mpeg4$define(inner, data, get)(&header, sizeof(header), &data, &size))
 		goto label_fail;
-	type.v = ((const handler_uni_t *) data)->handler_type;
-	mlog_level_dump("handler type: %c%c%c%c\n", type.c[0], type.c[1], type.c[2], type.c[3]);
-	data += sizeof(handler_uni_t);
-	size -= sizeof(handler_uni_t);
+	mlog_level_dump("handler type: %c%c%c%c\n",
+		header.handler_type.c[0],
+		header.handler_type.c[1],
+		header.handler_type.c[2],
+		header.handler_type.c[3]);
 	if (size && !data[size - 1])
 	{
 		mlog_level_dump("name:         %s\n", (const char *) data);
-		return inst;
+		return atom;
 	}
 	label_fail:
 	return NULL;
+}
+
+static const mpeg4$define$alloc(hdlr)
+{
+	mpeg4_atom_t *restrict r;
+	r = mpeg4_atom_alloc_empty();
+	if (r)
+	{
+		r->interface.dump = mpeg4$define(atom, hdlr, dump);
+	}
+	return r;
+}
+
+mpeg4$define$find(hdlr)
+{
+	static const mpeg4_box_type_t type = { .c = "hdlr" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, hdlr, alloc), type.v, 0);
 }

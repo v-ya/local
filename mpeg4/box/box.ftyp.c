@@ -6,9 +6,10 @@ typedef struct file_type_t {
 	mpeg4_box_type_t compatible_brands[];
 } __attribute__ ((packed)) file_type_t;
 
-mpeg4$define$dump(box, ftyp)
+static mpeg4$define$dump(ftyp)
 {
-	register mpeg4_box_type_t type;
+	mpeg4_box_type_t type;
+	uint32_t level = unidata->dump_level;
 	if (size < sizeof(file_type_t))
 		goto label_fail;
 	type = ((const file_type_t *) data)->major_brand;
@@ -17,7 +18,7 @@ mpeg4$define$dump(box, ftyp)
 	mlog_level_dump("compatible-brand:\n");
 	data = (const uint8_t *) ((const file_type_t *) data)->compatible_brands;
 	size -= sizeof(file_type_t);
-	++level;
+	level += mlog_level_width;
 	while (size >= sizeof(mpeg4_box_type_t))
 	{
 		type = *(const mpeg4_box_type_t *) data;
@@ -25,7 +26,24 @@ mpeg4$define$dump(box, ftyp)
 		data += sizeof(mpeg4_box_type_t);
 		size -= sizeof(mpeg4_box_type_t);
 	}
-	if (!size) return inst;
+	if (!size) return atom;
 	label_fail:
 	return NULL;
+}
+
+static const mpeg4$define$alloc(ftyp)
+{
+	mpeg4_atom_t *restrict r;
+	r = mpeg4_atom_alloc_empty();
+	if (r)
+	{
+		r->interface.dump = mpeg4$define(atom, ftyp, dump);
+	}
+	return r;
+}
+
+mpeg4$define$find(ftyp)
+{
+	static const mpeg4_box_type_t type = { .c = "ftyp" };
+	return mpeg4_find_atom(inst, mpeg4$define(atom, ftyp, alloc), type.v, 0);
 }

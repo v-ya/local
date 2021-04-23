@@ -13,4 +13,6 @@ inner_fullbox_t* mpeg4$define(inner, fullbox, get)(inner_fullbox_t *restrict r, 
 // buffer[*]
 const char* mpeg4$define(inner, flags, string)(char *restrict buffer, uint32_t flags, const char *flag_name[], uintptr_t flag_number);
 
+void mpeg4$define(inner, fullbox, dump)(mlog_s *restrict mlog, const inner_fullbox_t *restrict r, const char *restrict flags, uint32_t level);
+
 #endif
