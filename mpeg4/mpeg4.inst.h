@@ -12,17 +12,17 @@
 
 typedef struct mpeg4_s mpeg4_t;
 
-struct mpeg4_atom_t;
+struct mpeg4_atom_s;
 
-typedef const struct mpeg4_atom_t* (mpeg4_atom_alloc_f)(struct mpeg4_s *restrict inst);
+typedef const struct mpeg4_atom_s* (mpeg4_atom_alloc_f)(struct mpeg4_s *restrict inst);
 
-// => mpeg4_atom_t
+// => mpeg4_atom_s
 struct mpeg4_s {
 	rbtree_t *pool;
-	const struct mpeg4_atom_t *root;
-	const struct mpeg4_atom_t *unknow;
+	const struct mpeg4_atom_s *root;
+	const struct mpeg4_atom_s *unknow;
 };
 
-const struct mpeg4_atom_t* mpeg4_find_atom(mpeg4_t *restrict inst, mpeg4_atom_alloc_f func, uint32_t type, uint32_t extra);
+const struct mpeg4_atom_s* mpeg4_find_atom(mpeg4_t *restrict inst, mpeg4_atom_alloc_f func, uint32_t type, uint32_t extra);
 
 #endif

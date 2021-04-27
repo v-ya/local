@@ -7,6 +7,7 @@
 #define mpeg4$inner$type$alloc$layer(_atom, _inst, _name)        mpeg4$inner$type$alloc$layer2(_atom, _inst, _name, #_name)
 
 mpeg4_box_type_t mpeg4$define(inner, type, parse)(const char *restrict s);
+mpeg4_box_type_t mpeg4$define(inner, type, check)(const char *restrict s);
 
 // buffer[16]
 const char* mpeg4$define(inner, type, string)(char *restrict buffer, mpeg4_box_type_t type);

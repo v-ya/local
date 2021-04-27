@@ -68,7 +68,7 @@ static mpeg4$define$dump(co64)
 
 static const mpeg4$define$alloc(stco)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{
@@ -79,7 +79,7 @@ static const mpeg4$define$alloc(stco)
 
 static const mpeg4$define$alloc(co64)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{

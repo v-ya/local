@@ -18,7 +18,7 @@ static mpeg4$define$dump(nmhd)
 
 static const mpeg4$define$alloc(nmhd)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{

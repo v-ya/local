@@ -3,7 +3,7 @@
 
 static const mpeg4$define$alloc(minf)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4$define(atom, container, alloc)(inst);
 	if (r)
 	{

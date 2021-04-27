@@ -5,8 +5,17 @@
 #include <mlog.h>
 
 typedef struct mpeg4_s mpeg4_s;
+typedef struct mpeg4_stuff_s mpeg4_stuff_s;
 
-mpeg4_s* mpeg4_alloc(void);
-const mpeg4_s* mpeg4_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog, const uint8_t *restrict data, uint64_t size);
+const mpeg4_s* mpeg4_alloc(void);
+const mpeg4_s* mpeg4_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog, const uint8_t *restrict data, uint64_t size, uint32_t dump_samples);
+mpeg4_stuff_s* mpeg4_create_root_stuff(const mpeg4_s *restrict inst);
+mpeg4_stuff_s* mpeg4_create_stuff(const mpeg4_stuff_s *restrict container, const char *restrict type);
+mpeg4_stuff_s* mpeg4_link_stuff(mpeg4_stuff_s *restrict container, mpeg4_stuff_s *restrict stuff);
+mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char *restrict type);
+mpeg4_stuff_s* mpeg4_parse(const mpeg4_s *restrict inst, const uint8_t *restrict data, uint64_t size);
+mpeg4_stuff_s* mpeg4_calc(mpeg4_stuff_s *restrict stuff);
+uint64_t mpeg4_size(const mpeg4_stuff_s *restrict stuff);
+const mpeg4_stuff_s* mpeg4_build(const mpeg4_stuff_s *restrict stuff, uint8_t *restrict data);
 
 #endif

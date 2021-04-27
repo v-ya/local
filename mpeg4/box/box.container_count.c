@@ -2,6 +2,12 @@
 #include "inner.fullbox.h"
 #include "inner.data.h"
 
+typedef struct mpeg4_stuff__container_count_s {
+	mpeg4_stuff_t stuff;
+	inner_fullbox_t fullbox;
+	uint32_t entry_count;
+} mpeg4_stuff__container_count_s;
+
 mpeg4$define$dump(container);
 static mpeg4$define$dump(container_count)
 {
@@ -19,13 +25,22 @@ static mpeg4$define$dump(container_count)
 	return NULL;
 }
 
+static mpeg4$define$create(container_count)
+{
+	return mpeg4_stuff_alloc(atom, inst, type, sizeof(mpeg4_stuff__container_count_s), NULL, NULL);
+}
+
 mpeg4$define$alloc(container_count)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4$define(atom, container, alloc)(inst);
 	if (r)
 	{
 		r->interface.dump = mpeg4$define(atom, container_count, dump);
+		r->interface.create = mpeg4$define(atom, container_count, create);
+		r->interface.parse = NULL;
+		r->interface.calc = NULL;
+		r->interface.build = NULL;
 	}
 	return r;
 }

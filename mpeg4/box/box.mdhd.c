@@ -47,7 +47,7 @@ static mpeg4$define$dump(mdhd)
 
 static const mpeg4$define$alloc(mdhd)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{

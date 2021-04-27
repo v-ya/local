@@ -66,7 +66,7 @@ static mpeg4$define$dump(urn_)
 
 static const mpeg4$define$alloc(url_)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{
@@ -77,7 +77,7 @@ static const mpeg4$define$alloc(url_)
 
 static const mpeg4$define$alloc(urn_)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{

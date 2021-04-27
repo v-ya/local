@@ -1,9 +1,10 @@
 #include "mpeg4.box.h"
 
+#define _size_base    sizeof(mpeg4_box_t)
+#define _size_extend  (sizeof(mpeg4_box_t) + sizeof(mpeg4_box_extend_size_t))
+
 uint64_t mpeg4_box_border_parse(const uint8_t *restrict data, uint64_t size, mpeg4_box_extend_size_t *restrict rsize, mpeg4_box_type_t *restrict rtype)
 {
-	#define _size_base    sizeof(mpeg4_box_t)
-	#define _size_extend  (sizeof(mpeg4_box_t) + sizeof(mpeg4_box_extend_size_t))
 	if (size < _size_base)
 		goto label_fail;
 	rtype->v = ((const mpeg4_box_t *) data)->type.v;
@@ -25,6 +26,21 @@ uint64_t mpeg4_box_border_parse(const uint8_t *restrict data, uint64_t size, mpe
 	}
 	label_fail:
 	return 0;
-	#undef _size_base
-	#undef _size_extend
+}
+
+uint64_t mpeg4_box_border_build(uint8_t *restrict data, uint64_t box_size, mpeg4_box_type_t type)
+{
+	((mpeg4_box_t *) data)->type.v = type.v;
+	box_size += _size_base;
+	if (box_size <= (uint64_t) 0xffffffff)
+	{
+		((mpeg4_box_t *) data)->size = mpeg4_n32((uint32_t) box_size);
+		return _size_base;
+	}
+	else
+	{
+		((mpeg4_box_t *) data)->size = mpeg4_n32(1);
+		*(mpeg4_box_extend_size_t *) (data + _size_extend) = mpeg4_n64(box_size + sizeof(mpeg4_box_extend_size_t));
+		return _size_extend;
+	}
 }

@@ -52,5 +52,6 @@ typedef union mpeg4_full_box_suffix_t {
 #define mpeg4_fix_point(_n, _a, _b)  (_n * (1.0 / (1ul << _b)))
 
 uint64_t mpeg4_box_border_parse(const uint8_t *restrict data, uint64_t size, mpeg4_box_extend_size_t *restrict rsize, mpeg4_box_type_t *restrict rtype);
+uint64_t mpeg4_box_border_build(uint8_t *restrict data, uint64_t box_size, mpeg4_box_type_t type);
 
 #endif

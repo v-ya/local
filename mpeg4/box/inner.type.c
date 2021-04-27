@@ -1,6 +1,6 @@
 #include "inner.type.h"
 
-static const char* utf82unicode(const char *restrict s, uint32_t *restrict unicode)
+static const char* utf82unicode(const char *restrict s, uint32_t *restrict unicode, uint32_t *restrict error)
 {
 	const uint8_t uclength[64] = {
 		// 1 0xxxxx -
@@ -31,31 +31,65 @@ static const char* utf82unicode(const char *restrict s, uint32_t *restrict unico
 	{
 		// check this char length
 		n = (uint32_t) uclength[(c >> 1) & 0x3f];
-		if (n < 2) goto label_reseach;
+		if (n < 2) goto label_fail_reseach;
 		u = c & (0xff >> (n + 1));
 		while (--n)
 		{
 			if (((c = (uint8_t) *s) & 0xc0) != 0x80)
-				break;
+				goto label_fail_return;
 			u = (u << 6) | (c & 0x3f);
 			++s;
 		}
 	}
+	label_return:
 	*unicode = u;
 	return s;
+	label_fail_reseach:
+	if (error) *error = 1;
+	goto label_reseach;
+	label_fail_return:
+	if (error) *error = 2;
+	goto label_return;
 }
 
 mpeg4_box_type_t mpeg4$define(inner, type, parse)(const char *restrict s)
 {
-	uintptr_t i;
 	mpeg4_box_type_t r;
 	uint32_t c;
 	r.v = 0;
-	for (i = 0; i < 4 && *s; ++i)
-	{
-		s = utf82unicode(s, &c);
-		r.c[i] = (uint8_t) c;
-	}
+	#define d_code(_n)  \
+		if (!*s) goto label_return;\
+		s = utf82unicode(s, &c, NULL);\
+		r.c[_n] = (uint8_t) c;
+	d_code(0)
+	d_code(1)
+	d_code(2)
+	d_code(3)
+	#undef d_code
+	label_return:
+	return r;
+}
+
+mpeg4_box_type_t mpeg4$define(inner, type, check)(const char *restrict s)
+{
+	mpeg4_box_type_t r;
+	uint32_t c, error;
+	error = 0;
+	if (!s) goto label_fail;
+	#define d_code(_n)  \
+		if (!*s) goto label_fail;\
+		s = utf82unicode(s, &c, &error);\
+		if (error) goto label_fail;\
+		if (c > 0xff) goto label_fail;\
+		r.c[_n] = (uint8_t) c;
+	d_code(0)
+	d_code(1)
+	d_code(2)
+	d_code(3)
+	#undef d_code
+	return r;
+	label_fail:
+	r.v = 0;
 	return r;
 }
 

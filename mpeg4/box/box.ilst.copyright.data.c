@@ -46,7 +46,7 @@ static mpeg4$define$dump(ilst_copyright_data)
 
 static const mpeg4$define$alloc(ilst_copyright_data)
 {
-	mpeg4_atom_t *restrict r;
+	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
 	if (r)
 	{
