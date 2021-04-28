@@ -9,6 +9,7 @@ typedef struct inner_fullbox_t {
 } inner_fullbox_t;
 
 inner_fullbox_t* mpeg4$define(inner, fullbox, get)(inner_fullbox_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, fullbox, set)(uint8_t *restrict data, const inner_fullbox_t *restrict r);
 
 // buffer[*]
 const char* mpeg4$define(inner, flags, string)(char *restrict buffer, uint32_t flags, const char *flag_name[], uintptr_t flag_number);

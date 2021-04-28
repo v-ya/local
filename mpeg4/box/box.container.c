@@ -73,20 +73,22 @@ mpeg4$define$calc(container)
 {
 	mpeg4_stuff_t *restrict value;
 	mpeg4_calc_f calc;
-	uint64_t size;
-	size = 0;
+	uint64_t size, n;
+	size = n = 0;
 	for (value = stuff->container.list; value; value = value->link.next)
 	{
 		if (value->info.calc_okay)
 		{
 			label_calc_okay:
 			size += value->info.all_size;
+			++n;
 			continue;
 		}
 		if ((calc = value->atom->interface.calc) && calc(value) && value->info.calc_okay)
 			goto label_calc_okay;
 		return NULL;
 	}
+	stuff->info.link_number = n;
 	mpeg4_stuff_calc_okay(stuff, size);
 	return stuff;
 }

@@ -49,6 +49,13 @@ static mpeg4$define$dump(ftyp)
 	return NULL;
 }
 
+static mpeg4$define$stuff$init(ftyp, mpeg4_stuff__file_type_s)
+{
+	r->pri.major_brand = (mpeg4_box_type_t) {.c = "isom"};
+	r->pri.minor_version = 1;
+	return &r->stuff;
+}
+
 static mpeg4$define$stuff$free(ftyp, mpeg4_stuff__file_type_s)
 {
 	if (r->pri.compatible_brands)
@@ -60,7 +67,7 @@ static mpeg4$define$create(ftyp)
 {
 	return mpeg4_stuff_alloc(atom, inst, type,
 		sizeof(mpeg4_stuff__file_type_s),
-		NULL,
+		(mpeg4_stuff_init_f) mpeg4$define(stuff, ftyp, init),
 		(refer_free_f) mpeg4$define(stuff, ftyp, free));
 }
 

@@ -5,7 +5,6 @@
 typedef struct mpeg4_stuff__container_count_s {
 	mpeg4_stuff_t stuff;
 	inner_fullbox_t fullbox;
-	uint32_t entry_count;
 } mpeg4_stuff__container_count_s;
 
 mpeg4$define$dump(container);
@@ -30,6 +29,48 @@ static mpeg4$define$create(container_count)
 	return mpeg4_stuff_alloc(atom, inst, type, sizeof(mpeg4_stuff__container_count_s), NULL, NULL);
 }
 
+mpeg4$define$parse(container);
+static mpeg4$define$parse(container_count)
+{
+	inner_fullbox_t fullbox;
+	uint32_t entry_count;
+	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
+		goto label_fail;
+	if (!mpeg4$stuff$method$call(stuff, set$version_and_flags, fullbox.version, fullbox.flags))
+		goto label_fail;
+	if (!mpeg4$define(inner, uint32_t, get)(&entry_count, &data, &size))
+		goto label_fail;
+	return mpeg4$define(atom, container, parse)(stuff, data, size);
+	label_fail:
+	return NULL;
+}
+
+mpeg4$define$calc(container);
+static mpeg4$define$calc(container_count)
+{
+	if (mpeg4$define(atom, container, calc)(stuff))
+	{
+		mpeg4_stuff_calc_okay(stuff, stuff->info.inner_size + sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t));
+		return stuff;
+	}
+	return NULL;
+}
+
+mpeg4$define$build(container);
+static mpeg4$define$build(container_count)
+{
+	data = mpeg4$define(inner, fullbox, set)(data, &((mpeg4_stuff__container_count_s *) stuff)->fullbox);
+	data = mpeg4$define(inner, uint32_t, set)(data, stuff->info.link_number);
+	return mpeg4$define(atom, container, build)(stuff, data);
+}
+
+static const mpeg4_stuff_t* mpeg4$define(stuff, container_count, set$version_and_flags)(mpeg4_stuff__container_count_s *restrict r, uint32_t version, uint32_t flags)
+{
+	r->fullbox.version = version;
+	r->fullbox.flags = flags;
+	return &r->stuff;
+}
+
 mpeg4$define$alloc(container_count)
 {
 	mpeg4_atom_s *restrict r;
@@ -38,9 +79,11 @@ mpeg4$define$alloc(container_count)
 	{
 		r->interface.dump = mpeg4$define(atom, container_count, dump);
 		r->interface.create = mpeg4$define(atom, container_count, create);
-		r->interface.parse = NULL;
-		r->interface.calc = NULL;
-		r->interface.build = NULL;
+		r->interface.parse = mpeg4$define(atom, container_count, parse);
+		r->interface.calc = mpeg4$define(atom, container_count, calc);
+		r->interface.build = mpeg4$define(atom, container_count, build);
+		if (mpeg4$stuff$method$set(r, container_count, set$version_and_flags))
+			return r;
 	}
 	return r;
 }

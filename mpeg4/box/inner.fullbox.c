@@ -18,6 +18,15 @@ inner_fullbox_t* mpeg4$define(inner, fullbox, get)(inner_fullbox_t *restrict r, 
 	return NULL;
 }
 
+uint8_t* mpeg4$define(inner, fullbox, set)(uint8_t *restrict data, const inner_fullbox_t *restrict r)
+{
+	data[0] = (uint8_t) r->version;
+	data[1] = (uint8_t) (r->flags >> 16);
+	data[2] = (uint8_t) (r->flags >> 8);
+	data[3] = (uint8_t) (r->flags);
+	return data + sizeof(mpeg4_full_box_suffix_t);
+}
+
 const char* mpeg4$define(inner, flags, string)(char *restrict buffer, uint32_t flags, const char *flag_name[], uintptr_t flag_number)
 {
 	const char *r;

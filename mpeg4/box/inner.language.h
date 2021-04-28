@@ -9,5 +9,6 @@ typedef union inner_language_t {
 } inner_language_t;
 
 inner_language_t* mpeg4$define(inner, language, parse)(inner_language_t *restrict r, uint16_t language);
+uint16_t mpeg4$define(inner, language, build)(const inner_language_t *restrict r);
 
 #endif

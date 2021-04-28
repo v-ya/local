@@ -25,7 +25,12 @@ typedef struct inner_timespec_t {
 } inner_timespec_t;
 
 inner_timespec_t* mpeg4$define(inner, timespec32, get)(inner_timespec_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, timespec32, set)(uint8_t *restrict data, const inner_timespec_t *restrict r);
 inner_timespec_t* mpeg4$define(inner, timespec64, get)(inner_timespec_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, timespec64, set)(uint8_t *restrict data, const inner_timespec_t *restrict r);
+
+uint64_t mpeg4$define(inner, time1904, utc)(uint64_t t1904);
+uint64_t mpeg4$define(inner, utc, time1904)(uint64_t utc);
 
 // buffer[32]
 const char* mpeg4$define(inner, time1904, string)(char *restrict buffer, uint64_t t1904);

@@ -3,6 +3,7 @@
 #include "mpeg4.box.h"
 #include "box/box.include.h"
 #include "box/inner.type.h"
+#include "box/inner.timespec.h"
 
 static void mpeg4_free_func(mpeg4_s *restrict r)
 {
@@ -136,17 +137,19 @@ const mpeg4_stuff_s* mpeg4_build(const mpeg4_stuff_s *restrict stuff, uint8_t *r
 	return NULL;
 }
 
+#define stuff_method_call(_stuff, _mid, ...)  (mpeg4_stuff_calc_invalid(_stuff), mpeg4$stuff$method$call(_stuff, _mid, ##__VA_ARGS__))
+
 const mpeg4_stuff_s* mpeg4_stuff__set_major_brand(mpeg4_stuff_s *restrict r, const char *restrict major_brand)
 {
 	mpeg4_box_type_t mb = {.v = 0};
 	if (major_brand)
 		mb = mpeg4$define(inner, type, check)(major_brand);
-	return mpeg4$stuff$method$call(r, set$major_brand, mb);
+	return stuff_method_call(r, set$major_brand, mb);
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_minor_version(mpeg4_stuff_s *restrict r, uint32_t minor_version)
 {
-	return mpeg4$stuff$method$call(r, set$minor_version, minor_version);
+	return stuff_method_call(r, set$minor_version, minor_version);
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r, const char *restrict compatible_brand)
@@ -154,5 +157,91 @@ const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r
 	mpeg4_box_type_t cb = {.v = 0};
 	if (compatible_brand)
 		cb = mpeg4$define(inner, type, check)(compatible_brand);
-	return mpeg4$stuff$method$call(r, add$compatible_brands, &cb, 1);
+	return stuff_method_call(r, add$compatible_brands, &cb, 1);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uintptr_t size)
+{
+	return stuff_method_call(r, set$data, data, size);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t version, uint32_t flags)
+{
+	return stuff_method_call(r, set$version_and_flags, version, flags);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_creation_time(mpeg4_stuff_s *restrict r, uint64_t creation_time)
+{
+	return stuff_method_call(r, set$creation_time, mpeg4$define(inner, utc, time1904)(creation_time));
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_modification_time(mpeg4_stuff_s *restrict r, uint64_t modification_time)
+{
+	return stuff_method_call(r, set$modification_time, mpeg4$define(inner, utc, time1904)(modification_time));
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_timescale(mpeg4_stuff_s *restrict r, uint32_t timescale)
+{
+	return stuff_method_call(r, set$timescale, timescale);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_duration(mpeg4_stuff_s *restrict r, uint64_t duration)
+{
+	return stuff_method_call(r, set$duration, duration);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_rate(mpeg4_stuff_s *restrict r, double rate)
+{
+	return stuff_method_call(r, set$rate, rate);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_volume(mpeg4_stuff_s *restrict r, double volume)
+{
+	return stuff_method_call(r, set$volume, volume);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_matrix(mpeg4_stuff_s *restrict r, double matrix[9])
+{
+	return stuff_method_call(r, set$matrix, matrix);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_next_track_id(mpeg4_stuff_s *restrict r, uint32_t next_track_id)
+{
+	return stuff_method_call(r, set$next_track_id, next_track_id);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_track_id(mpeg4_stuff_s *restrict r, uint32_t track_id)
+{
+	return stuff_method_call(r, set$track_id, track_id);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_track_layer(mpeg4_stuff_s *restrict r, int16_t track_layer)
+{
+	return stuff_method_call(r, set$track_layer, track_layer);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_alternate_group(mpeg4_stuff_s *restrict r, int16_t alternate_group)
+{
+	return stuff_method_call(r, set$alternate_group, alternate_group);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_resolution(mpeg4_stuff_s *restrict r, double width, double height)
+{
+	return stuff_method_call(r, set$resolution, width, height);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_language(mpeg4_stuff_s *restrict r, const char *restrict language)
+{
+	char lc3[4];
+	lc3[3] = 0;
+	if (language && (lc3[0] = language[0]) >= '`' && lc3[0] <= '~' &&
+		(lc3[1] = language[1]) >= '`' && lc3[1] <= '~' &&
+		(lc3[2] = language[2]) >= '`' && lc3[2] <= '~')
+		return stuff_method_call(r, set$language, lc3);
+	return NULL;
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_name(mpeg4_stuff_s *restrict r, const char *restrict name)
+{
+	return stuff_method_call(r, set$name, name);
 }

@@ -27,6 +27,8 @@ typedef struct inner_trackid_t {
 } inner_trackid_t;
 
 inner_trackid_t* mpeg4$define(inner, trackid32, get)(inner_trackid_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, trackid32, set)(uint8_t *restrict data, const inner_trackid_t *restrict r);
 inner_trackid_t* mpeg4$define(inner, trackid64, get)(inner_trackid_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, trackid64, set)(uint8_t *restrict data, const inner_trackid_t *restrict r);
 
 #endif
