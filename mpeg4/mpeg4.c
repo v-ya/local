@@ -72,11 +72,26 @@ mpeg4_stuff_s* mpeg4_link_stuff(mpeg4_stuff_s *restrict container, mpeg4_stuff_s
 
 mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char *restrict type)
 {
-	register const mpeg4_atom_s *restrict atom;
 	mpeg4_box_type_t t;
-	if (type && (atom = container->atom) && (t = mpeg4$define(inner, type, check)(type)).v)
+	if (type && (t = mpeg4$define(inner, type, check)(type)).v)
 		return mpeg4_stuff_container_append(container, t);
 	return NULL;
+}
+
+mpeg4_stuff_s* mpeg4_stuff_next(mpeg4_stuff_s *restrict stuff)
+{
+	return stuff->link.next;
+}
+
+mpeg4_stuff_s* mpeg4_stuff_next_same(mpeg4_stuff_s *restrict stuff)
+{
+	return stuff->link.same_next;
+}
+
+mpeg4_stuff_s* mpeg4_find_stuff(mpeg4_stuff_s *restrict container, const char *restrict type)
+{
+	mpeg4_box_type_t t;
+	return mpeg4_stuff_container_find(container, (type && (t = mpeg4$define(inner, type, check)(type)).v)?&t:NULL);
 }
 
 mpeg4_stuff_s* mpeg4_parse(const mpeg4_s *restrict inst, const uint8_t *restrict data, uint64_t size)
@@ -119,4 +134,25 @@ const mpeg4_stuff_s* mpeg4_build(const mpeg4_stuff_s *restrict stuff, uint8_t *r
 	if (stuff->info.calc_okay && (build = stuff->atom->interface.build) && build(stuff, data))
 		return stuff;
 	return NULL;
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_major_brand(mpeg4_stuff_s *restrict r, const char *restrict major_brand)
+{
+	mpeg4_box_type_t mb = {.v = 0};
+	if (major_brand)
+		mb = mpeg4$define(inner, type, check)(major_brand);
+	return mpeg4$stuff$method$call(r, set$major_brand, mb);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_minor_version(mpeg4_stuff_s *restrict r, uint32_t minor_version)
+{
+	return mpeg4$stuff$method$call(r, set$minor_version, minor_version);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r, const char *restrict compatible_brand)
+{
+	mpeg4_box_type_t cb = {.v = 0};
+	if (compatible_brand)
+		cb = mpeg4$define(inner, type, check)(compatible_brand);
+	return mpeg4$stuff$method$call(r, add$compatible_brands, &cb, 1);
 }

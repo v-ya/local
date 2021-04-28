@@ -103,12 +103,12 @@ mpeg4$define$build(container)
 	{
 		if (!value->info.calc_okay)
 			goto label_fail;
-		size += mpeg4_box_border_build(data + size, value->info.box_size, value->info.type);
+		size += mpeg4_box_border_build(data + size, value->info.all_size, value->info.type);
 		if (!(build = value->atom->interface.build))
 			goto label_fail;
 		if (!build(value, data + size))
 			goto label_fail;
-		size += value->info.box_size;
+		size += value->info.inner_size;
 	}
 	return stuff;
 	label_fail:

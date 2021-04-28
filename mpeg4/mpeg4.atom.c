@@ -4,6 +4,8 @@ void mpeg4_atom_free_default_func(mpeg4_atom_s *restrict r)
 {
 	if (r->layer)
 		rbtree_clear(&r->layer);
+	if (r->method)
+		rbtree_clear(&r->method);
 }
 
 mpeg4_atom_s* mpeg4_atom_alloc_empty(void)

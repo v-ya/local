@@ -97,16 +97,16 @@ mpeg4_stuff_t* mpeg4_stuff_alloc(const struct mpeg4_atom_s *restrict atom, const
 	return NULL;
 }
 
-void mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_size)
+void mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_size)
 {
-	stuff->info.box_size = box_size;
+	stuff->info.inner_size = box_inner_size;
 	if (stuff->info.type.v)
 	{
-		stuff->info.all_size = box_size + sizeof(mpeg4_box_t);
+		stuff->info.all_size = box_inner_size + sizeof(mpeg4_box_t);
 		if (stuff->info.all_size > (uint64_t) 0xffffffff)
 			stuff->info.all_size += sizeof(mpeg4_box_extend_size_t);
 	}
-	else stuff->info.all_size = box_size;
+	else stuff->info.all_size = box_inner_size;
 	stuff->info.calc_okay = 1;
 }
 
@@ -152,6 +152,19 @@ mpeg4_stuff_t* mpeg4_stuff_container_append(mpeg4_stuff_t *restrict container, m
 		refer_free(stuff);
 	}
 	return r;
+}
+
+mpeg4_stuff_t* mpeg4_stuff_container_find(mpeg4_stuff_t *restrict container, const mpeg4_box_type_t *restrict type)
+{
+	rbtree_t *restrict finder;
+	if (type)
+	{
+		finder = rbtree_find(&container->container.finder, NULL, (uint64_t) type->v);
+		if (finder && finder->value)
+			return ((mpeg4_stuff_container_type_finder_t *) finder->value)->same_list;
+		return NULL;
+	}
+	else return container->container.list;
 }
 
 void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff)
