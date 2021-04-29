@@ -70,8 +70,6 @@ static mpeg4$define$parse(hdlr)
 		goto label_fail;
 	if (!mpeg4$stuff$method$call(stuff, set$version_and_flags, fullbox.version, fullbox.flags))
 		goto label_fail;
-	if (fullbox.version)
-		goto label_fail;
 	if (!mpeg4$define(inner, data, get)(&header, sizeof(header), &data, &size))
 		goto label_fail;
 	if (!mpeg4$stuff$method$call(stuff, set$major_brand, header.handler_type))
@@ -88,12 +86,8 @@ static mpeg4$define$parse(hdlr)
 mpeg4$define$calc(hdlr)
 {
 	mpeg4_stuff__handler_t *restrict r = &((mpeg4_stuff__handler_s *) stuff)->pri;
-	if (r->fullbox.version)
-		goto label_fail;
 	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(handler_uni_t) + r->length + 1);
 	return stuff;
-	label_fail:
-	return NULL;
 }
 
 mpeg4$define$build(hdlr)
@@ -105,15 +99,11 @@ mpeg4$define$build(hdlr)
 	};
 	header.handler_type.v = r->handler_type.v;
 	data = mpeg4$define(inner, fullbox, set)(data, &r->fullbox);
-	if (r->fullbox.version)
-		goto label_fail;
 	data = mpeg4$define(inner, data, set)(data, &header, sizeof(header));
 	if (r->length)
 		data = mpeg4$define(inner, data, set)(data, r->name, r->length);
 	*data = 0;
 	return stuff;
-	label_fail:
-	return NULL;
 }
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$version_and_flags)(mpeg4_stuff__handler_s *restrict r, uint32_t version, uint32_t flags)

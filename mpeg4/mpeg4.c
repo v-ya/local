@@ -25,6 +25,15 @@ const mpeg4_s* mpeg4_alloc(void)
 	return NULL;
 }
 
+void mpeg4_verbose_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog)
+{
+	mlog_printf(mlog, "d: dump, a: create, c: calc, b: build, p: parse\n");
+	mlog_printf(mlog, "{root}\n");
+	mpeg4_dump_atom_verbose_tree(inst->root, mlog, mlog_level_inital + mlog_level_width);
+	mlog_printf(mlog, "{unknow}\n");
+	mpeg4_dump_atom_verbose_tree(inst->unknow, mlog, mlog_level_inital + mlog_level_width);
+}
+
 const mpeg4_s* mpeg4_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog, const uint8_t *restrict data, uint64_t size, uint32_t dump_samples)
 {
 	register const mpeg4_atom_s *restrict atom;
@@ -244,4 +253,19 @@ const mpeg4_stuff_s* mpeg4_stuff__set_language(mpeg4_stuff_s *restrict r, const 
 const mpeg4_stuff_s* mpeg4_stuff__set_name(mpeg4_stuff_s *restrict r, const char *restrict name)
 {
 	return stuff_method_call(r, set$name, name);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_graphicsmode(mpeg4_stuff_s *restrict r, uint16_t graphicsmode)
+{
+	return stuff_method_call(r, set$graphicsmode, graphicsmode);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_opcolor(mpeg4_stuff_s *restrict r, uint16_t red, uint16_t green, uint16_t blue)
+{
+	return stuff_method_call(r, set$opcolor, red, green, blue);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_balance(mpeg4_stuff_s *restrict r, double balance)
+{
+	return stuff_method_call(r, set$balance, balance);
 }

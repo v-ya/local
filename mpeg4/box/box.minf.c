@@ -9,6 +9,8 @@ static const mpeg4$define$alloc(minf)
 	{
 		if (
 			mpeg4$inner$type$alloc$layer(r, inst, nmhd) &&
+			mpeg4$inner$type$alloc$layer(r, inst, vmhd) &&
+			mpeg4$inner$type$alloc$layer(r, inst, smhd) &&
 			mpeg4$inner$type$alloc$layer(r, inst, dinf) &&
 			mpeg4$inner$type$alloc$layer(r, inst, stbl)
 		) return r;

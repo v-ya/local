@@ -25,4 +25,6 @@ struct mpeg4_s {
 
 const struct mpeg4_atom_s* mpeg4_find_atom(mpeg4_t *restrict inst, mpeg4_atom_alloc_f func, uint32_t type, uint32_t extra);
 
+void mpeg4_dump_atom_verbose_tree(const struct mpeg4_atom_s *restrict atom, mlog_s *restrict mlog, uint32_t level);
+
 #endif

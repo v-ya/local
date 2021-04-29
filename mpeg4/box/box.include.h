@@ -32,6 +32,8 @@ mpeg4$define$find(hdlr);
 mpeg4$define$find(elng);
 mpeg4$define$find(minf);
 mpeg4$define$find(nmhd);
+mpeg4$define$find(vmhd);
+mpeg4$define$find(smhd);
 mpeg4$define$find(dinf);
 mpeg4$define$find(dref);
 mpeg4$define$find(url_);

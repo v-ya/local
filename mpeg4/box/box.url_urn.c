@@ -27,8 +27,7 @@ static mpeg4$define$dump(url_)
 		mlog_level_dump("name: %s\n", (const char *) data);
 		size = 0;
 	}
-	if (!size)
-		return atom;
+	if (!size) return atom;
 	label_fail:
 	return NULL;
 }

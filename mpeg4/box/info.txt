@@ -292,6 +292,18 @@ nmhd ('minf')* [1?]:
 $NullMediaHeaderBox:
 	$FullBox fullbox(box.type = 'nmhd', version = 0, flags);
 
+vmhd ('minf')* [1?]:
+$VideoMediaHeaderBox:
+	$FullBox fullbox(box.type = 'vmhd', version = 0, flags = 1);
+	uint16_t graphicsmode;  // maybe 0
+	uint16_t opcolor[3];    // maybe {0, 0, 0}
+
+smhd ('minf')* [1?]:
+$SoundMediaHeaderBox:
+	$FullBox fullbox(box.type = 'smhd', version = 0, flags = 0);
+	fix8.8 balance;  // maybe 0
+	uint16_t reserved = 0; 
+
 dinf ('minf'*|'meta')  [1]:
 $MediaInformationBox:
 	$Box box(type = 'dinf');
@@ -469,9 +481,6 @@ avc1
 av01
 mp4a
 
-iods
-vmhd
-smhd
 sgpd
 sbgp
 

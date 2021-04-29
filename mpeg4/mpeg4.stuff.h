@@ -27,6 +27,9 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$alternate_group)(mpeg4_stuff
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$resolution)(mpeg4_stuff_t *restrict r, double width, double height);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$language)(mpeg4_stuff_t *restrict r, const char language[3]);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$name)(mpeg4_stuff_t *restrict r, const char *restrict name);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$graphicsmode)(mpeg4_stuff_t *restrict r, uint16_t graphicsmode);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$opcolor)(mpeg4_stuff_t *restrict r, uint16_t red, uint16_t green, uint16_t blue);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$balance)(mpeg4_stuff_t *restrict r, double balance);
 
 typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$major_brand,
@@ -48,6 +51,9 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$resolution,
 	mpeg4_stuff_method$set$language,
 	mpeg4_stuff_method$set$name,
+	mpeg4_stuff_method$set$graphicsmode,
+	mpeg4_stuff_method$set$opcolor,
+	mpeg4_stuff_method$set$balance,
 	mpeg4_stuff_method_max
 } mpeg4_stuff_method_t;
 

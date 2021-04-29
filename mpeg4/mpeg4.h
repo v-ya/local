@@ -8,6 +8,7 @@ typedef struct mpeg4_s mpeg4_s;
 typedef struct mpeg4_stuff_s mpeg4_stuff_s;
 
 const mpeg4_s* mpeg4_alloc(void);
+void mpeg4_verbose_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog);
 const mpeg4_s* mpeg4_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog, const uint8_t *restrict data, uint64_t size, uint32_t dump_samples);
 mpeg4_stuff_s* mpeg4_create_root_stuff(const mpeg4_s *restrict inst);
 mpeg4_stuff_s* mpeg4_create_stuff(const mpeg4_stuff_s *restrict container, const char *restrict type);
@@ -40,5 +41,8 @@ const mpeg4_stuff_s* mpeg4_stuff__set_alternate_group(mpeg4_stuff_s *restrict r,
 const mpeg4_stuff_s* mpeg4_stuff__set_resolution(mpeg4_stuff_s *restrict r, double width, double height);
 const mpeg4_stuff_s* mpeg4_stuff__set_language(mpeg4_stuff_s *restrict r, const char *restrict language);
 const mpeg4_stuff_s* mpeg4_stuff__set_name(mpeg4_stuff_s *restrict r, const char *restrict name);
+const mpeg4_stuff_s* mpeg4_stuff__set_graphicsmode(mpeg4_stuff_s *restrict r, uint16_t graphicsmode);
+const mpeg4_stuff_s* mpeg4_stuff__set_opcolor(mpeg4_stuff_s *restrict r, uint16_t red, uint16_t green, uint16_t blue);
+const mpeg4_stuff_s* mpeg4_stuff__set_balance(mpeg4_stuff_s *restrict r, double balance);
 
 #endif

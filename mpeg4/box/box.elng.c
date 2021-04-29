@@ -8,7 +8,7 @@ static mpeg4$define$dump(elng)
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
 	mpeg4$define(inner, fullbox, dump)(mlog, &fullbox, NULL, level);
-	if (fullbox.version != 0)
+	if (fullbox.version)
 		goto label_fail;
 	if (size && !data[size - 1])
 	{
