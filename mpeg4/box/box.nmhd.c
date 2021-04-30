@@ -40,13 +40,13 @@ static mpeg4$define$parse(nmhd)
 	return NULL;
 }
 
-mpeg4$define$calc(nmhd)
+static mpeg4$define$calc(nmhd)
 {
 	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t));
 	return stuff;
 }
 
-mpeg4$define$build(nmhd)
+static mpeg4$define$build(nmhd)
 {
 	mpeg4$define(inner, fullbox, set)(data, &((mpeg4_stuff__null_media_header_s *) stuff)->fullbox);
 	return stuff;

@@ -3,6 +3,7 @@
 
 #include "../mpeg4.box.h"
 #include "../mpeg4.atom.h"
+#include "../mpeg4.stuff.method.h"
 
 struct mpeg4_atom_dump_t {
 	uint32_t dump_level;

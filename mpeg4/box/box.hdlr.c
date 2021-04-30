@@ -2,8 +2,6 @@
 #include "inner.fullbox.h"
 #include "inner.type.h"
 #include "inner.data.h"
-#include <stdlib.h>
-#include <string.h>
 
 typedef struct handler_uni_t {
 	uint32_t pre_defined;
@@ -16,7 +14,7 @@ typedef struct mpeg4_stuff__handler_t {
 	inner_fullbox_t fullbox;
 	mpeg4_box_type_t handler_type;
 	char *name;
-	size_t length;
+	uintptr_t length;
 } mpeg4_stuff__handler_t;
 
 typedef struct mpeg4_stuff__handler_s {
@@ -49,8 +47,7 @@ static mpeg4$define$dump(hdlr)
 
 static mpeg4$define$stuff$free(hdlr, mpeg4_stuff__handler_s)
 {
-	if (r->pri.name)
-		free(r->pri.name);
+	mpeg4$define(inner, string, set)(&r->pri.name, &r->pri.length, NULL);
 	mpeg4_stuff_free_default_func(&r->stuff);
 }
 
@@ -83,14 +80,14 @@ static mpeg4$define$parse(hdlr)
 	return NULL;
 }
 
-mpeg4$define$calc(hdlr)
+static mpeg4$define$calc(hdlr)
 {
 	mpeg4_stuff__handler_t *restrict r = &((mpeg4_stuff__handler_s *) stuff)->pri;
 	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(handler_uni_t) + r->length + 1);
 	return stuff;
 }
 
-mpeg4$define$build(hdlr)
+static mpeg4$define$build(hdlr)
 {
 	mpeg4_stuff__handler_t *restrict r = &((mpeg4_stuff__handler_s *) stuff)->pri;
 	handler_uni_t header = {
@@ -124,21 +121,8 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$major_brand)(mpeg4_stu
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$name)(mpeg4_stuff__handler_s *restrict r, const char *restrict name)
 {
-	char *restrict s;
-	size_t n;
-	s = NULL;
-	n = 0;
-	if (name && (n = strlen(name)))
-	{
-		if (!(s = (char *) malloc(n + 1)))
-			goto label_fail;
-		memcpy(s, name, n + 1);
-	}
-	if (r->pri.name) free(r->pri.name);
-	r->pri.name = s;
-	r->pri.length = n;
-	return &r->stuff;
-	label_fail:
+	if (mpeg4$define(inner, string, set)(&r->pri.name, &r->pri.length, name))
+		return &r->stuff;
 	return NULL;
 }
 

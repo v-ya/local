@@ -1,0 +1,63 @@
+#ifndef _mpeg4_stuff_method_h_
+#define _mpeg4_stuff_method_h_
+
+#include "mpeg4.stuff.h"
+
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$major_brand)(mpeg4_stuff_t *restrict r, mpeg4_box_type_t major_brand);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$minor_version)(mpeg4_stuff_t *restrict r, uint32_t minor_version);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$compatible_brands)(mpeg4_stuff_t *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$data)(mpeg4_stuff_t *restrict r, const void *data, uintptr_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t version, uint32_t flags);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$creation_time)(mpeg4_stuff_t *restrict r, uint64_t creation_time);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$modification_time)(mpeg4_stuff_t *restrict r, uint64_t modification_time);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$timescale)(mpeg4_stuff_t *restrict r, uint32_t timescale);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$duration)(mpeg4_stuff_t *restrict r, uint64_t duration);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$rate)(mpeg4_stuff_t *restrict r, double rate);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$volume)(mpeg4_stuff_t *restrict r, double volume);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$matrix)(mpeg4_stuff_t *restrict r, double matrix[9]);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$next_track_id)(mpeg4_stuff_t *restrict r, uint32_t next_track_id);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$track_id)(mpeg4_stuff_t *restrict r, uint32_t track_id);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$track_layer)(mpeg4_stuff_t *restrict r, int16_t track_layer);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$alternate_group)(mpeg4_stuff_t *restrict r, int16_t alternate_group);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$resolution)(mpeg4_stuff_t *restrict r, double width, double height);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$language)(mpeg4_stuff_t *restrict r, const char language[3]);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$name)(mpeg4_stuff_t *restrict r, const char *restrict name);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$location)(mpeg4_stuff_t *restrict r, const char *restrict location);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$graphicsmode)(mpeg4_stuff_t *restrict r, uint16_t graphicsmode);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$opcolor)(mpeg4_stuff_t *restrict r, uint16_t red, uint16_t green, uint16_t blue);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$balance)(mpeg4_stuff_t *restrict r, double balance);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
+
+typedef enum mpeg4_stuff_method_t {
+	mpeg4_stuff_method$set$major_brand,
+	mpeg4_stuff_method$set$minor_version,
+	mpeg4_stuff_method$add$compatible_brands,
+	mpeg4_stuff_method$set$data,
+	mpeg4_stuff_method$set$version_and_flags,
+	mpeg4_stuff_method$set$creation_time,
+	mpeg4_stuff_method$set$modification_time,
+	mpeg4_stuff_method$set$timescale,
+	mpeg4_stuff_method$set$duration,
+	mpeg4_stuff_method$set$rate,
+	mpeg4_stuff_method$set$volume,
+	mpeg4_stuff_method$set$matrix,
+	mpeg4_stuff_method$set$next_track_id,
+	mpeg4_stuff_method$set$track_id,
+	mpeg4_stuff_method$set$track_layer,
+	mpeg4_stuff_method$set$alternate_group,
+	mpeg4_stuff_method$set$resolution,
+	mpeg4_stuff_method$set$language,
+	mpeg4_stuff_method$set$name,
+	mpeg4_stuff_method$set$location,
+	mpeg4_stuff_method$set$graphicsmode,
+	mpeg4_stuff_method$set$opcolor,
+	mpeg4_stuff_method$set$balance,
+	mpeg4_stuff_method$add$edit_list_item,
+	mpeg4_stuff_method_max
+} mpeg4_stuff_method_t;
+
+#define mpeg4$stuff$method$set(_atom, _name, _mid)  rbtree_insert(&(_atom)->method, NULL, mpeg4_stuff_method$##_mid, mpeg4$define(stuff, _name, _mid), NULL)
+#define mpeg4$stuff$method$call(_stuff, _mid, ...)  ({register rbtree_t *restrict _rbv = rbtree_find(&(_stuff)->atom->method, NULL, mpeg4_stuff_method$##_mid);\
+							(_rbv && _rbv->value)?((mpeg4_stuff_func$##_mid) _rbv->value)(_stuff, ##__VA_ARGS__):NULL;})
+
+#endif

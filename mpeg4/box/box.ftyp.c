@@ -1,8 +1,6 @@
 #include "box.include.h"
 #include "inner.type.h"
 #include "inner.data.h"
-#include <stdlib.h>
-#include <memory.h>
 
 typedef struct file_type_t {
 	mpeg4_box_type_t major_brand;
@@ -13,9 +11,7 @@ typedef struct file_type_t {
 typedef struct mpeg4_stuff__file_type_t {
 	mpeg4_box_type_t major_brand;
 	uint32_t minor_version;
-	uint32_t number;
-	uint32_t size;
-	mpeg4_box_type_t *compatible_brands;
+	inner_array_t compatible_brands;
 } mpeg4_stuff__file_type_t;
 
 typedef struct mpeg4_stuff__file_type_s {
@@ -53,13 +49,13 @@ static mpeg4$define$stuff$init(ftyp, mpeg4_stuff__file_type_s)
 {
 	r->pri.major_brand = (mpeg4_box_type_t) {.c = "isom"};
 	r->pri.minor_version = 1;
+	mpeg4$define(inner, array, init)(&r->pri.compatible_brands, sizeof(mpeg4_box_type_t));
 	return &r->stuff;
 }
 
 static mpeg4$define$stuff$free(ftyp, mpeg4_stuff__file_type_s)
 {
-	if (r->pri.compatible_brands)
-		free(r->pri.compatible_brands);
+	mpeg4$define(inner, array, clear)(&r->pri.compatible_brands);
 	mpeg4_stuff_free_default_func(&r->stuff);
 }
 
@@ -94,14 +90,14 @@ static mpeg4$define$parse(ftyp)
 	return NULL;
 }
 
-mpeg4$define$calc(ftyp)
+static mpeg4$define$calc(ftyp)
 {
 	mpeg4_stuff__file_type_t *restrict r = &((mpeg4_stuff__file_type_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, sizeof(file_type_t) + sizeof(mpeg4_box_type_t) * r->number);
+	mpeg4_stuff_calc_okay(stuff, sizeof(file_type_t) + sizeof(mpeg4_box_type_t) * r->compatible_brands.number);
 	return stuff;
 }
 
-mpeg4$define$build(ftyp)
+static mpeg4$define$build(ftyp)
 {
 	mpeg4_stuff__file_type_t *restrict r = &((mpeg4_stuff__file_type_s *) stuff)->pri;
 	data[0] = r->major_brand.c[0];
@@ -109,15 +105,9 @@ mpeg4$define$build(ftyp)
 	data[2] = r->major_brand.c[2];
 	data[3] = r->major_brand.c[3];
 	data = mpeg4$define(inner, uint32_t, set)(data + 4, r->minor_version);
-	if (r->number)
-	{
-		if (!r->compatible_brands)
-			goto label_fail;
-		mpeg4$define(inner, data, set)(data, r->compatible_brands, r->number * sizeof(mpeg4_box_type_t));
-	}
+	if (r->compatible_brands.number)
+		mpeg4$define(inner, data, set)(data, r->compatible_brands.array, r->compatible_brands.number * sizeof(mpeg4_box_type_t));
 	return stuff;
-	label_fail:
-	return NULL;
 }
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, set$major_brand)(mpeg4_stuff__file_type_s *restrict r, mpeg4_box_type_t major_brand)
@@ -134,30 +124,8 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, set$minor_version)(mpeg4_s
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, add$compatible_brands)(mpeg4_stuff__file_type_s *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n)
 {
-	uint32_t need, size;
-	need = r->pri.number + n;
-	size = r->pri.size;
-	if (!size) size = 16;
-	while (size < need)
-	{
-		if (size > 128)
-			goto label_fail;
-		size <<= 1;
-	}
-	if (size > r->pri.size)
-	{
-		mpeg4_box_type_t *restrict cbs;
-		if (!r->pri.compatible_brands)
-			cbs = (mpeg4_box_type_t *) malloc(size * sizeof(mpeg4_box_type_t));
-		else cbs = (mpeg4_box_type_t *) realloc(r->pri.compatible_brands, size * sizeof(mpeg4_box_type_t));
-		if (!cbs) goto label_fail;
-		r->pri.compatible_brands = cbs;
-		r->pri.size = size;
-	}
-	memcpy(r->pri.compatible_brands + r->pri.number, compatible_brands, n * sizeof(mpeg4_box_type_t));
-	r->pri.number = need;
-	return &r->stuff;
-	label_fail:
+	if (mpeg4$define(inner, array, append_data)(&r->pri.compatible_brands, (uintptr_t) n, compatible_brands))
+		return &r->stuff;
 	return NULL;
 }
 

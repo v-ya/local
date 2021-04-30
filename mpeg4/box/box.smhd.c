@@ -60,13 +60,13 @@ static mpeg4$define$parse(smhd)
 	return NULL;
 }
 
-mpeg4$define$calc(smhd)
+static mpeg4$define$calc(smhd)
 {
 	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(sound_media_header_uni_t));
 	return stuff;
 }
 
-mpeg4$define$build(smhd)
+static mpeg4$define$build(smhd)
 {
 	mpeg4_stuff__sound_media_header_t *restrict r = &((mpeg4_stuff__sound_media_header_s *) stuff)->pri;
 	sound_media_header_uni_t header = {

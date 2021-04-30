@@ -80,13 +80,13 @@ static mpeg4$define$parse(vmhd)
 	return NULL;
 }
 
-mpeg4$define$calc(vmhd)
+static mpeg4$define$calc(vmhd)
 {
 	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(video_media_header_uni_t));
 	return stuff;
 }
 
-mpeg4$define$build(vmhd)
+static mpeg4$define$build(vmhd)
 {
 	mpeg4_stuff__video_media_header_t *restrict r = &((mpeg4_stuff__video_media_header_s *) stuff)->pri;
 	video_media_header_uni_t header;
