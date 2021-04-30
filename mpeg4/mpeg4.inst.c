@@ -59,9 +59,11 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, resolution),
 		d_mn(set, language),
 		d_mn(set, name),
+		d_mn(set, location),
 		d_mn(set, graphicsmode),
 		d_mn(set, opcolor),
 		d_mn(set, balance),
+		d_mn(add, edit_list_item),
 		#undef d_mn
 	};
 	register mlog_s *mlog;
