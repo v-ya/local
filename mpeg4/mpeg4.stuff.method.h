@@ -6,7 +6,9 @@
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$major_brand)(mpeg4_stuff_t *restrict r, mpeg4_box_type_t major_brand);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$minor_version)(mpeg4_stuff_t *restrict r, uint32_t minor_version);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$compatible_brands)(mpeg4_stuff_t *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n);
-typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$data)(mpeg4_stuff_t *restrict r, const void *data, uintptr_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size, uint64_t *restrict offset);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$calc$offset)(mpeg4_stuff_t *restrict r, uint64_t *restrict offset);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t version, uint32_t flags);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$creation_time)(mpeg4_stuff_t *restrict r, uint64_t creation_time);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$modification_time)(mpeg4_stuff_t *restrict r, uint64_t modification_time);
@@ -27,12 +29,15 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$graphicsmode)(mpeg4_stuff_t 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$opcolor)(mpeg4_stuff_t *restrict r, uint16_t red, uint16_t green, uint16_t blue);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$balance)(mpeg4_stuff_t *restrict r, double balance);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$ilst_data_text)(mpeg4_stuff_t *restrict r, const char *restrict text, uintptr_t length);
 
 typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$major_brand,
 	mpeg4_stuff_method$set$minor_version,
 	mpeg4_stuff_method$add$compatible_brands,
 	mpeg4_stuff_method$set$data,
+	mpeg4_stuff_method$add$data,
+	mpeg4_stuff_method$calc$offset,
 	mpeg4_stuff_method$set$version_and_flags,
 	mpeg4_stuff_method$set$creation_time,
 	mpeg4_stuff_method$set$modification_time,
@@ -53,6 +58,7 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$opcolor,
 	mpeg4_stuff_method$set$balance,
 	mpeg4_stuff_method$add$edit_list_item,
+	mpeg4_stuff_method$set$ilst_data_text,
 	mpeg4_stuff_method_max
 } mpeg4_stuff_method_t;
 

@@ -14,6 +14,7 @@ uint16_t mpeg4$define(inner, f2i, uint16_t)(double v);
 int32_t mpeg4$define(inner, f2i, int32_t)(double v);
 uint32_t mpeg4$define(inner, f2i, uint32_t)(double v);
 
+char** mpeg4$define(inner, string, set_with_length)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string, uintptr_t n);
 char** mpeg4$define(inner, string, set)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string);
 
 typedef struct inner_array_t {

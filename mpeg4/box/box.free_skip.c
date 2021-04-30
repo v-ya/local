@@ -8,7 +8,7 @@
 
 typedef struct mpeg4_stuff__free_skip_t {
 	void *data;
-	uintptr_t size;
+	uint64_t size;
 } mpeg4_stuff__free_skip_t;
 
 typedef struct mpeg4_stuff__free_skip_s {
@@ -43,13 +43,13 @@ static mpeg4$define$create(free_skip)
 
 static mpeg4$define$parse(free_skip)
 {
-	return (mpeg4_stuff_t *) mpeg4$stuff$method$call(stuff, set$data, data, (uintptr_t) size);
+	return (mpeg4_stuff_t *) mpeg4$stuff$method$call(stuff, set$data, data, size);
 }
 
 static mpeg4$define$calc(free_skip)
 {
 	mpeg4_stuff__free_skip_t *restrict r = &((mpeg4_stuff__free_skip_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, (uint64_t) r->size);
+	mpeg4_stuff_calc_okay(stuff, r->size);
 	return stuff;
 }
 
@@ -66,15 +66,15 @@ static mpeg4$define$build(free_skip)
 	return NULL;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, free_skip, set$data)(mpeg4_stuff__free_skip_s *restrict r, const void *data, uintptr_t size)
+static const mpeg4_stuff_t* mpeg4$define(stuff, free_skip, set$data)(mpeg4_stuff__free_skip_s *restrict r, const void *data, uint64_t size)
 {
 	void *ndata = NULL;
 	if (size)
 	{
-		ndata = malloc(size);
+		ndata = malloc((size_t) size);
 		if (!ndata)
 			goto label_fail;
-		memcpy(ndata, data, size);
+		memcpy(ndata, data, (size_t) size);
 	}
 	if (r->pri.data)
 		free(r->pri.data);

@@ -4,6 +4,7 @@
 #include "box/box.include.h"
 #include "box/inner.type.h"
 #include "box/inner.timespec.h"
+#include <string.h>
 
 static void mpeg4_free_func(mpeg4_s *restrict r)
 {
@@ -169,9 +170,19 @@ const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r
 	return stuff_method_call(r, add$compatible_brands, &cb, 1);
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uintptr_t size)
+const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size)
 {
 	return stuff_method_call(r, set$data, data, size);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__add_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size, uint64_t *restrict offset)
+{
+	return stuff_method_call(r, add$data, data, size, offset);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__calc_offset(mpeg4_stuff_s *restrict r, uint64_t *restrict offset)
+{
+	return stuff_method_call(r, calc$offset, offset);
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t version, uint32_t flags)
@@ -278,4 +289,9 @@ const mpeg4_stuff_s* mpeg4_stuff__set_balance(mpeg4_stuff_s *restrict r, double 
 const mpeg4_stuff_s* mpeg4_stuff__add_edit_list_item(mpeg4_stuff_s *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction)
 {
 	return stuff_method_call(r, add$edit_list_item, segment_duration, media_time, media_rate_integer, media_rate_fraction);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text)
+{
+	return stuff_method_call(r, set$ilst_data_text, text, text?strlen(text):0);
 }

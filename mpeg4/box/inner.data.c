@@ -94,15 +94,15 @@ uint32_t mpeg4$define(inner, f2i, uint32_t)(double v)
 	else return 0;
 }
 
-char** mpeg4$define(inner, string, set)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string)
+char** mpeg4$define(inner, string, set_with_length)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string, uintptr_t n)
 {
 	register char *restrict r = NULL;
-	register uintptr_t n = 0;
-	if (string && (n = strlen(string)))
+	if (n)
 	{
 		if (!(r = (char *) malloc(n + 1)))
 			goto label_fail;
-		memcpy(r, string, n + 1);
+		memcpy(r, string, n);
+		r[n] = 0;
 	}
 	if (*p_string) free(*p_string);
 	*p_string = r;
@@ -110,6 +110,11 @@ char** mpeg4$define(inner, string, set)(char **restrict p_string, uintptr_t *res
 	return p_string;
 	label_fail:
 	return NULL;
+}
+
+char** mpeg4$define(inner, string, set)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string)
+{
+	return mpeg4$define(inner, string, set_with_length)(p_string, p_length, string, string?strlen(string):0);
 }
 
 void mpeg4$define(inner, array, init)(inner_array_t *restrict array, uintptr_t item_size)

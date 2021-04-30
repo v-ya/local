@@ -44,6 +44,8 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, minor_version),
 		d_mn(add, compatible_brands),
 		d_mn(set, data),
+		d_mn(add, data),
+		d_mn(calc, offset),
 		d_mn(set, version_and_flags),
 		d_mn(set, creation_time),
 		d_mn(set, modification_time),
@@ -64,6 +66,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, opcolor),
 		d_mn(set, balance),
 		d_mn(add, edit_list_item),
+		d_mn(set, ilst_data_text),
 		#undef d_mn
 	};
 	register mlog_s *mlog;
@@ -72,7 +75,6 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 	level = data->level;
 	if (rbt->key_index < mpeg4_stuff_method_max)
 		mlog_level_dump("@%s\n", s_method_name[rbt->key_index]);
-	else mlog_level_dump("@[unknow %016lx]", rbt->key_index);
 }
 
 static void mpeg4_dump_atom_verbose_tree__dump_info(const mpeg4_atom_s *restrict atom, uint32_t type_id, mpeg4_dump_atom_verbose_tree_data_t *restrict data);
