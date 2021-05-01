@@ -1,10 +1,10 @@
 #include "box.include.h"
 #include "inner.type.h"
 
-typedef struct mpeg4_atom$container_t {
+typedef struct mpeg4_atom$container_s {
 	mpeg4_atom_s atom;
 	const mpeg4_t *inst;
-} mpeg4_atom$container_t;
+} mpeg4_atom$container_s;
 
 mpeg4$define$dump(container)
 {
@@ -18,7 +18,7 @@ mpeg4$define$dump(container)
 	char type_string[16];
 	ud = *unidata;
 	level = ud.dump_level;
-	unknow = ((const mpeg4_atom$container_t *) atom)->inst->unknow;
+	unknow = ((const mpeg4_atom$container_s *) atom)->inst->unknow;
 	while (size && (box_header_size = mpeg4_box_border_parse(data, size, &box_size, &box_type)))
 	{
 		mlog_level_dump("[%s] %lu\n", mpeg4$define(inner, type, string)(type_string, box_type), box_size);
@@ -89,8 +89,7 @@ mpeg4$define$calc(container)
 		return NULL;
 	}
 	stuff->info.link_number = n;
-	mpeg4_stuff_calc_okay(stuff, size);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, size);
 }
 
 mpeg4$define$build(container)
@@ -119,8 +118,8 @@ mpeg4$define$build(container)
 
 mpeg4$define$alloc(container)
 {
-	mpeg4_atom$container_t *restrict r;
-	r = (mpeg4_atom$container_t *) refer_alloz(sizeof(mpeg4_atom$container_t));
+	mpeg4_atom$container_s *restrict r;
+	r = (mpeg4_atom$container_s *) refer_alloz(sizeof(mpeg4_atom$container_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) mpeg4_atom_free_default_func);

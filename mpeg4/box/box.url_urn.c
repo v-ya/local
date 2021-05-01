@@ -140,15 +140,13 @@ static mpeg4$define$parse(urn_)
 static mpeg4$define$calc(url_)
 {
 	mpeg4_stuff__data_entry_url_urn_t *restrict r = &((mpeg4_stuff__data_entry_url_urn_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + (!(r->fullbox.flags & 1)?(r->n_name + 1):0));
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + (!(r->fullbox.flags & 1)?(r->n_name + 1):0));
 }
 
 static mpeg4$define$calc(urn_)
 {
 	mpeg4_stuff__data_entry_url_urn_t *restrict r = &((mpeg4_stuff__data_entry_url_urn_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + (!(r->fullbox.flags & 1)?(r->n_name + r->n_location + 2):0));
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + (!(r->fullbox.flags & 1)?(r->n_name + r->n_location + 2):0));
 }
 
 static mpeg4$define$build(url_)

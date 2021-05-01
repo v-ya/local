@@ -42,8 +42,7 @@ static mpeg4$define$parse(nmhd)
 
 static mpeg4$define$calc(nmhd)
 {
-	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t));
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t));
 }
 
 static mpeg4$define$build(nmhd)

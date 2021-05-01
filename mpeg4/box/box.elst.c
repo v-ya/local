@@ -223,12 +223,10 @@ static mpeg4$define$calc(elst)
 	mpeg4_stuff__edit_list_t *restrict r = &((mpeg4_stuff__edit_list_s *) stuff)->pri;
 	switch (r->fullbox.version)
 	{
-		case 0: mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t) +
+		case 0: return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t) +
 				(sizeof(edit_list_time32_t) + sizeof(edit_list_rate_t)) * r->edit_list.number);
-			return stuff;
-		case 1: mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t) +
+		case 1: return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t) +
 				(sizeof(edit_list_time64_t) + sizeof(edit_list_rate_t)) * r->edit_list.number);
-			return stuff;
 		default: return NULL;
 	}
 }

@@ -11,6 +11,8 @@ typedef struct mpeg4_stuff__media_data_t {
 	inner_array_t data;
 	uint64_t size;
 	uint64_t offset;
+	const void *parse_data;
+	uint64_t parse_size;
 } mpeg4_stuff__media_data_t;
 
 typedef struct mpeg4_stuff__media_data_s {
@@ -39,6 +41,7 @@ static mpeg4_stuff__media_data_s* mpeg4$define(inner, media_data, calc_offset)(m
 			p = p->link.next;
 		}
 	}
+	r->pri.offset = offset;
 	return r;
 	label_fail:
 	return NULL;
@@ -180,15 +183,25 @@ static mpeg4$define$create(mdat)
 
 static mpeg4$define$parse(mdat)
 {
-	if (mpeg4$stuff$method$call(stuff, add$data, data, size, NULL))
-		return stuff;
+	mpeg4_stuff_t *restrict root;
+	if (!mpeg4$stuff$method$call(stuff, add$data, data, size, NULL))
+		goto label_fail;
+	if (!mpeg4$stuff$method$call(stuff, inner$set_parse, data, size))
+		goto label_fail;
+	if (!(root = stuff->link.container))
+		goto label_fail;
+	while (root->link.container)
+		root = root->link.container;
+	if (!mpeg4$stuff$method$call(root, inner$push_mdat, stuff))
+		goto label_fail;
+	return stuff;
+	label_fail:
 	return NULL;
 }
 
 static mpeg4$define$calc(mdat)
 {
-	mpeg4_stuff_calc_okay(stuff, ((mpeg4_stuff__media_data_s *) stuff)->pri.size);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, ((mpeg4_stuff__media_data_s *) stuff)->pri.size);
 }
 
 static mpeg4$define$build(mdat)
@@ -224,6 +237,22 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, calc$offset)(mpeg4_stuff__
 	return NULL;
 }
 
+static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, inner$set_parse)(mpeg4_stuff__media_data_s *restrict r, const void *data, uint64_t size)
+{
+	r->pri.parse_data = data;
+	r->pri.parse_size = size;
+	return &r->stuff;
+}
+
+static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, inner$do_parse_mdat)(mpeg4_stuff__media_data_s *restrict r, const void **restrict p_data, uint64_t *restrict p_size)
+{
+	if (p_data) *p_data = r->pri.parse_data;
+	if (p_size) *p_size = r->pri.parse_size;
+	r->pri.parse_data = NULL;
+	r->pri.parse_size = 0;
+	return &r->stuff;
+}
+
 static const mpeg4$define$alloc(mdat)
 {
 	mpeg4_atom_s *restrict r;
@@ -237,7 +266,9 @@ static const mpeg4$define$alloc(mdat)
 		r->interface.build = mpeg4$define(atom, mdat, build);
 		if (
 			mpeg4$stuff$method$set(r, mdat, add$data) &&
-			mpeg4$stuff$method$set(r, mdat, calc$offset)
+			mpeg4$stuff$method$set(r, mdat, calc$offset) &&
+			mpeg4$stuff$method$set(r, mdat, inner$set_parse) &&
+			mpeg4$stuff$method$set(r, mdat, inner$do_parse_mdat)
 		) return r;
 		refer_free(r);
 	}

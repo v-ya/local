@@ -134,16 +134,14 @@ static mpeg4$define$calc(mvhd)
 {
 	switch (((mpeg4_stuff__movie_header_s *) stuff)->pri.fullbox.version)
 	{
-		case 0: mpeg4_stuff_calc_okay(stuff,
+		case 0: return mpeg4_stuff_calc_okay(stuff,
 				sizeof(mpeg4_full_box_suffix_t) +
 				sizeof(inner_timespec_32_t) +
 				sizeof(movie_header_uni_t));
-			return stuff;
-		case 1: mpeg4_stuff_calc_okay(stuff,
+		case 1: return mpeg4_stuff_calc_okay(stuff,
 				sizeof(mpeg4_full_box_suffix_t) +
 				sizeof(inner_timespec_64_t) +
 				sizeof(movie_header_uni_t));
-			return stuff;
 		default: return NULL;
 	}
 }

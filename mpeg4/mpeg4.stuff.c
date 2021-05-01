@@ -97,7 +97,7 @@ mpeg4_stuff_t* mpeg4_stuff_alloc(const struct mpeg4_atom_s *restrict atom, const
 	return NULL;
 }
 
-void mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_size)
+mpeg4_stuff_t* mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_size)
 {
 	stuff->info.inner_size = box_inner_size;
 	if (stuff->info.type.v)
@@ -108,6 +108,7 @@ void mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_siz
 	}
 	else stuff->info.all_size = box_inner_size;
 	stuff->info.calc_okay = 1;
+	return stuff;
 }
 
 void mpeg4_stuff_calc_invalid(mpeg4_stuff_t *restrict stuff)
@@ -167,6 +168,16 @@ mpeg4_stuff_t* mpeg4_stuff_container_find(mpeg4_stuff_t *restrict container, con
 	else return container->container.list;
 }
 
+mpeg4_stuff_t* mpeg4_stuff_container_find_path(mpeg4_stuff_t *restrict container, const mpeg4_box_type_t *restrict path)
+{
+	while (container && path->v)
+	{
+		container = mpeg4_stuff_container_find(container, path);
+		++path;
+	}
+	return container;
+}
+
 void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff)
 {
 	if (stuff->link.container)
@@ -175,4 +186,42 @@ void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff)
 		mpeg4_stuff_link_unset(&stuff->link);
 		refer_free(stuff);
 	}
+}
+
+mpeg4_stuff_t* mpeg4_stuff_replace(mpeg4_stuff_t *restrict stuff, const struct mpeg4_atom_s *restrict atom, mpeg4_box_type_t type)
+{
+	const mpeg4_atom_s *restrict aim;
+	mpeg4_stuff_t *restrict container;
+	mpeg4_box_type_t orginal;
+	container = stuff->link.container;
+	orginal = stuff->info.type;
+	if (container)
+	{
+		if (!(aim = mpeg4_atom_layer_find(container->atom, type.v)) || (aim != atom))
+			goto label_fail;
+		refer_save(stuff);
+		mpeg4_stuff_unlink(stuff);
+		stuff->info.type = type;
+		if (mpeg4_stuff_container_link(container, stuff))
+		{
+			stuff->atom = aim;
+			refer_free(stuff);
+			goto label_ok;
+		}
+		else
+		{
+			stuff->info.type = orginal;
+			mpeg4_stuff_container_link(container, stuff);
+			refer_free(stuff);
+			goto label_fail;
+		}
+	}
+	if (!atom) goto label_fail;
+	stuff->info.type = type;
+	stuff->atom = atom;
+	label_ok:
+	mpeg4_stuff_calc_invalid(stuff);
+	return stuff;
+	label_fail:
+	return NULL;
 }

@@ -111,8 +111,7 @@ static mpeg4$define$calc(ilst_copyright_data)
 		default:
 			break;
 	}
-	mpeg4_stuff_calc_okay(stuff, inner_size);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, inner_size);
 }
 
 static mpeg4$define$build(ilst_copyright_data)

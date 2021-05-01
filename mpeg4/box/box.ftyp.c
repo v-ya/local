@@ -93,8 +93,7 @@ static mpeg4$define$parse(ftyp)
 static mpeg4$define$calc(ftyp)
 {
 	mpeg4_stuff__file_type_t *restrict r = &((mpeg4_stuff__file_type_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, sizeof(file_type_t) + sizeof(mpeg4_box_type_t) * r->compatible_brands.number);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(file_type_t) + sizeof(mpeg4_box_type_t) * r->compatible_brands.number);
 }
 
 static mpeg4$define$build(ftyp)

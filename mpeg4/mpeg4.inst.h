@@ -13,6 +13,7 @@
 typedef struct mpeg4_s mpeg4_t;
 
 struct mpeg4_atom_s;
+struct mpeg4_stuff_s;
 
 typedef const struct mpeg4_atom_s* (mpeg4_atom_alloc_f)(struct mpeg4_s *restrict inst);
 
@@ -24,6 +25,8 @@ struct mpeg4_s {
 };
 
 const struct mpeg4_atom_s* mpeg4_find_atom(mpeg4_t *restrict inst, mpeg4_atom_alloc_f func, uint32_t type, uint32_t extra);
+
+struct mpeg4_stuff_s* mpeg4_parse_stco_and_mdat(struct mpeg4_stuff_s *restrict root, const uint8_t *restrict data_start);
 
 void mpeg4_dump_atom_verbose_tree(const struct mpeg4_atom_s *restrict atom, mlog_s *restrict mlog, uint32_t level);
 

@@ -6,10 +6,10 @@
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$major_brand)(mpeg4_stuff_t *restrict r, mpeg4_box_type_t major_brand);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$minor_version)(mpeg4_stuff_t *restrict r, uint32_t minor_version);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$compatible_brands)(mpeg4_stuff_t *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t version, uint32_t flags);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size, uint64_t *restrict offset);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$calc$offset)(mpeg4_stuff_t *restrict r, uint64_t *restrict offset);
-typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t version, uint32_t flags);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$creation_time)(mpeg4_stuff_t *restrict r, uint64_t creation_time);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$modification_time)(mpeg4_stuff_t *restrict r, uint64_t modification_time);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$timescale)(mpeg4_stuff_t *restrict r, uint32_t timescale);
@@ -29,16 +29,26 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$graphicsmode)(mpeg4_stuff_t 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$opcolor)(mpeg4_stuff_t *restrict r, uint16_t red, uint16_t green, uint16_t blue);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$balance)(mpeg4_stuff_t *restrict r, double balance);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$chunk_offset)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint64_t *restrict chunk_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$ilst_data_text)(mpeg4_stuff_t *restrict r, const char *restrict text, uintptr_t length);
+
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$push_mdat)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$push_stco)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict stco);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$get_mdat)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t ***restrict mdat, uintptr_t *restrict n);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$get_stco)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t ***restrict stco, uintptr_t *restrict n);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$clear)(mpeg4_stuff_t *restrict r);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$set_parse)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_mdat)(mpeg4_stuff_t *restrict r, const void **restrict p_data, uint64_t *restrict p_size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_stco)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict const *restrict mdat, const uint64_t *restrict offset, uintptr_t n);
 
 typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$major_brand,
 	mpeg4_stuff_method$set$minor_version,
 	mpeg4_stuff_method$add$compatible_brands,
+	mpeg4_stuff_method$set$version_and_flags,
 	mpeg4_stuff_method$set$data,
 	mpeg4_stuff_method$add$data,
 	mpeg4_stuff_method$calc$offset,
-	mpeg4_stuff_method$set$version_and_flags,
 	mpeg4_stuff_method$set$creation_time,
 	mpeg4_stuff_method$set$modification_time,
 	mpeg4_stuff_method$set$timescale,
@@ -58,8 +68,19 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$opcolor,
 	mpeg4_stuff_method$set$balance,
 	mpeg4_stuff_method$add$edit_list_item,
+	mpeg4_stuff_method$add$chunk_offset,
 	mpeg4_stuff_method$set$ilst_data_text,
-	mpeg4_stuff_method_max
+	mpeg4_stuff_method_max,
+
+	mpeg4_stuff_method$inner$push_mdat,
+	mpeg4_stuff_method$inner$push_stco,
+	mpeg4_stuff_method$inner$get_mdat,
+	mpeg4_stuff_method$inner$get_stco,
+	mpeg4_stuff_method$inner$clear,
+	mpeg4_stuff_method$inner$set_parse,
+	mpeg4_stuff_method$inner$do_parse_mdat,
+	mpeg4_stuff_method$inner$do_parse_stco,
+	mpeg4_stuff_method_inner_max
 } mpeg4_stuff_method_t;
 
 #define mpeg4$stuff$method$set(_atom, _name, _mid)  rbtree_insert(&(_atom)->method, NULL, mpeg4_stuff_method$##_mid, mpeg4$define(stuff, _name, _mid), NULL)

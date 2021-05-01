@@ -82,8 +82,7 @@ static mpeg4$define$parse(vmhd)
 
 static mpeg4$define$calc(vmhd)
 {
-	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(video_media_header_uni_t));
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(video_media_header_uni_t));
 }
 
 static mpeg4$define$build(vmhd)

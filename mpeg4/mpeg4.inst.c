@@ -1,9 +1,11 @@
 #include "mpeg4.inst.h"
 #include "mpeg4.atom.h"
 #include "mpeg4.box.h"
+#include "mpeg4.stuff.method.h"
 #include "box/inner.type.h"
 #include <stdlib.h>
 #include <memory.h>
+#include <alloca.h>
 
 static void mpeg4_rbtree_free_refer_func(rbtree_t *restrict r)
 {
@@ -31,6 +33,45 @@ const struct mpeg4_atom_s* mpeg4_find_atom(mpeg4_t *restrict inst, mpeg4_atom_al
 	return NULL;
 }
 
+struct mpeg4_stuff_s* mpeg4_parse_stco_and_mdat(struct mpeg4_stuff_s *restrict root, const uint8_t *restrict data_start)
+{
+	mpeg4_stuff_t **mdat;
+	mpeg4_stuff_t **stco;
+	uint64_t *offset;
+	mpeg4_stuff_t *restrict v;
+	const void *mdat_start;
+	uintptr_t n_mdat;
+	uintptr_t n_stco;
+	uintptr_t i;
+	if (!mpeg4$stuff$method$call(root, inner$get_mdat, &mdat, &n_mdat))
+		goto label_fail;
+	if (!mpeg4$stuff$method$call(root, inner$get_stco, &stco, &n_stco))
+		goto label_fail;
+	offset = NULL;
+	if (n_mdat)
+	{
+		offset = (uint64_t *) alloca(sizeof(uint64_t) * n_mdat);
+		if (!offset) goto label_fail;
+		for (i = 0; i < n_mdat; ++i)
+		{
+			v = mdat[i];
+			if (!mpeg4$stuff$method$call(v, inner$do_parse_mdat, &mdat_start, NULL))
+				goto label_fail;
+			offset[i] = (uint64_t) ((uintptr_t) mdat_start - (uintptr_t) data_start);
+		}
+	}
+	for (i = 0; i < n_stco; ++i)
+	{
+		v = stco[i];
+		if (!mpeg4$stuff$method$call(v, inner$do_parse_stco, mdat, offset, n_mdat))
+			goto label_fail;
+	}
+	mpeg4$stuff$method$call(root, inner$clear);
+	return root;
+	label_fail:
+	return NULL;
+}
+
 typedef struct mpeg4_dump_atom_verbose_tree_data_t {
 	mlog_s *mlog;
 	uint32_t level;
@@ -43,10 +84,10 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, major_brand),
 		d_mn(set, minor_version),
 		d_mn(add, compatible_brands),
+		d_mn(set, version_and_flags),
 		d_mn(set, data),
 		d_mn(add, data),
 		d_mn(calc, offset),
-		d_mn(set, version_and_flags),
 		d_mn(set, creation_time),
 		d_mn(set, modification_time),
 		d_mn(set, timescale),
@@ -66,6 +107,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, opcolor),
 		d_mn(set, balance),
 		d_mn(add, edit_list_item),
+		d_mn(add, chunk_offset),
 		d_mn(set, ilst_data_text),
 		#undef d_mn
 	};

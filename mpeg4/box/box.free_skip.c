@@ -48,9 +48,7 @@ static mpeg4$define$parse(free_skip)
 
 static mpeg4$define$calc(free_skip)
 {
-	mpeg4_stuff__free_skip_t *restrict r = &((mpeg4_stuff__free_skip_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, r->size);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, ((mpeg4_stuff__free_skip_s *) stuff)->pri.size);
 }
 
 static mpeg4$define$build(free_skip)

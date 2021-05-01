@@ -45,11 +45,14 @@ struct mpeg4_stuff_s {
 
 void mpeg4_stuff_free_default_func(mpeg4_stuff_t *restrict r);
 mpeg4_stuff_t* mpeg4_stuff_alloc(const struct mpeg4_atom_s *restrict atom, const mpeg4_t *restrict inst, mpeg4_box_type_t type, size_t size, mpeg4_stuff_init_f init_func, refer_free_f free_func);
-void mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_size);
+mpeg4_stuff_t* mpeg4_stuff_calc_okay(mpeg4_stuff_t *restrict stuff, uint64_t box_inner_size);
 void mpeg4_stuff_calc_invalid(mpeg4_stuff_t *restrict stuff);
 mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpeg4_stuff_t *restrict stuff);
 mpeg4_stuff_t* mpeg4_stuff_container_append(mpeg4_stuff_t *restrict container, mpeg4_box_type_t type);
 mpeg4_stuff_t* mpeg4_stuff_container_find(mpeg4_stuff_t *restrict container, const mpeg4_box_type_t *restrict type);
+mpeg4_stuff_t* mpeg4_stuff_container_find_path(mpeg4_stuff_t *restrict container, const mpeg4_box_type_t *restrict path);
 void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff);
+
+mpeg4_stuff_t* mpeg4_stuff_replace(mpeg4_stuff_t *restrict stuff, const struct mpeg4_atom_s *restrict atom, mpeg4_box_type_t type);
 
 #endif

@@ -41,10 +41,7 @@ mpeg4$define$calc(container);
 static mpeg4$define$calc(container_full)
 {
 	if (mpeg4$define(atom, container, calc)(stuff))
-	{
-		mpeg4_stuff_calc_okay(stuff, stuff->info.inner_size + sizeof(mpeg4_full_box_suffix_t));
-		return stuff;
-	}
+		return mpeg4_stuff_calc_okay(stuff, stuff->info.inner_size + sizeof(mpeg4_full_box_suffix_t));
 	return NULL;
 }
 

@@ -83,8 +83,7 @@ static mpeg4$define$parse(hdlr)
 static mpeg4$define$calc(hdlr)
 {
 	mpeg4_stuff__handler_t *restrict r = &((mpeg4_stuff__handler_s *) stuff)->pri;
-	mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(handler_uni_t) + r->length + 1);
-	return stuff;
+	return mpeg4_stuff_calc_okay(stuff, sizeof(mpeg4_full_box_suffix_t) + sizeof(handler_uni_t) + r->length + 1);
 }
 
 static mpeg4$define$build(hdlr)

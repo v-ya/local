@@ -49,10 +49,7 @@ mpeg4$define$calc(container);
 static mpeg4$define$calc(container_count)
 {
 	if (mpeg4$define(atom, container, calc)(stuff))
-	{
-		mpeg4_stuff_calc_okay(stuff, stuff->info.inner_size + sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t));
-		return stuff;
-	}
+		return mpeg4_stuff_calc_okay(stuff, stuff->info.inner_size + sizeof(mpeg4_full_box_suffix_t) + sizeof(uint32_t));
 	return NULL;
 }
 
