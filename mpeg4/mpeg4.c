@@ -296,6 +296,21 @@ const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mp
 	return stuff_method_call(r, add$chunk_offset, mdat, offset, chunk_id);
 }
 
+const mpeg4_stuff_s* mpeg4_stuff__set_sample_count(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t sample_count)
+{
+	return stuff_method_call(r, set$sample_count, sample_size, sample_count);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__add_sample_size(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t *restrict sample_id)
+{
+	return stuff_method_call(r, add$sample_size, sample_size, sample_id);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_chunk(mpeg4_stuff_s *restrict r, uint32_t first_chunk, uint32_t samples_per_chunk, uint32_t sample_description_index)
+{
+	return stuff_method_call(r, add$sample_to_chunk, first_chunk, samples_per_chunk, sample_description_index);
+}
+
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text)
 {
 	return stuff_method_call(r, set$ilst_data_text, text, text?strlen(text):0);
