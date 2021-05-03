@@ -52,6 +52,9 @@ const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mp
 const mpeg4_stuff_s* mpeg4_stuff__set_sample_count(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t sample_count);
 const mpeg4_stuff_s* mpeg4_stuff__add_sample_size(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t *restrict sample_id);
 const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_chunk(mpeg4_stuff_s *restrict r, uint32_t first_chunk, uint32_t samples_per_chunk, uint32_t sample_description_index);
+const mpeg4_stuff_s* mpeg4_stuff__add_time_to_sample(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t sample_delta);
+const mpeg4_stuff_s* mpeg4_stuff__add_composition_offset(mpeg4_stuff_s *restrict r, uint32_t sample_count, int32_t sample_offset);
+const mpeg4_stuff_s* mpeg4_stuff__add_sync_sample(mpeg4_stuff_s *restrict r, uint32_t sample_id);
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text);
 
 #endif

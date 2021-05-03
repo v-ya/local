@@ -33,6 +33,9 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$chunk_offset)(mpeg4_stuff_t 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$sample_count)(mpeg4_stuff_t *restrict r, uint32_t sample_size, uint32_t sample_count);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sample_size)(mpeg4_stuff_t *restrict r, uint32_t sample_size, uint32_t *restrict sample_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sample_to_chunk)(mpeg4_stuff_t *restrict r, uint32_t first_chunk, uint32_t samples_per_chunk, uint32_t sample_description_index);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$time_to_sample)(mpeg4_stuff_t *restrict r, uint32_t sample_count, uint32_t sample_delta);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$composition_offset)(mpeg4_stuff_t *restrict r, uint32_t sample_count, int32_t sample_offset);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sync_sample)(mpeg4_stuff_t *restrict r, uint32_t sample_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$ilst_data_text)(mpeg4_stuff_t *restrict r, const char *restrict text, uintptr_t length);
 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$push_mdat)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat);
@@ -75,6 +78,9 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$sample_count,
 	mpeg4_stuff_method$add$sample_size,
 	mpeg4_stuff_method$add$sample_to_chunk,
+	mpeg4_stuff_method$add$time_to_sample,
+	mpeg4_stuff_method$add$composition_offset,
+	mpeg4_stuff_method$add$sync_sample,
 	mpeg4_stuff_method$set$ilst_data_text,
 	mpeg4_stuff_method_max,
 
