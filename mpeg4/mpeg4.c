@@ -175,6 +175,11 @@ const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict 
 	return stuff_method_call(r, set$version_and_flags, version, flags);
 }
 
+const mpeg4_stuff_s* mpeg4_stuff__get_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t *restrict version, uint32_t *restrict flags)
+{
+	return stuff_method_call(r, get$version_and_flags, version, flags);
+}
+
 const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size)
 {
 	return stuff_method_call(r, set$data, data, size);
@@ -291,7 +296,7 @@ const mpeg4_stuff_s* mpeg4_stuff__add_edit_list_item(mpeg4_stuff_s *restrict r, 
 	return stuff_method_call(r, add$edit_list_item, segment_duration, media_time, media_rate_integer, media_rate_fraction);
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mpeg4_stuff_s *restrict mdat, uint64_t offset, uint64_t *restrict chunk_id)
+const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mpeg4_stuff_s *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id)
 {
 	return stuff_method_call(r, add$chunk_offset, mdat, offset, chunk_id);
 }

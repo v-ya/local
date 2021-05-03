@@ -172,15 +172,8 @@ static mpeg4$define$build(urn_)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, url_urn, set$version_and_flags)(mpeg4_stuff__data_entry_url_urn_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(url_urn, mpeg4_stuff__data_entry_url_urn_s, pri.fullbox, 0);
+static inner_method_get_fullbox(url_urn, mpeg4_stuff__data_entry_url_urn_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, url_urn, set$name)(mpeg4_stuff__data_entry_url_urn_s *restrict r, const char *restrict name)
 {
@@ -209,6 +202,7 @@ static const mpeg4$define$alloc(url_)
 		r->interface.build = mpeg4$define(atom, url_, build);
 		if (
 			mpeg4$stuff$method$set(r, url_urn, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, url_urn, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, url_urn, set$name)
 		) return r;
 		refer_free(r);
@@ -229,6 +223,7 @@ static const mpeg4$define$alloc(urn_)
 		r->interface.build = mpeg4$define(atom, urn_, build);
 		if (
 			mpeg4$stuff$method$set(r, url_urn, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, url_urn, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, url_urn, set$name) &&
 			mpeg4$stuff$method$set(r, urn_, set$location)
 		) return r;

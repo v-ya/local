@@ -131,15 +131,8 @@ static mpeg4$define$build(ilst_copyright_data)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, ilst_copyright_data, set$version_and_flags)(mpeg4_stuff__ilst_copyright_data_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(ilst_copyright_data, mpeg4_stuff__ilst_copyright_data_s, pri.fullbox, 0);
+static inner_method_get_fullbox(ilst_copyright_data, mpeg4_stuff__ilst_copyright_data_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, ilst_copyright_data, set$ilst_data_text)(mpeg4_stuff__ilst_copyright_data_s *restrict r, const char *restrict text, uintptr_t length)
 {
@@ -162,6 +155,7 @@ static const mpeg4$define$alloc(ilst_copyright_data)
 		r->interface.build = mpeg4$define(atom, ilst_copyright_data, build);
 		if (
 			mpeg4$stuff$method$set(r, ilst_copyright_data, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, ilst_copyright_data, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, ilst_copyright_data, set$ilst_data_text)
 		) return r;
 		refer_free(r);

@@ -47,7 +47,7 @@ static mpeg4$define$dump(stsz)
 		{
 			all_sample_size += (sample_size = mpeg4_n32(*entry_size));
 			if (unidata->dump_samples)
-				mlog_level_dump("[%6u] = %u\n", i, sample_size);
+				mlog_level_dump("(%6u) = %u\n", i + 1, sample_size);
 			++entry_size;
 			size -= sizeof(uint32_t);
 		}
@@ -155,15 +155,8 @@ static mpeg4$define$build(stsz)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stsz, set$version_and_flags)(mpeg4_stuff__sample_size_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(stsz, mpeg4_stuff__sample_size_s, pri.fullbox, 0);
+static inner_method_get_fullbox(stsz, mpeg4_stuff__sample_size_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, stsz, set$sample_count)(mpeg4_stuff__sample_size_s *restrict r, uint32_t sample_size, uint32_t sample_count)
 {
@@ -175,7 +168,7 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, stsz, set$sample_count)(mpeg4_st
 static const mpeg4_stuff_t* mpeg4$define(stuff, stsz, add$sample_size)(mpeg4_stuff__sample_size_s *restrict r, uint32_t sample_size, uint32_t *restrict sample_id)
 {
 	uint32_t *restrict p;
-	if (sample_id) *sample_id = r->pri.samples.number;
+	if (sample_id) *sample_id = (uint32_t) (r->pri.samples.number + 1);
 	if ((p = (uint32_t *) mpeg4$define(inner, array, append_point)(&r->pri.samples, 1)))
 	{
 		*p = sample_size;
@@ -197,6 +190,7 @@ static const mpeg4$define$alloc(stsz)
 		r->interface.build = mpeg4$define(atom, stsz, build);
 		if (
 			mpeg4$stuff$method$set(r, stsz, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, stsz, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, stsz, set$sample_count) &&
 			mpeg4$stuff$method$set(r, stsz, add$sample_size)
 		) return r;

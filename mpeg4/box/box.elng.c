@@ -78,15 +78,8 @@ static mpeg4$define$build(elng)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, elng, set$version_and_flags)(mpeg4_stuff__extended_language_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(elng, mpeg4_stuff__extended_language_s, pri.fullbox, 0);
+static inner_method_get_fullbox(elng, mpeg4_stuff__extended_language_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, elng, set$name)(mpeg4_stuff__extended_language_s *restrict r, const char *restrict name)
 {
@@ -108,6 +101,7 @@ static const mpeg4$define$alloc(elng)
 		r->interface.build = mpeg4$define(atom, elng, build);
 		if (
 			mpeg4$stuff$method$set(r, elng, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, elng, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, elng, set$name)
 		) return r;
 		refer_free(r);

@@ -128,15 +128,8 @@ static mpeg4$define$build(stts)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stts, set$version_and_flags)(mpeg4_stuff__time2sample_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(stts, mpeg4_stuff__time2sample_s, pri.fullbox, 0);
+static inner_method_get_fullbox(stts, mpeg4_stuff__time2sample_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, stts, add$time_to_sample)(mpeg4_stuff__time2sample_s *restrict r, uint32_t sample_count, uint32_t sample_delta)
 {
@@ -170,6 +163,7 @@ static const mpeg4$define$alloc(stts)
 		r->interface.build = mpeg4$define(atom, stts, build);
 		if (
 			mpeg4$stuff$method$set(r, stts, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, stts, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, stts, add$time_to_sample)
 		) return r;
 		refer_free(r);

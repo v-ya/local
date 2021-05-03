@@ -118,7 +118,7 @@ static mpeg4$define$dump(stco)
 {
 	inner_fullbox_t fullbox;
 	const uint32_t *chunk_offset;
-	uint32_t entry_count;
+	uint32_t entry_count, i;
 	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
@@ -130,16 +130,14 @@ static mpeg4$define$dump(stco)
 	mlog_level_dump("entry count: %u\n", entry_count);
 	chunk_offset = (const uint32_t *) data;
 	level += mlog_level_width;
-	while (entry_count && size >= sizeof(uint32_t))
+	for (i = 0; i < entry_count && size >= sizeof(uint32_t); ++i)
 	{
 		if (unidata->dump_samples)
-			mlog_level_dump("chunk_offset = %u\n",
-				mpeg4_n32(*chunk_offset));
+			mlog_level_dump("(%6u) = %u\n", i + 1, mpeg4_n32(*chunk_offset));
 		++chunk_offset;
 		size -= sizeof(uint32_t);
-		--entry_count;
 	}
-	if (size || entry_count)
+	if (size || i < entry_count)
 		goto label_fail;
 	return atom;
 	label_fail:
@@ -150,7 +148,7 @@ static mpeg4$define$dump(co64)
 {
 	inner_fullbox_t fullbox;
 	const uint64_t *chunk_offset;
-	uint32_t entry_count;
+	uint32_t entry_count, i;
 	uint32_t level = unidata->dump_level;
 	if (!mpeg4$define(inner, fullbox, get)(&fullbox, &data, &size))
 		goto label_fail;
@@ -162,16 +160,14 @@ static mpeg4$define$dump(co64)
 	mlog_level_dump("entry count: %u\n", entry_count);
 	chunk_offset = (const uint64_t *) data;
 	level += mlog_level_width;
-	while (entry_count && size >= sizeof(uint64_t))
+	for (i = 0; i < entry_count && size >= sizeof(uint64_t); ++i)
 	{
 		if (unidata->dump_samples)
-			mlog_level_dump("chunk_offset = %lu\n",
-				mpeg4_n64(*chunk_offset));
+			mlog_level_dump("(%6u) = %lu\n", i + 1, mpeg4_n64(*chunk_offset));
 		++chunk_offset;
 		size -= sizeof(uint64_t);
-		--entry_count;
 	}
-	if (size || entry_count)
+	if (size || i < entry_count)
 		goto label_fail;
 	return atom;
 	label_fail:
@@ -318,19 +314,12 @@ static mpeg4$define$build(co64)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stco, set$version_and_flags)(mpeg4_stuff__chunk_offset_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(stco, mpeg4_stuff__chunk_offset_s, pri.fullbox, 0);
+static inner_method_get_fullbox(stco, mpeg4_stuff__chunk_offset_s, pri.fullbox);
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stco, add$chunk_offset)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint64_t *restrict chunk_id)
+static const mpeg4_stuff_t* mpeg4$define(stuff, stco, add$chunk_offset)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id)
 {
-	if (chunk_id) *chunk_id = (uint64_t) r->pri.chunk_offset.number;
+	if (chunk_id) *chunk_id = (uint32_t) (r->pri.chunk_offset.number + 1);
 	if (mdat)
 	{
 		mpeg4_stuff__chunk_offset_item_t *restrict item;
@@ -435,6 +424,7 @@ static const mpeg4$define$alloc(stco)
 			r->atom.interface.build = mpeg4$define(atom, stco, build);
 			if (
 				mpeg4$stuff$method$set(&r->atom, stco, set$version_and_flags) &&
+				mpeg4$stuff$method$set(&r->atom, stco, get$version_and_flags) &&
 				mpeg4$stuff$method$set(&r->atom, stco, add$chunk_offset) &&
 				mpeg4$stuff$method$set(&r->atom, stco, inner$set_parse) &&
 				mpeg4$stuff$method$set(&r->atom, stco, inner$do_parse_stco)
@@ -458,6 +448,7 @@ static const mpeg4$define$alloc(co64)
 		r->interface.build = mpeg4$define(atom, co64, build);
 		if (
 			mpeg4$stuff$method$set(r, stco, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, stco, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, stco, add$chunk_offset) &&
 			mpeg4$stuff$method$set(r, stco, inner$set_parse) &&
 			mpeg4$stuff$method$set(r, co64, inner$do_parse_stco)

@@ -102,15 +102,8 @@ static mpeg4$define$build(hdlr)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$version_and_flags)(mpeg4_stuff__handler_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(hdlr, mpeg4_stuff__handler_s, pri.fullbox, 0);
+static inner_method_get_fullbox(hdlr, mpeg4_stuff__handler_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$major_brand)(mpeg4_stuff__handler_s *restrict r, mpeg4_box_type_t major_brand)
 {
@@ -138,6 +131,7 @@ static const mpeg4$define$alloc(hdlr)
 		r->interface.build = mpeg4$define(atom, hdlr, build);
 		if (
 			mpeg4$stuff$method$set(r, hdlr, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, hdlr, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, hdlr, set$major_brand) &&
 			mpeg4$stuff$method$set(r, hdlr, set$name)
 		) return r;

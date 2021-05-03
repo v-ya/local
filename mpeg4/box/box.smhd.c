@@ -77,15 +77,8 @@ static mpeg4$define$build(smhd)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, smhd, set$version_and_flags)(mpeg4_stuff__sound_media_header_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(smhd, mpeg4_stuff__sound_media_header_s, pri.fullbox, 0);
+static inner_method_get_fullbox(smhd, mpeg4_stuff__sound_media_header_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, smhd, set$balance)(mpeg4_stuff__sound_media_header_s *restrict r, double balance)
 {
@@ -106,6 +99,7 @@ static const mpeg4$define$alloc(smhd)
 		r->interface.build = mpeg4$define(atom, smhd, build);
 		if (
 			mpeg4$stuff$method$set(r, smhd, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, smhd, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, smhd, set$balance)
 		) return r;
 		refer_free(r);

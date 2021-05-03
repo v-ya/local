@@ -98,15 +98,8 @@ static mpeg4$define$build(vmhd)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, vmhd, set$version_and_flags)(mpeg4_stuff__video_media_header_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(vmhd, mpeg4_stuff__video_media_header_s, pri.fullbox, 0);
+static inner_method_get_fullbox(vmhd, mpeg4_stuff__video_media_header_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, vmhd, set$graphicsmode)(mpeg4_stuff__video_media_header_s *restrict r, uint16_t graphicsmode)
 {
@@ -135,6 +128,7 @@ static const mpeg4$define$alloc(vmhd)
 		r->interface.build = mpeg4$define(atom, vmhd, build);
 		if (
 			mpeg4$stuff$method$set(r, vmhd, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, vmhd, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, vmhd, set$graphicsmode) &&
 			mpeg4$stuff$method$set(r, vmhd, set$opcolor)
 		) return r;

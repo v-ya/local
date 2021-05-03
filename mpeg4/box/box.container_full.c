@@ -52,12 +52,8 @@ static mpeg4$define$build(container_full)
 	return mpeg4$define(atom, container, build)(stuff, data);
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, container_full, set$version_and_flags)(mpeg4_stuff__container_full_s *restrict r, uint32_t version, uint32_t flags)
-{
-	r->fullbox.version = version;
-	r->fullbox.flags = flags;
-	return &r->stuff;
-}
+static inner_method_set_fullbox(container_full, mpeg4_stuff__container_full_s, fullbox, ~0u);
+static inner_method_get_fullbox(container_full, mpeg4_stuff__container_full_s, fullbox);
 
 mpeg4$define$alloc(container_full)
 {
@@ -70,8 +66,10 @@ mpeg4$define$alloc(container_full)
 		r->interface.parse = mpeg4$define(atom, container_full, parse);
 		r->interface.calc = mpeg4$define(atom, container_full, calc);
 		r->interface.build = mpeg4$define(atom, container_full, build);
-		if (mpeg4$stuff$method$set(r, container_full, set$version_and_flags))
-			return r;
+		if (
+			mpeg4$stuff$method$set(r, container_full, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, container_full, get$version_and_flags)
+		) return r;
 	}
 	return r;
 }

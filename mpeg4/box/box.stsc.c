@@ -129,15 +129,8 @@ static mpeg4$define$build(stsc)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stsc, set$version_and_flags)(mpeg4_stuff__sample2chunk_s *restrict r, uint32_t version, uint32_t flags)
-{
-	if (version) goto label_fail;
-	r->pri.fullbox.version = version;
-	r->pri.fullbox.flags = flags;
-	return &r->stuff;
-	label_fail:
-	return NULL;
-}
+static inner_method_set_fullbox(stsc, mpeg4_stuff__sample2chunk_s, pri.fullbox, 0);
+static inner_method_get_fullbox(stsc, mpeg4_stuff__sample2chunk_s, pri.fullbox);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, stsc, add$sample_to_chunk)(mpeg4_stuff__sample2chunk_s *restrict r, uint32_t first_chunk, uint32_t samples_per_chunk, uint32_t sample_description_index)
 {
@@ -165,6 +158,7 @@ static const mpeg4$define$alloc(stsc)
 		r->interface.build = mpeg4$define(atom, stsc, build);
 		if (
 			mpeg4$stuff$method$set(r, stsc, set$version_and_flags) &&
+			mpeg4$stuff$method$set(r, stsc, get$version_and_flags) &&
 			mpeg4$stuff$method$set(r, stsc, add$sample_to_chunk)
 		) return r;
 		refer_free(r);
