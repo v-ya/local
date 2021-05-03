@@ -151,10 +151,20 @@ const mpeg4_stuff_s* mpeg4_build(const mpeg4_stuff_s *restrict stuff, uint8_t *r
 
 const mpeg4_stuff_s* mpeg4_stuff__set_major_brand(mpeg4_stuff_s *restrict r, const char *restrict major_brand)
 {
-	mpeg4_box_type_t mb = {.v = 0};
+	mpeg4_box_type_t t = {.v = 0};
 	if (major_brand)
-		mb = mpeg4$define(inner, type, check)(major_brand);
-	return stuff_method_call(r, set$major_brand, mb);
+		t = mpeg4$define(inner, type, check)(major_brand);
+	if (t.v) return stuff_method_call(r, set$major_brand, t);
+	return NULL;
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_minor_brand(mpeg4_stuff_s *restrict r, const char *restrict minor_brand)
+{
+	mpeg4_box_type_t t = {.v = 0};
+	if (minor_brand)
+		t = mpeg4$define(inner, type, check)(minor_brand);
+	if (t.v) return stuff_method_call(r, set$minor_brand, t);
+	return NULL;
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_minor_version(mpeg4_stuff_s *restrict r, uint32_t minor_version)
@@ -164,10 +174,11 @@ const mpeg4_stuff_s* mpeg4_stuff__set_minor_version(mpeg4_stuff_s *restrict r, u
 
 const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r, const char *restrict compatible_brand)
 {
-	mpeg4_box_type_t cb = {.v = 0};
+	mpeg4_box_type_t t = {.v = 0};
 	if (compatible_brand)
-		cb = mpeg4$define(inner, type, check)(compatible_brand);
-	return stuff_method_call(r, add$compatible_brands, &cb, 1);
+		t = mpeg4$define(inner, type, check)(compatible_brand);
+	if (t.v) return stuff_method_call(r, add$compatible_brands, &t, 1);
+	return NULL;
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t version, uint32_t flags)
@@ -329,6 +340,11 @@ const mpeg4_stuff_s* mpeg4_stuff__add_composition_offset(mpeg4_stuff_s *restrict
 const mpeg4_stuff_s* mpeg4_stuff__add_sync_sample(mpeg4_stuff_s *restrict r, uint32_t sample_id)
 {
 	return stuff_method_call(r, add$sync_sample, sample_id);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_group(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t group_description_index)
+{
+	return stuff_method_call(r, add$sample_to_group, sample_count, group_description_index);
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text)

@@ -48,6 +48,7 @@ mpeg4$define$find(stsz);
 mpeg4$define$find(stsc);
 mpeg4$define$find(stco);
 mpeg4$define$find(co64);
+mpeg4$define$find(sbgp);
 mpeg4$define$find(udta);
 mpeg4$define$find(meta);
 mpeg4$define$find(ilst);

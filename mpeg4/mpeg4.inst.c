@@ -82,6 +82,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 	static const char *s_method_name[mpeg4_stuff_method_max] = {
 		#define d_mn(_op, _name)  [mpeg4_stuff_method$##_op##$##_name] = #_op "_" #_name
 		d_mn(set, major_brand),
+		d_mn(set, minor_brand),
 		d_mn(set, minor_version),
 		d_mn(add, compatible_brands),
 		d_mn(set, version_and_flags),
@@ -115,6 +116,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(add, time_to_sample),
 		d_mn(add, composition_offset),
 		d_mn(add, sync_sample),
+		d_mn(add, sample_to_group),
 		d_mn(set, ilst_data_text),
 		#undef d_mn
 	};

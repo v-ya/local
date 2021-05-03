@@ -481,8 +481,33 @@ avc1
 av01
 mp4a
 
-sgpd
-sbgp
+sbgp ('stbl'|'traf')  [0+]:
+$SampleToGroupBox:
+	$FullBox fullbox(box.type = 'sbgp', version = 0|1, flags = 0);
+	uint32_t grouping_type;
+	if (version == 1)
+		uint32_t grouping_type_parameter;
+	uint32_t entry_count;
+	for (i = 0; i < entry_count; ++i)
+	{
+		uint32_t sample_count;
+		uint32_t group_description_index;
+	}
+
+sgpd ('stbl'|'traf')  [0+]:
+$SampleGroupDescriptionBox:
+	$FullBox fullbox(box.type = 'sgpd', version = 0|1, flags = 0);
+	uint32_t grouping_type;
+	if (version == 1)
+		uint32_t default_length; // 0 || const length
+	uint32_t entry_count;
+	for (i = 0; i < entry_count; ++i)
+	{
+		if (version == 1 && default_length == 0)
+			uint32_t description_length;
+		uint8_t entry[];
+	}
+
 
 udta ('moov'|'trak'|'moof'|'traf')  [0|1]:
 $UserDataBox:

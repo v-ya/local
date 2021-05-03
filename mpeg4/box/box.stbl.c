@@ -15,7 +15,8 @@ static const mpeg4$define$alloc(stbl)
 			mpeg4$inner$type$alloc$layer(r, inst, stsz) &&
 			mpeg4$inner$type$alloc$layer(r, inst, stsc) &&
 			mpeg4$inner$type$alloc$layer(r, inst, stco) &&
-			mpeg4$inner$type$alloc$layer(r, inst, co64)
+			mpeg4$inner$type$alloc$layer(r, inst, co64) &&
+			mpeg4$inner$type$alloc$layer(r, inst, sbgp)
 		) return r;
 		refer_free(r);
 	}

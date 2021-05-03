@@ -4,6 +4,7 @@
 #include "mpeg4.stuff.h"
 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$major_brand)(mpeg4_stuff_t *restrict r, mpeg4_box_type_t major_brand);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$minor_brand)(mpeg4_stuff_t *restrict r, mpeg4_box_type_t minor_brand);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$minor_version)(mpeg4_stuff_t *restrict r, uint32_t minor_version);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$compatible_brands)(mpeg4_stuff_t *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t version, uint32_t flags);
@@ -37,6 +38,7 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sample_to_chunk)(mpeg4_stuff
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$time_to_sample)(mpeg4_stuff_t *restrict r, uint32_t sample_count, uint32_t sample_delta);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$composition_offset)(mpeg4_stuff_t *restrict r, uint32_t sample_count, int32_t sample_offset);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sync_sample)(mpeg4_stuff_t *restrict r, uint32_t sample_id);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$sample_to_group)(mpeg4_stuff_t *restrict r, uint32_t sample_count, uint32_t group_description_index);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$ilst_data_text)(mpeg4_stuff_t *restrict r, const char *restrict text, uintptr_t length);
 
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$push_mdat)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat);
@@ -50,6 +52,7 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_stco)(mpeg4_stuff
 
 typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$major_brand,
+	mpeg4_stuff_method$set$minor_brand,
 	mpeg4_stuff_method$set$minor_version,
 	mpeg4_stuff_method$add$compatible_brands,
 	mpeg4_stuff_method$set$version_and_flags,
@@ -83,6 +86,7 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$add$time_to_sample,
 	mpeg4_stuff_method$add$composition_offset,
 	mpeg4_stuff_method$add$sync_sample,
+	mpeg4_stuff_method$add$sample_to_group,
 	mpeg4_stuff_method$set$ilst_data_text,
 	mpeg4_stuff_method_max,
 
