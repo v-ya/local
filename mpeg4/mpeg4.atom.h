@@ -13,6 +13,9 @@ typedef mpeg4_stuff_t* (*mpeg4_create_f)(const mpeg4_atom_s *restrict atom, cons
 typedef mpeg4_stuff_t* (*mpeg4_parse_f)(mpeg4_stuff_t *restrict stuff, const uint8_t *restrict data, uint64_t size);
 typedef mpeg4_stuff_t* (*mpeg4_calc_f)(mpeg4_stuff_t *restrict stuff);
 typedef const mpeg4_stuff_t* (*mpeg4_build_f)(const mpeg4_stuff_t *restrict stuff, uint8_t *restrict data);
+typedef mpeg4_stuff_t* (*mpeg4_container_testing_f)(mpeg4_stuff_t *restrict stuff, mpeg4_box_type_t type);
+typedef void (*mpeg4_container_update_f)(mpeg4_stuff_t *restrict stuff);
+typedef void (*mpeg4_link_update_f)(mpeg4_stuff_t *restrict stuff);
 
 #define mpeg4$define$alloc(_name)              mpeg4_atom_s* mpeg4$define(atom, _name, alloc)(struct mpeg4_s *restrict inst)
 #define mpeg4$define$find(_name)               const mpeg4_atom_s* mpeg4$define(atom, _name, find)(struct mpeg4_s *restrict inst)
@@ -21,6 +24,9 @@ typedef const mpeg4_stuff_t* (*mpeg4_build_f)(const mpeg4_stuff_t *restrict stuf
 #define mpeg4$define$parse(_name)              mpeg4_stuff_t* mpeg4$define(atom, _name, parse)(mpeg4_stuff_t *restrict stuff, const uint8_t *restrict data, uint64_t size)
 #define mpeg4$define$calc(_name)               mpeg4_stuff_t* mpeg4$define(atom, _name, calc)(mpeg4_stuff_t *restrict stuff)
 #define mpeg4$define$build(_name)              const mpeg4_stuff_t* mpeg4$define(atom, _name, build)(const mpeg4_stuff_t *restrict stuff, uint8_t *restrict data)
+#define mpeg4$define$container_testing(_name)  mpeg4_stuff_t* mpeg4$define(atom, _name, container_testing)(mpeg4_stuff_t *restrict stuff, mpeg4_box_type_t type)
+#define mpeg4$define$container_update(_name)   void mpeg4$define(atom, _name, container_update)(mpeg4_stuff_t *restrict stuff)
+#define mpeg4$define$link_update(_name)        void mpeg4$define(atom, _name, link_update)(mpeg4_stuff_t *restrict stuff)
 #define mpeg4$define$stuff$init(_name, _type)  mpeg4_stuff_t* mpeg4$define(stuff, _name, init)(_type *restrict r)
 #define mpeg4$define$stuff$free(_name, _type)  void mpeg4$define(stuff, _name, free)(_type *restrict r)
 
@@ -30,6 +36,9 @@ typedef struct mpeg4_atom_func_t {
 	mpeg4_parse_f parse;
 	mpeg4_calc_f calc;
 	mpeg4_build_f build;
+	mpeg4_container_testing_f container_testing;
+	mpeg4_container_update_f container_update;
+	mpeg4_link_update_f link_update;
 } mpeg4_atom_func_t;
 
 struct mpeg4_atom_s {

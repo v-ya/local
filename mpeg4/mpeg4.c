@@ -66,7 +66,7 @@ mpeg4_stuff_s* mpeg4_create_stuff(const mpeg4_stuff_s *restrict container, const
 	register const mpeg4_atom_s *restrict atom;
 	register mpeg4_create_f create;
 	mpeg4_box_type_t t;
-	if (type && (atom = container->atom) &&
+	if (container && type && (atom = container->atom) &&
 		(t = mpeg4$define(inner, type, check)(type)).v &&
 		(atom = mpeg4_atom_layer_find(atom, t.v)) &&
 		(create = atom->interface.create))
@@ -77,16 +77,29 @@ mpeg4_stuff_s* mpeg4_create_stuff(const mpeg4_stuff_s *restrict container, const
 mpeg4_stuff_s* mpeg4_link_stuff(mpeg4_stuff_s *restrict container, mpeg4_stuff_s *restrict stuff)
 {
 	if (mpeg4_atom_layer_find(container->atom, stuff->info.type.v))
-		return mpeg4_stuff_container_link(container, stuff);
+		return mpeg4_stuff_container_link(container, stuff, NULL);
+	return NULL;
+}
+
+mpeg4_stuff_s* mpeg4_link_before_stuff(mpeg4_stuff_s *restrict after, mpeg4_stuff_s *restrict stuff)
+{
+	mpeg4_stuff_s *restrict container;
+	if ((container = after->link.container) && mpeg4_atom_layer_find(container->atom, stuff->info.type.v))
+		return mpeg4_stuff_container_link(container, stuff, after);
 	return NULL;
 }
 
 mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char *restrict type)
 {
 	mpeg4_box_type_t t;
-	if (type && (t = mpeg4$define(inner, type, check)(type)).v)
+	if (container && type && (t = mpeg4$define(inner, type, check)(type)).v)
 		return mpeg4_stuff_container_append(container, t);
 	return NULL;
+}
+
+mpeg4_stuff_s* mpeg4_stuff_container(mpeg4_stuff_s *restrict stuff)
+{
+	return stuff->link.container;
 }
 
 mpeg4_stuff_s* mpeg4_stuff_next(mpeg4_stuff_s *restrict stuff)
@@ -102,7 +115,24 @@ mpeg4_stuff_s* mpeg4_stuff_next_same(mpeg4_stuff_s *restrict stuff)
 mpeg4_stuff_s* mpeg4_find_stuff(mpeg4_stuff_s *restrict container, const char *restrict type)
 {
 	mpeg4_box_type_t t;
-	return mpeg4_stuff_container_find(container, (type && (t = mpeg4$define(inner, type, check)(type)).v)?&t:NULL);
+	if (container && (!type || (t = mpeg4$define(inner, type, check)(type)).v))
+		return mpeg4_stuff_container_find(container, type?&t:NULL);
+	return NULL;
+}
+
+mpeg4_stuff_s* mpeg4_find_path_stuff(mpeg4_stuff_s *restrict container, const char *const restrict *restrict path)
+{
+	mpeg4_box_type_t t;
+	while (container && *path)
+	{
+		if (!(t = mpeg4$define(inner, type, check)(*path)).v)
+			goto label_fail;
+		container = mpeg4_stuff_container_find(container, &t);
+		++path;
+	}
+	return container;
+	label_fail:
+	return NULL;
 }
 
 mpeg4_stuff_s* mpeg4_parse(const mpeg4_s *restrict inst, const uint8_t *restrict data, uint64_t size)

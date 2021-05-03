@@ -2,18 +2,16 @@
 #include "mpeg4.atom.h"
 #include <stdlib.h>
 
-static inline void mpeg4_stuff_link_set(register mpeg4_stuff_t *restrict stuff, mpeg4_stuff_t *restrict parent, register mpeg4_stuff_t ***restrict pp_pos, register mpeg4_stuff_t ***restrict pp_same_pos)
+static inline void mpeg4_stuff_link_set(register mpeg4_stuff_t *restrict stuff, mpeg4_stuff_t *restrict parent, register mpeg4_stuff_t **restrict pp_pos, register mpeg4_stuff_t **restrict pp_same_pos)
 {
 	register mpeg4_stuff_link_t *restrict link;
 	link = &stuff->link;
 	// list
-	link->next = *(link->p_next = *pp_pos);
+	link->next = *(link->p_next = pp_pos);
 	*link->p_next = stuff;
-	*pp_pos = &link->next;
 	// same list
-	link->same_next = *(link->p_same_next = *pp_same_pos);
+	link->same_next = *(link->p_same_next = pp_same_pos);
 	*link->p_same_next = stuff;
-	*pp_same_pos = &link->same_next;
 	// parent
 	link->container = parent;
 }
@@ -120,9 +118,10 @@ void mpeg4_stuff_calc_invalid(mpeg4_stuff_t *restrict stuff)
 	}
 }
 
-mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpeg4_stuff_t *restrict stuff)
+mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpeg4_stuff_t *restrict stuff, mpeg4_stuff_t *restrict insert)
 {
-	if (!stuff->link.container)
+	if (!stuff->link.container && (!container->atom->interface.container_testing ||
+		container->atom->interface.container_testing(container, stuff->info.type)))
 	{
 		mpeg4_stuff_container_type_finder_t *restrict finder;
 		finder = mpeg4_stuff_container_type_finder_get(&container->container, stuff->info.type);
@@ -130,7 +129,33 @@ mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpe
 		{
 			refer_save(stuff);
 			mpeg4_stuff_calc_invalid(container);
-			mpeg4_stuff_link_set(stuff, container, &container->container.p_tail, &finder->p_same_tail);
+			if (insert && insert->link.container == container)
+			{
+				mpeg4_stuff_t *pos = container->container.list;
+				mpeg4_stuff_t *same_pos = finder->same_list;
+				while (pos && pos != insert)
+				{
+					if (pos->info.type.v == stuff->info.type.v)
+						same_pos = pos->link.same_next;
+					pos = pos->link.next;
+				}
+				if (!pos) goto label_append;
+				mpeg4_stuff_link_set(stuff, container, pos->link.p_next, same_pos?same_pos->link.p_same_next:finder->p_same_tail);
+				if (!same_pos)
+					goto label_append_same;
+			}
+			else
+			{
+				label_append:
+				mpeg4_stuff_link_set(stuff, container, container->container.p_tail, finder->p_same_tail);
+				container->container.p_tail = &stuff->link.next;
+				label_append_same:
+				finder->p_same_tail = &stuff->link.same_next;
+			}
+			if (container->atom->interface.container_update)
+				container->atom->interface.container_update(container);
+			if (stuff->atom->interface.link_update)
+				stuff->atom->interface.link_update(stuff);
 			return container;
 		}
 	}
@@ -148,7 +173,7 @@ mpeg4_stuff_t* mpeg4_stuff_container_append(mpeg4_stuff_t *restrict container, m
 		(create = atom->interface.create) &&
 		(stuff = create(atom, container->inst, type)))
 	{
-		if (mpeg4_stuff_container_link(container, stuff))
+		if (mpeg4_stuff_container_link(container, stuff, NULL))
 			r = stuff;
 		refer_free(stuff);
 	}
@@ -180,10 +205,15 @@ mpeg4_stuff_t* mpeg4_stuff_container_find_path(mpeg4_stuff_t *restrict container
 
 void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff)
 {
-	if (stuff->link.container)
+	mpeg4_stuff_t *restrict container;
+	if ((container = stuff->link.container))
 	{
-		mpeg4_stuff_calc_invalid(stuff->link.container);
+		mpeg4_stuff_calc_invalid(container);
 		mpeg4_stuff_link_unset(&stuff->link);
+		if (container->atom->interface.container_update)
+			container->atom->interface.container_update(container);
+		if (stuff->atom->interface.link_update)
+			stuff->atom->interface.link_update(stuff);
 		refer_free(stuff);
 	}
 }
@@ -192,8 +222,10 @@ mpeg4_stuff_t* mpeg4_stuff_replace(mpeg4_stuff_t *restrict stuff, const struct m
 {
 	const mpeg4_atom_s *restrict aim;
 	mpeg4_stuff_t *restrict container;
+	mpeg4_stuff_t *restrict insert;
 	mpeg4_box_type_t orginal;
 	container = stuff->link.container;
+	insert = stuff->link.next;
 	orginal = stuff->info.type;
 	if (container)
 	{
@@ -202,7 +234,7 @@ mpeg4_stuff_t* mpeg4_stuff_replace(mpeg4_stuff_t *restrict stuff, const struct m
 		refer_save(stuff);
 		mpeg4_stuff_unlink(stuff);
 		stuff->info.type = type;
-		if (mpeg4_stuff_container_link(container, stuff))
+		if (mpeg4_stuff_container_link(container, stuff, insert))
 		{
 			stuff->atom = aim;
 			refer_free(stuff);
@@ -211,7 +243,7 @@ mpeg4_stuff_t* mpeg4_stuff_replace(mpeg4_stuff_t *restrict stuff, const struct m
 		else
 		{
 			stuff->info.type = orginal;
-			mpeg4_stuff_container_link(container, stuff);
+			mpeg4_stuff_container_link(container, stuff, insert);
 			refer_free(stuff);
 			goto label_fail;
 		}

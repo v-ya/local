@@ -48,7 +48,7 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$get_stco)(mpeg4_stuff_t *r
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$clear)(mpeg4_stuff_t *restrict r);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$set_parse)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_mdat)(mpeg4_stuff_t *restrict r, const void **restrict p_data, uint64_t *restrict p_size);
-typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_stco)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict const *restrict mdat, const uint64_t *restrict offset, uintptr_t n);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$inner$do_parse_stco)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *const restrict *restrict mdat, const uint64_t *restrict offset, uintptr_t n);
 
 typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$major_brand,

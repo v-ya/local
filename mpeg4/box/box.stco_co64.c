@@ -358,7 +358,7 @@ static inline uintptr_t mpeg4$define(inner, do_parse_stco, find_mdat)(register c
 	return r;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, stco, inner$do_parse_stco)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *restrict const *restrict mdat, const uint64_t *restrict offset, uintptr_t n)
+static const mpeg4_stuff_t* mpeg4$define(stuff, stco, inner$do_parse_stco)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *const restrict *restrict mdat, const uint64_t *restrict offset, uintptr_t n)
 {
 	const uint32_t *restrict data;
 	uint64_t pos;
@@ -383,7 +383,7 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, stco, inner$do_parse_stco)(mpeg4
 	return NULL;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, co64, inner$do_parse_stco)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *restrict const *restrict mdat, const uint64_t *restrict offset, uintptr_t n)
+static const mpeg4_stuff_t* mpeg4$define(stuff, co64, inner$do_parse_stco)(mpeg4_stuff__chunk_offset_s *restrict r, mpeg4_stuff_t *const restrict *restrict mdat, const uint64_t *restrict offset, uintptr_t n)
 {
 	const uint64_t *restrict data;
 	uint64_t pos;

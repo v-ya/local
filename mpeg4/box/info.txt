@@ -496,10 +496,12 @@ $SampleToGroupBox:
 
 sgpd ('stbl'|'traf')  [0+]:
 $SampleGroupDescriptionBox:
-	$FullBox fullbox(box.type = 'sgpd', version = 0|1, flags = 0);
+	$FullBox fullbox(box.type = 'sgpd', version = 0|1|2, flags = 0);
 	uint32_t grouping_type;
 	if (version == 1)
 		uint32_t default_length; // 0 || const length
+	if (version == 2)
+		uint32_t default_sample_description_index;
 	uint32_t entry_count;
 	for (i = 0; i < entry_count; ++i)
 	{
