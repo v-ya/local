@@ -9,6 +9,7 @@ struct mpeg4_atom_dump_t {
 	uint32_t dump_level;
 	uint32_t dump_samples;
 	uint32_t timescale;
+	uint32_t temp_size;
 };
 
 mpeg4$define$alloc(container);
@@ -49,6 +50,8 @@ mpeg4$define$find(stsc);
 mpeg4$define$find(stco);
 mpeg4$define$find(co64);
 mpeg4$define$find(sbgp);
+mpeg4$define$find(sgpd);
+mpeg4$define$find(sgpd_roll);
 mpeg4$define$find(udta);
 mpeg4$define$find(meta);
 mpeg4$define$find(ilst);

@@ -20,11 +20,12 @@ typedef struct mpeg4_stuff_container_t {
 } mpeg4_stuff_container_t;
 
 typedef struct mpeg4_stuff_link_t {
-	mpeg4_stuff_t *next;          // = *this->p_next
-	mpeg4_stuff_t *same_next;     // = *this->p_same_next
-	mpeg4_stuff_t **p_next;       // = &last->next
-	mpeg4_stuff_t **p_same_next;  // = &same_last->same_next
-	mpeg4_stuff_t *container;     // = parent
+	mpeg4_stuff_t *next;                          // = *this->p_next
+	mpeg4_stuff_t *same_next;                     // = *this->p_same_next
+	mpeg4_stuff_t **p_next;                       // = &last->next
+	mpeg4_stuff_t **p_same_next;                  // = &same_last->same_next
+	mpeg4_stuff_t *container;                     // = parent
+	mpeg4_stuff_container_type_finder_t *finder;  // = finder
 } mpeg4_stuff_link_t;
 
 typedef struct mpeg4_stuff_box_t {

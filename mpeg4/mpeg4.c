@@ -44,7 +44,8 @@ const mpeg4_s* mpeg4_dump(const mpeg4_s *restrict inst, mlog_s *restrict mlog, c
 		mpeg4_atom_dump_t unidata = {
 			.dump_level = mlog_level_inital,
 			.dump_samples = !!dump_samples,
-			.timescale = 1
+			.timescale = 1,
+			.temp_size = 0
 		};
 		if (dump(inst->root, mlog, data, size, &unidata))
 			return inst;
@@ -100,6 +101,22 @@ mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char 
 mpeg4_stuff_s* mpeg4_stuff_container(mpeg4_stuff_s *restrict stuff)
 {
 	return stuff->link.container;
+}
+
+mpeg4_stuff_s* mpeg4_stuff_first(mpeg4_stuff_s *restrict stuff)
+{
+	mpeg4_stuff_s *restrict container;
+	if ((container = stuff->link.container))
+		return container->container.list;
+	return NULL;
+}
+
+mpeg4_stuff_s* mpeg4_stuff_first_same(mpeg4_stuff_s *restrict stuff)
+{
+	mpeg4_stuff_container_type_finder_t *restrict finder;
+	if ((finder = stuff->link.finder))
+		return finder->same_list;
+	return NULL;
 }
 
 mpeg4_stuff_s* mpeg4_stuff_next(mpeg4_stuff_s *restrict stuff)
@@ -375,6 +392,16 @@ const mpeg4_stuff_s* mpeg4_stuff__add_sync_sample(mpeg4_stuff_s *restrict r, uin
 const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_group(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t group_description_index)
 {
 	return stuff_method_call(r, add$sample_to_group, sample_count, group_description_index);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_default_sample_description_index(mpeg4_stuff_s *restrict r, uint32_t default_sample_description_index)
+{
+	return stuff_method_call(r, set$default_sample_description_index, default_sample_description_index);
+}
+
+const mpeg4_stuff_s* mpeg4_stuff__set_roll_distance(mpeg4_stuff_s *restrict r, int16_t roll_distance)
+{
+	return stuff_method_call(r, set$roll_distance, roll_distance);
 }
 
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text)

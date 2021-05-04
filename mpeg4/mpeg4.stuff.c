@@ -2,7 +2,7 @@
 #include "mpeg4.atom.h"
 #include <stdlib.h>
 
-static inline void mpeg4_stuff_link_set(register mpeg4_stuff_t *restrict stuff, mpeg4_stuff_t *restrict parent, register mpeg4_stuff_t **restrict pp_pos, register mpeg4_stuff_t **restrict pp_same_pos)
+static inline void mpeg4_stuff_link_set(register mpeg4_stuff_t *restrict stuff, register mpeg4_stuff_t **restrict pp_pos, register mpeg4_stuff_t **restrict pp_same_pos, mpeg4_stuff_t *restrict parent, mpeg4_stuff_container_type_finder_t *restrict finder)
 {
 	register mpeg4_stuff_link_t *restrict link;
 	link = &stuff->link;
@@ -12,21 +12,25 @@ static inline void mpeg4_stuff_link_set(register mpeg4_stuff_t *restrict stuff, 
 	// same list
 	link->same_next = *(link->p_same_next = pp_same_pos);
 	*link->p_same_next = stuff;
-	// parent
+	// parent && finder
 	link->container = parent;
+	link->finder = finder;
 }
 
-static inline void mpeg4_stuff_link_unset(mpeg4_stuff_link_t *restrict link)
+static inline void mpeg4_stuff_link_unset(register mpeg4_stuff_link_t *restrict link)
 {
 	if ((*link->p_same_next = link->same_next))
 		link->same_next->link.p_same_next = link->p_same_next;
+	else link->finder->p_same_tail = link->p_same_next;
 	if ((*link->p_next = link->next))
 		link->next->link.p_next = link->p_next;
+	else link->container->container.p_tail = link->p_next;
 	link->next = NULL;
 	link->same_next = NULL;
 	link->p_next = NULL;
 	link->p_same_next = NULL;
 	link->container = NULL;
+	link->finder = NULL;
 }
 
 static void mpeg4_stuff_container_type_finder_free_func(rbtree_t *restrict r)
@@ -140,14 +144,14 @@ mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpe
 					pos = pos->link.next;
 				}
 				if (!pos) goto label_append;
-				mpeg4_stuff_link_set(stuff, container, pos->link.p_next, same_pos?same_pos->link.p_same_next:finder->p_same_tail);
+				mpeg4_stuff_link_set(stuff, pos->link.p_next, same_pos?same_pos->link.p_same_next:finder->p_same_tail, container, finder);
 				if (!same_pos)
 					goto label_append_same;
 			}
 			else
 			{
 				label_append:
-				mpeg4_stuff_link_set(stuff, container, container->container.p_tail, finder->p_same_tail);
+				mpeg4_stuff_link_set(stuff, container->container.p_tail, finder->p_same_tail, container, finder);
 				container->container.p_tail = &stuff->link.next;
 				label_append_same:
 				finder->p_same_tail = &stuff->link.same_next;

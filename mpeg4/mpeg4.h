@@ -18,6 +18,8 @@ mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char 
 mpeg4_stuff_s* mpeg4_find_stuff(mpeg4_stuff_s *restrict container, const char *restrict type);
 mpeg4_stuff_s* mpeg4_find_path_stuff(mpeg4_stuff_s *restrict container, const char *const restrict *restrict path);
 mpeg4_stuff_s* mpeg4_stuff_container(mpeg4_stuff_s *restrict stuff);
+mpeg4_stuff_s* mpeg4_stuff_first(mpeg4_stuff_s *restrict stuff);
+mpeg4_stuff_s* mpeg4_stuff_first_same(mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_stuff_next(mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_stuff_next_same(mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_parse(const mpeg4_s *restrict inst, const uint8_t *restrict data, uint64_t size);
@@ -61,6 +63,8 @@ const mpeg4_stuff_s* mpeg4_stuff__add_time_to_sample(mpeg4_stuff_s *restrict r, 
 const mpeg4_stuff_s* mpeg4_stuff__add_composition_offset(mpeg4_stuff_s *restrict r, uint32_t sample_count, int32_t sample_offset);
 const mpeg4_stuff_s* mpeg4_stuff__add_sync_sample(mpeg4_stuff_s *restrict r, uint32_t sample_id);
 const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_group(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t group_description_index);
+const mpeg4_stuff_s* mpeg4_stuff__set_default_sample_description_index(mpeg4_stuff_s *restrict r, uint32_t default_sample_description_index);
+const mpeg4_stuff_s* mpeg4_stuff__set_roll_distance(mpeg4_stuff_s *restrict r, int16_t roll_distance);
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text);
 
 #endif

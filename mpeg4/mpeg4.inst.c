@@ -117,6 +117,8 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(add, composition_offset),
 		d_mn(add, sync_sample),
 		d_mn(add, sample_to_group),
+		d_mn(set, default_sample_description_index),
+		d_mn(set, roll_distance),
 		d_mn(set, ilst_data_text),
 		#undef d_mn
 	};

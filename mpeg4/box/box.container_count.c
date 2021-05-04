@@ -1,4 +1,4 @@
-#include "box.include.h"
+#include "box.container.h"
 #include "inner.fullbox.h"
 #include "inner.data.h"
 
@@ -7,7 +7,6 @@ typedef struct mpeg4_stuff__container_count_s {
 	inner_fullbox_t fullbox;
 } mpeg4_stuff__container_count_s;
 
-mpeg4$define$dump(container);
 static mpeg4$define$dump(container_count)
 {
 	inner_fullbox_t fullbox;
@@ -29,7 +28,6 @@ static mpeg4$define$create(container_count)
 	return mpeg4_stuff_alloc(atom, inst, type, sizeof(mpeg4_stuff__container_count_s), NULL, NULL);
 }
 
-mpeg4$define$parse(container);
 static mpeg4$define$parse(container_count)
 {
 	inner_fullbox_t fullbox;
@@ -45,7 +43,6 @@ static mpeg4$define$parse(container_count)
 	return NULL;
 }
 
-mpeg4$define$calc(container);
 static mpeg4$define$calc(container_count)
 {
 	if (mpeg4$define(atom, container, calc)(stuff))
@@ -53,11 +50,10 @@ static mpeg4$define$calc(container_count)
 	return NULL;
 }
 
-mpeg4$define$build(container);
 static mpeg4$define$build(container_count)
 {
 	data = mpeg4$define(inner, fullbox, set)(data, &((mpeg4_stuff__container_count_s *) stuff)->fullbox);
-	data = mpeg4$define(inner, uint32_t, set)(data, stuff->info.link_number);
+	data = mpeg4$define(inner, uint32_t, set)(data, (uint32_t) stuff->info.link_number);
 	return mpeg4$define(atom, container, build)(stuff, data);
 }
 
@@ -66,19 +62,22 @@ static inner_method_get_fullbox(container_count, mpeg4_stuff__container_count_s,
 
 mpeg4$define$alloc(container_count)
 {
-	mpeg4_atom_s *restrict r;
-	r = mpeg4$define(atom, container, alloc)(inst);
+	mpeg4_atom$container_s *restrict r;
+	r = (mpeg4_atom$container_s *) refer_alloz(sizeof(mpeg4_atom$container_s));
 	if (r)
 	{
-		r->interface.dump = mpeg4$define(atom, container_count, dump);
-		r->interface.create = mpeg4$define(atom, container_count, create);
-		r->interface.parse = mpeg4$define(atom, container_count, parse);
-		r->interface.calc = mpeg4$define(atom, container_count, calc);
-		r->interface.build = mpeg4$define(atom, container_count, build);
+		refer_set_free(r, (refer_free_f) mpeg4_atom_free_default_func);
+		r->atom.interface.dump = mpeg4$define(atom, container_count, dump);
+		r->atom.interface.create = mpeg4$define(atom, container_count, create);
+		r->atom.interface.parse = mpeg4$define(atom, container_count, parse);
+		r->atom.interface.calc = mpeg4$define(atom, container_count, calc);
+		r->atom.interface.build = mpeg4$define(atom, container_count, build);
+		r->inst = inst;
 		if (
-			mpeg4$stuff$method$set(r, container_count, set$version_and_flags) &&
-			mpeg4$stuff$method$set(r, container_count, get$version_and_flags)
-		) return r;
+			mpeg4$stuff$method$set(&r->atom, container_count, set$version_and_flags) &&
+			mpeg4$stuff$method$set(&r->atom, container_count, get$version_and_flags)
+		) return &r->atom;
+		refer_free(r);
 	}
-	return r;
+	return NULL;
 }

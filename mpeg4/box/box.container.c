@@ -1,10 +1,5 @@
-#include "box.include.h"
+#include "box.container.h"
 #include "inner.type.h"
-
-typedef struct mpeg4_atom$container_s {
-	mpeg4_atom_s atom;
-	const mpeg4_t *inst;
-} mpeg4_atom$container_s;
 
 mpeg4$define$dump(container)
 {
