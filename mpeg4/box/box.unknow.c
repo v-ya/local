@@ -17,10 +17,7 @@ static const mpeg4$define$alloc(unknow)
 {
 	mpeg4_atom_s *restrict r;
 	r = mpeg4_atom_alloc_empty();
-	if (r)
-	{
-		r->interface.dump = mpeg4$define(atom, unknow, dump);
-	}
+	if (r) r->interface.dump = mpeg4$define(atom, unknow, dump);
 	return r;
 }
 

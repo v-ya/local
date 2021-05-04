@@ -338,7 +338,7 @@ $SampleEntry:
 	uint16_t data_reference_index;
 
 $VisualSampleEntry:
-	$SampleEntry(type);
+	$SampleEntry sample_entry(type);
 	uint16_t pre_defined = 0;
 	uint16_t reserved = 0;
 	uint32_t pre_defined[3] = 0;
@@ -355,7 +355,7 @@ $VisualSampleEntry:
 }
 
 $AudioSampleEntry:
-	$SampleEntry(type);
+	$SampleEntry sample_entry(type);
 	uint16_t entry_version;   // 0 | 1
 	uint16_t reserved[3] = 0;
 	uint16_t channel_count;   // maybe 2
@@ -371,6 +371,15 @@ $BitRateBox:
 	uint32_t buffer_size_db;
 	uint32_t max_bitrate;
 	uint32_t avg_bitrate;
+
+$ESDBox:
+	$FullBox fullbox(box.type = 'esds', version = 0, flags = 0);
+	ES_Descriptor es;
+
+$PixelAspectRatioBox:
+	$Box box(type = 'pasp');
+	uint32_t h_spacing;
+	uint32_t v_spacing;
 
 $SampleDescriptionBox:
 	$FullBox fullbox(box.type = 'stsd', version, flags = 0);
