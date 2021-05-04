@@ -125,8 +125,8 @@ mpeg4$define$alloc(container)
 		r->atom.interface.build = mpeg4$define(atom, container, build);
 		r->inst = inst;
 		if (
-			mpeg4$inner$type$alloc$layer2(&r->atom, inst, free_skip, "free") &&
-			mpeg4$inner$type$alloc$layer2(&r->atom, inst, free_skip, "skip")
+			mpeg4$inner$type$alloc$layer2(&r->atom, inst, data, "free") &&
+			mpeg4$inner$type$alloc$layer2(&r->atom, inst, data, "skip")
 		) return &r->atom;
 		refer_free(r);
 	}

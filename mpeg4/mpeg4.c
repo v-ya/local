@@ -195,6 +195,21 @@ const mpeg4_stuff_s* mpeg4_build(const mpeg4_stuff_s *restrict stuff, uint8_t *r
 }
 
 #define stuff_method_call(_stuff, _mid, ...)  (mpeg4_stuff_calc_invalid(_stuff), mpeg4$stuff$method$call(_stuff, _mid, ##__VA_ARGS__))
+#define stuff_method_call_d0(_f, _id)\
+	const mpeg4_stuff_s* mpeg4_stuff__##_f##_##_id(mpeg4_stuff_s *restrict r)\
+	{return stuff_method_call(r, _f##$##_id);}
+#define stuff_method_call_d1(_f, _id, _t1, _v1)\
+	const mpeg4_stuff_s* mpeg4_stuff__##_f##_##_id(mpeg4_stuff_s *restrict r, _t1 _v1)\
+	{return stuff_method_call(r, _f##$##_id, _v1);}
+#define stuff_method_call_d2(_f, _id, _t1, _v1, _t2, _v2)\
+	const mpeg4_stuff_s* mpeg4_stuff__##_f##_##_id(mpeg4_stuff_s *restrict r, _t1 _v1, _t2 _v2)\
+	{return stuff_method_call(r, _f##$##_id, _v1, _v2);}
+#define stuff_method_call_d3(_f, _id, _t1, _v1, _t2, _v2, _t3, _v3)\
+	const mpeg4_stuff_s* mpeg4_stuff__##_f##_##_id(mpeg4_stuff_s *restrict r, _t1 _v1, _t2 _v2, _t3 _v3)\
+	{return stuff_method_call(r, _f##$##_id, _v1, _v2, _v3);}
+#define stuff_method_call_d4(_f, _id, _t1, _v1, _t2, _v2, _t3, _v3, _t4, _v4)\
+	const mpeg4_stuff_s* mpeg4_stuff__##_f##_##_id(mpeg4_stuff_s *restrict r, _t1 _v1, _t2 _v2, _t3 _v3, _t4 _v4)\
+	{return stuff_method_call(r, _f##$##_id, _v1, _v2, _v3, _v4);}
 
 const mpeg4_stuff_s* mpeg4_stuff__set_major_brand(mpeg4_stuff_s *restrict r, const char *restrict major_brand)
 {
@@ -214,10 +229,7 @@ const mpeg4_stuff_s* mpeg4_stuff__set_minor_brand(mpeg4_stuff_s *restrict r, con
 	return NULL;
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_minor_version(mpeg4_stuff_s *restrict r, uint32_t minor_version)
-{
-	return stuff_method_call(r, set$minor_version, minor_version);
-}
+stuff_method_call_d1(set, minor_version, uint32_t, minor_version)
 
 const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r, const char *restrict compatible_brand)
 {
@@ -228,30 +240,11 @@ const mpeg4_stuff_s* mpeg4_stuff__add_compatible_brand(mpeg4_stuff_s *restrict r
 	return NULL;
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t version, uint32_t flags)
-{
-	return stuff_method_call(r, set$version_and_flags, version, flags);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__get_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t *restrict version, uint32_t *restrict flags)
-{
-	return stuff_method_call(r, get$version_and_flags, version, flags);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size)
-{
-	return stuff_method_call(r, set$data, data, size);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size, uint64_t *restrict offset)
-{
-	return stuff_method_call(r, add$data, data, size, offset);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__calc_offset(mpeg4_stuff_s *restrict r, uint64_t *restrict offset)
-{
-	return stuff_method_call(r, calc$offset, offset);
-}
+stuff_method_call_d2(set, version_and_flags, uint32_t, version, uint32_t, flags)
+stuff_method_call_d2(get, version_and_flags, uint32_t *restrict, version, uint32_t *restrict, flags)
+stuff_method_call_d2(set, data, const void *, data, uint64_t, size)
+stuff_method_call_d3(add, data, const void *, data, uint64_t, size, uint64_t *restrict, offset)
+stuff_method_call_d1(calc, offset, uint64_t *restrict, offset)
 
 const mpeg4_stuff_s* mpeg4_stuff__set_creation_time(mpeg4_stuff_s *restrict r, uint64_t creation_time)
 {
@@ -263,55 +256,21 @@ const mpeg4_stuff_s* mpeg4_stuff__set_modification_time(mpeg4_stuff_s *restrict 
 	return stuff_method_call(r, set$modification_time, mpeg4$define(inner, utc, time1904)(modification_time));
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_timescale(mpeg4_stuff_s *restrict r, uint32_t timescale)
-{
-	return stuff_method_call(r, set$timescale, timescale);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_duration(mpeg4_stuff_s *restrict r, uint64_t duration)
-{
-	return stuff_method_call(r, set$duration, duration);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_rate(mpeg4_stuff_s *restrict r, double rate)
-{
-	return stuff_method_call(r, set$rate, rate);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_volume(mpeg4_stuff_s *restrict r, double volume)
-{
-	return stuff_method_call(r, set$volume, volume);
-}
+stuff_method_call_d1(set, timescale, uint32_t, timescale)
+stuff_method_call_d1(set, duration, uint64_t, duration)
+stuff_method_call_d1(set, rate, double, rate)
+stuff_method_call_d1(set, volume, double, volume)
 
 const mpeg4_stuff_s* mpeg4_stuff__set_matrix(mpeg4_stuff_s *restrict r, double matrix[9])
 {
 	return stuff_method_call(r, set$matrix, matrix);
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_next_track_id(mpeg4_stuff_s *restrict r, uint32_t next_track_id)
-{
-	return stuff_method_call(r, set$next_track_id, next_track_id);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_track_id(mpeg4_stuff_s *restrict r, uint32_t track_id)
-{
-	return stuff_method_call(r, set$track_id, track_id);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_track_layer(mpeg4_stuff_s *restrict r, int16_t track_layer)
-{
-	return stuff_method_call(r, set$track_layer, track_layer);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_alternate_group(mpeg4_stuff_s *restrict r, int16_t alternate_group)
-{
-	return stuff_method_call(r, set$alternate_group, alternate_group);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_resolution(mpeg4_stuff_s *restrict r, double width, double height)
-{
-	return stuff_method_call(r, set$resolution, width, height);
-}
+stuff_method_call_d1(set, next_track_id, uint32_t, next_track_id)
+stuff_method_call_d1(set, track_id, uint32_t, track_id)
+stuff_method_call_d1(set, track_layer, int16_t, track_layer)
+stuff_method_call_d1(set, alternate_group, int16_t, alternate_group)
+stuff_method_call_d2(set, track_resolution, double, width, double, height)
 
 const mpeg4_stuff_s* mpeg4_stuff__set_language(mpeg4_stuff_s *restrict r, const char *restrict language)
 {
@@ -324,85 +283,28 @@ const mpeg4_stuff_s* mpeg4_stuff__set_language(mpeg4_stuff_s *restrict r, const 
 	return NULL;
 }
 
-const mpeg4_stuff_s* mpeg4_stuff__set_name(mpeg4_stuff_s *restrict r, const char *restrict name)
-{
-	return stuff_method_call(r, set$name, name);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_location(mpeg4_stuff_s *restrict r, const char *restrict location)
-{
-	return stuff_method_call(r, set$location, location);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_graphicsmode(mpeg4_stuff_s *restrict r, uint16_t graphicsmode)
-{
-	return stuff_method_call(r, set$graphicsmode, graphicsmode);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_opcolor(mpeg4_stuff_s *restrict r, uint16_t red, uint16_t green, uint16_t blue)
-{
-	return stuff_method_call(r, set$opcolor, red, green, blue);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_balance(mpeg4_stuff_s *restrict r, double balance)
-{
-	return stuff_method_call(r, set$balance, balance);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_edit_list_item(mpeg4_stuff_s *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction)
-{
-	return stuff_method_call(r, add$edit_list_item, segment_duration, media_time, media_rate_integer, media_rate_fraction);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mpeg4_stuff_s *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id)
-{
-	return stuff_method_call(r, add$chunk_offset, mdat, offset, chunk_id);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_sample_count(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t sample_count)
-{
-	return stuff_method_call(r, set$sample_count, sample_size, sample_count);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_sample_size(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t *restrict sample_id)
-{
-	return stuff_method_call(r, add$sample_size, sample_size, sample_id);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_chunk(mpeg4_stuff_s *restrict r, uint32_t first_chunk, uint32_t samples_per_chunk, uint32_t sample_description_index)
-{
-	return stuff_method_call(r, add$sample_to_chunk, first_chunk, samples_per_chunk, sample_description_index);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_time_to_sample(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t sample_delta)
-{
-	return stuff_method_call(r, add$time_to_sample, sample_count, sample_delta);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_composition_offset(mpeg4_stuff_s *restrict r, uint32_t sample_count, int32_t sample_offset)
-{
-	return stuff_method_call(r, add$composition_offset, sample_count, sample_offset);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_sync_sample(mpeg4_stuff_s *restrict r, uint32_t sample_id)
-{
-	return stuff_method_call(r, add$sync_sample, sample_id);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__add_sample_to_group(mpeg4_stuff_s *restrict r, uint32_t sample_count, uint32_t group_description_index)
-{
-	return stuff_method_call(r, add$sample_to_group, sample_count, group_description_index);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_default_sample_description_index(mpeg4_stuff_s *restrict r, uint32_t default_sample_description_index)
-{
-	return stuff_method_call(r, set$default_sample_description_index, default_sample_description_index);
-}
-
-const mpeg4_stuff_s* mpeg4_stuff__set_roll_distance(mpeg4_stuff_s *restrict r, int16_t roll_distance)
-{
-	return stuff_method_call(r, set$roll_distance, roll_distance);
-}
+stuff_method_call_d1(set, name, const char *restrict, name)
+stuff_method_call_d1(set, location, const char *restrict, location)
+stuff_method_call_d1(set, graphicsmode, uint16_t, graphicsmode)
+stuff_method_call_d3(set, opcolor, uint16_t, red, uint16_t, green, uint16_t, blue)
+stuff_method_call_d1(set, balance, double, balance)
+stuff_method_call_d1(set, data_reference_index, uint16_t, data_reference_index)
+stuff_method_call_d2(set, pixel_resolution, uint16_t, width, uint16_t, height)
+stuff_method_call_d2(set, ppi_resolution, double, horizre, double, vertre)
+stuff_method_call_d1(set, frame_per_sample, uint16_t, frame_per_sample)
+stuff_method_call_d1(set, audio_channel_count, uint16_t, audio_channel_count)
+stuff_method_call_d1(set, audio_sample_size, uint16_t, audio_sample_size)
+stuff_method_call_d4(add, edit_list_item, uint64_t, segment_duration, int64_t, media_time, uint16_t, media_rate_integer, uint16_t, media_rate_fraction)
+stuff_method_call_d3(add, chunk_offset, mpeg4_stuff_s *restrict, mdat, uint64_t, offset, uint32_t *restrict, chunk_id)
+stuff_method_call_d2(set, sample_count, uint32_t, sample_size, uint32_t, sample_count)
+stuff_method_call_d2(add, sample_size, uint32_t, sample_size, uint32_t *restrict, sample_id)
+stuff_method_call_d3(add, sample_to_chunk, uint32_t, first_chunk, uint32_t, samples_per_chunk, uint32_t, sample_description_index)
+stuff_method_call_d2(add, time_to_sample, uint32_t, sample_count, uint32_t, sample_delta)
+stuff_method_call_d2(add, composition_offset, uint32_t, sample_count, int32_t, sample_offset)
+stuff_method_call_d1(add, sync_sample, uint32_t, sample_id)
+stuff_method_call_d2(add, sample_to_group, uint32_t, sample_count, uint32_t, group_description_index)
+stuff_method_call_d1(set, default_sample_description_index, uint32_t, default_sample_description_index)
+stuff_method_call_d1(set, roll_distance, int16_t, roll_distance)
 
 const mpeg4_stuff_s* mpeg4_stuff__set_ilst_data_text(mpeg4_stuff_s *restrict r, const char *restrict text)
 {

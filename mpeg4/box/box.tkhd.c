@@ -139,7 +139,7 @@ static mpeg4$define$parse(tkhd)
 		goto label_fail;
 	if (!mpeg4$stuff$method$call(stuff, set$matrix, matrix))
 		goto label_fail;
-	if (!mpeg4$stuff$method$call(stuff, set$resolution,
+	if (!mpeg4$stuff$method$call(stuff, set$track_resolution,
 		mpeg4_fix_point(mpeg4_n32(header.width), 16, 16),
 		mpeg4_fix_point(mpeg4_n32(header.height), 16, 16)))
 		goto label_fail;
@@ -205,7 +205,7 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$matrix)(mpeg4_stuff__t
 	return &r->stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$resolution)(mpeg4_stuff__track_header_s *restrict r, double width, double height)
+static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$track_resolution)(mpeg4_stuff__track_header_s *restrict r, double width, double height)
 {
 	if (width < 0) width = 0;
 	if (height < 0) height = 0;
@@ -236,7 +236,7 @@ static const mpeg4$define$alloc(tkhd)
 			mpeg4$stuff$method$set(r, tkhd, set$alternate_group) &&
 			mpeg4$stuff$method$set(r, tkhd, set$volume) &&
 			mpeg4$stuff$method$set(r, tkhd, set$matrix) &&
-			mpeg4$stuff$method$set(r, tkhd, set$resolution)
+			mpeg4$stuff$method$set(r, tkhd, set$track_resolution)
 		) return r;
 	}
 	return r;

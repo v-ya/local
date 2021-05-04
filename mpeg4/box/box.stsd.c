@@ -8,7 +8,9 @@ static const mpeg4$define$alloc(stsd)
 	if (r)
 	{
 		if (
-			1
+			mpeg4$inner$type$alloc$layer2(r, inst, stsd_visual, "avc1") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, stsd_visual, "av01") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, stsd_audio, "mp4a")
 		) return r;
 		refer_free(r);
 	}

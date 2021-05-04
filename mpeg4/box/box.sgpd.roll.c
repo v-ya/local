@@ -1,10 +1,10 @@
 #include "box.include.h"
 #include "inner.data.h"
 
-typedef struct mpeg4_stuff__sgpd_roll_roll_s {
+typedef struct mpeg4_stuff__sgpd_roll_s {
 	mpeg4_stuff_t stuff;
 	int16_t roll_distance;
-} mpeg4_stuff__sgpd_roll_roll_s;
+} mpeg4_stuff__sgpd_roll_s;
 
 static mpeg4$define$dump(sgpd_roll)
 {
@@ -21,7 +21,7 @@ static mpeg4$define$dump(sgpd_roll)
 
 static mpeg4$define$create(sgpd_roll)
 {
-	return mpeg4_stuff_alloc(atom, inst, type, sizeof(mpeg4_stuff__sgpd_roll_roll_s), NULL, NULL);
+	return mpeg4_stuff_alloc(atom, inst, type, sizeof(mpeg4_stuff__sgpd_roll_s), NULL, NULL);
 }
 
 static mpeg4$define$parse(sgpd_roll)
@@ -43,11 +43,11 @@ static mpeg4$define$calc(sgpd_roll)
 
 static mpeg4$define$build(sgpd_roll)
 {
-	mpeg4$define(inner, int16_t, set)(data, ((mpeg4_stuff__sgpd_roll_roll_s *) stuff)->roll_distance);
+	mpeg4$define(inner, int16_t, set)(data, ((mpeg4_stuff__sgpd_roll_s *) stuff)->roll_distance);
 	return stuff;
 }
 
-static inner_method_set_simple_param(sgpd_roll, roll_distance, mpeg4_stuff__sgpd_roll_roll_s, int16_t, roll_distance);
+static inner_method_set_simple_param(sgpd_roll, roll_distance, mpeg4_stuff__sgpd_roll_s, int16_t, roll_distance);
 
 static const mpeg4$define$alloc(sgpd_roll)
 {

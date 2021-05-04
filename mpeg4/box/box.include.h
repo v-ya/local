@@ -17,7 +17,7 @@ mpeg4$define$alloc(container_full);
 mpeg4$define$alloc(container_count);
 
 mpeg4$define$find(unknow);
-mpeg4$define$find(free_skip);
+mpeg4$define$find(data);
 mpeg4$define$find(file);
 mpeg4$define$find(ftyp);
 mpeg4$define$find(mdat);
@@ -42,6 +42,8 @@ mpeg4$define$find(url_);
 mpeg4$define$find(urn_);
 mpeg4$define$find(stbl);
 mpeg4$define$find(stsd);
+mpeg4$define$find(stsd_visual);
+mpeg4$define$find(stsd_audio);
 mpeg4$define$find(stts);
 mpeg4$define$find(ctts);
 mpeg4$define$find(stss);

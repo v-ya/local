@@ -337,6 +337,35 @@ $SampleEntry:
 	uint8_t reserved[6] = 0;
 	uint16_t data_reference_index;
 
+$VisualSampleEntry:
+	$SampleEntry(type);
+	uint16_t pre_defined = 0;
+	uint16_t reserved = 0;
+	uint32_t pre_defined[3] = 0;
+	uint16_t width;
+	uint16_t height;
+	fix16.16 horizre_solution; // maybe 72 ppi
+	fix16.16 vertre_solution;  // maybe 72 ppi
+	uint32_t reserved = 0;
+	uint16_t frame_count;      // maybe 1
+	char compressor_name[32];
+	uint16_t depth;            // maybe 24
+	int16_t pre_defined = -1;
+	...
+}
+
+$AudioSampleEntry:
+	$SampleEntry(type);
+	uint16_t entry_version;   // 0 | 1
+	uint16_t reserved[3] = 0;
+	uint16_t channel_count;   // maybe 2
+	uint16_t sample_size;     // maybe 16
+	uint16_t pre_defined = 0;
+	uint16_t reserved = 0;
+	fix16.16 sample_rate;     // maybe 1
+	...
+}
+
 $BitRateBox:
 	$Box box(type = 'btrt');
 	uint32_t buffer_size_db;
