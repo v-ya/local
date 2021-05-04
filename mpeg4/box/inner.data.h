@@ -34,4 +34,18 @@ void* mpeg4$define(inner, array, append_data)(inner_array_t *restrict array, uin
 
 #define mpeg4_fix_point_gen(_n, _t, _a, _b)  mpeg4$define(inner, f2i, _t)((_n) * (1ul << _b))
 
+#define inner_method_set_simple_param(_n, _m, _tn, _tm, _p) \
+	const mpeg4_stuff_t* mpeg4$define(stuff, _n, set$##_m)(_tn *restrict r, _tm _m)\
+	{\
+		r->_p = _m;\
+		return &r->stuff;\
+	}
+
+#define inner_method_get_simple_param(_n, _m, _tn, _tm, _p) \
+	const mpeg4_stuff_t* mpeg4$define(stuff, _n, get$##_m)(_tn *restrict r, _tm *restrict _m)\
+	{\
+		if (_m) *_m = r->_p;\
+		return &r->stuff;\
+	}
+
 #endif

@@ -105,11 +105,7 @@ static mpeg4$define$build(hdlr)
 static inner_method_set_fullbox(hdlr, mpeg4_stuff__handler_s, pri.fullbox, 0);
 static inner_method_get_fullbox(hdlr, mpeg4_stuff__handler_s, pri.fullbox);
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$major_brand)(mpeg4_stuff__handler_s *restrict r, mpeg4_box_type_t major_brand)
-{
-	r->pri.handler_type = major_brand;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(hdlr, major_brand, mpeg4_stuff__handler_s, mpeg4_box_type_t, pri.handler_type);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, hdlr, set$name)(mpeg4_stuff__handler_s *restrict r, const char *restrict name)
 {

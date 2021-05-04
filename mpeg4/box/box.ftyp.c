@@ -109,17 +109,8 @@ static mpeg4$define$build(ftyp)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, set$major_brand)(mpeg4_stuff__file_type_s *restrict r, mpeg4_box_type_t major_brand)
-{
-	r->pri.major_brand = major_brand;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, set$minor_version)(mpeg4_stuff__file_type_s *restrict r, uint32_t minor_version)
-{
-	r->pri.minor_version = minor_version;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(ftyp, major_brand, mpeg4_stuff__file_type_s, mpeg4_box_type_t, pri.major_brand);
+static inner_method_set_simple_param(ftyp, minor_version, mpeg4_stuff__file_type_s, uint32_t, pri.minor_version);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, ftyp, add$compatible_brands)(mpeg4_stuff__file_type_s *restrict r, const mpeg4_box_type_t *restrict compatible_brands, uint32_t n)
 {

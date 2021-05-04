@@ -191,48 +191,13 @@ static mpeg4$define$build(tkhd)
 
 static inner_method_set_fullbox(tkhd, mpeg4_stuff__track_header_s, pri.fullbox, 1);
 static inner_method_get_fullbox(tkhd, mpeg4_stuff__track_header_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$creation_time)(mpeg4_stuff__track_header_s *restrict r, uint64_t creation_time)
-{
-	r->pri.trackid.creation_time = creation_time;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$modification_time)(mpeg4_stuff__track_header_s *restrict r, uint64_t modification_time)
-{
-	r->pri.trackid.modification_time = modification_time;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$track_id)(mpeg4_stuff__track_header_s *restrict r, uint32_t track_id)
-{
-	r->pri.trackid.track_id = track_id;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$duration)(mpeg4_stuff__track_header_s *restrict r, uint64_t duration)
-{
-	r->pri.trackid.duration = duration;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$track_layer)(mpeg4_stuff__track_header_s *restrict r, int16_t track_layer)
-{
-	r->pri.layer = track_layer;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$alternate_group)(mpeg4_stuff__track_header_s *restrict r, int16_t alternate_group)
-{
-	r->pri.alternate_group = alternate_group;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$volume)(mpeg4_stuff__track_header_s *restrict r, double volume)
-{
-	r->pri.volume = volume;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(tkhd, creation_time, mpeg4_stuff__track_header_s, uint64_t, pri.trackid.creation_time);
+static inner_method_set_simple_param(tkhd, modification_time, mpeg4_stuff__track_header_s, uint64_t, pri.trackid.modification_time);
+static inner_method_set_simple_param(tkhd, track_id, mpeg4_stuff__track_header_s, uint32_t, pri.trackid.track_id);
+static inner_method_set_simple_param(tkhd, duration, mpeg4_stuff__track_header_s, uint64_t, pri.trackid.duration);
+static inner_method_set_simple_param(tkhd, track_layer, mpeg4_stuff__track_header_s, int16_t, pri.layer);
+static inner_method_set_simple_param(tkhd, alternate_group, mpeg4_stuff__track_header_s, int16_t, pri.alternate_group);
+static inner_method_set_simple_param(tkhd, volume, mpeg4_stuff__track_header_s, double, pri.volume);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, tkhd, set$matrix)(mpeg4_stuff__track_header_s *restrict r, double matrix[9])
 {

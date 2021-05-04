@@ -100,12 +100,7 @@ static mpeg4$define$build(vmhd)
 
 static inner_method_set_fullbox(vmhd, mpeg4_stuff__video_media_header_s, pri.fullbox, 0);
 static inner_method_get_fullbox(vmhd, mpeg4_stuff__video_media_header_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, vmhd, set$graphicsmode)(mpeg4_stuff__video_media_header_s *restrict r, uint16_t graphicsmode)
-{
-	r->pri.graphicsmode = graphicsmode;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(vmhd, graphicsmode, mpeg4_stuff__video_media_header_s, uint16_t, pri.graphicsmode);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, vmhd, set$opcolor)(mpeg4_stuff__video_media_header_s *restrict r, uint16_t red, uint16_t green, uint16_t blue)
 {

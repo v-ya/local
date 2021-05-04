@@ -47,11 +47,7 @@ static mpeg4$define$build(sgpd_roll)
 	return stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, sgpd_roll, set$roll_distance)(mpeg4_stuff__sgpd_roll_roll_s *restrict r, int16_t roll_distance)
-{
-	r->roll_distance = roll_distance;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(sgpd_roll, roll_distance, mpeg4_stuff__sgpd_roll_roll_s, int16_t, roll_distance);
 
 static const mpeg4$define$alloc(sgpd_roll)
 {

@@ -79,12 +79,7 @@ static mpeg4$define$build(smhd)
 
 static inner_method_set_fullbox(smhd, mpeg4_stuff__sound_media_header_s, pri.fullbox, 0);
 static inner_method_get_fullbox(smhd, mpeg4_stuff__sound_media_header_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, smhd, set$balance)(mpeg4_stuff__sound_media_header_s *restrict r, double balance)
-{
-	r->pri.balance = balance;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(smhd, balance, mpeg4_stuff__sound_media_header_s, double, pri.balance);
 
 static const mpeg4$define$alloc(smhd)
 {

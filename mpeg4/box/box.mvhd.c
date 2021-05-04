@@ -172,18 +172,8 @@ static mpeg4$define$build(mvhd)
 
 static inner_method_set_fullbox(mvhd, mpeg4_stuff__movie_header_s, pri.fullbox, 1);
 static inner_method_get_fullbox(mvhd, mpeg4_stuff__movie_header_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$creation_time)(mpeg4_stuff__movie_header_s *restrict r, uint64_t creation_time)
-{
-	r->pri.timespec.creation_time = creation_time;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$modification_time)(mpeg4_stuff__movie_header_s *restrict r, uint64_t modification_time)
-{
-	r->pri.timespec.modification_time = modification_time;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(mvhd, creation_time, mpeg4_stuff__movie_header_s, uint64_t, pri.timespec.creation_time);
+static inner_method_set_simple_param(mvhd, modification_time, mpeg4_stuff__movie_header_s, uint64_t, pri.timespec.modification_time);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$timescale)(mpeg4_stuff__movie_header_s *restrict r, uint32_t timescale)
 {
@@ -195,23 +185,9 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$timescale)(mpeg4_stuff
 	return NULL;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$duration)(mpeg4_stuff__movie_header_s *restrict r, uint64_t duration)
-{
-	r->pri.timespec.duration = duration;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$rate)(mpeg4_stuff__movie_header_s *restrict r, double rate)
-{
-	r->pri.rate = rate;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$volume)(mpeg4_stuff__movie_header_s *restrict r, double volume)
-{
-	r->pri.volume = volume;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(mvhd, duration, mpeg4_stuff__movie_header_s, uint64_t, pri.timespec.duration);
+static inner_method_set_simple_param(mvhd, rate, mpeg4_stuff__movie_header_s, double, pri.rate);
+static inner_method_set_simple_param(mvhd, volume, mpeg4_stuff__movie_header_s, double, pri.volume);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$matrix)(mpeg4_stuff__movie_header_s *restrict r, double matrix[9])
 {
@@ -219,11 +195,7 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$matrix)(mpeg4_stuff__m
 	return &r->stuff;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, mvhd, set$next_track_id)(mpeg4_stuff__movie_header_s *restrict r, uint32_t next_track_id)
-{
-	r->pri.next_track_id = next_track_id;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(mvhd, next_track_id, mpeg4_stuff__movie_header_s, uint32_t, pri.next_track_id);
 
 static const mpeg4$define$alloc(mvhd)
 {

@@ -252,12 +252,7 @@ static mpeg4$define$container_update(sgpd)
 
 static inner_method_set_fullbox(sgpd, mpeg4_stuff__sample_group_description_s, pri.fullbox, 2);
 static inner_method_get_fullbox(sgpd, mpeg4_stuff__sample_group_description_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, sgpd, set$default_sample_description_index)(mpeg4_stuff__sample_group_description_s *restrict r, uint32_t default_sample_description_index)
-{
-	r->pri.default_sample_description_index = default_sample_description_index;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(sgpd, default_sample_description_index, mpeg4_stuff__sample_group_description_s, uint32_t, pri.default_sample_description_index);
 
 static const mpeg4$define$alloc(sgpd)
 {

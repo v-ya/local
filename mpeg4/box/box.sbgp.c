@@ -163,17 +163,8 @@ static mpeg4$define$build(sbgp)
 static inner_method_set_fullbox(sbgp, mpeg4_stuff__sample2group_s, pri.fullbox, 1);
 static inner_method_get_fullbox(sbgp, mpeg4_stuff__sample2group_s, pri.fullbox);
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, sbgp, set$major_brand)(mpeg4_stuff__sample2group_s *restrict r, mpeg4_box_type_t major_brand)
-{
-	r->pri.grouping_type = major_brand;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, sbgp, set$minor_brand)(mpeg4_stuff__sample2group_s *restrict r, mpeg4_box_type_t minor_brand)
-{
-	r->pri.grouping_type_parameter = minor_brand;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(sbgp, major_brand, mpeg4_stuff__sample2group_s, mpeg4_box_type_t, pri.grouping_type);
+static inner_method_set_simple_param(sbgp, minor_brand, mpeg4_stuff__sample2group_s, mpeg4_box_type_t, pri.grouping_type_parameter);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, sbgp, add$sample_to_group)(mpeg4_stuff__sample2group_s *restrict r, uint32_t sample_count, uint32_t group_description_index)
 {

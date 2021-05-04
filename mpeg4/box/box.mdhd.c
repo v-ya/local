@@ -146,18 +146,8 @@ static mpeg4$define$build(mdhd)
 
 static inner_method_set_fullbox(mdhd, mpeg4_stuff__media_header_s, pri.fullbox, 1);
 static inner_method_get_fullbox(mdhd, mpeg4_stuff__media_header_s, pri.fullbox);
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$creation_time)(mpeg4_stuff__media_header_s *restrict r, uint64_t creation_time)
-{
-	r->pri.timespec.creation_time = creation_time;
-	return &r->stuff;
-}
-
-static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$modification_time)(mpeg4_stuff__media_header_s *restrict r, uint64_t modification_time)
-{
-	r->pri.timespec.modification_time = modification_time;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(mdhd, creation_time, mpeg4_stuff__media_header_s, uint64_t, pri.timespec.creation_time);
+static inner_method_set_simple_param(mdhd, modification_time, mpeg4_stuff__media_header_s, uint64_t, pri.timespec.modification_time);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$timescale)(mpeg4_stuff__media_header_s *restrict r, uint32_t timescale)
 {
@@ -169,11 +159,7 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$timescale)(mpeg4_stuff
 	return NULL;
 }
 
-static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$duration)(mpeg4_stuff__media_header_s *restrict r, uint64_t duration)
-{
-	r->pri.timespec.duration = duration;
-	return &r->stuff;
-}
+static inner_method_set_simple_param(mdhd, duration, mpeg4_stuff__media_header_s, uint64_t, pri.timespec.duration);
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, mdhd, set$language)(mpeg4_stuff__media_header_s *restrict r, const char language[3])
 {
