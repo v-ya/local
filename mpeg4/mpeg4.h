@@ -63,6 +63,8 @@ const mpeg4_stuff_s* mpeg4_stuff__set_audio_channel_count(mpeg4_stuff_s *restric
 const mpeg4_stuff_s* mpeg4_stuff__set_audio_sample_size(mpeg4_stuff_s *restrict r, uint16_t audio_sample_size);
 const mpeg4_stuff_s* mpeg4_stuff__set_bitrate(mpeg4_stuff_s *restrict r, uint32_t buffer_size_db, uint32_t max_bitrate, uint32_t avg_bitrate);
 const mpeg4_stuff_s* mpeg4_stuff__set_pixel_aspect_ratio(mpeg4_stuff_s *restrict r, uint32_t h_spacing, uint32_t v_spacing);
+const mpeg4_stuff_s* mpeg4_stuff__set_es_id(mpeg4_stuff_s *restrict r, uint16_t es_id);
+const mpeg4_stuff_s* mpeg4_stuff__set_decoder_config_profile(mpeg4_stuff_s *restrict r, uint8_t object_profile_indication, uint8_t stream_type);
 const mpeg4_stuff_s* mpeg4_stuff__add_edit_list_item(mpeg4_stuff_s *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
 const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mpeg4_stuff_s *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id);
 const mpeg4_stuff_s* mpeg4_stuff__set_sample_count(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t sample_count);

@@ -20,6 +20,43 @@ uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, void *restrict v
 	return data + vsize;
 }
 
+uint8_t* mpeg4$define(inner, uint8_t, get)(uint8_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
+{
+	if (*size)
+	{
+		--*size;
+		*r = *(*data)++;
+		return r;
+	}
+	return NULL;
+}
+
+uint8_t* mpeg4$define(inner, uint8_t, set)(uint8_t *restrict data, uint8_t v)
+{
+	*data++ = v;
+	return data;
+}
+
+uint16_t* mpeg4$define(inner, uint16_t, get)(uint16_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
+{
+	if (*size >= sizeof(*r))
+	{
+		memcpy(r, *data, sizeof(*r));
+		*r = mpeg4_n16(*r);
+		*data += sizeof(*r);
+		*size -= sizeof(*r);
+		return r;
+	}
+	return NULL;
+}
+
+uint8_t* mpeg4$define(inner, uint16_t, set)(uint8_t *restrict data, uint16_t v)
+{
+	v = mpeg4_n16(v);
+	memcpy(data, &v, sizeof(v));
+	return data + sizeof(v);
+}
+
 int16_t* mpeg4$define(inner, int16_t, get)(int16_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
 {
 	if (*size >= sizeof(*r))
@@ -38,6 +75,31 @@ uint8_t* mpeg4$define(inner, int16_t, set)(uint8_t *restrict data, int16_t v)
 	v = mpeg4_n16(v);
 	memcpy(data, &v, sizeof(v));
 	return data + sizeof(v);
+}
+
+uint32_t* mpeg4$define(inner, uint24_t, get)(uint32_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)
+{
+	if (*size >= 3)
+	{
+		register uint32_t n;
+		register const uint8_t *restrict p;
+		*size -= 3;
+		p = *data;
+		n = *p++;
+		n = (n << 8) | *p++;
+		*r = (n << 8) | *p++;
+		*data = p;
+		return r;
+	}
+	return NULL;
+}
+
+uint8_t* mpeg4$define(inner, uint24_t, set)(uint8_t *restrict data, uint32_t v)
+{
+	*data++ = (uint8_t) (v >> 16);
+	*data++ = (uint8_t) (v >> 8);
+	*data++ = (uint8_t) v;
+	return data;
 }
 
 uint32_t* mpeg4$define(inner, uint32_t, get)(uint32_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size)

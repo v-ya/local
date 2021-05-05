@@ -6,8 +6,17 @@
 void* mpeg4$define(inner, data, get)(void *restrict r, size_t rsize, const uint8_t *restrict *restrict data, uint64_t *restrict size);
 uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, void *restrict v, size_t vsize);
 
+uint8_t* mpeg4$define(inner, uint8_t, get)(uint8_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, uint8_t, set)(uint8_t *restrict data, uint8_t v);
+
+uint16_t* mpeg4$define(inner, uint16_t, get)(uint16_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, uint16_t, set)(uint8_t *restrict data, uint16_t v);
+
 int16_t* mpeg4$define(inner, int16_t, get)(int16_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
 uint8_t* mpeg4$define(inner, int16_t, set)(uint8_t *restrict data, int16_t v);
+
+uint32_t* mpeg4$define(inner, uint24_t, get)(uint32_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
+uint8_t* mpeg4$define(inner, uint24_t, set)(uint8_t *restrict data, uint32_t v);
 
 uint32_t* mpeg4$define(inner, uint32_t, get)(uint32_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
 uint8_t* mpeg4$define(inner, uint32_t, set)(uint8_t *restrict data, uint32_t v);
