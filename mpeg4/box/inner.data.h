@@ -4,7 +4,7 @@
 #include "box.include.h"
 
 void* mpeg4$define(inner, data, get)(void *restrict r, size_t rsize, const uint8_t *restrict *restrict data, uint64_t *restrict size);
-uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, void *restrict v, size_t vsize);
+uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, const void *restrict v, size_t vsize);
 
 uint8_t* mpeg4$define(inner, uint8_t, get)(uint8_t *restrict r, const uint8_t *restrict *restrict data, uint64_t *restrict size);
 uint8_t* mpeg4$define(inner, uint8_t, set)(uint8_t *restrict data, uint8_t v);

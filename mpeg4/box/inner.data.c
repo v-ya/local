@@ -14,7 +14,7 @@ void* mpeg4$define(inner, data, get)(void *restrict r, size_t rsize, const uint8
 	return NULL;
 }
 
-uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, void *restrict v, size_t vsize)
+uint8_t* mpeg4$define(inner, data, set)(uint8_t *restrict data, const void *restrict v, size_t vsize)
 {
 	memcpy(data, v, vsize);
 	return data + vsize;

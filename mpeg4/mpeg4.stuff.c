@@ -122,6 +122,24 @@ void mpeg4_stuff_calc_invalid(mpeg4_stuff_t *restrict stuff)
 	}
 }
 
+static void mpeg4_stuff_calc_invalid_tree_func(mpeg4_stuff_t *restrict root)
+{
+	while (root)
+	{
+		if (root->container.list)
+			mpeg4_stuff_calc_invalid_tree_func(root->container.list);
+		root->info.calc_okay = 0;
+		root = root->link.next;
+	}
+}
+
+void mpeg4_stuff_calc_invalid_tree(mpeg4_stuff_t *restrict root)
+{
+	if (root->container.list)
+		mpeg4_stuff_calc_invalid_tree_func(root->container.list);
+	mpeg4_stuff_calc_invalid(root);
+}
+
 mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpeg4_stuff_t *restrict stuff, mpeg4_stuff_t *restrict insert)
 {
 	if (!stuff->link.container && (!container->atom->interface.container_testing ||
@@ -159,7 +177,7 @@ mpeg4_stuff_t* mpeg4_stuff_container_link(mpeg4_stuff_t *restrict container, mpe
 			if (container->atom->interface.container_update)
 				container->atom->interface.container_update(container);
 			if (stuff->atom->interface.link_update)
-				stuff->atom->interface.link_update(stuff);
+				stuff->atom->interface.link_update(stuff, NULL);
 			return container;
 		}
 	}
@@ -217,7 +235,7 @@ void mpeg4_stuff_unlink(mpeg4_stuff_t *restrict stuff)
 		if (container->atom->interface.container_update)
 			container->atom->interface.container_update(container);
 		if (stuff->atom->interface.link_update)
-			stuff->atom->interface.link_update(stuff);
+			stuff->atom->interface.link_update(stuff, container);
 		refer_free(stuff);
 	}
 }

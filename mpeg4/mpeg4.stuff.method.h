@@ -41,6 +41,11 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$bitrate)(mpeg4_stuff_t *rest
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$pixel_aspect_ratio)(mpeg4_stuff_t *restrict r, uint32_t h_spacing, uint32_t v_spacing);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$es_id)(mpeg4_stuff_t *restrict r, uint16_t es_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$decoder_config_profile)(mpeg4_stuff_t *restrict r, uint8_t object_profile_indication, uint8_t stream_type);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$avcC_indication)(mpeg4_stuff_t *restrict r, uint8_t avc_profile_indication, uint8_t profile_compatibility, uint8_t avc_level_indication, uint8_t length_size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$avcC_extra)(mpeg4_stuff_t *restrict r, uint8_t chroma_format, uint8_t bit_depth_luma, uint8_t bit_depth_chroma);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_sps)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_pps)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_extra_spse)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$chunk_offset)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$sample_count)(mpeg4_stuff_t *restrict r, uint32_t sample_size, uint32_t sample_count);
@@ -102,6 +107,11 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$pixel_aspect_ratio,
 	mpeg4_stuff_method$set$es_id,
 	mpeg4_stuff_method$set$decoder_config_profile,
+	mpeg4_stuff_method$set$avcC_indication,
+	mpeg4_stuff_method$set$avcC_extra,
+	mpeg4_stuff_method$add$avcC_sps,
+	mpeg4_stuff_method$add$avcC_pps,
+	mpeg4_stuff_method$add$avcC_extra_spse,
 	mpeg4_stuff_method$add$edit_list_item,
 	mpeg4_stuff_method$add$chunk_offset,
 	mpeg4_stuff_method$set$sample_count,

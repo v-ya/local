@@ -1,4 +1,5 @@
 #include "box.include.h"
+#include "inner.bindata.h"
 #include "inner.data.h"
 #include <stdlib.h>
 #include <memory.h>
@@ -118,9 +119,8 @@ static mpeg4_stuff__media_data_t* mpeg4$define(inner, media_data, add_data)(mpeg
 		if (n > size) n = size;
 		memcpy(((uint8_t **) r->data.array)[i++] + (r->size & media_data_chip_mask), data, n);
 		data += n;
-		if (!(n = size - n))
-			goto label_ok;
 	}
+	n = size - n;
 	while (n)
 	{
 		if (n >= media_data_chip_size)
@@ -136,7 +136,6 @@ static mpeg4_stuff__media_data_t* mpeg4$define(inner, media_data, add_data)(mpeg
 		}
 		++i;
 	}
-	label_ok:
 	r->size += size;
 	return r;
 	label_fail:
@@ -207,8 +206,9 @@ static mpeg4$define$calc(mdat)
 static mpeg4$define$build(mdat)
 {
 	mpeg4_stuff__media_data_t *restrict r = &((mpeg4_stuff__media_data_s *) stuff)->pri;
-	mpeg4$define(inner, media_data, get_data)(r, data, 0, r->size);
-	return stuff;
+	if (mpeg4$define(inner, media_data, get_data)(r, data, 0, r->size) == r->size)
+		return stuff;
+	return NULL;
 }
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, add$data)(mpeg4_stuff__media_data_s *restrict r, const void *data, uint64_t size, uint64_t *restrict offset)
@@ -253,6 +253,18 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, inner$do_parse_mdat)(mpeg4
 	return &r->stuff;
 }
 
+static mpeg4$define$link_update(mdat)
+{
+	if (!last_container)
+		last_container = stuff->link.container;
+	if (last_container)
+	{
+		while (last_container->link.container)
+			last_container = last_container->link.container;
+		mpeg4_stuff_calc_invalid_tree(last_container);
+	}
+}
+
 static const mpeg4$define$alloc(mdat)
 {
 	mpeg4_atom_s *restrict r;
@@ -264,6 +276,7 @@ static const mpeg4$define$alloc(mdat)
 		r->interface.parse = mpeg4$define(atom, mdat, parse);
 		r->interface.calc = mpeg4$define(atom, mdat, calc);
 		r->interface.build = mpeg4$define(atom, mdat, build);
+		r->interface.link_update = mpeg4$define(atom, mdat, link_update);
 		if (
 			mpeg4$stuff$method$set(r, mdat, add$data) &&
 			mpeg4$stuff$method$set(r, mdat, calc$offset) &&

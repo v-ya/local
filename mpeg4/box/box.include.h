@@ -47,6 +47,7 @@ mpeg4$define$find(stsd_audio);
 mpeg4$define$find(stsd_codec_btrt);
 mpeg4$define$find(stsd_codec_esds);
 mpeg4$define$find(stsd_codec_pasp);
+mpeg4$define$find(stsd_codec_avcC);
 mpeg4$define$find(stts);
 mpeg4$define$find(ctts);
 mpeg4$define$find(stss);
