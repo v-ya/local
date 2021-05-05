@@ -37,6 +37,7 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$frame_per_sample)(mpeg4_stuf
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$depth)(mpeg4_stuff_t *restrict r, uint16_t depth);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$audio_channel_count)(mpeg4_stuff_t *restrict r, uint16_t audio_channel_count);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$audio_sample_size)(mpeg4_stuff_t *restrict r, uint16_t audio_sample_size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$bitrate)(mpeg4_stuff_t *restrict r, uint32_t buffer_size_db, uint32_t max_bitrate, uint32_t avg_bitrate);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$chunk_offset)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$sample_count)(mpeg4_stuff_t *restrict r, uint32_t sample_size, uint32_t sample_count);
@@ -94,6 +95,7 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$set$depth,
 	mpeg4_stuff_method$set$audio_channel_count,
 	mpeg4_stuff_method$set$audio_sample_size,
+	mpeg4_stuff_method$set$bitrate,
 	mpeg4_stuff_method$add$edit_list_item,
 	mpeg4_stuff_method$add$chunk_offset,
 	mpeg4_stuff_method$set$sample_count,
