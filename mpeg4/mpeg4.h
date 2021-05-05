@@ -15,6 +15,7 @@ mpeg4_stuff_s* mpeg4_create_stuff(const mpeg4_stuff_s *restrict container, const
 mpeg4_stuff_s* mpeg4_link_stuff(mpeg4_stuff_s *restrict container, mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_link_before_stuff(mpeg4_stuff_s *restrict after, mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char *restrict type);
+void mpeg4_unlink_stuff(mpeg4_stuff_s *restrict stuff);
 mpeg4_stuff_s* mpeg4_find_stuff(mpeg4_stuff_s *restrict container, const char *restrict type);
 mpeg4_stuff_s* mpeg4_find_path_stuff(mpeg4_stuff_s *restrict container, const char *const restrict *restrict path);
 mpeg4_stuff_s* mpeg4_stuff_container(mpeg4_stuff_s *restrict stuff);

@@ -98,6 +98,11 @@ mpeg4_stuff_s* mpeg4_append_stuff(mpeg4_stuff_s *restrict container, const char 
 	return NULL;
 }
 
+void mpeg4_unlink_stuff(mpeg4_stuff_s *restrict stuff)
+{
+	mpeg4_stuff_unlink(stuff);
+}
+
 mpeg4_stuff_s* mpeg4_stuff_container(mpeg4_stuff_s *restrict stuff)
 {
 	return stuff->link.container;

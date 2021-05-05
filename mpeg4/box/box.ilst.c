@@ -9,6 +9,10 @@ static const mpeg4$define$alloc(ilst)
 	{
 		if (
 			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©ART") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©alb") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©cmt") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©day") &&
+			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©gen") &&
 			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©nam") &&
 			mpeg4$inner$type$alloc$layer2(r, inst, ilst_copyright, "©too")
 		) return r;
