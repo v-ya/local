@@ -7,7 +7,7 @@
 #define mpeg4_max_dump_data_length  256
 
 typedef struct mpeg4_stuff__data_t {
-	void *data;
+	uint8_t *data;
 	uint64_t size;
 } mpeg4_stuff__data_t;
 
@@ -28,8 +28,7 @@ static mpeg4$define$dump(data)
 
 static mpeg4$define$stuff$free(data, mpeg4_stuff__data_s)
 {
-	if (r->pri.data)
-		free(r->pri.data);
+	mpeg4$define(inner, block, set)(&r->pri.data, &r->pri.size, NULL, 0);
 	mpeg4_stuff_free_default_func(&r->stuff);
 }
 
@@ -66,20 +65,8 @@ static mpeg4$define$build(data)
 
 static const mpeg4_stuff_t* mpeg4$define(stuff, data, set$data)(mpeg4_stuff__data_s *restrict r, const void *data, uint64_t size)
 {
-	void *ndata = NULL;
-	if (size)
-	{
-		ndata = malloc((size_t) size);
-		if (!ndata)
-			goto label_fail;
-		memcpy(ndata, data, (size_t) size);
-	}
-	if (r->pri.data)
-		free(r->pri.data);
-	r->pri.data = ndata;
-	r->pri.size = size;
-	return &r->stuff;
-	label_fail:
+	if (mpeg4$define(inner, block, set)(&r->pri.data, &r->pri.size, data, size))
+		return &r->stuff;
 	return NULL;
 }
 

@@ -46,6 +46,9 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$avcC_extra)(mpeg4_stuff_t *r
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_sps)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_pps)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$avcC_extra_spse)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$av1C_seq)(mpeg4_stuff_t *restrict r, uint8_t seq_profile, uint8_t seq_level_idx_0);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$av1C_flag)(mpeg4_stuff_t *restrict r, uint8_t seq_tier_0, uint8_t high_bitdepth, uint8_t twelve_bit, uint8_t monochrome, uint8_t chroma_subsampling_x, uint8_t chroma_subsampling_y, uint8_t chroma_sample_position);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$av1C_initial_presentation_delay)(mpeg4_stuff_t *restrict r, uint8_t initial_presentation_delay);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$edit_list_item)(mpeg4_stuff_t *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$chunk_offset)(mpeg4_stuff_t *restrict r, mpeg4_stuff_t *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$sample_count)(mpeg4_stuff_t *restrict r, uint32_t sample_size, uint32_t sample_count);
@@ -112,6 +115,9 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$add$avcC_sps,
 	mpeg4_stuff_method$add$avcC_pps,
 	mpeg4_stuff_method$add$avcC_extra_spse,
+	mpeg4_stuff_method$set$av1C_seq,
+	mpeg4_stuff_method$set$av1C_flag,
+	mpeg4_stuff_method$set$av1C_initial_presentation_delay,
 	mpeg4_stuff_method$add$edit_list_item,
 	mpeg4_stuff_method$add$chunk_offset,
 	mpeg4_stuff_method$set$sample_count,

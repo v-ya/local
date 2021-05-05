@@ -134,6 +134,7 @@ static const mpeg4$define$alloc(stsd_visual)
 			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_esds, "esds") &&
 			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_pasp, "pasp") &&
 			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_avcC, "avcC") &&
+			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_av1C, "av1C") &&
 			mpeg4$stuff$method$set(&r->atom, stsd_visual, set$data_reference_index) &&
 			mpeg4$stuff$method$set(&r->atom, stsd_visual, set$pixel_resolution) &&
 			mpeg4$stuff$method$set(&r->atom, stsd_visual, set$ppi_resolution) &&
