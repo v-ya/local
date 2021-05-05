@@ -105,6 +105,7 @@ static const mpeg4$define$alloc(stsd_audio)
 		if (
 			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_btrt, "btrt") &&
 			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_esds, "esds") &&
+			mpeg4$inner$type$alloc$layer2(&r->atom, inst, stsd_codec_dfLa, "dfLa") &&
 			mpeg4$stuff$method$set(&r->atom, stsd_audio, set$data_reference_index) &&
 			mpeg4$stuff$method$set(&r->atom, stsd_audio, set$minor_version) &&
 			mpeg4$stuff$method$set(&r->atom, stsd_audio, set$audio_channel_count) &&

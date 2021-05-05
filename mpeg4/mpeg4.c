@@ -316,6 +316,7 @@ const mpeg4_stuff_s* mpeg4_stuff__set_av1C_flag(mpeg4_stuff_s *restrict r, uint8
 }
 
 stuff_method_call_d1(set, av1C_initial_presentation_delay, uint8_t, initial_presentation_delay)
+stuff_method_call_d3(add, dfLa_metadata, uint8_t, type, const void *, data, uint64_t, size)
 stuff_method_call_d4(add, edit_list_item, uint64_t, segment_duration, int64_t, media_time, uint16_t, media_rate_integer, uint16_t, media_rate_fraction)
 stuff_method_call_d3(add, chunk_offset, mpeg4_stuff_s *restrict, mdat, uint64_t, offset, uint32_t *restrict, chunk_id)
 stuff_method_call_d2(set, sample_count, uint32_t, sample_size, uint32_t, sample_count)

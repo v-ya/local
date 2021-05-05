@@ -352,7 +352,6 @@ $VisualSampleEntry:
 	uint16_t depth;            // maybe 24
 	int16_t pre_defined = -1;
 	...
-}
 
 $AVCDecoderConfigurationRecord:
 	uint8_t configuration_version = 1;
@@ -413,11 +412,20 @@ $AV1CodecConfigurationRecord:
 	else
 		bit4_t reserved = 0;
 	uint8_t config_obus[];
-}
 
 $AV1CodecConfigurationBox:
 	$Box box(type = 'av1C');
 	$AV1CodecConfigurationRecord av1_config;
+
+$FLACMetadataBlock:
+	bit last_metadata_block_flag;
+	uint7_t block_type;
+	uint24_t length;
+	uint8_t data[length];
+
+$FLACSpecificBox:
+	$FullBox fullbox(box.type = 'dfLa', version = 0, flags = 0);
+	$FLACMetadataBlock metadata_block[];
 
 $ESDBox:
 	$FullBox fullbox(box.type = 'esds', version = 0, flags = 0);

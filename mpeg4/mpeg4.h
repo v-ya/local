@@ -74,6 +74,7 @@ const mpeg4_stuff_s* mpeg4_stuff__add_avcC_extra_spse(mpeg4_stuff_s *restrict r,
 const mpeg4_stuff_s* mpeg4_stuff__set_av1C_seq(mpeg4_stuff_s *restrict r, uint8_t seq_profile, uint8_t seq_level_idx_0);
 const mpeg4_stuff_s* mpeg4_stuff__set_av1C_flag(mpeg4_stuff_s *restrict r, uint8_t seq_tier_0, uint8_t high_bitdepth, uint8_t twelve_bit, uint8_t monochrome, uint8_t chroma_subsampling_x, uint8_t chroma_subsampling_y, uint8_t chroma_sample_position);
 const mpeg4_stuff_s* mpeg4_stuff__set_av1C_initial_presentation_delay(mpeg4_stuff_s *restrict r, uint8_t initial_presentation_delay);
+const mpeg4_stuff_s* mpeg4_stuff__add_dfLa_metadata(mpeg4_stuff_s *restrict r, uint8_t type, const void *data, uint64_t size);
 const mpeg4_stuff_s* mpeg4_stuff__add_edit_list_item(mpeg4_stuff_s *restrict r, uint64_t segment_duration, int64_t media_time, uint16_t media_rate_integer, uint16_t media_rate_fraction);
 const mpeg4_stuff_s* mpeg4_stuff__add_chunk_offset(mpeg4_stuff_s *restrict r, mpeg4_stuff_s *restrict mdat, uint64_t offset, uint32_t *restrict chunk_id);
 const mpeg4_stuff_s* mpeg4_stuff__set_sample_count(mpeg4_stuff_s *restrict r, uint32_t sample_size, uint32_t sample_count);
