@@ -116,6 +116,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(set, audio_channel_count),
 		d_mn(set, audio_sample_size),
 		d_mn(set, bitrate),
+		d_mn(set, pixel_aspect_ratio),
 		d_mn(add, edit_list_item),
 		d_mn(add, chunk_offset),
 		d_mn(set, sample_count),
