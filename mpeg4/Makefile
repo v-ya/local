@@ -4,7 +4,7 @@ HEADER		= mpeg4.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lrbtree -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lrbtree -lmlog -soname ${TARGET}
 
 OBJECT		= mpeg4.o mpeg4.inst.o mpeg4.stuff.o mpeg4.atom.o mpeg4.box.o $(patsubst %.c, %.o, $(wildcard box/*.c))
 
