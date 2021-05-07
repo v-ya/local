@@ -3,8 +3,8 @@
 	2. dylink 非 static 函数取函数指针过程需要 plt，预链接过程中不提供 plt
 
 短期规划
-	* mp4 mux
 	* av1 codec
+	* flac codec
 	* posky 邮递系统
 	* graph 资源 pocket 解析系统
 		- 实例
