@@ -4,9 +4,9 @@ HEADER		= av1.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lmlog -soname ${TARGET}
 
-OBJECT		= av1.o $(patsubst %.c, %.o, $(wildcard bits/*.c))
+OBJECT		= av1.o $(patsubst %.c, %.o, $(wildcard bits/*.c)) $(patsubst %.c, %.o, $(wildcard obu/*.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

@@ -33,6 +33,9 @@ const uint8_t* av1_bits_writer_end(av1_bits_writer_t *restrict writer, uint64_t 
 
 // base bits type
 
+av1_bits_reader_t* av1_bits_flag_read(av1_bits_reader_t *restrict r, uint8_t *restrict flag);
+av1_bits_writer_t* av1_bits_flag_write(av1_bits_writer_t *restrict w, uint8_t flag);
+
 av1_bits_reader_t* av1_bits_uint_read(av1_bits_reader_t *restrict r, uint64_t *restrict value, uint32_t bits);
 av1_bits_writer_t* av1_bits_uint_write(av1_bits_writer_t *restrict w, uint64_t value, uint32_t bits);
 av1_bits_reader_t* av1_bits_int_read(av1_bits_reader_t *restrict r, int64_t *restrict value, uint32_t bits);
@@ -40,5 +43,10 @@ av1_bits_writer_t* av1_bits_int_write(av1_bits_writer_t *restrict w, int64_t val
 
 av1_bits_reader_t* av1_bits_leb128_read(av1_bits_reader_t *restrict r, uint64_t *restrict value);
 av1_bits_writer_t* av1_bits_leb128_write(av1_bits_writer_t *restrict w, uint64_t value);
+uint64_t av1_bits_leb128_bits(uint64_t value);
+
+av1_bits_reader_t* av1_bits_uvlc_read(av1_bits_reader_t *restrict r, uint32_t *restrict value);
+av1_bits_writer_t* av1_bits_uvlc_write(av1_bits_writer_t *restrict w, uint32_t value);
+uint64_t av1_bits_uvlc_bits(uint32_t value);
 
 #endif
