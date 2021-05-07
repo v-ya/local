@@ -249,6 +249,7 @@ stuff_method_call_d2(set, version_and_flags, uint32_t, version, uint32_t, flags)
 stuff_method_call_d2(get, version_and_flags, uint32_t *restrict, version, uint32_t *restrict, flags)
 stuff_method_call_d2(set, data, const void *, data, uint64_t, size)
 stuff_method_call_d3(add, data, const void *, data, uint64_t, size, uint64_t *restrict, offset)
+stuff_method_call_d4(get, data, uint64_t, offset, void *, data, uint64_t, size, uint64_t *restrict, rsize)
 stuff_method_call_d1(calc, offset, uint64_t *restrict, offset)
 
 const mpeg4_stuff_s* mpeg4_stuff__set_creation_time(mpeg4_stuff_s *restrict r, uint64_t creation_time)

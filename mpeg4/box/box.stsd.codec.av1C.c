@@ -200,6 +200,12 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, stsd_codec_av1C, set$data)(mpeg4
 	return NULL;
 }
 
+static const mpeg4_stuff_t* mpeg4$define(stuff, stsd_codec_av1C, get$data)(mpeg4_stuff__stsd_av1C_s *restrict r, uint64_t offset, void *data, uint64_t size, uint64_t *restrict rsize)
+{
+	mpeg4$define(inner, block, get)(r->av1_config.config_obus, r->av1_config.config_obus_size, offset, data, size, rsize);
+	return &r->stuff;
+}
+
 static const mpeg4$define$alloc(stsd_codec_av1C)
 {
 	mpeg4_atom_s *restrict r;
@@ -215,7 +221,8 @@ static const mpeg4$define$alloc(stsd_codec_av1C)
 			mpeg4$stuff$method$set(r, stsd_codec_av1C, set$av1C_seq) &&
 			mpeg4$stuff$method$set(r, stsd_codec_av1C, set$av1C_flag) &&
 			mpeg4$stuff$method$set(r, stsd_codec_av1C, set$av1C_initial_presentation_delay) &&
-			mpeg4$stuff$method$set(r, stsd_codec_av1C, set$data)
+			mpeg4$stuff$method$set(r, stsd_codec_av1C, set$data) &&
+			mpeg4$stuff$method$set(r, stsd_codec_av1C, get$data)
 		) return r;
 		refer_free(r);
 	}

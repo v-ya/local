@@ -89,6 +89,7 @@ static void mpeg4_dump_atom_verbose_tree__dump_info_method_func(rbtree_t *restri
 		d_mn(get, version_and_flags),
 		d_mn(set, data),
 		d_mn(add, data),
+		d_mn(get, data),
 		d_mn(calc, offset),
 		d_mn(set, creation_time),
 		d_mn(set, modification_time),

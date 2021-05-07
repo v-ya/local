@@ -219,6 +219,18 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, add$data)(mpeg4_stuff__med
 	return NULL;
 }
 
+static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, get$data)(mpeg4_stuff__media_data_s *restrict r, uint64_t offset, void *data, uint64_t size, uint64_t *restrict rsize)
+{
+	uint64_t n;
+	n = 0;
+	if (size)
+		n = mpeg4$define(inner, media_data, get_data)(&r->pri, data, offset, size);
+	else if (r->pri.size > offset)
+		n = r->pri.size - offset;
+	if (rsize) *rsize = n;
+	return &r->stuff;
+}
+
 static const mpeg4_stuff_t* mpeg4$define(stuff, mdat, calc$offset)(mpeg4_stuff__media_data_s *restrict r, uint64_t *restrict offset)
 {
 	if (!r->stuff.info.calc_okay)
@@ -279,6 +291,7 @@ static const mpeg4$define$alloc(mdat)
 		r->interface.link_update = mpeg4$define(atom, mdat, link_update);
 		if (
 			mpeg4$stuff$method$set(r, mdat, add$data) &&
+			mpeg4$stuff$method$set(r, mdat, get$data) &&
 			mpeg4$stuff$method$set(r, mdat, calc$offset) &&
 			mpeg4$stuff$method$set(r, mdat, inner$set_parse) &&
 			mpeg4$stuff$method$set(r, mdat, inner$do_parse_mdat)

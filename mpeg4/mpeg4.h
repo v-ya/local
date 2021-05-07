@@ -36,6 +36,7 @@ const mpeg4_stuff_s* mpeg4_stuff__set_version_and_flags(mpeg4_stuff_s *restrict 
 const mpeg4_stuff_s* mpeg4_stuff__get_version_and_flags(mpeg4_stuff_s *restrict r, uint32_t *restrict version, uint32_t *restrict flags);
 const mpeg4_stuff_s* mpeg4_stuff__set_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size);
 const mpeg4_stuff_s* mpeg4_stuff__add_data(mpeg4_stuff_s *restrict r, const void *data, uint64_t size, uint64_t *restrict offset);
+const mpeg4_stuff_s* mpeg4_stuff__get_data(mpeg4_stuff_s *restrict r, uint64_t offset, void *data, uint64_t size, uint64_t *restrict rsize);
 const mpeg4_stuff_s* mpeg4_stuff__calc_offset(mpeg4_stuff_s *restrict r, uint64_t *restrict offset);
 const mpeg4_stuff_s* mpeg4_stuff__set_creation_time(mpeg4_stuff_s *restrict r, uint64_t creation_time);
 const mpeg4_stuff_s* mpeg4_stuff__set_modification_time(mpeg4_stuff_s *restrict r, uint64_t modification_time);

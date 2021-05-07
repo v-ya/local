@@ -27,6 +27,7 @@ int32_t mpeg4$define(inner, f2i, int32_t)(double v);
 uint32_t mpeg4$define(inner, f2i, uint32_t)(double v);
 
 uint8_t** mpeg4$define(inner, block, set)(uint8_t **restrict p_block, uintptr_t *restrict p_size, const void *restrict block, uintptr_t size);
+void mpeg4$define(inner, block, get)(uint8_t *restrict block, uintptr_t size, uint64_t offset, void *rdata, uint64_t rsize, uint64_t *restrict rlength);
 
 char** mpeg4$define(inner, string, set_with_length)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string, uintptr_t n);
 char** mpeg4$define(inner, string, set)(char **restrict p_string, uintptr_t *restrict p_length, const char *restrict string);

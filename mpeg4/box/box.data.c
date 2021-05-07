@@ -70,6 +70,12 @@ static const mpeg4_stuff_t* mpeg4$define(stuff, data, set$data)(mpeg4_stuff__dat
 	return NULL;
 }
 
+static const mpeg4_stuff_t* mpeg4$define(stuff, data, get$data)(mpeg4_stuff__data_s *restrict r, uint64_t offset, void *data, uint64_t size, uint64_t *restrict rsize)
+{
+	mpeg4$define(inner, block, get)(r->pri.data, r->pri.size, offset, data, size, rsize);
+	return &r->stuff;
+}
+
 static const mpeg4$define$alloc(data)
 {
 	mpeg4_atom_s *restrict r;
@@ -81,8 +87,10 @@ static const mpeg4$define$alloc(data)
 		r->interface.parse = mpeg4$define(atom, data, parse);
 		r->interface.calc = mpeg4$define(atom, data, calc);
 		r->interface.build = mpeg4$define(atom, data, build);
-		if (mpeg4$stuff$method$set(r, data, set$data))
-			return r;
+		if (
+			mpeg4$stuff$method$set(r, data, set$data) &&
+			mpeg4$stuff$method$set(r, data, get$data)
+		) return r;
 		refer_free(r);
 	}
 	return NULL;

@@ -11,6 +11,7 @@ typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$version_and_flags)(mpeg4_stu
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$get$version_and_flags)(mpeg4_stuff_t *restrict r, uint32_t *restrict version, uint32_t *restrict flags);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$add$data)(mpeg4_stuff_t *restrict r, const void *data, uint64_t size, uint64_t *restrict offset);
+typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$get$data)(mpeg4_stuff_t *restrict r, uint64_t offset, void *data, uint64_t size, uint64_t *restrict rsize);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$calc$offset)(mpeg4_stuff_t *restrict r, uint64_t *restrict offset);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$creation_time)(mpeg4_stuff_t *restrict r, uint64_t creation_time);
 typedef const mpeg4_stuff_t* (*mpeg4_stuff_func$set$modification_time)(mpeg4_stuff_t *restrict r, uint64_t modification_time);
@@ -81,6 +82,7 @@ typedef enum mpeg4_stuff_method_t {
 	mpeg4_stuff_method$get$version_and_flags,
 	mpeg4_stuff_method$set$data,
 	mpeg4_stuff_method$add$data,
+	mpeg4_stuff_method$get$data,
 	mpeg4_stuff_method$calc$offset,
 	mpeg4_stuff_method$set$creation_time,
 	mpeg4_stuff_method$set$modification_time,
