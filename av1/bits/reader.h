@@ -11,6 +11,7 @@ static inline uint64_t av1_bits_reader_read(register av1_bits_reader_t *restrict
 	{
 		label_re_read:
 		r = reader->saver.cache >> (64 - bits_must_le_64);
+		label_ok:
 		reader->saver.cache <<= bits_must_le_64;
 		reader->saver.cbits -= bits_must_le_64;
 		reader->saver.rbits -= bits_must_le_64;
@@ -24,9 +25,7 @@ static inline uint64_t av1_bits_reader_read(register av1_bits_reader_t *restrict
 			bits_must_le_64 -= reader->saver.cbits;
 			av1_bits_reader_load(reader);
 			r = (r << bits_must_le_64) | (reader->saver.cache >> (64 - bits_must_le_64));
-			reader->saver.cache <<= bits_must_le_64;
-			reader->saver.cbits -= bits_must_le_64;
-			reader->saver.rbits -= bits_must_le_64;
+			goto label_ok;
 		}
 		else
 		{

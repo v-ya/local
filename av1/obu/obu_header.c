@@ -84,7 +84,7 @@ uint64_t av1_obu_header_bits(const av1_obu_header_t *restrict header)
 
 void av1_obu_header_dump(const av1_obu_header_t *restrict header, mlog_s *restrict mlog)
 {
-	static const char *s_type[16] = {
+	static const char *s_type[av1_obu_type$max] = {
 		[av1_obu_type_reserved] = "reserved",
 		[av1_obu_type_sequence_header] = "sequence_header",
 		[av1_obu_type_temporal_delimiter] = "temporal_delimiter",

@@ -13,7 +13,8 @@ typedef enum av1_obu_type_t {
 	av1_obu_type_frame = 6,
 	av1_obu_type_redundant_frame_header = 7,
 	av1_obu_type_tile_list = 8,
-	av1_obu_type_padding = 15
+	av1_obu_type_padding = 15,
+	av1_obu_type$max = 16
 } av1_obu_type_t;
 
 typedef struct av1_obu_header_t {
