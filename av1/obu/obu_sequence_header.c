@@ -1,4 +1,5 @@
 #include "obu_sequence_header.h"
+#include "define.h"
 
 av1_obu_sequence_header_t* av1_obu_sequence_header_init(av1_obu_sequence_header_t *restrict header)
 {
@@ -13,8 +14,8 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_init(av1_obu_sequence_header_
 		header->max_frame_height = 1;
 		header->delta_frame_id_length = 2;
 		header->additional_frame_id_length = 1;
-		header->seq_screen_content_tools = 2;
-		header->seq_integer_mv = 2;
+		header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
+		header->seq_integer_mv = SELECT_INTEGER_MV;
 		header->order_hint_bits = 1;
 		header->color_config_color_primaries = av1_color_primaries_UNSPECIFIED;
 		header->color_config_transfer_characteristics = av1_transfer_characteristics_UNSPECIFIED;
@@ -212,8 +213,8 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 		header->enable_order_hint = 0;
 		header->enable_jnt_comp = 0;
 		header->enable_ref_frame_mvs = 0;
-		header->seq_screen_content_tools = 2;
-		header->seq_integer_mv = 2;
+		header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
+		header->seq_integer_mv = SELECT_INTEGER_MV;
 	}
 	else
 	{
@@ -252,7 +253,7 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 			if (!av1_bits_flag_read(reader, &header->seq_screen_content_tools))
 				goto label_fail;
 		}
-		else header->seq_screen_content_tools = 2;
+		else header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
 		if (header->seq_screen_content_tools > 0)
 		{
 			// (1) seq_choose_integer_mv
@@ -264,9 +265,9 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 				if (!av1_bits_flag_read(reader, &header->seq_integer_mv))
 					goto label_fail;
 			}
-			else header->seq_integer_mv = 2;
+			else header->seq_integer_mv = SELECT_INTEGER_MV;
 		}
-		else header->seq_integer_mv = 2;
+		else header->seq_integer_mv = SELECT_INTEGER_MV;
 		if (header->enable_order_hint)
 		{
 			// (3) order_hint_bits_minus_1
@@ -557,7 +558,7 @@ const av1_obu_sequence_header_t* av1_obu_sequence_header_write(const av1_obu_seq
 		// (1) seq_choose_screen_content_tools
 		if (!av1_bits_flag_write(writer, (header->seq_screen_content_tools > 1)))
 			goto label_fail;
-		if (header->seq_screen_content_tools < 2)
+		if (header->seq_screen_content_tools < SELECT_SCREEN_CONTENT_TOOLS)
 		{
 			// (1) seq_force_screen_content_tools
 			if (!av1_bits_flag_write(writer, header->seq_screen_content_tools))
@@ -568,7 +569,7 @@ const av1_obu_sequence_header_t* av1_obu_sequence_header_write(const av1_obu_seq
 			// (1) seq_choose_integer_mv
 			if (!av1_bits_flag_write(writer, (header->seq_integer_mv > 1)))
 				goto label_fail;
-			if (header->seq_integer_mv < 2)
+			if (header->seq_integer_mv < SELECT_INTEGER_MV)
 			{
 				// (1) seq_force_integer_mv
 				if (!av1_bits_flag_write(writer, header->seq_integer_mv))
