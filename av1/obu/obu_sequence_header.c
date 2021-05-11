@@ -14,8 +14,8 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_init(av1_obu_sequence_header_
 		header->max_frame_height = 1;
 		header->delta_frame_id_length = 2;
 		header->additional_frame_id_length = 1;
-		header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
-		header->seq_integer_mv = SELECT_INTEGER_MV;
+		header->seq_force_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
+		header->seq_force_integer_mv = SELECT_INTEGER_MV;
 		header->order_hint_bits = 1;
 		header->color_config_color_primaries = av1_color_primaries_UNSPECIFIED;
 		header->color_config_transfer_characteristics = av1_transfer_characteristics_UNSPECIFIED;
@@ -213,8 +213,8 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 		header->enable_order_hint = 0;
 		header->enable_jnt_comp = 0;
 		header->enable_ref_frame_mvs = 0;
-		header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
-		header->seq_integer_mv = SELECT_INTEGER_MV;
+		header->seq_force_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
+		header->seq_force_integer_mv = SELECT_INTEGER_MV;
 	}
 	else
 	{
@@ -250,11 +250,11 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 		if (!f)
 		{
 			// (1) seq_force_screen_content_tools
-			if (!av1_bits_flag_read(reader, &header->seq_screen_content_tools))
+			if (!av1_bits_flag_read(reader, &header->seq_force_screen_content_tools))
 				goto label_fail;
 		}
-		else header->seq_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
-		if (header->seq_screen_content_tools > 0)
+		else header->seq_force_screen_content_tools = SELECT_SCREEN_CONTENT_TOOLS;
+		if (header->seq_force_screen_content_tools > 0)
 		{
 			// (1) seq_choose_integer_mv
 			if (!av1_bits_flag_read(reader, &f))
@@ -262,12 +262,12 @@ av1_obu_sequence_header_t* av1_obu_sequence_header_read(av1_obu_sequence_header_
 			if (!f)
 			{
 				// (1) seq_force_integer_mv
-				if (!av1_bits_flag_read(reader, &header->seq_integer_mv))
+				if (!av1_bits_flag_read(reader, &header->seq_force_integer_mv))
 					goto label_fail;
 			}
-			else header->seq_integer_mv = SELECT_INTEGER_MV;
+			else header->seq_force_integer_mv = SELECT_INTEGER_MV;
 		}
-		else header->seq_integer_mv = SELECT_INTEGER_MV;
+		else header->seq_force_integer_mv = SELECT_INTEGER_MV;
 		if (header->enable_order_hint)
 		{
 			// (3) order_hint_bits_minus_1
@@ -556,23 +556,23 @@ const av1_obu_sequence_header_t* av1_obu_sequence_header_write(const av1_obu_seq
 				goto label_fail;
 		}
 		// (1) seq_choose_screen_content_tools
-		if (!av1_bits_flag_write(writer, (header->seq_screen_content_tools > 1)))
+		if (!av1_bits_flag_write(writer, (header->seq_force_screen_content_tools > 1)))
 			goto label_fail;
-		if (header->seq_screen_content_tools < SELECT_SCREEN_CONTENT_TOOLS)
+		if (header->seq_force_screen_content_tools < SELECT_SCREEN_CONTENT_TOOLS)
 		{
 			// (1) seq_force_screen_content_tools
-			if (!av1_bits_flag_write(writer, header->seq_screen_content_tools))
+			if (!av1_bits_flag_write(writer, header->seq_force_screen_content_tools))
 				goto label_fail;
 		}
-		if (header->seq_screen_content_tools > 0)
+		if (header->seq_force_screen_content_tools > 0)
 		{
 			// (1) seq_choose_integer_mv
-			if (!av1_bits_flag_write(writer, (header->seq_integer_mv > 1)))
+			if (!av1_bits_flag_write(writer, (header->seq_force_integer_mv > 1)))
 				goto label_fail;
-			if (header->seq_integer_mv < SELECT_INTEGER_MV)
+			if (header->seq_force_integer_mv < SELECT_INTEGER_MV)
 			{
 				// (1) seq_force_integer_mv
-				if (!av1_bits_flag_write(writer, header->seq_integer_mv))
+				if (!av1_bits_flag_write(writer, header->seq_force_integer_mv))
 					goto label_fail;
 			}
 		}
@@ -724,9 +724,9 @@ uint64_t av1_obu_sequence_header_bits(const av1_obu_sequence_header_t *restrict 
 		size += 5;
 		if (header->enable_order_hint)
 			size += 2;
-		size += (header->seq_screen_content_tools > 1)?1:2;
-		if (header->seq_screen_content_tools > 0)
-			size += (header->seq_integer_mv > 1)?1:2;
+		size += (header->seq_force_screen_content_tools > 1)?1:2;
+		if (header->seq_force_screen_content_tools > 0)
+			size += (header->seq_force_integer_mv > 1)?1:2;
 		if (header->enable_order_hint)
 			size += 3;
 	}
@@ -769,91 +769,8 @@ uint64_t av1_obu_sequence_header_bits(const av1_obu_sequence_header_t *restrict 
 	return size;
 }
 
-static const char* av1_string_color_primaries(av1_color_primaries_t t, const char *restrict reserve)
-{
-	static const char *s[av1_color_primaries$max] = {
-		[av1_color_primaries_BT_709]       = "BT.709",
-		[av1_color_primaries_UNSPECIFIED]  = "Unspecified",
-		[av1_color_primaries_BT_470_M]     = "BT.470 System M (historical)",
-		[av1_color_primaries_BT_470_B_G]   = "BT.470 System B, G (historical)",
-		[av1_color_primaries_BT_601]       = "BT.601",
-		[av1_color_primaries_SMPTE_240]    = "SMPTE 240",
-		[av1_color_primaries_GENERIC_FILM] = "Generic film (color filters using illuminant C)",
-		[av1_color_primaries_BT_2020]      = "BT.2020, BT.2100",
-		[av1_color_primaries_XYZ]          = "SMPTE 428 (CIE 1921 XYZ)",
-		[av1_color_primaries_SMPTE_431]    = "SMPTE RP 431-2",
-		[av1_color_primaries_SMPTE_432]    = "SMPTE EG 432-1",
-		[av1_color_primaries_EBU_3213]     = "EBU Tech. 3213-E"
-	};
-	if (t < (sizeof(s) / sizeof(*s)) && s[t])
-		return s[t];
-	return reserve;
-}
-
-static const char* av1_string_transfer_characteristics(av1_transfer_characteristics_t t, const char *restrict reserve)
-{
-	static const char *s[av1_transfer_characteristics$max] = {
-		[av1_transfer_characteristics_BT_709]         = "BT.709",
-		[av1_transfer_characteristics_UNSPECIFIED]    = "Unspecified",
-		[av1_transfer_characteristics_BT_470_M]       = "BT.470 System M (historical)",
-		[av1_transfer_characteristics_BT_470_B_G]     = "BT.470 System B, G (historical)",
-		[av1_transfer_characteristics_BT_601]         = "BT.601",
-		[av1_transfer_characteristics_SMPTE_240]      = "SMPTE 240 M",
-		[av1_transfer_characteristics_LINEAR]         = "Linear",
-		[av1_transfer_characteristics_LOG_100]        = "Logarithmic (100 : 1 range)",
-		[av1_transfer_characteristics_LOG_100_SQRT10] = "Logarithmic (100 * Sqrt(10) : 1 range)",
-		[av1_transfer_characteristics_IEC_61966]      = "IEC 61966-2-4",
-		[av1_transfer_characteristics_BT_1361]        = "BT.1361",
-		[av1_transfer_characteristics_SRGB]           = "sRGB or sYCC",
-		[av1_transfer_characteristics_BT_2020_10_BIT] = "BT.2020 10-bit systems",
-		[av1_transfer_characteristics_BT_2020_12_BIT] = "BT.2020 12-bit systems",
-		[av1_transfer_characteristics_SMPTE_2084]     = "SMPTE ST 2084, ITU BT.2100 PQ",
-		[av1_transfer_characteristics_SMPTE_428]      = "SMPTE ST 428",
-		[av1_transfer_characteristics_HLG]            = "BT.2100 HLG, ARIB STD-B67"
-	};
-	if (t < (sizeof(s) / sizeof(*s)) && s[t])
-		return s[t];
-	return reserve;
-}
-
-static const char* av1_string_matrix_coefficients(av1_matrix_coefficients_t t, const char *restrict reserve)
-{
-	static const char *s[av1_matrix_coefficients$max] = {
-		[av1_matrix_coefficients_IDENTITY]    = "Identity matrix",
-		[av1_matrix_coefficients_BT_709]      = "BT.709",
-		[av1_matrix_coefficients_UNSPECIFIED] = "Unspecified",
-		[av1_matrix_coefficients_FCC]         = "US FCC 73.628",
-		[av1_matrix_coefficients_BT_470_B_G]  = "BT.470 System B, G (historical)",
-		[av1_matrix_coefficients_BT_601]      = "BT.601",
-		[av1_matrix_coefficients_SMPTE_240]   = "SMPTE 240 M",
-		[av1_matrix_coefficients_SMPTE_YCGCO] = "YCgCo",
-		[av1_matrix_coefficients_BT_2020_NCL] = "BT.2020 non-constant luminance, BT.2100 YCbCr",
-		[av1_matrix_coefficients_BT_2020_CL]  = "BT.2020 constant luminance",
-		[av1_matrix_coefficients_SMPTE_2085]  = "SMPTE ST 2085 YDzDx",
-		[av1_matrix_coefficients_CHROMAT_NCL] = "Chromaticity-derived non-constant luminance",
-		[av1_matrix_coefficients_CHROMAT_CL]  = "Chromaticity-derived constant luminance",
-		[av1_matrix_coefficients_ICTCP]       = "BT.2100 ICtCp"
-	};
-	if (t < (sizeof(s) / sizeof(*s)) && s[t])
-		return s[t];
-	return reserve;
-}
-
-static const char* av1_string_chroma_sample_position(av1_chroma_sample_position_t t, const char *restrict reserve)
-{
-	static const char *s[av1_chroma_sample_position$max] = {
-		[av1_chroma_sample_position_UNKNOWN]   = "unknow",
-		[av1_chroma_sample_position_VERTICAL]  = "vertical",
-		[av1_chroma_sample_position_COLOCATED] = "colocated",
-	};
-	if (t < (sizeof(s) / sizeof(*s)) && s[t])
-		return s[t];
-	return reserve;
-}
-
 void av1_obu_sequence_header_dump(const av1_obu_sequence_header_t *restrict header, mlog_s *restrict mlog)
 {
-	static const char *s_reserve = "reserve";
 	uintptr_t i, n;
 	mlog_printf(mlog, "seq_profile[0, 7]:                                 %u\n", header->seq_profile);
 	mlog_printf(mlog, "still_picture[0, 1]:                               %u\n", header->still_picture);
@@ -893,8 +810,8 @@ void av1_obu_sequence_header_dump(const av1_obu_sequence_header_t *restrict head
 	mlog_printf(mlog, "enable_order_hint[0, 1]:                           %u\n", header->enable_order_hint);
 	mlog_printf(mlog, "enable_jnt_comp[0, 1]:                             %u\n", header->enable_jnt_comp);
 	mlog_printf(mlog, "enable_ref_frame_mvs[0, 1]:                        %u\n", header->enable_ref_frame_mvs);
-	mlog_printf(mlog, "seq_screen_content_tools[0, 2]:                    %u\n", header->seq_screen_content_tools);
-	mlog_printf(mlog, "seq_integer_mv[0, 2]:                              %u\n", header->seq_integer_mv);
+	mlog_printf(mlog, "seq_force_screen_content_tools[0, 2]:              %u\n", header->seq_force_screen_content_tools);
+	mlog_printf(mlog, "seq_force_integer_mv[0, 2]:                        %u\n", header->seq_force_integer_mv);
 	mlog_printf(mlog, "order_hint_bits[1, 8]:                             %u\n", header->order_hint_bits);
 	mlog_printf(mlog, "enable_superres[0, 1]:                             %u\n", header->enable_superres);
 	mlog_printf(mlog, "enable_cdef[0, 1]:                                 %u\n", header->enable_cdef);
@@ -904,16 +821,16 @@ void av1_obu_sequence_header_dump(const av1_obu_sequence_header_t *restrict head
 	mlog_printf(mlog, "color_config_mono_chrome[0, 1]:                    %u\n", header->color_config_mono_chrome);
 	mlog_printf(mlog, "color_config_color_description_present_flag[0, 1]: %u\n", header->color_config_color_description_present_flag);
 	mlog_printf(mlog, "color_config_color_primaries[0, 255]:              %u (%s)\n", header->color_config_color_primaries,
-		av1_string_color_primaries(header->color_config_color_primaries, s_reserve));
+		av1_string_color_primaries(header->color_config_color_primaries));
 	mlog_printf(mlog, "color_config_transfer_characteristics[0, 255]:     %u (%s)\n", header->color_config_transfer_characteristics,
-		av1_string_transfer_characteristics(header->color_config_transfer_characteristics, s_reserve));
+		av1_string_transfer_characteristics(header->color_config_transfer_characteristics));
 	mlog_printf(mlog, "color_config_matrix_coefficients[0, 255]:          %u (%s)\n", header->color_config_matrix_coefficients,
-		av1_string_matrix_coefficients(header->color_config_matrix_coefficients, s_reserve));
+		av1_string_matrix_coefficients(header->color_config_matrix_coefficients));
 	mlog_printf(mlog, "color_config_color_range[0, 1]:                    %u\n", header->color_config_color_range);
 	mlog_printf(mlog, "color_config_subsampling_x[0, 1]:                  %u\n", header->color_config_subsampling_x);
 	mlog_printf(mlog, "color_config_subsampling_y[0, 1]:                  %u\n", header->color_config_subsampling_y);
 	mlog_printf(mlog, "color_config_chroma_sample_position[0, 3]:         %u (%s)\n", header->color_config_chroma_sample_position,
-		av1_string_chroma_sample_position(header->color_config_chroma_sample_position, s_reserve));
+		av1_string_chroma_sample_position(header->color_config_chroma_sample_position));
 	mlog_printf(mlog, "color_config_separate_uv_delta_q[0, 1]:            %u\n", header->color_config_separate_uv_delta_q);
 	mlog_printf(mlog, "film_grain_params_present[0, 1]:                   %u\n", header->film_grain_params_present);
 	mlog_printf(mlog, "OrderHintBits: %u\n", av1_obu_sequence_header_OrderHintBits(header));

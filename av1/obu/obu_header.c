@@ -84,19 +84,7 @@ uint64_t av1_obu_header_bits(const av1_obu_header_t *restrict header)
 
 void av1_obu_header_dump(const av1_obu_header_t *restrict header, mlog_s *restrict mlog)
 {
-	static const char *s_type[av1_obu_type$max] = {
-		[av1_obu_type_reserved] = "reserved",
-		[av1_obu_type_sequence_header] = "sequence_header",
-		[av1_obu_type_temporal_delimiter] = "temporal_delimiter",
-		[av1_obu_type_frame_header] = "frame_header",
-		[av1_obu_type_tile_group] = "tile_group",
-		[av1_obu_type_metadata] = "metadata",
-		[av1_obu_type_frame] = "frame",
-		[av1_obu_type_redundant_frame_header] = "redundant_frame_header",
-		[av1_obu_type_tile_list] = "tile_list",
-		[av1_obu_type_padding] = "padding"
-	};
-	mlog_printf(mlog, "obu_type[0, 15]:          %u (%s)\n", header->type, s_type[header->type]?s_type[header->type]:s_type[0]);
+	mlog_printf(mlog, "obu_type[0, 15]:          %u (%s)\n", header->type, av1_string_obu_type(header->type));
 	mlog_printf(mlog, "obu_extension_flag[0, 1]: %u\n", header->extension_flag);
 	mlog_printf(mlog, "obu_has_size_field[0, 1]: %u\n", header->has_size_field);
 	if (header->extension_flag)
