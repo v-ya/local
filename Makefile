@@ -1,4 +1,4 @@
-project		= refer hashmap rbtree json largeN matrix mlog args dylink random rhash mpeg4 pocket pocket-builder kiya posky atlayer note wav bmp wavelike pcm2wav pcmplay audioloop scatterplot wldeal phoneme phloop graph iyaa
+project		= refer hashmap rbtree json largeN matrix mlog args dylink random rhash mpeg4 mp4hi pocket pocket-builder kiya posky atlayer note wav bmp wavelike pcm2wav pcmplay audioloop scatterplot wldeal phoneme phloop graph iyaa
 
 .PHONY: clear install
 clear:
