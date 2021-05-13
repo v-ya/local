@@ -1,6 +1,5 @@
 #include "frame_render_size.h"
 #include "obu_sequence_header.h"
-#include "define.h"
 
 av1_frame_render_size_t* av1_frame_render_size_init(av1_frame_render_size_t *restrict frsize)
 {

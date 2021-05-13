@@ -3,12 +3,13 @@
 
 #include "obu.h"
 #include "frame_render_size.h"
-#include "define.h"
+#include "tile_info.h"
 
 struct av1_obu_header_t;
 
 typedef struct av1_uncompressed_header_extra_t {
 	av1_frame_render_size_t frame_render_size;
+	av1_tile_info_t tile_info;
 } av1_uncompressed_header_extra_t;
 
 typedef struct av1_uncompressed_header_t {

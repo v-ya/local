@@ -49,6 +49,10 @@ av1_bits_reader_t* av1_bits_uvlc_read(av1_bits_reader_t *restrict r, uint32_t *r
 av1_bits_writer_t* av1_bits_uvlc_write(av1_bits_writer_t *restrict w, uint32_t value);
 uint64_t av1_bits_uvlc_bits(uint32_t value);
 
+av1_bits_reader_t* av1_bits_ns_read(av1_bits_reader_t *restrict r, uint64_t *restrict value, uint64_t n);
+av1_bits_writer_t* av1_bits_ns_write(av1_bits_writer_t *restrict w, uint64_t value, uint64_t n);
+uint64_t av1_bits_ns_bits(uint64_t value, uint64_t n);
+
 av1_bits_reader_t* av1_bits_trailing_bits_read(av1_bits_reader_t *restrict r);
 av1_bits_writer_t* av1_bits_trailing_bits_write(av1_bits_writer_t *restrict w);
 uint64_t av1_bits_trailing_bits_bits(uint64_t bits);

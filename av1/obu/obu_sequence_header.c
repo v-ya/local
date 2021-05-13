@@ -1,5 +1,4 @@
 #include "obu_sequence_header.h"
-#include "define.h"
 
 av1_obu_sequence_header_t* av1_obu_sequence_header_init(av1_obu_sequence_header_t *restrict header)
 {

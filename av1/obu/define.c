@@ -10,6 +10,13 @@ int32_t av1_get_relative_dist(uint32_t a, uint32_t b, uint32_t bits)
 	return (int32_t) diff;
 }
 
+uint32_t av1_tile_log2(uint32_t blk_size, uint32_t target)
+{
+	uint32_t k;
+	for (k = 0; (blk_size << k) < target; ++k) ;
+	return k;
+}
+
 #define av1_string_return(_ds)          ({register const char *r = _ds; if (t < (sizeof(s) / sizeof(s[0])) && s[t]) r = s[t]; r;})
 #define av1_string_return_reserved()    av1_string_return(s_reserved)
 #define av1_string_return_unexpected()  av1_string_return(s_unexpected)

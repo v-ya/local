@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define MAX_TILE_AREA                (4096 * 2304)
+#define MAX_TILE_COLS                64
+#define MAX_TILE_ROWS                64
+#define MAX_TILE_WIDTH               4096
 #define NUM_REF_FRAMES               8
 #define PRIMARY_REF_NONE             7
 #define REFS_PER_FRAME               7
@@ -122,6 +126,7 @@ typedef enum av1_interpolation_filter_t {
 } av1_interpolation_filter_t;
 
 int32_t av1_get_relative_dist(uint32_t a, uint32_t b, uint32_t bits);
+uint32_t av1_tile_log2(uint32_t blk_size, uint32_t target);
 
 const char* av1_string_obu_type(av1_obu_type_t t);
 const char* av1_string_color_primaries(av1_color_primaries_t t);
