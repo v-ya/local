@@ -8,7 +8,8 @@
 av1_uncompressed_header_t* av1_uncompressed_header_init(av1_uncompressed_header_t *restrict header)
 {
 	if (av1_frame_render_size_init(&header->extra.frame_render_size) &&
-		av1_tile_info_init(&header->extra.tile_info))
+		av1_tile_info_init(&header->extra.tile_info) &&
+		av1_quantization_params_init(&header->extra.quantization_params))
 	{
 		uintptr_t i;
 		memset(header, 0, offsetof(av1_uncompressed_header_t, extra));
@@ -389,6 +390,8 @@ av1_uncompressed_header_t* av1_uncompressed_header_read(av1_uncompressed_header_
 	}
 	if (!av1_tile_info_read(&header->extra.tile_info, reader, &header->extra.frame_render_size, sh->use_128x128_superblock))
 		goto label_fail;
+	if (!av1_quantization_params_read(&header->extra.quantization_params, reader, sh))
+		goto label_fail;
 	label_return:
 	return header;
 	label_fail:
@@ -637,6 +640,8 @@ const av1_uncompressed_header_t* av1_uncompressed_header_write(const av1_uncompr
 	}
 	if (!av1_tile_info_write(&header->extra.tile_info, writer, &header->extra.frame_render_size, sh->use_128x128_superblock))
 		goto label_fail;
+	if (!av1_quantization_params_write(&header->extra.quantization_params, writer, sh))
+		goto label_fail;
 	label_return:
 	return header;
 	label_fail:
@@ -844,6 +849,7 @@ uint64_t av1_uncompressed_header_bits(const av1_uncompressed_header_t *restrict 
 		size += 1;
 	}
 	size += av1_tile_info_bits(&header->extra.tile_info, &header->extra.frame_render_size, sh->use_128x128_superblock);
+	size += av1_quantization_params_bits(&header->extra.quantization_params, sh);
 	label_return:
 	return size;
 }
@@ -891,4 +897,5 @@ void av1_uncompressed_header_dump(const av1_uncompressed_header_t *restrict head
 	mlog_printf(mlog, "use_ref_frame_mvs[0, 1]:                                        %u\n", header->use_ref_frame_mvs);
 	mlog_printf(mlog, "disable_frame_end_update_cdf[0, 1]:                             %u\n", header->disable_frame_end_update_cdf);
 	av1_tile_info_dump(&header->extra.tile_info, mlog);
+	av1_quantization_params_dump(&header->extra.quantization_params, mlog);
 }

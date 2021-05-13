@@ -1,5 +1,4 @@
 #include "tile_info.h"
-#include "obu_sequence_header.h"
 #include "frame_render_size.h"
 
 av1_tile_info_t* av1_tile_info_init(av1_tile_info_t *restrict tinfo)
