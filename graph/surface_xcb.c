@@ -268,7 +268,7 @@ static graph_surface_xcb_s* graph_surface_xcb_set_atom_close(graph_surface_xcb_s
 	if (r_protocols && r_delete_window)
 	{
 		r->atom_close = r_delete_window->atom;
-		xcb_change_property(c, XCB_PROP_MODE_REPLACE, r->winid, r_protocols->atom, 4, 32, 1, &r->atom_close);
+		xcb_change_property(c, XCB_PROP_MODE_REPLACE, r->winid, r_protocols->atom, XCB_ATOM_ATOM, 32, 1, &r->atom_close);
 	}
 	else r = NULL;
 	if (r_protocols) free(r_protocols);
