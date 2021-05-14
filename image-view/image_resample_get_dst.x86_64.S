@@ -1,0 +1,300 @@
+	.file	"image_resample_get_dst.x86_64.S"
+	.text
+
+#define offset_src       0x00
+#define offset_dst       0x08
+#define offset_d_size    0x10
+#define offset_s_width   0x18
+#define offset_s_height  0x1c
+#define offset_d_width   0x20
+#define offset_d_height  0x24
+#define offset_matrix    0x28
+#define offset_bgcolor   0x4c
+
+// 内部缓存行对齐
+// .p2align 4,,10
+// .p2align 3
+
+// rdi:  dst
+// rsi:  src
+// edx:  x
+// ecx:  y
+// rbx:  matrix
+// r8d:  d_width
+// r9d:  d_height
+// r10d: s_width
+// r11d: s_height
+// r12d: bgcolor
+// r13:  inter used
+// r14:  inter used
+// r15:  inter used
+
+// image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
+// rdi: r
+	.p2align 4
+	.globl	image_resample_get_dst
+	.type	image_resample_get_dst, @function
+image_resample_get_dst:
+	// load register
+	pushq	%rbx
+	pushq	%r12
+	pushq	%r13
+	pushq	%r14
+	pushq	%r15
+	pushq	%rdi
+	movq	%rbx, %r11
+	movl	offset_bgcolor(%rdi), %r12d
+	movl	offset_s_height(%rdi), %r11d
+	movl	offset_s_width(%rdi), %r10d
+	movl	offset_d_height(%rdi), %r9d
+	movl	offset_d_width(%rdi), %r8d
+	leaq	offset_matrix(%rdi), %rbx
+	movq	offset_src(%rdi), %rsi
+	movq	offset_dst(%rdi), %rdi
+	// check dst && src;
+	testq	%rdi, %rdi
+	je	.L_fail
+	testq	%rsi, %rsi
+	je	.L_fail
+	testl	%r8d, %r8d
+	// !d_width || !d_height; goto ok
+	je	.L_ok
+	testl	%r9d, %r9d
+	je	.L_ok
+	// x(edx) = y(ecx) = 0
+	xorl	%edx, %edx
+	movl	%edx, %ecx
+	// xmm14: s_width
+	// xmm15: s_height
+	cvtsi2ssl	%r10d, %xmm14
+	cvtsi2ssl	%r11d, %xmm15
+	jmp	.L_loop_entry
+	// cache line align
+	.p2align 4,,10
+	.p2align 4
+	// loop
+		.L_loop:
+			// calc x, y, z (xmm0 - xmm2)
+			// xmm8:  m[1] * y + m[2]
+			// xmm9:  m[4] * y + m[5]
+			// xmm10: m[7] * y + m[8]
+			cvtsi2ssl	%edx, %xmm0
+			movaps		%xmm0, %xmm1
+			movaps		%xmm0, %xmm2
+			mulss		0(%rbx), %xmm0
+			mulss		12(%rbx), %xmm1
+			mulss		24(%rbx), %xmm2
+			addss		%xmm8, %xmm0
+			addss		%xmm9, %xmm1
+			addss		%xmm10, %xmm2
+			rcpss		%xmm2, %xmm2
+			mulss		%xmm2, %xmm0
+			mulss		%xmm2, %xmm1
+			// x: xmm0 r14d, y: xmm1 r15d
+			// get src pixel (%r13d)
+				// check x, y in [(0, 0) ~ (sw, sh))
+				movl	%r12d, %r13d
+				pxor	%xmm13, %xmm13
+				comiss	%xmm0, %xmm13
+				ja	.L_get_src_end
+				comiss	%xmm0, %xmm14
+				jbe	.L_get_src_end
+				comiss	%xmm1, %xmm13
+				ja	.L_get_src_end
+				comiss	%xmm1, %xmm15
+				jbe	.L_get_src_end
+				// xmm0: mod(x, 1)
+				// xmm1: mod(y, 1)
+				// xmm2: 1 - xmm0
+				// xmm3: 1 - xmm1
+				cvtss2sil	%xmm0, %r14d
+				cvtss2sil	%xmm1, %r15d
+				cvtsi2ssl	%r14d, %xmm2
+				subss		%xmm2, %xmm0
+				cvtsi2ssl	%r15d, %xmm2
+				subss		%xmm2, %xmm1
+				movl		$1, %eax
+				cvtsi2ssl	%eax, %xmm2
+				movaps		%xmm2, %xmm3
+				subss		%xmm0, %xmm2
+				subss		%xmm1, %xmm3
+				// rax:   p
+				// xmm4:  B
+				// xmm5:  G
+				// xmm6:  R
+				// xmm7:  A
+				// xmm11: k
+				// xmm12: s
+				// xmm13: -
+				// clear bgra
+				// rax = src + ((y * s_width + x) << 2)
+				movl	%r15d, %eax
+				imull	%r10d, %eax
+				addl	%r14d, %eax
+				shlq	$4, %rax
+				addq	%rsi, %rax
+				// k = 2 - xmm0 - xmm1
+				movaps	%xmm2, %xmm11
+				addss	%xmm3, %xmm11
+				movaps	%xmm11, %xmm12
+				movss	0(%rax), %xmm4
+				mulss	%xmm11, %xmm4
+				movss	4(%rax), %xmm5
+				mulss	%xmm11, %xmm5
+				movss	8(%rax), %xmm6
+				mulss	%xmm11, %xmm6
+				movss	12(%rax), %xmm7
+				mulss	%xmm11, %xmm7
+				// test x + 1 < s_width
+				addl	$1, %r14d
+				cmpl	%r14d, %r10d
+				jbe	.L_only_y_plus
+					// p += 4
+					leaq	16(%rax), %rax
+					// k = xmm0 + 1 - xmm1
+					movaps	%xmm0, %xmm11
+					addss	%xmm3, %xmm11
+					addss	%xmm11, %xmm12
+					movss	0(%rax), %xmm13
+					mulss	%xmm11, %xmm13
+					addss	%xmm13, %xmm4
+					movss	4(%rax), %xmm13
+					mulss	%xmm11, %xmm13
+					addss	%xmm13, %xmm5
+					movss	8(%rax), %xmm13
+					mulss	%xmm11, %xmm13
+					addss	%xmm13, %xmm6
+					movss	12(%rax), %xmm13
+					mulss	%xmm11, %xmm13
+					addss	%xmm13, %xmm7
+					// test y + 1 < s_height
+					addl	$1, %r15d
+					cmpl	%r15d, %r11d
+					jbe	.L_calc_color
+						// p += r->s_width * 4
+						movq	%r10, %r13
+						shlq	$4, %r13
+						addq	%r13, %rax
+						// k = xmm0 + xmm1
+						movaps	%xmm0, %xmm11
+						addss	%xmm1, %xmm11
+						addss	%xmm11, %xmm12
+						movss	0(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm4
+						movss	4(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm5
+						movss	8(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm6
+						movss	12(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm7
+						// p -= 4
+						leaq	-16(%rax), %rax
+						.L_only_y_plus_entry:
+						// k = xmm1 + 1 - xmm0
+						movaps	%xmm1, %xmm11
+						addss	%xmm2, %xmm11
+						addss	%xmm11, %xmm12
+						movss	0(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm4
+						movss	4(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm5
+						movss	8(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm6
+						movss	12(%rax), %xmm13
+						mulss	%xmm11, %xmm13
+						addss	%xmm13, %xmm7
+				.L_calc_color:
+				// check s
+				pxor	%xmm11, %xmm11
+				movl	%r12d, %r13d
+				ucomiss	%xmm11, %xmm12
+				je	.L_get_src_end
+				// bgra /= s
+				rcpss	%xmm12, %xmm0
+				mulss	%xmm0, %xmm4
+				mulss	%xmm0, %xmm5
+				mulss	%xmm0, %xmm6
+				mulss	%xmm0, %xmm7
+				// set min, max
+				movl	$255, %eax
+				cvtsi2ssl %eax, %xmm0
+				minss	%xmm0, %xmm4
+				minss	%xmm0, %xmm5
+				minss	%xmm0, %xmm6
+				minss	%xmm0, %xmm7
+				pxor	%xmm0, %xmm0
+				maxss	%xmm0, %xmm4
+				maxss	%xmm0, %xmm5
+				maxss	%xmm0, %xmm6
+				maxss	%xmm0, %xmm7
+				// bgra + 0.5
+				movl	$2, %eax
+				cvtsi2ssl %eax, %xmm0
+				rcpss	%xmm0, %xmm0
+				addss	%xmm0, %xmm4
+				addss	%xmm0, %xmm5
+				addss	%xmm0, %xmm6
+				addss	%xmm0, %xmm7
+				// set r13d
+				cvtss2sil %xmm4, %eax
+				movq	%rax, %r13
+				cvtss2sil %xmm5, %eax
+				shlq	$8, %rax
+				orq	%rax, %r13
+				cvtss2sil %xmm6, %eax
+				shlq	$16, %rax
+				orq	%rax, %r13
+				cvtss2sil %xmm7, %eax
+				shlq	$24, %rax
+				orq	%rax, %r13
+			.L_get_src_end:
+			// set
+			movl	%r13d, (%rdi)
+			leaq	4(%rdi), %rdi
+			// x += 1
+			addl	$1, %edx
+			cmpl	%edx, %r8d
+			ja	.L_loop
+		// y += 1, x = 0
+		addl	$1, %ecx
+		xorl	%edx, %edx
+		.L_loop_entry:
+		// load xmm8, xmm9, xmm10
+		cvtsi2ssl	%ecx, %xmm8
+		movaps		%xmm8, %xmm9
+		movaps		%xmm8, %xmm10
+		mulss		4(%rbx), %xmm8
+		addss		8(%rbx), %xmm8
+		mulss		16(%rbx), %xmm9
+		addss		20(%rbx), %xmm9
+		mulss		28(%rbx), %xmm10
+		addss		32(%rbx), %xmm10
+		cmpl	%ecx, %r9d
+		ja	.L_loop
+	.L_ok:
+	popq	%rax
+	.L_return:
+	popq	%r15
+	popq	%r14
+	popq	%r13
+	popq	%r12
+	popq	%rbx
+	retq
+	.L_fail:
+	addq	$8, %rsp
+	xorl	%eax, %eax
+	jmp	.L_return
+	.L_only_y_plus:
+	// p += r->s_width * 4
+	movq	%r10, %r13
+	shlq	$4, %r13
+	addq	%r13, %rax
+	jmp	.L_only_y_plus_entry
+	.size	image_resample_get_dst, .-image_resample_get_dst

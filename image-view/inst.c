@@ -1,7 +1,6 @@
 #define _DEFAULT_SOURCE
 #include "inst.h"
 #include <math.h>
-#include <stdio.h>
 
 static void inst_event_close_func(inst_s *restrict r, window_s *window)
 {
@@ -23,6 +22,12 @@ static void inst_event_button_func(inst_s *restrict r, window_s *window, uint32_
 	if (button == 1) r->b_tran = !!press;
 	// R button
 	else if (button == 3) r->b_rota = !!press;
+	// M button
+	else if (button == 2 && press)
+	{
+		image_resample_m_reset(r->resample);
+		r->update = 1;
+	}
 	// M button up
 	else if (button == 4)
 	{
@@ -99,7 +104,7 @@ inst_s* inst_alloc(const char *restrict path)
 			if ((r->resample = image_resample_alloc()) &&
 				image_resample_set_src(r->resample, r->image->data, r->image->width, r->image->height))
 			{
-				r->window = window_alloc(0, 0, r->image->width, r->image->height, 24);
+				r->window = window_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
 				if (r->window)
 				{
 					window_register_event_data(r->window, r);
@@ -135,9 +140,9 @@ void inst_wait(inst_s *restrict r)
 {
 	while (!r->is_close)
 	{
-		window_usleep(50000);
-		window_do_all_events(r->window);
-		if (r->update)
+		if (!r->update)
+			window_usleep(5000);
+		else
 		{
 			if (image_resample_set_dst(r->resample, r->width, r->height))
 			{
@@ -148,5 +153,6 @@ void inst_wait(inst_s *restrict r)
 			}
 			r->update = 0;
 		}
+		window_do_all_events(r->window);
 	}
 }

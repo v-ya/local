@@ -22,6 +22,7 @@ void image_resample_m_mul(image_resample_s *restrict r, float k[9]);
 void image_resample_m_tran(image_resample_s *restrict r, float x, float y);
 void image_resample_m_rota(image_resample_s *restrict r, float x, float y, float rad);
 void image_resample_m_scale(image_resample_s *restrict r, float x, float y, float k);
+void image_resample_m_reset(image_resample_s *restrict r);
 image_resample_s* image_resample_get_dst(image_resample_s *restrict r);
 
 #endif

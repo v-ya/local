@@ -21,6 +21,7 @@ static const uint32_t* image_load(const char *restrict path, uint32_t *restrict 
 	packet = NULL;
 	frame = NULL;
 	sws = NULL;
+	av_log_set_level(AV_LOG_ERROR);
 	if (avformat_open_input(&format, path, NULL, NULL))
 		goto label_fail;
 	if (!format)

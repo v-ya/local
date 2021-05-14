@@ -5,7 +5,11 @@ LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -lm -lrefer -lhashmap -largs -lxcb -lavformat -lavcodec -lswscale -lavutil
 
-OBJECT		= main.o args.o inst.o window.o image_load.o image_resample.o
+ARCH		= $(shell uname -m)
+OBJECT		= main.o args.o inst.o window.o image_load.o image_resample.o image_resample_get_dst.o
+
+# %.o: %.${ARCH}.S
+# 	${CC} ${CCFLAGS} -c -o $@ $<
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
