@@ -3,6 +3,7 @@
 #include <xcb/xcb.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <memory.h>
 
 static const xcb_screen_t* window_xcb_get_screen(xcb_connection_t *restrict c, uint32_t depth, xcb_visualid_t *restrict visual)
 {
@@ -96,6 +97,7 @@ struct window_s {
 	xcb_gcontext_t gcontext;
 	xcb_atom_t atom_close;
 	uint32_t depth;
+	uint32_t max_request_length;
 	window_event_report_t report;
 };
 
@@ -156,6 +158,9 @@ window_s* window_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t de
 				r->connection, r->gcontext, r->window, 0, NULL))))
 			goto label_fail;
 		r->depth = depth?depth:r->screen->root_depth;
+		r->max_request_length = xcb_get_maximum_request_length(r->connection);
+		if (r->max_request_length > 1024) r->max_request_length -= 1024;
+		else r->max_request_length = 0;
 		if (xcb_flush(r->connection) <= 0)
 			goto label_fail;
 		return r;
@@ -197,10 +202,23 @@ window_s* window_unmap(window_s *restrict r)
 window_s* window_update(window_s *restrict r, const uint32_t *restrict data, uint32_t width, uint32_t height, int32_t x, int32_t y)
 {
 	xcb_generic_error_t *restrict error;
-	if (!(error = xcb_request_check(r->connection, xcb_put_image_checked(
+	uint32_t linesize, nl;
+	if (r->depth != 24 && r->depth != 32)
+		goto label_fail;
+	linesize = width << 2;
+	nl = r->max_request_length / linesize;
+	error = NULL;
+	do {
+		if (nl > height) nl = height;
+		error = xcb_request_check(r->connection, xcb_put_image_checked(
 			r->connection, XCB_IMAGE_FORMAT_Z_PIXMAP, r->window, r->gcontext,
-			(uint16_t) width, (uint16_t) height, (int16_t) x, (int16_t) y,
-			0, r->depth, (width * height) << 2, (const uint8_t *) data))))
+			(uint16_t) width, (uint16_t) nl, (int16_t) x, (int16_t) y,
+			0, r->depth, linesize * nl, (const uint8_t *) data));
+		data += width * nl;
+		y += nl;
+		height -= nl;
+	} while (!error && height);
+	if (!error)
 	{
 		if (xcb_flush(r->connection) <= 0)
 			goto label_fail;
@@ -387,7 +405,7 @@ uintptr_t window_do_all_events(window_s *restrict r)
 	return n;
 }
 
-void window_set_event_data(window_s *restrict r, refer_t data)
+void window_register_event_data(window_s *restrict r, refer_t data)
 {
 	if (r->report.data)
 		refer_free(r->report.data);
@@ -406,6 +424,13 @@ window_register_event$def(area)
 window_register_event$def(focus)
 window_register_event$def(config)
 #undef window_register_event$def
+
+void window_register_clear(window_s *restrict r)
+{
+	if (r->report.data)
+		refer_free(r->report.data);
+	memset(&r->report, 0, sizeof(r->report));
+}
 
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth)
 {

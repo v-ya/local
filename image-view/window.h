@@ -43,7 +43,7 @@ window_s* window_update(window_s *restrict r, const uint32_t *restrict data, uin
 window_s* window_set_event(window_s *restrict r, const window_event_t *restrict events);
 window_s* window_do_event(window_s *restrict r);
 uintptr_t window_do_all_events(window_s *restrict r);
-void window_set_event_data(window_s *restrict r, refer_t data);
+void window_register_event_data(window_s *restrict r, refer_t data);
 void window_register_event_close(window_s *restrict r, window_event_close_f func);
 void window_register_event_expose(window_s *restrict r, window_event_expose_f func);
 void window_register_event_key(window_s *restrict r, window_event_key_f func);
@@ -52,6 +52,7 @@ void window_register_event_pointer(window_s *restrict r, window_event_pointer_f 
 void window_register_event_area(window_s *restrict r, window_event_area_f func);
 void window_register_event_focus(window_s *restrict r, window_event_focus_f func);
 void window_register_event_config(window_s *restrict r, window_event_config_f func);
+void window_register_clear(window_s *restrict r);
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
 
 #endif

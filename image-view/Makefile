@@ -3,9 +3,9 @@ TARGET		= image-view
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -lrefer -lhashmap -largs -lxcb
+LDFLAGS		= -lm -lrefer -lhashmap -largs -lxcb -lavformat -lavcodec -lswscale -lavutil
 
-OBJECT		= main.o args.o window.o
+OBJECT		= main.o args.o inst.o window.o image_load.o image_resample.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
