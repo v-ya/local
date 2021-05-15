@@ -15,6 +15,9 @@ static void image_resample_free_func(image_resample_s *restrict r)
 		free(r->dst);
 }
 
+typedef struct image_resample_dst_multicalc_t image_resample_dst_multicalc_t;
+static void image_resample_get_dst_multicalc_func(image_resample_dst_multicalc_t *restrict r);
+
 image_resample_s* image_resample_alloc(uint32_t n_multicalc, uint32_t bgcolor)
 {
 	image_resample_s *restrict r;
@@ -23,6 +26,8 @@ image_resample_s* image_resample_alloc(uint32_t n_multicalc, uint32_t bgcolor)
 		refer_set_free(r, (refer_free_f) image_resample_free_func);
 		if (!n_multicalc || (r->multicalc = multicalc_alloc(n_multicalc, 0)))
 		{
+			if (r->multicalc)
+				multicalc_set_all_func(r->multicalc, (multicalc_do_f) image_resample_get_dst_multicalc_func);
 			r->matrix[0] = 1;
 			r->matrix[1] = 0;
 			r->matrix[2] = 0;
@@ -216,12 +221,12 @@ void image_resample_m_reset(image_resample_s *restrict r)
 	}
 }
 
-typedef struct image_resample_dst_multicalc_t {
+struct image_resample_dst_multicalc_t {
 	image_resample_s *resample;
 	uintptr_t n;
 	uint32_t x;
 	uint32_t y;
-} image_resample_dst_multicalc_t;
+};
 
 image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n);
 
@@ -268,7 +273,6 @@ image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
 				multicalc_set_status(r->multicalc, i, 1);
 			}
 		} while (++i <= n);
-		multicalc_set_all_func(r->multicalc, (multicalc_do_f) image_resample_get_dst_multicalc_func);
 		multicalc_wake(r->multicalc);
 		image_resample_get_dst_multicalc_func(mcd + n);
 		multicalc_wait(r->multicalc);
