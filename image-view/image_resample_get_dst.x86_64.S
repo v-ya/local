@@ -1,5 +1,5 @@
-	.file	"image_resample_get_dst.x86_64.S"
-	.text
+.file	"image_resample_get_dst.x86_64.S"
+.text
 
 #define offset_src       0x00
 #define offset_dst       0x08
@@ -107,14 +107,13 @@ image_resample_get_dst:
 				// xmm1: mod(y, 1)
 				// xmm2: 1 - xmm0
 				// xmm3: 1 - xmm1
-				cvtss2sil	%xmm0, %r14d
-				cvtss2sil	%xmm1, %r15d
+				cvttss2sil	%xmm0, %r14d
+				cvttss2sil	%xmm1, %r15d
 				cvtsi2ssl	%r14d, %xmm2
 				subss		%xmm2, %xmm0
 				cvtsi2ssl	%r15d, %xmm2
 				subss		%xmm2, %xmm1
-				movl		$1, %eax
-				cvtsi2ssl	%eax, %xmm2
+				movss		.L_const_float_1(%rip), %xmm2
 				movaps		%xmm2, %xmm3
 				subss		%xmm0, %xmm2
 				subss		%xmm1, %xmm3
@@ -132,11 +131,12 @@ image_resample_get_dst:
 				imull	%r10d, %eax
 				addl	%r14d, %eax
 				shlq	$4, %rax
-				addq	%rsi, %rax
+				leaq	(%rsi, %rax, 1), %rax
 				// k = 2 - xmm0 - xmm1
 				movaps	%xmm2, %xmm11
 				addss	%xmm3, %xmm11
 				movaps	%xmm11, %xmm12
+				// bgra =
 				movss	0(%rax), %xmm4
 				mulss	%xmm11, %xmm4
 				movss	4(%rax), %xmm5
@@ -155,6 +155,7 @@ image_resample_get_dst:
 					movaps	%xmm0, %xmm11
 					addss	%xmm3, %xmm11
 					addss	%xmm11, %xmm12
+					// bgra +=
 					movss	0(%rax), %xmm13
 					mulss	%xmm11, %xmm13
 					addss	%xmm13, %xmm4
@@ -179,6 +180,7 @@ image_resample_get_dst:
 						movaps	%xmm0, %xmm11
 						addss	%xmm1, %xmm11
 						addss	%xmm11, %xmm12
+						// bgra +=
 						movss	0(%rax), %xmm13
 						mulss	%xmm11, %xmm13
 						addss	%xmm13, %xmm4
@@ -222,27 +224,7 @@ image_resample_get_dst:
 				mulss	%xmm0, %xmm5
 				mulss	%xmm0, %xmm6
 				mulss	%xmm0, %xmm7
-				// set min, max
-				movl	$255, %eax
-				cvtsi2ssl %eax, %xmm0
-				minss	%xmm0, %xmm4
-				minss	%xmm0, %xmm5
-				minss	%xmm0, %xmm6
-				minss	%xmm0, %xmm7
-				pxor	%xmm0, %xmm0
-				maxss	%xmm0, %xmm4
-				maxss	%xmm0, %xmm5
-				maxss	%xmm0, %xmm6
-				maxss	%xmm0, %xmm7
-				// bgra + 0.5
-				movl	$2, %eax
-				cvtsi2ssl %eax, %xmm0
-				rcpss	%xmm0, %xmm0
-				addss	%xmm0, %xmm4
-				addss	%xmm0, %xmm5
-				addss	%xmm0, %xmm6
-				addss	%xmm0, %xmm7
-				// set r13d
+				// bgra set
 				cvtss2sil %xmm4, %eax
 				movq	%rax, %r13
 				cvtss2sil %xmm5, %eax
@@ -292,9 +274,19 @@ image_resample_get_dst:
 	xorl	%eax, %eax
 	jmp	.L_return
 	.L_only_y_plus:
+	// test y + 1 < s_height
+	addl	$1, %r15d
+	cmpl	%r15d, %r11d
+	jbe	.L_calc_color
 	// p += r->s_width * 4
 	movq	%r10, %r13
 	shlq	$4, %r13
 	addq	%r13, %rax
 	jmp	.L_only_y_plus_entry
 	.size	image_resample_get_dst, .-image_resample_get_dst
+
+.section	.rodata.cst4,"aM",@progbits,4
+
+	.align 4
+.L_const_float_1:
+	.long	0x3f800000

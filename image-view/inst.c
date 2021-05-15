@@ -9,6 +9,7 @@ static void inst_event_close_func(inst_s *restrict r, window_s *window)
 
 static void inst_event_expose_func(inst_s *restrict r, window_s *window, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
+	image_resample_m_tran(r->resample, (float) (int32_t) (r->width - width) * 0.5f, (float) (int32_t) (r->height - height) * 0.5f);
 	r->width = width;
 	r->height = height;
 	r->update = 1;
