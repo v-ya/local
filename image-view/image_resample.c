@@ -1,32 +1,41 @@
 #include "image_resample.h"
+#include <multicalc.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <alloca.h>
 #include <math.h>
 
 static void image_resample_free_func(image_resample_s *restrict r)
 {
+	if (r->multicalc)
+		multicalc_free(r->multicalc);
 	if (r->src)
 		free((void *) r->src);
 	if (r->dst)
 		free(r->dst);
 }
 
-image_resample_s* image_resample_alloc(void)
+image_resample_s* image_resample_alloc(uint32_t n_multicalc, uint32_t bgcolor)
 {
 	image_resample_s *restrict r;
 	if ((r = (image_resample_s *) refer_alloz(sizeof(image_resample_s))))
 	{
 		refer_set_free(r, (refer_free_f) image_resample_free_func);
-		r->matrix[0] = 1;
-		r->matrix[1] = 0;
-		r->matrix[2] = 0;
-		r->matrix[3] = 0;
-		r->matrix[4] = 1;
-		r->matrix[5] = 0;
-		r->matrix[6] = 0;
-		r->matrix[7] = 0;
-		r->matrix[8] = 1;
-		r->bgcolor = 0xff7f7f7f;
+		if (!n_multicalc || (r->multicalc = multicalc_alloc(n_multicalc, 0)))
+		{
+			r->matrix[0] = 1;
+			r->matrix[1] = 0;
+			r->matrix[2] = 0;
+			r->matrix[3] = 0;
+			r->matrix[4] = 1;
+			r->matrix[5] = 0;
+			r->matrix[6] = 0;
+			r->matrix[7] = 0;
+			r->matrix[8] = 1;
+			r->bgcolor = bgcolor;
+			r->n_mc = n_multicalc;
+			r->mc_have_min_pixels = 65536;
+		}
 	}
 	return r;
 }
@@ -204,5 +213,70 @@ void image_resample_m_reset(image_resample_s *restrict r)
 		kw = (float) r->s_width / r->d_width;
 		kh = (float) r->s_height / r->d_height;
 		image_resample_m_scale(r, (float) (r->d_width >> 1), (float) (r->d_height >> 1), kw > kh?kw:kh);
+	}
+}
+
+typedef struct image_resample_dst_multicalc_t {
+	image_resample_s *resample;
+	uintptr_t n;
+	uint32_t x;
+	uint32_t y;
+} image_resample_dst_multicalc_t;
+
+image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n);
+
+static void image_resample_get_dst_multicalc_func(image_resample_dst_multicalc_t *restrict r)
+{
+	r->resample = image_resample_get_dst_subblock(r->resample, r->x, r->y, r->n);
+}
+
+image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
+{
+	uintptr_t pn = r->d_width * r->d_height;
+	if (!r->multicalc || pn <= r->mc_have_min_pixels)
+	{
+		label_mini:
+		return image_resample_get_dst_subblock(r, 0, 0, pn);
+	}
+	else
+	{
+		image_resample_dst_multicalc_t *restrict mcd;
+		uintptr_t L, p;
+		uint32_t i, n;
+		n = r->n_mc + 1;
+		L = pn / n;
+		if (L < r->mc_have_min_pixels)
+			L = r->mc_have_min_pixels;
+		n = (pn + (L - 1)) / L;
+		if (n < 2) goto label_mini;
+		mcd = (image_resample_dst_multicalc_t *) alloca(sizeof(image_resample_dst_multicalc_t) * n);
+		if (!mcd) goto label_mini;
+		p = 0;
+		i = 0;
+		--n;
+		do {
+			if (L > pn) L = pn;
+			mcd[i].resample = r;
+			mcd[i].n = L;
+			mcd[i].x = p % r->d_width;
+			mcd[i].y = p / r->d_width;
+			pn -= L;
+			p += L;
+			if (i < n)
+			{
+				multicalc_set_data(r->multicalc, i, mcd + i);
+				multicalc_set_status(r->multicalc, i, 1);
+			}
+		} while (++i <= n);
+		multicalc_set_all_func(r->multicalc, (multicalc_do_f) image_resample_get_dst_multicalc_func);
+		multicalc_wake(r->multicalc);
+		image_resample_get_dst_multicalc_func(mcd + n);
+		multicalc_wait(r->multicalc);
+		i = 0;
+		do {
+			if (!mcd->resample)
+				r = NULL;
+		} while (++i <= n);
+		return r;
 	}
 }

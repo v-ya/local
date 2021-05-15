@@ -7,7 +7,7 @@ int main(int argc, const char *argv[])
 	if (args_get(&args, argc, argv))
 	{
 		inst_s *restrict inst;
-		inst = inst_alloc(args.image_path);
+		inst = inst_alloc(args.image_path, args.multicalc, args.bgcolor);
 		if (inst)
 		{
 			inst_wait(inst);

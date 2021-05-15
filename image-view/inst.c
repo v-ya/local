@@ -92,7 +92,7 @@ static void inst_free_func(inst_s *restrict r)
 		refer_free(r->image);
 }
 
-inst_s* inst_alloc(const char *restrict path)
+inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor)
 {
 	inst_s *restrict r;
 	r = (inst_s *) refer_alloz(sizeof(inst_s));
@@ -102,7 +102,7 @@ inst_s* inst_alloc(const char *restrict path)
 		r->image = image_bgra_alloc(path);
 		if (r->image)
 		{
-			if ((r->resample = image_resample_alloc()) &&
+			if ((r->resample = image_resample_alloc(multicalc, bgcolor)) &&
 				image_resample_set_src(r->resample, r->image->data, r->image->width, r->image->height))
 			{
 				r->window = window_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
@@ -156,10 +156,4 @@ void inst_wait(inst_s *restrict r)
 		}
 		window_do_all_events(r->window);
 	}
-}
-
-image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
-{
-	image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n);
-	return image_resample_get_dst_subblock(r, 0, 0, r->d_width * r->d_height);
 }

@@ -19,7 +19,7 @@ typedef struct inst_s {
 	uint32_t b_rota;
 } inst_s;
 
-inst_s* inst_alloc(const char *restrict path);
+inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor);
 void inst_free(inst_s *restrict r);
 void inst_wait(inst_s *restrict r);
 

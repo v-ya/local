@@ -58,6 +58,7 @@ image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, 
 	register float z, a, b, c;
 	if ((p = r->dst) && r->src && n)
 	{
+		p += y * r->d_width + x;
 		m = r->matrix;
 		goto label_entry;
 		do {

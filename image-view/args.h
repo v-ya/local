@@ -6,6 +6,8 @@
 
 typedef struct args_t {
 	const char *image_path;
+	uint32_t multicalc;
+	uint32_t bgcolor;
 	uintptr_t have_help;
 } args_t;
 
