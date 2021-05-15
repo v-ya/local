@@ -51,23 +51,32 @@ static inline uint32_t image_resample_get_src(register image_resample_s *restric
 	return r->bgcolor;
 }
 
-image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
+image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n)
 {
-	uint32_t *restrict p, x, y;
-	float *restrict m, z;
-	if ((p = r->dst) && r->src)
+	register uint32_t *restrict p;
+	register float *restrict m;
+	register float z, a, b, c;
+	if ((p = r->dst) && r->src && n)
 	{
 		m = r->matrix;
-		for (y = 0; y < r->d_height; ++y)
-		{
-			for (x = 0; x < r->d_width; ++x)
-			{
-				z = 1.0f / (m[6] * x + m[7] * y + m[8]);
+		goto label_entry;
+		do {
+			do {
+				z = 1.0f / (m[6] * x + c);
 				*p++ = image_resample_get_src(r,
-					(m[0] * x + m[1] * y + m[2]) * z,
-					(m[3] * x + m[4] * y + m[5]) * z);
-			}
-		}
+					(m[0] * x + a) * z,
+					(m[3] * x + b) * z);
+				if (!--n)
+					goto label_ok;
+			} while(++x < r->d_width);
+			x = 0;
+			++y;
+			label_entry:
+			a = m[1] * y + m[2];
+			b = m[4] * y + m[5];
+			c = m[7] * y + m[8];
+		} while (y < r->d_height);
+		label_ok:
 		return r;
 	}
 	return NULL;

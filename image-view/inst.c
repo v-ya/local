@@ -157,3 +157,9 @@ void inst_wait(inst_s *restrict r)
 		window_do_all_events(r->window);
 	}
 }
+
+image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
+{
+	image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n);
+	return image_resample_get_dst_subblock(r, 0, 0, r->d_width * r->d_height);
+}
