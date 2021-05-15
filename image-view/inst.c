@@ -15,6 +15,30 @@ static void inst_event_expose_func(inst_s *restrict r, window_s *window, uint32_
 	r->update = 1;
 }
 
+static void inst_event_key_func(inst_s *restrict r, window_s *window, uint32_t key, uint32_t press, window_event_state_t *restrict state)
+{
+	if (press)
+	{
+		if (key == 9)
+		{
+			// <esc>
+			r->is_close = 1;
+		}
+		else if (key == 65)
+		{
+			// <space>
+			if (window_set_hint_decorations(window, !r->hint_decorations))
+				r->hint_decorations = !r->hint_decorations;
+		}
+		else if (key == 95)
+		{
+			// <F11>
+			if (window_set_fullscreen(window, !r->fullscreen))
+				r->fullscreen = !r->fullscreen;
+		}
+	}
+}
+
 static void inst_event_button_func(inst_s *restrict r, window_s *window, uint32_t button, uint32_t press, window_event_state_t *restrict state)
 {
 	r->last_x = state->x;
@@ -108,14 +132,17 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 				r->window = window_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
 				if (r->window)
 				{
+					r->hint_decorations = 1;
 					window_register_event_data(r->window, r);
 					window_register_event_close(r->window, (window_event_close_f) inst_event_close_func);
 					window_register_event_expose(r->window, (window_event_expose_f) inst_event_expose_func);
+					window_register_event_key(r->window, (window_event_key_f) inst_event_key_func);
 					window_register_event_button(r->window, (window_event_button_f) inst_event_button_func);
 					window_register_event_pointer(r->window, (window_event_pointer_f) inst_event_pointer_func);
 					if (window_set_event(r->window, (const window_event_t []) {
 						window_event_close,
 						window_event_expose,
+						window_event_key,
 						window_event_button,
 						window_event_pointer,
 						window_event_null

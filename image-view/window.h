@@ -54,5 +54,7 @@ void window_register_event_focus(window_s *restrict r, window_event_focus_f func
 void window_register_event_config(window_s *restrict r, window_event_config_f func);
 void window_register_clear(window_s *restrict r);
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
+window_s* window_set_hint_decorations(window_s *restrict r, uint32_t enable);
+window_s* window_set_fullscreen(window_s *restrict r, uint32_t enable);
 
 #endif

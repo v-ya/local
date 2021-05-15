@@ -3,7 +3,28 @@
 #include <xcb/xcb.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <memory.h>
+#include <string.h>
+
+typedef struct xproto__MOTIF_WM_HINTS_t {
+	uint32_t flags;
+	uint32_t functions;
+	uint32_t decorations;
+	int32_t input_mode;
+	uint32_t status;
+} xproto__MOTIF_WM_HINTS_t;
+
+static xcb_connection_t* window_xcb_get_atom(xcb_connection_t *restrict c, const char *restrict name, xcb_atom_t *restrict atom)
+{
+	xcb_intern_atom_reply_t *restrict ratom;
+	ratom = xcb_intern_atom_reply(c, xcb_intern_atom(c, 1, strlen(name), name), NULL);
+	if (ratom)
+	{
+		*atom = ratom->atom;
+		free(ratom);
+		return c;
+	}
+	return NULL;
+}
 
 static const xcb_screen_t* window_xcb_get_screen(xcb_connection_t *restrict c, uint32_t depth, xcb_visualid_t *restrict visual)
 {
@@ -95,10 +116,13 @@ struct window_s {
 	xcb_colormap_t colormap;
 	xcb_window_t window;
 	xcb_gcontext_t gcontext;
-	xcb_atom_t atom_close;
 	uint32_t depth;
 	uint32_t max_request_length;
 	window_event_report_t report;
+	xcb_atom_t atom_close;
+	xcb_atom_t atom_hint;
+	xcb_atom_t atom_state;
+	xcb_atom_t atom_state_fullscreen;
 };
 
 void window_usleep(uint32_t us)
@@ -446,5 +470,61 @@ const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restri
 		free(geometry);
 		return r;
 	}
+	return NULL;
+}
+
+window_s* window_set_hint_decorations(window_s *restrict r, uint32_t enable)
+{
+	xcb_generic_error_t *error;
+	if (!r->atom_hint)
+	{
+		if (!window_xcb_get_atom(r->connection, "_MOTIF_WM_HINTS", &r->atom_hint))
+			goto label_fail;
+	}
+	if (!(error = xcb_request_check(r->connection, xcb_change_property_checked(
+			r->connection, XCB_PROP_MODE_REPLACE, r->window,
+			r->atom_hint, r->atom_hint, 32,
+			sizeof(xproto__MOTIF_WM_HINTS_t) / sizeof(uint32_t),
+			(xproto__MOTIF_WM_HINTS_t [1]) {{
+				.flags = 2,
+				.functions = 0,
+				.decorations = !!enable,
+				.input_mode = 0,
+				.status = 0
+			}}))))
+		return r;
+	free(error);
+	label_fail:
+	return NULL;
+}
+
+window_s* window_set_fullscreen(window_s *restrict r, uint32_t enable)
+{
+	xcb_generic_error_t *error;
+	if (!r->atom_state)
+	{
+		if (!window_xcb_get_atom(r->connection, "_NET_WM_STATE", &r->atom_state))
+			goto label_fail;
+	}
+	if (!r->atom_state_fullscreen)
+	{
+		if (!window_xcb_get_atom(r->connection, "_NET_WM_STATE_FULLSCREEN", &r->atom_state_fullscreen))
+			goto label_fail;
+	}
+	error = xcb_request_check(r->connection, xcb_send_event_checked(
+		r->connection, 0, r->screen->root,
+		XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY,
+		(char *) (xcb_client_message_event_t [1]) {{
+			.response_type = XCB_CLIENT_MESSAGE,
+			.format = 32,
+			.sequence = 0,
+			.window = r->window,
+			.type = r->atom_state,
+			.data = {.data32 = {enable?1:0, r->atom_state_fullscreen, 0, 0, 0}}
+		}})
+	);
+	if (!error) return r;
+	free(error);
+	label_fail:
 	return NULL;
 }

@@ -35,18 +35,31 @@ static args_deal_func(_b, args_t *restrict)
 static args_deal_func(_h, args_t *restrict)
 {
 	pri->have_help = 1;
+	if (value && !strcmp(value, "full"))
+		pri->have_help = 2;
 	return 1;
 }
 
-static inline void args_help(const char *restrict exec)
+static inline void args_help(const char *restrict exec, uint32_t full)
 {
 	printf(
 		"%s [control]\n"
-		"\t*" "-h/--help             print help document\n"
+		"\t*" "-h/--help [full]      print help document\n"
 		"\t*" "[--] <input:image>    input image path\n"
 		"\t " "-k/--kernel <kn>      extra calc kernel [0, 15], default 3\n"
 		"\t " "-b/--bgcolor <color>  background color [0x00000000, 0xffffffff], default 0xff7f7f7f\n"
 		, exec
+	);
+	if (full) printf(
+		"instructions for use:\n"
+		"\t" "<Mouse_L_Button:PressMove> move the image\n"
+		"\t" "<Mouse_R_Button:PressMove> rotate the image\n"
+		"\t" "<Mouse_M_Button:Press>     reset the image\n"
+		"\t" "<Mouse_M_Button:Up>        zoom in\n"
+		"\t" "<Mouse_M_Button:Down>      zoom out\n"
+		"\t" "<Esc:Press>                close\n"
+		"\t" "<Space:Press>              hide/show hint decorations\n"
+		"\t" "<F11:Press>                enable/disable full screen\n"
 	);
 }
 
@@ -82,7 +95,7 @@ args_t* args_get(args_t *restrict args, int argc, const char *argv[])
 		hashmap_uini(&a);
 		return args;
 	}
-	args_help(argv[0]);
+	args_help(argv[0], (args->have_help > 1));
 	label_fail:
 	args = NULL;
 	goto label_end;
