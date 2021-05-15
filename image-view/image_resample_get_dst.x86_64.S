@@ -198,6 +198,7 @@ image_resample_get_dst_subblock:
 						addps	%xmm7, %xmm4
 				.L_calc_color:
 				// check s
+				movl	%r12d, %eax
 				ucomiss	%xmm5, %xmm13
 				je	.L_get_src_end
 				// bgra /= s
