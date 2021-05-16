@@ -1,9 +1,13 @@
 #define _DEFAULT_SOURCE
 #include "window.h"
 #include <xcb/xcb.h>
+#include <xcb/shm.h>
+#include <sys/shm.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+// xcb
 
 typedef struct xproto__MOTIF_WM_HINTS_t {
 	uint32_t flags;
@@ -97,6 +101,52 @@ static xcb_connection_t* window_xcb_set_atom_close(xcb_connection_t *restrict c,
 	return c;
 }
 
+// shm
+
+typedef struct window_shm_s {
+	void *addr;
+	uintptr_t size;
+	uint32_t shmid;
+	uint32_t remove;
+} window_shm_s;
+
+static void window_shm_free_func(window_shm_s *restrict r)
+{
+	if (~(uintptr_t) r->addr)
+		shmdt(r->addr);
+	if (r->remove)
+		shmctl(r->shmid, IPC_RMID, NULL);
+}
+
+window_shm_s* window_shm_alloc(uintptr_t size)
+{
+	window_shm_s *restrict r;
+	int shmid;
+	if ((size = (size + 4095) & ~4095))
+	{
+		r = (window_shm_s *) refer_alloz(sizeof(window_shm_s));
+		if (r)
+		{
+			refer_set_free(r, (refer_free_f) window_shm_free_func);
+			r->addr = (void *) ~(intptr_t) 0;
+			r->size = size;
+			shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0600);
+			if (shmid >= 0)
+			{
+				r->shmid = (uint32_t) shmid;
+				r->remove = 1;
+				if (~(uintptr_t) (r->addr = shmat(shmid, NULL, 0)))
+					return r;
+			}
+			return r;
+			refer_free(r);
+		}
+	}
+	return NULL;
+}
+
+// window
+
 typedef struct window_event_report_t {
 	refer_t data;
 	window_event_close_f   do_close;
@@ -112,13 +162,15 @@ typedef struct window_event_report_t {
 struct window_s {
 	xcb_connection_t *connection;
 	const xcb_screen_t *screen;
+	window_shm_s *shm;
 	xcb_visualid_t visual;
 	xcb_colormap_t colormap;
 	xcb_window_t window;
 	xcb_gcontext_t gcontext;
+	xcb_shm_seg_t shmseg;
+	window_event_report_t report;
 	uint32_t depth;
 	uint32_t max_request_length;
-	window_event_report_t report;
 	xcb_atom_t atom_close;
 	xcb_atom_t atom_hint;
 	xcb_atom_t atom_state;
@@ -134,6 +186,8 @@ static void window_free_func(window_s *restrict r)
 {
 	if (r->connection)
 	{
+		if (r->shmseg)
+			xcb_shm_detach(r->connection, r->shmseg);
 		if (r->gcontext)
 			xcb_free_gc(r->connection, r->gcontext);
 		if (r->window)
@@ -143,6 +197,8 @@ static void window_free_func(window_s *restrict r)
 		xcb_flush(r->connection);
 		xcb_disconnect(r->connection);
 	}
+	if (r->shm)
+		refer_free(r->shm);
 	if (r->report.data)
 		refer_free(r->report.data);
 }
@@ -195,6 +251,46 @@ window_s* window_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t de
 	return NULL;
 }
 
+window_s* window_enable_shm(window_s *restrict r, uintptr_t shm_size)
+{
+	xcb_generic_error_t *restrict error;
+	window_shm_s *restrict shm;
+	xcb_shm_seg_t shmseg;
+	shm = NULL;
+	if (r->shm)
+		goto label_fail;
+	if (!(shm = window_shm_alloc(shm_size)))
+		goto label_fail;
+	shmseg = xcb_generate_id(r->connection);
+	if (!(error = xcb_request_check(r->connection, xcb_shm_attach_checked(
+			r->connection, shmseg, shm->shmid, 1))))
+	{
+		r->shm = shm;
+		r->shmseg = shmseg;
+		return r;
+	}
+	free(error);
+	label_fail:
+	if (shm) refer_free(shm);
+	return NULL;
+}
+
+window_s* window_disable_shm(window_s *restrict r)
+{
+	if (r->shm)
+	{
+		if (r->shmseg)
+		{
+			xcb_shm_detach(r->connection, r->shmseg);
+			r->shmseg = 0;
+		}
+		refer_free(r->shm);
+		r->shm = NULL;
+		return r;
+	}
+	return NULL;
+}
+
 window_s* window_map(window_s *restrict r)
 {
 	xcb_generic_error_t *restrict error;
@@ -227,27 +323,46 @@ window_s* window_update(window_s *restrict r, const uint32_t *restrict data, uin
 {
 	xcb_generic_error_t *restrict error;
 	uint32_t linesize, nl;
+	uintptr_t shm_nl;
 	if (r->depth != 24 && r->depth != 32)
 		goto label_fail;
 	linesize = width << 2;
-	nl = r->max_request_length / linesize;
 	error = NULL;
-	do {
-		if (nl > height) nl = height;
-		error = xcb_request_check(r->connection, xcb_put_image_checked(
-			r->connection, XCB_IMAGE_FORMAT_Z_PIXMAP, r->window, r->gcontext,
-			(uint16_t) width, (uint16_t) nl, (int16_t) x, (int16_t) y,
-			0, r->depth, linesize * nl, (const uint8_t *) data));
-		data += width * nl;
-		y += nl;
-		height -= nl;
-	} while (!error && height);
-	if (!error)
+	if (r->shm)
 	{
-		if (xcb_flush(r->connection) <= 0)
-			goto label_fail;
-		return r;
+		shm_nl = r->shm->size / linesize;
+		if (!shm_nl) goto label_fail;
+		if ((uintptr_t) (nl = (uint32_t) shm_nl) != shm_nl)
+			nl = ~(uint32_t) 0;
+		do {
+			if (nl > height) nl = height;
+			memcpy(r->shm->addr, data, linesize * nl);
+			error = xcb_request_check(r->connection, xcb_shm_put_image_checked(
+				r->connection, r->window, r->gcontext,
+				(uint16_t) width, (uint16_t) nl, 0, 0,
+				(uint16_t) width, (uint16_t) nl, (int16_t) x, (int16_t) y,
+				r->depth, XCB_IMAGE_FORMAT_Z_PIXMAP, 0, r->shmseg, 0));
+			data += width * nl;
+			y += nl;
+			height -= nl;
+		} while (!error && height);
 	}
+	else
+	{
+		nl = r->max_request_length / linesize;
+		if (!nl) goto label_fail;
+		do {
+			if (nl > height) nl = height;
+			error = xcb_request_check(r->connection, xcb_put_image_checked(
+				r->connection, XCB_IMAGE_FORMAT_Z_PIXMAP, r->window, r->gcontext,
+				(uint16_t) width, (uint16_t) nl, (int16_t) x, (int16_t) y,
+				0, r->depth, linesize * nl, (const uint8_t *) data));
+			data += width * nl;
+			y += nl;
+			height -= nl;
+		} while (!error && height);
+	}
+	if (!error) return r;
 	free(error);
 	label_fail:
 	return NULL;
@@ -454,6 +569,21 @@ void window_register_clear(window_s *restrict r)
 	if (r->report.data)
 		refer_free(r->report.data);
 	memset(&r->report, 0, sizeof(r->report));
+}
+
+const window_s* window_get_screen_size(const window_s *restrict r, uint32_t *restrict width_pixels, uint32_t *restrict height_pixels, uint32_t *restrict width_mm, uint32_t *restrict height_mm, uint32_t *restrict depth)
+{
+	const xcb_screen_t *restrict screen;
+	if ((screen = r->screen))
+	{
+		if (width_pixels) *width_pixels = screen->width_in_pixels;
+		if (height_pixels) *height_pixels = screen->height_in_pixels;
+		if (width_mm) *width_mm = screen->width_in_millimeters;
+		if (height_mm) *height_mm = screen->height_in_millimeters;
+		if (depth) *depth = screen->root_depth;
+		return r;
+	}
+	return NULL;
 }
 
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth)

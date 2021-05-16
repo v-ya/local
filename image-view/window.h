@@ -37,6 +37,8 @@ typedef void (*window_event_config_f)(refer_t data, window_s *window, int32_t x,
 
 void window_usleep(uint32_t us);
 window_s* window_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t depth);
+window_s* window_enable_shm(window_s *restrict r, uintptr_t shm_size);
+window_s* window_disable_shm(window_s *restrict r);
 window_s* window_map(window_s *restrict r);
 window_s* window_unmap(window_s *restrict r);
 window_s* window_update(window_s *restrict r, const uint32_t *restrict data, uint32_t width, uint32_t height, int32_t x, int32_t y);
@@ -53,6 +55,7 @@ void window_register_event_area(window_s *restrict r, window_event_area_f func);
 void window_register_event_focus(window_s *restrict r, window_event_focus_f func);
 void window_register_event_config(window_s *restrict r, window_event_config_f func);
 void window_register_clear(window_s *restrict r);
+const window_s* window_get_screen_size(const window_s *restrict r, uint32_t *restrict width_pixels, uint32_t *restrict height_pixels, uint32_t *restrict width_mm, uint32_t *restrict height_mm, uint32_t *restrict depth);
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
 window_s* window_set_hint_decorations(window_s *restrict r, uint32_t enable);
 window_s* window_set_fullscreen(window_s *restrict r, uint32_t enable);

@@ -139,21 +139,42 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 					window_register_event_key(r->window, (window_event_key_f) inst_event_key_func);
 					window_register_event_button(r->window, (window_event_button_f) inst_event_button_func);
 					window_register_event_pointer(r->window, (window_event_pointer_f) inst_event_pointer_func);
-					if (window_set_event(r->window, (const window_event_t []) {
-						window_event_close,
-						window_event_expose,
-						window_event_key,
-						window_event_button,
-						window_event_pointer,
-						window_event_null
-						}) && window_map(r->window))
-						return r;
-					window_register_clear(r->window);
+					return r;
 				}
 			}
 		}
 		refer_free(r);
 	}
+	return NULL;
+}
+
+inst_s* inst_enable_shm(inst_s *restrict r, uintptr_t shm_size)
+{
+	if (!shm_size)
+	{
+		uint32_t w, h;
+		if (!window_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
+			goto label_fail;
+		shm_size = sizeof(uint32_t) * w * h;
+	}
+	window_disable_shm(r->window);
+	if (window_enable_shm(r->window, shm_size))
+		return r;
+	label_fail:
+	return NULL;
+}
+
+inst_s* inst_begin(inst_s *restrict r)
+{
+	if (window_set_event(r->window, (const window_event_t []) {
+			window_event_close,
+			window_event_expose,
+			window_event_key,
+			window_event_button,
+			window_event_pointer,
+			window_event_null
+			}) && window_map(r->window))
+		return r;
 	return NULL;
 }
 

@@ -10,7 +10,10 @@ int main(int argc, const char *argv[])
 		inst = inst_alloc(args.image_path, args.multicalc, args.bgcolor);
 		if (inst)
 		{
-			inst_wait(inst);
+			if (!args.shm_disable)
+				inst_enable_shm(inst, args.shm_size);
+			if (inst_begin(inst))
+				inst_wait(inst);
 			inst_free(inst);
 		}
 	}
