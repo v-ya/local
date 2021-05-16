@@ -603,6 +603,30 @@ const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restri
 	return NULL;
 }
 
+window_s* window_set_position(window_s *restrict r, int32_t x, int32_t y)
+{
+	xcb_generic_error_t *error;
+	if (!(error = xcb_request_check(r->connection, xcb_configure_window_checked(
+			r->connection, r->window,
+			XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
+			(const uint32_t [2]) {x, y}))))
+		return r;
+	free(error);
+	return NULL;
+}
+
+window_s* window_set_size(window_s *restrict r, uint32_t width, uint32_t height)
+{
+	xcb_generic_error_t *error;
+	if (!(error = xcb_request_check(r->connection, xcb_configure_window_checked(
+			r->connection, r->window,
+			XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+			(const uint32_t [2]) {width, height}))))
+		return r;
+	free(error);
+	return NULL;
+}
+
 window_s* window_set_hint_decorations(window_s *restrict r, uint32_t enable)
 {
 	xcb_generic_error_t *error;

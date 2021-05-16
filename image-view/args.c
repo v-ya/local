@@ -77,14 +77,22 @@ static inline void args_help(const char *restrict exec, uint32_t full)
 	);
 	if (full) printf(
 		"instructions for use:\n"
-		"\t" "<Mouse_L_Button:PressMove> move the image\n"
-		"\t" "<Mouse_R_Button:PressMove> rotate the image\n"
-		"\t" "<Mouse_M_Button:Press>     reset the image\n"
-		"\t" "<Mouse_M_Button:Up>        zoom in\n"
-		"\t" "<Mouse_M_Button:Down>      zoom out\n"
-		"\t" "<Esc:Press>                close\n"
-		"\t" "<Space:Press>              hide/show hint decorations\n"
-		"\t" "<F11:Press>                enable/disable full screen\n"
+		"\t" "<Mouse_L_Button:PressMove>      move the image\n"
+		"\t" "<Mouse_R_Button:PressMove>      rotate the image\n"
+		"\t" "<Mouse_M_Button:Press>          reset the image\n"
+		"\t" "<Mouse_M_Button:Up>             zoom in\n"
+		"\t" "<Mouse_M_Button:Down>           zoom out\n"
+		"\t" "<Ctrl+Mouse_L_Button:PressMove> move the window\n"
+		"\t" "<Ctrl+Mouse_R_Button:PressMove> resize the window\n"
+		"\t" "<Ctrl+Mouse_M_Button:Press>     reset the window by image size\n"
+		"\t" "<Ctrl+Mouse_M_Button:Up>        mini zoom in\n"
+		"\t" "<Ctrl+Mouse_M_Button:Down>      mini zoom out\n"
+		"\t" "<Shift+Mouse_R_Button:Press>    resize the window keep width/height\n"
+		"\t" "<Shift+Mouse_M_Button:Up>       mini mini zoom in\n"
+		"\t" "<Shift+Mouse_M_Button:Down>     mini mini zoom out\n"
+		"\t" "<Esc:Press>                     close\n"
+		"\t" "<Space:Press>                   hide/show hint decorations\n"
+		"\t" "<F11:Press>                     enable/disable full screen\n"
 	);
 }
 

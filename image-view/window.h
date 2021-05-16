@@ -57,6 +57,8 @@ void window_register_event_config(window_s *restrict r, window_event_config_f fu
 void window_register_clear(window_s *restrict r);
 const window_s* window_get_screen_size(const window_s *restrict r, uint32_t *restrict width_pixels, uint32_t *restrict height_pixels, uint32_t *restrict width_mm, uint32_t *restrict height_mm, uint32_t *restrict depth);
 const window_s* window_get_geometry(const window_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
+window_s* window_set_position(window_s *restrict r, int32_t x, int32_t y);
+window_s* window_set_size(window_s *restrict r, uint32_t width, uint32_t height);
 window_s* window_set_hint_decorations(window_s *restrict r, uint32_t enable);
 window_s* window_set_fullscreen(window_s *restrict r, uint32_t enable);
 

@@ -249,7 +249,7 @@ image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
 		uintptr_t L, p;
 		uint32_t i, n;
 		n = r->n_mc + 1;
-		L = pn / n;
+		L = (pn + r->n_mc) / n;
 		if (L < r->mc_have_min_pixels)
 			L = r->mc_have_min_pixels;
 		n = (pn + (L - 1)) / L;
