@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MAX_LOOP_FILTER              63
+#define MAX_SEGMENTS                 8
 #define MAX_TILE_AREA                (4096 * 2304)
 #define MAX_TILE_COLS                64
 #define MAX_TILE_ROWS                64
@@ -10,6 +12,8 @@
 #define NUM_REF_FRAMES               8
 #define PRIMARY_REF_NONE             7
 #define REFS_PER_FRAME               7
+#define SEG_LVL_MAX                  8
+#define SEG_LVL_REF_FRAME            5
 #define SELECT_SCREEN_CONTENT_TOOLS  2
 #define SELECT_INTEGER_MV            2
 #define SUPERRES_DENOM_BITS          3
