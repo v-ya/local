@@ -13,6 +13,7 @@ static const uint32_t* image_load(const char *restrict path, uint32_t *restrict 
 	AVPacket *packet;
 	AVFrame *frame;
 	struct SwsContext *sws;
+	uintptr_t linesize, pad;
 	int stream_index, rdecode;
 	r = data = NULL;
 	format = NULL;
@@ -55,9 +56,10 @@ static const uint32_t* image_load(const char *restrict path, uint32_t *restrict 
 	} while (rdecode);
 	if (frame->width <= 0 || frame->height <= 0)
 		goto label_fail;
-	*width = (uint32_t) frame->width;
+	linesize = (*width = (uint32_t) frame->width) * sizeof(uint32_t);
 	*height = (uint32_t) frame->height;
-	if (!(data = malloc((size_t) frame->width * (size_t) frame->height * sizeof(uint32_t))))
+	pad = ((linesize + 63) & ~63) - linesize;
+	if (!(data = malloc(linesize * (size_t) frame->height + pad)))
 		goto label_fail;
 	if (!(sws = sws_getContext(
 		frame->width, frame->height, frame->format,

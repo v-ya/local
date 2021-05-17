@@ -1,7 +1,7 @@
 #include "inst.h"
-#include "window.h"
 #include "image_load.h"
 #include "image_resample.h"
+#include <xwindow.h>
 #include <math.h>
 
 #define  inst_zoom_in_2   0.7071067811865475f
@@ -19,30 +19,14 @@ typedef enum inst_task_t {
 	inst_task_scal = 0x10, // 缩放窗口(保持宽高比例)
 } inst_task_t;
 
-typedef enum inst_state_t {
-	inst_state_shift         = 0x0001,
-	inst_state_caps_lock     = 0x0002,
-	inst_state_ctrl          = 0x0004,
-	inst_state_alt           = 0x0008,
-	inst_state_num_lock      = 0x0010,
-	inst_state_mouse_l_press = 0x0100,
-	inst_state_mouse_m_press = 0x0200,
-	inst_state_mouse_r_press = 0x0400,
-	inst_state_mouse_m_up    = 0x0800,
-	inst_state_mouse_m_down  = 0x1000,
-	// mask
-	inst_state_mask_control  = 0x000d,
-	inst_state_mask_mouse    = 0x1f00
-} inst_state_t;
-
 struct inst_s {
 	const image_bgra_s *image;
 	image_resample_s *resample;
-	window_s *window;
+	xwindow_s *window;
 	volatile uint32_t is_close;
 	volatile uint32_t update;
 	inst_task_t task;
-	inst_state_t state;
+	xwindow_state_t state;
 	uint32_t width;
 	uint32_t height;
 	int32_t last_x;
@@ -55,17 +39,17 @@ struct inst_s {
 	uint32_t fullscreen;
 };
 
-static void inst_event_close_func(inst_s *restrict r, window_s *window)
+static void inst_event_close_func(inst_s *restrict r, xwindow_s *w)
 {
 	r->is_close = 1;
 }
 
-static void inst_event_expose_func(inst_s *restrict r, window_s *window, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+static void inst_event_expose_func(inst_s *restrict r, xwindow_s *w, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
 	r->update = 1;
 }
 
-static void inst_event_config_func(inst_s *restrict r, window_s *window, int32_t x, int32_t y, uint32_t width, uint32_t height)
+static void inst_event_config_func(inst_s *restrict r, xwindow_s *w, int32_t x, int32_t y, uint32_t width, uint32_t height)
 {
 	if ((r->width != width || r->height != height))
 	{
@@ -76,88 +60,85 @@ static void inst_event_config_func(inst_s *restrict r, window_s *window, int32_t
 	}
 }
 
-static void inst_event_key_func(inst_s *restrict r, window_s *window, uint32_t key, uint32_t press, window_event_state_t *restrict state)
+static void inst_event_key_func(inst_s *restrict r, xwindow_s *w, xwindow_key_t key, uint32_t press, xwindow_event_state_t *restrict state)
 {
 	if (press)
 	{
-		if (key == 9)
+		if (key == xwindow_key_esc)
 		{
-			// <esc>
 			r->is_close = 1;
 		}
-		else if (key == 65)
+		else if (key == xwindow_key_space)
 		{
-			// <space>
-			if (window_set_hint_decorations(window, !r->hint_decorations))
+			if (xwindow_set_hint_decorations(w, !r->hint_decorations))
 				r->hint_decorations = !r->hint_decorations;
 		}
-		else if (key == 95)
+		else if (key == xwindow_key_f11)
 		{
-			// <F11>
-			if (window_set_fullscreen(window, !r->fullscreen))
+			if (xwindow_set_fullscreen(w, !r->fullscreen))
 				r->fullscreen = !r->fullscreen;
 		}
 	}
 }
 
-static void inst_event_button_func(inst_s *restrict r, window_s *window, uint32_t button, uint32_t press, window_event_state_t *restrict state)
+static void inst_event_button_func(inst_s *restrict r, xwindow_s *w, xwindow_button_t button, uint32_t press, xwindow_event_state_t *restrict state)
 {
-	inst_state_t task_state; 
+	xwindow_state_t task_state;
 	r->last_x = state->x;
 	r->last_y = state->y;
 	if (press && !r->task)
 	{
-		task_state = (1u << (button + 7)) | (state->state & inst_state_mask_control);
+		task_state = (1u << (button + 7)) | (state->state & xwindow_state_mask_control);
 		switch ((uint32_t) task_state)
 		{
-			case inst_state_mouse_l_press:
+			case xwindow_state_mouse_l_press:
 				r->task = inst_task_tran;
 				break;
-			case inst_state_mouse_r_press:
+			case xwindow_state_mouse_r_press:
 				r->task = inst_task_rota;
 				break;
-			case inst_state_mouse_l_press | inst_state_ctrl:
+			case xwindow_state_mouse_l_press | xwindow_state_ctrl:
 				r->task = inst_task_move;
 				break;
-			case inst_state_mouse_r_press | inst_state_ctrl:
+			case xwindow_state_mouse_r_press | xwindow_state_ctrl:
 				r->task = inst_task_size;
 				r->size_w = r->width;
 				r->size_h = r->height;
 				break;
-			case inst_state_mouse_r_press | inst_state_shift:
+			case xwindow_state_mouse_r_press | xwindow_state_shift:
 				r->task = inst_task_scal;
 				r->scal_w = r->size_w = r->width;
 				r->scal_h = r->size_h = r->height;
 				break;
-			case inst_state_mouse_m_press:
+			case xwindow_state_mouse_m_press:
 				image_resample_m_reset(r->resample);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_press | inst_state_ctrl:
-				window_set_size(r->window, r->image->width, r->image->height);
+			case xwindow_state_mouse_m_press | xwindow_state_ctrl:
+				xwindow_set_size(r->window, r->image->width, r->image->height);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_up:
+			case xwindow_state_mouse_m_up:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_in_2);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_down:
+			case xwindow_state_mouse_m_down:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_out_2);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_up | inst_state_ctrl:
+			case xwindow_state_mouse_m_up | xwindow_state_ctrl:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_in_4);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_down | inst_state_ctrl:
+			case xwindow_state_mouse_m_down | xwindow_state_ctrl:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_out_4);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_up | inst_state_shift:
+			case xwindow_state_mouse_m_up | xwindow_state_shift:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_in_8);
 				r->update = 1;
 				break;
-			case inst_state_mouse_m_down | inst_state_shift:
+			case xwindow_state_mouse_m_down | xwindow_state_shift:
 				image_resample_m_scale(r->resample, (float) state->x, (float) state->y, inst_zoom_out_8);
 				r->update = 1;
 				break;
@@ -194,7 +175,7 @@ static void inst_mouse_pointer_size(inst_s *restrict r, int32_t x, int32_t y)
 	y += r->size_h;
 	if (x <= 0) x = 1;
 	if (y <= 0) y = 1;
-	window_set_size(r->window, r->size_w = (uint32_t) x, r->size_h = (uint32_t) y);
+	xwindow_set_size(r->window, r->size_w = (uint32_t) x, r->size_h = (uint32_t) y);
 }
 
 static void inst_mouse_pointer_scal(inst_s *restrict r, int32_t x, int32_t y)
@@ -209,14 +190,14 @@ static void inst_mouse_pointer_scal(inst_s *restrict r, int32_t x, int32_t y)
 	k = sqrt((double) x * y / ((uint64_t) r->scal_w * r->scal_h));
 	r->size_w = (uint32_t) (r->scal_w * k + 0.5);
 	r->size_h = (uint32_t) (r->scal_h * k + 0.5);
-	window_set_size(r->window, r->size_w, r->size_h);
+	xwindow_set_size(r->window, r->size_w, r->size_h);
 }
 
-static void inst_event_pointer_func(inst_s *restrict r, window_s *window, window_event_state_t *restrict state)
+static void inst_event_pointer_func(inst_s *restrict r, xwindow_s *w, xwindow_event_state_t *restrict state)
 {
 	if (r->task)
 	{
-		if ((state->state & (inst_state_mask_control | inst_state_mask_mouse)) == r->state)
+		if ((state->state & (xwindow_state_mask_control | xwindow_state_mask_mouse)) == r->state)
 		{
 			switch (r->task)
 			{
@@ -229,7 +210,7 @@ static void inst_event_pointer_func(inst_s *restrict r, window_s *window, window
 					r->update = 1;
 					break;
 				case inst_task_move:
-					window_set_position(r->window, state->root_x - r->last_x, state->root_y - r->last_y);
+					xwindow_set_position(w, state->root_x - r->last_x, state->root_y - r->last_y);
 					goto label_skip_update_position;
 				case inst_task_size:
 					inst_mouse_pointer_size(r, state->x, state->y);
@@ -250,7 +231,7 @@ static void inst_free_func(inst_s *restrict r)
 {
 	if (r->window)
 	{
-		window_unmap(r->window);
+		xwindow_unmap(r->window);
 		refer_free(r->window);
 	}
 	if (r->resample)
@@ -272,17 +253,17 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 			if ((r->resample = image_resample_alloc(multicalc, bgcolor)) &&
 				image_resample_set_src(r->resample, r->image->data, r->image->width, r->image->height))
 			{
-				r->window = window_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
+				r->window = xwindow_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
 				if (r->window)
 				{
 					r->hint_decorations = 1;
-					window_register_event_data(r->window, r);
-					window_register_event_close(r->window, (window_event_close_f) inst_event_close_func);
-					window_register_event_expose(r->window, (window_event_expose_f) inst_event_expose_func);
-					window_register_event_key(r->window, (window_event_key_f) inst_event_key_func);
-					window_register_event_button(r->window, (window_event_button_f) inst_event_button_func);
-					window_register_event_pointer(r->window, (window_event_pointer_f) inst_event_pointer_func);
-					window_register_event_config(r->window, (window_event_config_f) inst_event_config_func);
+					xwindow_register_event_data(r->window, r);
+					xwindow_register_event_close(r->window, (xwindow_event_close_f) inst_event_close_func);
+					xwindow_register_event_expose(r->window, (xwindow_event_expose_f) inst_event_expose_func);
+					xwindow_register_event_key(r->window, (xwindow_event_key_f) inst_event_key_func);
+					xwindow_register_event_button(r->window, (xwindow_event_button_f) inst_event_button_func);
+					xwindow_register_event_pointer(r->window, (xwindow_event_pointer_f) inst_event_pointer_func);
+					xwindow_register_event_config(r->window, (xwindow_event_config_f) inst_event_config_func);
 					return r;
 				}
 			}
@@ -297,12 +278,12 @@ inst_s* inst_enable_shm(inst_s *restrict r, uintptr_t shm_size)
 	if (!shm_size)
 	{
 		uint32_t w, h;
-		if (!window_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
+		if (!xwindow_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
 			goto label_fail;
 		shm_size = sizeof(uint32_t) * w * h;
 	}
-	window_disable_shm(r->window);
-	if (window_enable_shm(r->window, shm_size))
+	xwindow_disable_shm(r->window);
+	if (xwindow_enable_shm(r->window, shm_size))
 		return r;
 	label_fail:
 	return NULL;
@@ -310,15 +291,15 @@ inst_s* inst_enable_shm(inst_s *restrict r, uintptr_t shm_size)
 
 inst_s* inst_begin(inst_s *restrict r)
 {
-	if (window_set_event(r->window, (const window_event_t []) {
-			window_event_close,
-			window_event_expose,
-			window_event_key,
-			window_event_button,
-			window_event_pointer,
-			window_event_config,
-			window_event_null
-			}) && window_map(r->window))
+	if (xwindow_set_event(r->window, (const xwindow_event_t []) {
+			xwindow_event_close,
+			xwindow_event_expose,
+			xwindow_event_key,
+			xwindow_event_button,
+			xwindow_event_pointer,
+			xwindow_event_config,
+			xwindow_event_null
+			}) && xwindow_map(r->window))
 		return r;
 	return NULL;
 }
@@ -326,7 +307,7 @@ inst_s* inst_begin(inst_s *restrict r)
 void inst_free(inst_s *restrict r)
 {
 	if (r->window)
-		window_register_clear(r->window);
+		xwindow_register_clear(r->window);
 	refer_free(r);
 }
 
@@ -335,18 +316,18 @@ void inst_wait(inst_s *restrict r)
 	while (!r->is_close)
 	{
 		if (!r->update)
-			window_usleep(5000);
+			xwindow_usleep(5000);
 		else
 		{
 			if (image_resample_set_dst(r->resample, r->width, r->height))
 			{
 				if (image_resample_get_dst(r->resample))
 				{
-					window_update(r->window, r->resample->dst, r->width, r->height, 0, 0);
+					xwindow_update(r->window, r->resample->dst, r->width, r->height, 0, 0);
 				}
 			}
 			r->update = 0;
 		}
-		window_do_all_events(r->window);
+		xwindow_do_all_events(r->window);
 	}
 }
