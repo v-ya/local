@@ -34,6 +34,11 @@ typedef struct av1_uncompressed_header_t {
 	uint8_t is_motion_mode_switchable;                // 0|1
 	uint8_t use_ref_frame_mvs;                        // 0|1
 	uint8_t disable_frame_end_update_cdf;             // 0|1
+	uint8_t delta_q_present;                          // 0|1
+	uint8_t delta_lf_present;                         // 0|1
+	uint8_t delta_lf_multi;                           // 0|1
+	uint8_t delta_q_res;                              // [0, 3]
+	uint8_t delta_lf_res;                             // [0, 3]
 	uint8_t primary_ref_frame;                        // [0, 7]
 	uint8_t frame_to_show_map_idx;                    // [0, 7]
 	uint8_t last_frame_idx;                           // [0, 7]

@@ -398,6 +398,42 @@ av1_uncompressed_header_t* av1_uncompressed_header_read(av1_uncompressed_header_
 	// segmentation_params()
 	if (!av1_segmentation_params_read(&header->extra.segmentation_params, reader, header->primary_ref_frame))
 		goto label_fail;
+	header->delta_q_present = 0;
+	header->delta_q_res = 0;
+	if (header->extra.quantization_params.base_q_idx > 0)
+	{
+		// (1) delta_q_present
+		if (!av1_bits_flag_read(reader, &header->delta_q_present))
+			goto label_fail;
+	}
+	if (header->delta_q_present)
+	{
+		// (2) delta_q_res
+		if (!av1_bits_uint_read(reader, &v, 2))
+			goto label_fail;
+		header->delta_q_res = (uint8_t) v;
+	}
+	header->delta_lf_present = 0;
+	header->delta_lf_res = 0;
+	header->delta_lf_multi = 0;
+	if (header->delta_q_present)
+	{
+		if (!header->allow_intrabc)
+		{
+			// (1) delta_lf_present
+			if (!av1_bits_flag_read(reader, &header->delta_q_present))
+				goto label_fail;
+		}
+		if (header->delta_q_present)
+		{
+			// (2) delta_lf_res
+			// (1) delta_lf_multi
+			if (!av1_bits_uint_read(reader, &v, 3))
+				goto label_fail;
+			header->delta_lf_res = (uint8_t) (v >> 1);
+			header->delta_lf_multi = (uint8_t) (v & 1);
+		}
+	}
 	label_return:
 	return header;
 	label_fail:
@@ -653,6 +689,37 @@ const av1_uncompressed_header_t* av1_uncompressed_header_write(const av1_uncompr
 	// segmentation_params()
 	if (!av1_segmentation_params_write(&header->extra.segmentation_params, writer, header->primary_ref_frame))
 		goto label_fail;
+	if (header->extra.quantization_params.base_q_idx > 0)
+	{
+		// (1) delta_q_present
+		if (!av1_bits_flag_write(writer, header->delta_q_present))
+			goto label_fail;
+	}
+	if (header->delta_q_present)
+	{
+		// (2) delta_q_res
+		if (!av1_bits_uint_write(writer, header->delta_q_res, 2))
+			goto label_fail;
+	}
+	if (header->delta_q_present)
+	{
+		if (!header->allow_intrabc)
+		{
+			// (1) delta_lf_present
+			if (!av1_bits_flag_write(writer, header->delta_q_present))
+				goto label_fail;
+		}
+		if (header->delta_q_present)
+		{
+			// (2) delta_lf_res
+			// (1) delta_lf_multi
+			if (!av1_bits_uint_write(writer,
+				((uint64_t) header->delta_lf_res << 1) |
+				((uint64_t) header->delta_lf_multi),
+				3))
+				goto label_fail;
+		}
+	}
 	label_return:
 	return header;
 	label_fail:
@@ -865,6 +932,30 @@ uint64_t av1_uncompressed_header_bits(const av1_uncompressed_header_t *restrict 
 	size += av1_quantization_params_bits(&header->extra.quantization_params, sh);
 	// segmentation_params()
 	size += av1_segmentation_params_bits(&header->extra.segmentation_params, header->primary_ref_frame);
+	if (header->extra.quantization_params.base_q_idx > 0)
+	{
+		// (1) delta_q_present
+		size += 1;
+	}
+	if (header->delta_q_present)
+	{
+		// (2) delta_q_res
+		size += 2;
+	}
+	if (header->delta_q_present)
+	{
+		if (!header->allow_intrabc)
+		{
+			// (1) delta_lf_present
+			size += 1;
+		}
+		if (header->delta_q_present)
+		{
+			// (2) delta_lf_res
+			// (1) delta_lf_multi
+			size += 3;
+		}
+	}
 	label_return:
 	return size;
 }
@@ -914,4 +1005,9 @@ void av1_uncompressed_header_dump(const av1_uncompressed_header_t *restrict head
 	av1_tile_info_dump(&header->extra.tile_info, mlog);
 	av1_quantization_params_dump(&header->extra.quantization_params, mlog);
 	av1_segmentation_params_dump(&header->extra.segmentation_params, mlog);
+	mlog_printf(mlog, "delta_q_present[0, 1]:                                          %u\n", header->delta_q_present);
+	mlog_printf(mlog, "delta_q_res[0, 3]:                                              %u\n", header->delta_q_res);
+	mlog_printf(mlog, "delta_lf_present[0, 1]:                                         %u\n", header->delta_lf_present);
+	mlog_printf(mlog, "delta_lf_res[0, 3]:                                             %u\n", header->delta_lf_res);
+	mlog_printf(mlog, "delta_lf_multi[0, 1]:                                           %u\n", header->delta_lf_multi);
 }
