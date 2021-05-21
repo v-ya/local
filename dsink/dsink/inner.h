@@ -10,5 +10,7 @@ typedef struct dsink_fusion_t {
 
 void dsink_inner_difference(const int32_t *restrict data, int32_t *restrict diff, uintptr_t n, int32_t s);
 uintptr_t dsink_inner_fusion(const int32_t *restrict data, uintptr_t n, dsink_fusion_t *restrict fusion);
+uintptr_t dsink_inner_fusion_sink(dsink_fusion_t *restrict fusion, uintptr_t n, uintptr_t threshold);
+uintptr_t dsink_inner_fusion_bits(const dsink_fusion_t *restrict fusion, uintptr_t n, uintptr_t *restrict rlength);
 
 #endif
