@@ -19,7 +19,7 @@ int64_t dsink_inner_dot_sin(register const int32_t *restrict data, register uint
 		phase = 0;
 		label_sin_pi_2pi:
 		do {
-			r -= *data--;
+			r -= *data++;
 			if (!--n) goto label_return;
 		} while (++phase < quarter_cycle);
 		phase = 0;

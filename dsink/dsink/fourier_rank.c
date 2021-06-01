@@ -6,7 +6,7 @@ typedef struct dsink_fourier_rank2cycle_t {
 	uint64_t cycle;
 } dsink_fourier_rank2cycle_t;
 
-uintptr_t dsink_fourier_rank(uintptr_t n, uint32_t *restrict rank)
+uintptr_t dsink_inner_fourier_rank(uintptr_t n, uint32_t *restrict rank)
 {
 	static const dsink_fourier_rank2cycle_t r2c[] = {
 		{ 1, 4 * 1},
@@ -25,8 +25,9 @@ uintptr_t dsink_fourier_rank(uintptr_t n, uint32_t *restrict rank)
 	u = NULL;
 	for (i = 0, p = r2c; i < (sizeof(r2c) / sizeof(*r2c)); ++i)
 	{
-		if (n >= p[i].cycle)
-			u = p;
+		if (n < p[i].cycle)
+			break;
+		u = p + i;
 	}
 	if (u)
 	{

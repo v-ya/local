@@ -18,7 +18,7 @@ void dsink_inner_add_sin(register int32_t *restrict data, register uintptr_t n, 
 		phase = 0;
 		label_sin_pi_2pi:
 		do {
-			*data-- -= amplitude;
+			*data++ -= amplitude;
 			if (!--n) goto label_return;
 		} while (++phase < quarter_cycle);
 		phase = 0;
