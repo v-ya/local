@@ -1,6 +1,6 @@
 #include "inner.h"
 
-void dsink_inner_add_sin(register int32_t *restrict data, register uintptr_t n, register uintptr_t quarter_cycle, register uintptr_t phase, register int32_t amplitude)
+void dsink_inner_add_sign(register int32_t *restrict data, register uintptr_t n, register uintptr_t quarter_cycle, register uintptr_t phase, register int32_t amplitude)
 {
 	if (!n || !quarter_cycle) goto label_return;
 	quarter_cycle <<= 1;

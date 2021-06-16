@@ -30,11 +30,13 @@ void dsink_inner_fusion_limit_bits(dsink_fusion_t *restrict fusion, uintptr_t n,
 int64_t dsink_inner_dot_one(const int32_t *restrict data, uintptr_t n);
 void dsink_inner_add_one(int32_t *restrict data, uintptr_t n, int32_t amplitude);
 
-int64_t dsink_inner_dot_sin(const int32_t *restrict data, uintptr_t n, uintptr_t quarter_cycle, uintptr_t phase);
-void dsink_inner_add_sin(int32_t *restrict data, uintptr_t n, uintptr_t quarter_cycle, uintptr_t phase, int32_t amplitude);
+int64_t dsink_inner_dot_sign(const int32_t *restrict data, uintptr_t n, uintptr_t quarter_cycle, uintptr_t phase);
+void dsink_inner_add_sign(int32_t *restrict data, uintptr_t n, uintptr_t quarter_cycle, uintptr_t phase, int32_t amplitude);
 
 uintptr_t dsink_inner_fourier_rank(uintptr_t n, uint32_t *restrict rank);
 double dsink_inner_fourier_sign2sin(uint32_t rank_sign, uint32_t rank_sin, double q_sign, double q_sin);
+void dsink_inner_fourier_filter_sign2sin(double *restrict sa, double *restrict ca, uintptr_t n);
+void dsink_inner_fourier_filter_sin2sign(double *restrict sa, double *restrict ca, uintptr_t n);
 void dsink_inner_fourier_get(dsink_fourier_t *restrict fourier, const int32_t *restrict data, uintptr_t n);
 void dsink_inner_fourier_add(int32_t *restrict data, uintptr_t n, const dsink_fourier_t *restrict fourier);
 void dsink_inner_fourier_sub(int32_t *restrict data, uintptr_t n, const dsink_fourier_t *restrict fourier);

@@ -1,6 +1,6 @@
 #include "inner.h"
 
-int64_t dsink_inner_dot_sin(register const int32_t *restrict data, register uintptr_t n, register uintptr_t quarter_cycle, register uintptr_t phase)
+int64_t dsink_inner_dot_sign(register const int32_t *restrict data, register uintptr_t n, register uintptr_t quarter_cycle, register uintptr_t phase)
 {
 	register int64_t r = 0;
 	if (!n || !quarter_cycle) goto label_return;

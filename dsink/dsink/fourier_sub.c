@@ -8,7 +8,7 @@ void dsink_inner_fourier_sub(int32_t *restrict data, uintptr_t n, const dsink_fo
 	for (i = 0; i < fourier->rank; ++i)
 	{
 		quarter_cycle = (fourier->cycle >> 2) / (i + 1);
-		dsink_inner_add_sin(data, n, quarter_cycle, 0, -fourier->c[i].sa);
-		dsink_inner_add_sin(data, n, quarter_cycle, quarter_cycle, -fourier->c[i].ca);
+		dsink_inner_add_sign(data, n, quarter_cycle, 0, -fourier->c[i].sa);
+		dsink_inner_add_sign(data, n, quarter_cycle, quarter_cycle, -fourier->c[i].ca);
 	}
 }
