@@ -4,7 +4,7 @@ HEADER		= dsink.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -Wl,-soname=${TARGET}
+LDFLAGS		= -lm -shared -Wl,-soname=${TARGET}
 
 ARCH		= $(shell uname -m)
 OBJECT		= dsink.o $(patsubst %.c, %.o, $(wildcard dsink/*.c))
