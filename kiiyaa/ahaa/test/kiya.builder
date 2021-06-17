@@ -4,6 +4,7 @@
 
 [$ "kiya" "like"]
 	# test need kiya pocket
+	"import.mlog" @null
 
 [$ "kiya" "parse"]  "kiya.export" @null
 

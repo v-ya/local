@@ -22,4 +22,3 @@
 	"slime_box"     @null
 	"slime_box_put" @null
 	"slime_box_get" @null
-
