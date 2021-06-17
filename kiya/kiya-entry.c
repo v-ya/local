@@ -47,17 +47,10 @@ static inst_t* arg_load(inst_t *restrict inst, const char *restrict name, const 
 {
 	if (!name)
 	{
-		pocket_s *restrict pocket;
-		if (!(pocket = pocket_load(value, inst->verify)))
-			goto label_fail;
-		if (!kiya_load(inst->kiya, pocket))
-			inst = NULL;
-		refer_free(pocket);
+		if (!kiya_load_path(inst->kiya, value))
+			return NULL;
 	}
 	return inst;
-	label_fail:
-	mlog_printf(inst->mlog, "kiya pocket(%s) load fail\n", value);
-	return NULL;
 }
 
 static const char ** main_arg_go(inst_t *restrict inst, uintptr_t argc, const char **argv, uintptr_t *restrict rargc)
@@ -132,6 +125,7 @@ int main(int argc, const char *argv[])
 			inst.verify = pocket_verify_default();
 			if (inst.kiya && inst.verify)
 			{
+				kiya_set_verify(inst.kiya, inst.verify);
 				if (arg_dash(&inst, rargc, rargv, arg_set) &&
 					arg_dash(&inst, rargc, rargv, arg_load))
 				{

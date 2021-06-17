@@ -14,9 +14,12 @@ typedef void (*kiya_finally_f)(void);
 typedef int (*kiya_main_f)(uintptr_t argc, const char *const argv[]);
 
 kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize);
-void kiya_free(register kiya_t *restrict kiya);
+void kiya_free(kiya_t *restrict kiya);
+void kiya_set_verify(kiya_t *restrict kiya, const struct pocket_verify_s *verify);
+kiya_t* kiya_set_source(kiya_t *restrict kiya, const char *restrict name, const char *restrict path);
 kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const char *restrict value);
 kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket);
+kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path);
 kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret);
 
 #endif

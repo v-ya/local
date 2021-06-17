@@ -1,5 +1,6 @@
 #include "kiya.h"
 #include "kiya_args.h"
+#include <pocket/pocket-verify.h>
 #include <dylink.h>
 #include <hashmap.h>
 #include <dlfcn.h>
@@ -22,11 +23,13 @@ struct kiya_t {
 	hashmap_t tag;        // =weak> (kiya_tag_f)
 	hashmap_t parse;      // =weak> (kiya_parse_f)
 	hashmap_t pocket;     // =weak> (pocket_s *)
+	hashmap_t source;     // =>     (const char *)
 	hashmap_t dylink;     // =weak> (dylink_pool_t *)
-	hashmap_t dylib;      // => dlopen()
+	hashmap_t dylib;      // =>     dlopen()
 	dylink_pool_t *pool;
 	kiya_args_pool_t *ap;
 	kiya_kirakira_t *kirakira;
+	const pocket_verify_s *verify;
 	mlog_s *mlog;
 };
 
@@ -42,6 +45,7 @@ kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize)
 			hashmap_init(&kiya->tag) &&
 			hashmap_init(&kiya->parse) &&
 			hashmap_init(&kiya->pocket) &&
+			hashmap_init(&kiya->source) &&
 			hashmap_init(&kiya->dylink) &&
 			hashmap_init(&kiya->dylib))
 		{
@@ -75,15 +79,51 @@ void kiya_free(register kiya_t *restrict kiya)
 	}
 	if (kiya->pool) dylink_pool_free(kiya->pool);
 	if (kiya->ap) kiya_args_pool_free(kiya->ap);
+	if (kiya->verify) refer_free(kiya->verify);
 	if (kiya->mlog) refer_free(kiya->mlog);
 	hashmap_uini(&kiya->dylib);
 	hashmap_uini(&kiya->dylink);
+	hashmap_uini(&kiya->source);
 	hashmap_uini(&kiya->pocket);
 	hashmap_uini(&kiya->parse);
 	hashmap_uini(&kiya->tag);
 	hashmap_uini(&kiya->args);
 	hashmap_uini(&kiya->kiya);
 	free(kiya);
+}
+
+void kiya_set_verify(kiya_t *restrict kiya, const struct pocket_verify_s *verify)
+{
+	if (kiya->verify)
+		refer_free(kiya->verify);
+	kiya->verify = refer_save(verify);
+}
+
+static void kiya_source_free_func(hashmap_vlist_t *restrict vl)
+{
+	if (vl->value)
+		free(vl->value);
+}
+
+kiya_t* kiya_set_source(kiya_t *restrict kiya, const char *restrict name, const char *restrict path)
+{
+	hashmap_vlist_t *restrict vl;
+	size_t n;
+	if (name && path)
+	{
+		vl = hashmap_put_name(&kiya->source, name, NULL, kiya_source_free_func);
+		if (vl && !vl->value)
+		{
+			n = strlen(path) + 1;
+			if ((vl->value = malloc(n)))
+			{
+				memcpy(vl->value, path, n);
+				return kiya;
+			}
+			hashmap_delete_name(&kiya->source, name);
+		}
+	}
+	return NULL;
 }
 
 static void kiya_args_free_func(hashmap_vlist_t *restrict vl);
@@ -123,6 +163,20 @@ kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket)
 	return NULL;
 }
 
+kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path)
+{
+	pocket_s *restrict pocket;
+	pocket = pocket_load(path, kiya->verify);
+	if (pocket)
+	{
+		kiya = kiya_load(kiya, pocket);
+		refer_free(pocket);
+		return kiya;
+	}
+	else mlog_printf(kiya->mlog, "kiya pocket(%s) load fail\n", path);
+	return NULL;
+}
+
 kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret)
 {
 	dylink_pool_t *pool;
@@ -143,6 +197,28 @@ kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict ma
 	return NULL;
 }
 
+static kiya_t* kiya_kirakira_check_like(kiya_t *restrict kiya, const char *restrict name)
+{
+	hashmap_vlist_t *restrict vl;
+	const char *restrict path;
+	if (hashmap_get_name(&kiya->kiya, name))
+	{
+		label_okay:
+		return kiya;
+	}
+	if ((vl = hashmap_find_name(&kiya->source, name)) && (path = (const char *) vl->value))
+	{
+		vl->value = NULL;
+		if (!kiya_load_path(kiya, path))
+			name = NULL;
+		vl->value = (void *) path;
+		hashmap_delete_name(&kiya->source, name);
+		if (name && hashmap_get_name(&kiya->kiya, name))
+			goto label_okay;
+	}
+	return NULL;
+}
+
 static const pocket_attr_t* kiya_kirakira_check(kiya_t *restrict kiya, const pocket_s *restrict pocket)
 {
 	const pocket_header_t *restrict header;
@@ -150,18 +226,9 @@ static const pocket_attr_t* kiya_kirakira_check(kiya_t *restrict kiya, const poc
 	const pocket_attr_t *restrict v;
 	index_kiya = NULL;
 	header = pocket_header(pocket);
-	// check tag
-	if (!header->tag.string || strcmp(header->tag.string, "kiya"))
-		goto label_tag;
 	// check [$ "kiya"]
-	if (!(index_kiya = pocket_find_tag(pocket, (const pocket_attr_t *) header->system.ptr, header->tag.string, pocket_tag$index, NULL)))
+	if (!(index_kiya = pocket_find_tag(pocket, (const pocket_attr_t *) header->system.ptr, "kiya", pocket_tag$index, NULL)))
 		goto label_kiya;
-	// check [$ "kiya"] "name"
-	if (!(v = pocket_find_tag(pocket, index_kiya, "name", pocket_tag$string, NULL)))
-		goto label_name;
-	if (!v->data.ptr) goto label_name;
-	if (hashmap_find_name(&kiya->kiya, (const char *) v->data.ptr))
-		goto label_conflict_name;
 	// check [$ "kiya" "like"]
 	if ((v = pocket_find_tag(pocket, index_kiya, "like", pocket_tag$index, NULL)))
 	{
@@ -173,31 +240,34 @@ static const pocket_attr_t* kiya_kirakira_check(kiya_t *restrict kiya, const poc
 			--n;
 			if (!v->name.string || pocket_preset_tag(pocket, v) != pocket_tag$null)
 				goto label_error_like;
-			if (!hashmap_get_name(&kiya->kiya, v->name.string))
+			if (!kiya_kirakira_check_like(kiya, v->name.string))
 				goto label_like;
 			++v;
 		}
 	}
+	// check [$ "kiya"] "name"
+	if (!(v = pocket_find_tag(pocket, index_kiya, "name", pocket_tag$string, NULL)))
+		goto label_name;
+	if (!v->data.ptr) goto label_name;
+	if (hashmap_find_name(&kiya->kiya, (const char *) v->data.ptr))
+		goto label_conflict_name;
 	return index_kiya;
 	label_fail:
 	return NULL;
-	label_tag:
-	mlog_printf(kiya->mlog, "pocket tag(%s) not kiya\n", header->tag.string);
-	goto label_fail;
 	label_kiya:
 	mlog_printf(kiya->mlog, "pocket miss [$ \"kiya\"]\n");
-	goto label_fail;
-	label_name:
-	mlog_printf(kiya->mlog, "pocket miss [$ \"kiya\"] \"name\" @string\n");
-	goto label_fail;
-	label_conflict_name:
-	mlog_printf(kiya->mlog, "kiya conflict (%s)\n", (const char *) v->data.ptr);
 	goto label_fail;
 	label_error_like:
 	mlog_printf(kiya->mlog, "kiya [$ \"kiya\" \"like\"] error(name: %s, tag: %s)\n", v->name.string, v->tag.string);
 	goto label_fail;
 	label_like:
 	mlog_printf(kiya->mlog, "kiya miss like(%s)\n", v->name.string);
+	goto label_fail;
+	label_name:
+	mlog_printf(kiya->mlog, "pocket miss [$ \"kiya\"] \"name\" @string\n");
+	goto label_fail;
+	label_conflict_name:
+	mlog_printf(kiya->mlog, "kiya conflict (%s)\n", (const char *) v->data.ptr);
 	goto label_fail;
 }
 
@@ -468,6 +538,44 @@ static pocket_s* kiya_load_kiiyaa(pocket_s *restrict pocket, kiya_t *restrict ki
 	goto label_fail;
 }
 
+static pocket_s* kiya_load_source(pocket_s *restrict pocket, kiya_t *restrict kiya)
+{
+	const pocket_attr_t *restrict v, *restrict root;
+	if ((root = pocket_user(pocket)))
+	{
+		uint64_t n;
+		n = root->size;
+		v = (const pocket_attr_t *) root->data.ptr;
+		while (n)
+		{
+			--n;
+			if (!v->name.string)
+				goto label_name;
+			if (pocket_preset_tag(pocket, v) != pocket_tag$string || !v->data.ptr)
+				goto label_tag;
+			if (hashmap_get_name(&kiya->pocket, v->name.string))
+				goto label_name;
+			if (hashmap_get_name(&kiya->source, v->name.string))
+				goto label_name;
+			if (!kiya_set_source(kiya, v->name.string, (const char *) v->data.ptr))
+				goto label_set;
+			++v;
+		}
+	}
+	return pocket;
+	label_fail:
+	return NULL;
+	label_tag:
+	mlog_printf(kiya->mlog, "source parse(%s) fail: tag(%s)\n", v->name.string, v->tag.string);
+	goto label_fail;
+	label_name:
+	mlog_printf(kiya->mlog, "source name conflict (%s)\n", v->name.string);
+	goto label_fail;
+	label_set:
+	mlog_printf(kiya->mlog, "source set fail: name(%s), path(%s)\n", v->name.string, v->data.ptr);
+	goto label_fail;
+}
+
 static void kiya_args_free_func(hashmap_vlist_t *restrict vl)
 {
 	if (vl->value)
@@ -490,6 +598,7 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 	static const char *restrict s_tag = "$tag";
 	static const char *restrict s_parse = "$parse";
 	static const char *restrict s_pocket = "$pocket";
+	static const char *restrict s_source = "$source";
 	static const char *restrict s_dylink = "$dylink";
 	static const char *restrict s_mlog = "$mlog";
 	#include "core/core.h"
@@ -522,6 +631,9 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 			if (!(v = dylink_pool_get_symbol(pool, "kiya$load$kiiyaa", NULL)))
 				goto label_fail;
 			*(void **) v = kiya_load_kiiyaa;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$load$source", NULL)))
+				goto label_fail;
+			*(void **) v = kiya_load_source;
 			#define set_hashmap(k)  \
 				if (!(v = dylink_pool_get_symbol(pool, s_##k, NULL))) goto label_fail;\
 				*(hashmap_t **) v = &kiya->k;\
@@ -535,6 +647,7 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 			set_hashmap(tag);
 			set_hashmap(parse);
 			set_hashmap(pocket);
+			set_hashmap(source);
 			set_hashmap(dylink);
 			set_pointer(mlog);
 			#undef set_hashmap
@@ -546,6 +659,10 @@ static kiya_t* kiya_load_core(kiya_t *restrict kiya)
 			if (!(v = dylink_pool_get_symbol(pool, "kiya$tag$kiiyaa", NULL)))
 				goto label_fail;
 			if (!hashmap_set_name(&kiya->tag, "kiiyaa", v, NULL))
+				goto label_fail;
+			if (!(v = dylink_pool_get_symbol(pool, "kiya$tag$source", NULL)))
+				goto label_fail;
+			if (!hashmap_set_name(&kiya->tag, "source", v, NULL))
 				goto label_fail;
 			if (!(v = dylink_pool_get_symbol(pool, "kiya$parse$export", NULL)))
 				goto label_fail;

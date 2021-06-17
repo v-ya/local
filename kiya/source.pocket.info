@@ -1,0 +1,6 @@
+: tag = "source"
+
+# kiya name 资源映射
+	[]
+		"name" @string => "path"
+		# ...
