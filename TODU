@@ -3,8 +3,7 @@
 	2. dylink 非 static 函数取函数指针过程需要 plt，预链接过程中不提供 plt
 
 短期规划
-	* av1 codec
-	* flac codec
+	* chord 音素合成器
 	* posky 邮递系统
 	* graph 资源 pocket 解析系统
 		- 实例
@@ -19,3 +18,5 @@
 	* graph: load(pocket) => posky
 	* kiiyaa/ahaa.slime 线程优先级
 	* ttf, ttc 解析实现
+	* av1 codec
+	* flac codec

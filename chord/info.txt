@@ -1,0 +1,94 @@
+∫(x = a .. b, f(x)):  为 f(x) 在 x <= [a, b) 的定积分
+Σ(n = a .. b, c[n]):  为 c[n] 在 n <= [a ... b) 的和
+∞:                    为数的极限
+E:                    为单位矩阵
+inv(A):               矩阵 A 的逆，即 A * inv(A) = inv(A) * A = E
+a • b:                向量 a 与 b 的点乘
+
+设 f(x) 在定义域 [0, T) 内，则 f(x) 在定义域的 fourier 展开系数为:
+	kf   	= 2 / T;
+	w0   	= 2 * pi / T;
+	a0	= ∫(x = 0 .. T, f(x)) / T;
+	w[n] 	= w0 * n;
+	as[n]	= ∫(x = 0 .. T, f(x) * sin(w[n] * x)) * kf;
+	ac[n]	= ∫(x = 0 .. T, f(x) * cos(w[n] * x)) * kf;
+	aa[n] 	= sqrt(as[n] * as[n] + ac[n] * ac[n]);
+	aq[n] 	= atan2(ac[n], as[n]);
+则:
+	f(x)	= a0 + Σ(n = 1 .. +∞, as[n] * sin(w[n] * x) + ac[n] * cos(w[n] * x));
+		= a0 + Σ(n = 1 .. +∞, aa[n] * sin(w[n] * x + aq[n]));
+其中:
+	sin(w[n] * x) 在 x = T / 2 处为 奇函数
+	cos(w[n] * x) 在 x = T / 2 处为 偶函数
+
+现假设有 g(x) 在定义域 [0, T) 内，且:
+	g(x)	= f(x) * sin(w0 / 2 * x);
+则:
+	g(0)	= 0;
+	g(T)	= 0;
+其中:
+	sin(w0 / 2 * x) 在 x = T / 2 处为 偶函数
+
+设:
+	Sc[n]		= ∫(x = 0 .. T, cos(w[n] * x) * sin(w0 / 2 * x)) / 2;
+			= T / pi / (1 - 4 * n * n);
+	Sss[m, n]	= ∫(x = 0 .. T, sin(w[m] * x) * sin(w[n] * x) * sin(w0 / 2 * x));
+			= Sc(|m - n|) - Sc(m + n);
+	Scc[m, n]	= ∫(x = 0 .. T, cos(w[m] * x) * cos(w[n] * x) * sin(w0 / 2 * x));
+			= Sc(|m - n|) + Sc(m + n);
+
+g(x) 在定义域的 fourier 展开系数为:
+	b0	= ∫(x = 0 .. T, g(x)) / T;
+		= ∫(x = 0 .. T, f(x) * sin(w0 / 2 * x)) / T;
+		= ∫(x = 0 .. T, a0 * sin(w0 / 2 * x) + Σ(n = 1 .. +∞, ac[n] * cos(w[n] * x)) * sin(w0 / 2 * x)) / T;
+		= a0 * 2 / pi + Σ(n = 1 .. +∞, ac[n] * Sc[n]) * kf;
+	bs[n]	= ∫(x = 0 .. T, g(x) * sin(w[n] * x)) * kf;
+		= ∫(x = 0 .. T, f(x) * sin(w0 / 2 * x) * sin(w[n] * x)) * kf;
+		= ∫(x = 0 .. T, Σ(m = 1 .. +∞, as[m] * sin(w[m] * x)) * sin(w0 / 2 * x) * sin(w[n] * x)) * kf;
+		= Σ(m = 1 .. +∞, as[m] * kf * ∫(x = 0 .. T, sin(w[m] * x) * sin(w[n] * x) * sin(w0 / 2 * x)));
+		= Σ(m = 1 .. +∞, as[m] * (kf * Sss[m, n]));
+	bc[n]	= ∫(x = 0 .. T, g(x) * cos(w[n] * x)) * kf;
+		= ∫(x = 0 .. T, f(x) * sin(w0 / 2 * x) * cos(w[n] * x)) * kf;
+		= ∫(x = 0 .. T, Σ(m = 1 .. +∞, ac[m] * cos(w[m] * x)) * sin(w0 / 2 * x) * cos(w[n] * x)) * kf;
+		= Σ(m = 1 .. +∞, ac[m] * kf * ∫(x = 0 .. T, cos(w[m] * x) * cos(w[n] * x) * sin(w0 / 2 * x)));
+		= Σ(m = 1 .. +∞, ac[m] * (kf * Scc[m, n]));
+	g(x)	= b0 + Σ(n = 1 .. +∞, bs[n] * sin(w[n] * x) + bc[n] * cos(w[n] * x));
+
+设:
+	σ[n]		= Sc[n] * kf;
+			= 2 / pi / (1 - 4 * n * n);
+	Aλ[m, n]	= σ[|m - n|];
+	Aε[m, n]	= σ[m + n];
+	A-		= Aλ - Aε;
+	A+		= Aλ + Aε;
+	A0		= σ[0] * E;
+	Ai		= (1 / σ[0]) * E;
+
+则从 f(x) 到 g(x) 的 fourier 展开系数转换规则为:
+	b0 	= a0 * σ[0] + Σ(n = 1 .. +∞, ac[n] * σ[n]);
+		= a0 * σ[0] + ac • σ;
+	bs[n]	= Σ(m = 1 .. +∞, as[m] * (σ[|m - n|] - σ[m + n]));
+	bc[n]	= Σ(m = 1 .. +∞, ac[m] * (σ[|m - n|] + σ[m + n]));
+	bs	= (Aλ - Aε) * as;
+	bc	= (Aλ + Aε) * ac;
+
+现在若希望 g(x) 的 fourier 展开系数接近期望值，则由 b* 反推 a*:
+	as	= inv(A-) * bs;
+	ac	= inv(A+) * bc;
+	a0	= (b0 - ac • σ) / σ[0];
+
+鉴于 A- A+ 求逆的复杂性，因此通过迭代的方式寻找 a* 的近似值，注意到 A- A+ 的主要贡献为 A0:
+	init:
+		as	= Ai * bs;
+		ac	= Ai * bc;
+	loop:
+		as'	= as + Ai * (bs - (A- * as))
+		ac'	= ac + Ai * (bc - (A+ * ac))
+		as	= as'
+		ac	= ac'
+	end:
+		a0	= (b0 - ac • σ) / σ[0];
+
+故所求 g(x) 为:
+	g(x)	= f(x) * sin(w0 / 2 * x);
+		= (a0 + Σ(n = 1 .. +∞, as[n] * sin(w[n] * x) + ac[n] * cos(w[n] * x))) * sin(w0 / 2 * x);
