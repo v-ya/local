@@ -10,15 +10,14 @@ static const uint8_t kmap[256] = {
 	['a' ... 'z'] = 1
 };
 
-const char* parse_key(buffer_t *restrict buffer, const char *restrict *restrict p)
+const char* parse_key(exbuffer_t *restrict buffer, const char *restrict *restrict p)
 {
 	register const uint8_t *restrict s;
 	register uint8_t *restrict d;
 	uint32_t n = 32;
-	if (buffer_need(buffer, n))
+	if ((d = exbuffer_need(buffer, n)))
 	{
 		s = (const uint8_t *) *p;
-		d = buffer->data;
 		while (--n && kmap[*s])
 			*d++ = *s++;
 		*p = (const char *) s;
@@ -31,7 +30,7 @@ const char* parse_key(buffer_t *restrict buffer, const char *restrict *restrict 
 	return NULL;
 }
 
-static const char* parse_value_array(buffer_t *restrict buffer, const char *restrict s)
+static const char* parse_value_array(exbuffer_t *restrict buffer, const char *restrict s)
 {
 	uintptr_t want, i;
 	want = ~(uintptr_t) 0;
@@ -87,6 +86,7 @@ static const char* parse_value_array(buffer_t *restrict buffer, const char *rest
 		}
 	}
 	label_fail:
+	buffer->used = 0;
 	return NULL;
 	label_end:
 	if (*s != '}') goto label_fail;
@@ -98,7 +98,7 @@ static const char* parse_value_array(buffer_t *restrict buffer, const char *rest
 		{\
 			while (i < want)\
 			{\
-				if (!buffer_need(buffer, (i + 1) * sizeof(_type)))\
+				if (!exbuffer_need(buffer, buffer->used = (i + 1) * sizeof(_type)))\
 					goto label_fail;\
 				((_type *) buffer->data)[i++] = (_type) _func(s, (char **) &s, ##__VA_ARGS__);\
 				skip_space(s);\
@@ -142,7 +142,7 @@ static const char* parse_value_array(buffer_t *restrict buffer, const char *rest
 	#undef check_want
 	#undef get_data
 	#define fill_zero_tail(_type) \
-		if (!buffer_need(buffer, (want) * sizeof(_type)))\
+		if (!exbuffer_need(buffer, buffer->used = (want) * sizeof(_type)))\
 			goto label_fail;\
 		memset((_type *) buffer->data + i, 0, sizeof(_type) * (want - i));\
 		goto label_end
@@ -163,12 +163,11 @@ static const char* parse_value_array(buffer_t *restrict buffer, const char *rest
 	#undef fill_zero_tail
 }
 
-buffer_t* parse_value(buffer_t *restrict buffer, const char *restrict *restrict p, uintptr_t *restrict align)
+exbuffer_t* parse_value(exbuffer_t *restrict buffer, const char *restrict *restrict p, uintptr_t *restrict align)
 {
-	buffer_t *r;
+	exbuffer_t *r;
 	register const char *restrict s;
 	r = NULL;
-	buffer->used = 0;
 	if (*(s = *p) == '=')
 	{
 		++s;
@@ -190,11 +189,9 @@ buffer_t* parse_value(buffer_t *restrict buffer, const char *restrict *restrict 
 			if (*s == '\"')
 			{
 				// string
-				if ((s = json_decode(*p = s, &v)) && buffer_need(buffer, strlen(v->value.string) + 1))
-				{
-					memcpy(buffer->data, v->value.string, buffer->used);
+				exbuffer_clear(buffer);
+				if ((s = json_decode(*p = s, &v)) && exbuffer_append(buffer, v->value.string, strlen(v->value.string) + 1))
 					r = buffer;
-				}
 			}
 			else if (*s == '@')
 			{
@@ -221,9 +218,9 @@ buffer_t* parse_value(buffer_t *restrict buffer, const char *restrict *restrict 
 	return r;
 }
 
-buffer_t* load_file(buffer_t *restrict buffer, const char *restrict path)
+exbuffer_t* load_file(exbuffer_t *restrict buffer, const char *restrict path)
 {
-	buffer_t *r;
+	exbuffer_t *r;
 	FILE *fp;
 	size_t n;
 	r = NULL;
@@ -233,24 +230,22 @@ buffer_t* load_file(buffer_t *restrict buffer, const char *restrict path)
 	{
 		fseek(fp, 0, SEEK_END);
 		n = ftell(fp);
-		if (n && buffer_need(buffer, n))
+		if (n && exbuffer_need(buffer, n))
 		{
+			buffer->used = n;
 			fseek(fp, 0, SEEK_SET);
 			if (fread(buffer->data, 1, n, fp) == n)
 				r = buffer;
 		}
-		else r = buffer;
 		fclose(fp);
 	}
 	return r;
 }
 
-buffer_t* load_text(buffer_t *restrict buffer, const char *restrict path)
+exbuffer_t* load_text(exbuffer_t *restrict buffer, const char *restrict path)
 {
-	if (load_file(buffer, path) && buffer_need(buffer, buffer->used + 1))
-	{
-		buffer->data[buffer->used - 1] = 0;
+	char stail = 0;
+	if (load_file(buffer, path) && exbuffer_append(buffer, &stail, 1))
 		return buffer;
-	}
 	return NULL;
 }

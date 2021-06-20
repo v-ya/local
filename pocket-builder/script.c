@@ -15,7 +15,7 @@ script_t* script_alloc(void)
 			hashmap_init(&r->ptag) &&
 			script_header_init(&r->header) &&
 			script_ptag_init(&r->ptag) &&
-			(r->buffer = buffer_alloc())
+			(r->buffer = exbuffer_alloc(0))
 		) return r;
 		script_free(r);
 	}
@@ -26,7 +26,7 @@ void script_free(script_t *restrict s)
 {
 	hashmap_uini(&s->header);
 	hashmap_uini(&s->ptag);
-	if (s->buffer) buffer_free(s->buffer);
+	if (s->buffer) exbuffer_free(s->buffer);
 	free(s);
 }
 
@@ -127,7 +127,7 @@ static script_t* script_working_create(script_t *restrict script, pocket_saver_s
 		skip_space(s);
 		if (*s == '@')
 		{
-			buffer_t *restrict buffer;
+			exbuffer_t *restrict buffer;
 			uintptr_t align;
 			buffer = NULL;
 			align = 0;

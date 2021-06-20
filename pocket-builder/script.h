@@ -4,12 +4,12 @@
 #include <pocket/pocket-saver.h>
 #include <hashmap.h>
 #include <json.h>
-#include "buffer.h"
+#include <exbuffer.h>
 
 typedef struct script_t {
 	hashmap_t header;
 	hashmap_t ptag;
-	buffer_t *buffer;
+	exbuffer_t *buffer;
 } script_t;
 
 script_t* script_alloc(void);

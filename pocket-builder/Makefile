@@ -3,9 +3,9 @@ TARGET		= pocket-builder
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -lrefer -lhashmap -largs -ljson -lpocket -lpocket-saver -lpocket-verify
+LDFLAGS		= -lrefer -lhashmap -lexbuffer -largs -ljson -lpocket -lpocket-saver -lpocket-verify
 
-OBJECT		= entry.o entry_arg.o pocket_dump.o script.o script_header.o script_ptag.o script_parse.o buffer.o
+OBJECT		= entry.o entry_arg.o pocket_dump.o script.o script_header.o script_ptag.o script_parse.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

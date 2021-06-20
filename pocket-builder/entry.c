@@ -59,9 +59,9 @@ static void script_error(register const char *restrict start, register const cha
 static int do_script(const char *restrict input, const char *restrict output)
 {
 	int ret;
-	buffer_t *buffer;
+	exbuffer_t *buffer;
 	ret = -1;
-	if ((buffer = buffer_alloc()))
+	if ((buffer = exbuffer_alloc(0)))
 	{
 		if (load_text(buffer, input))
 		{
@@ -118,7 +118,7 @@ static int do_script(const char *restrict input, const char *restrict output)
 			if (verify) refer_free(verify);
 		}
 		else printf("script[%s] load fail\n", input);
-		buffer_free(buffer);
+		exbuffer_free(buffer);
 	}
 	return ret;
 }
