@@ -6,7 +6,11 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -soname ${TARGET}
 
-OBJECT		= chord.o
+ARCH		= $(shell uname -m)
+OBJECT		= chord.o $(patsubst %.c, %.o, $(wildcard zzz/*.c))
+
+%.o: %.${ARCH}.S
+	${CC} ${CCFLAGS} -c -o $@ $<
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
