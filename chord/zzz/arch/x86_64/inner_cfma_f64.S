@@ -1,4 +1,4 @@
-.file	"inner_sin_4f64.S"
+.file	"inner_cfma_f64.S"
 
 .text
 
@@ -21,12 +21,12 @@ chord_zzz_arch_inner_cfma_f64:
 	.p2align 4,,10
 	.p2align 4
 	.L_loop:
-	vmovapd	(%rsi, %rcx, 8), %ymm0
-	vmovupd	(%rdi, %rcx, 8), %ymm1
+	vmovapd	(%rsi, %rcx), %ymm0
+	vmovupd	(%rdi, %rcx), %ymm1
 	vmulpd	%ymm2, %ymm0, %ymm0
 	vaddpd	%ymm1, %ymm0, %ymm0
-	vmovupd	%ymm0, (%rdi, %rcx, 8)
-	addq	$4, %rcx
+	vmovupd	%ymm0, (%rdi, %rcx)
+	leaq	32(%rcx), %rcx
 	subq	$1, %rdx
 	.L_loop_check:
 	testq	%rdx, %rdx
@@ -41,23 +41,23 @@ chord_zzz_arch_inner_cfma_f64:
 	movq	%rdx, -8(%rsp)
 	jmpq	*-32(%rsp, %rax, 8)
 	.L_rem_3:
-	movsd	16(%rsi, %rcx, 8), %xmm0
-	movsd	16(%rdi, %rcx, 8), %xmm1
+	movsd	16(%rsi, %rcx), %xmm0
+	movsd	16(%rdi, %rcx), %xmm1
 	mulsd	%xmm2, %xmm0
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, 16(%rdi, %rcx, 8)
+	movsd	%xmm0, 16(%rdi, %rcx)
 	.L_rem_2:
-	movsd	8(%rsi, %rcx, 8), %xmm0
-	movsd	8(%rdi, %rcx, 8), %xmm1
+	movsd	8(%rsi, %rcx), %xmm0
+	movsd	8(%rdi, %rcx), %xmm1
 	mulsd	%xmm2, %xmm0
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, 8(%rdi, %rcx, 8)
+	movsd	%xmm0, 8(%rdi, %rcx)
 	.L_rem_1:
-	movsd	(%rsi, %rcx, 8), %xmm0
-	movsd	(%rdi, %rcx, 8), %xmm1
+	movsd	(%rsi, %rcx), %xmm0
+	movsd	(%rdi, %rcx), %xmm1
 	mulsd	%xmm2, %xmm0
 	addsd	%xmm1, %xmm0
-	movsd	%xmm0, (%rdi, %rcx, 8)
+	movsd	%xmm0, (%rdi, %rcx)
 	.L_rem_0:
 	retq
 	.size	chord_zzz_arch_inner_cfma_f64, .-chord_zzz_arch_inner_cfma_f64
