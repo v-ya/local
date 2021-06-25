@@ -16,7 +16,7 @@ void chord_zzz_arch_add_sin_f64(double *restrict p, uintptr_t n, double a, doubl
 			m = chord_zzz_sin_block;
 		else m = n;
 		chord_zzz_arch_inner_line_f64(bv, m, ii, w, q);
-		chord_zzz_arch_sin_nf64(br, bv, chord_zzz_sin_block, m);
+		chord_zzz_arch_inner_sin_nf64(br, bv, chord_zzz_sin_block, m);
 		chord_zzz_arch_inner_cfma_f64(p, br, m, a);
 		ii += m;
 		p += m;

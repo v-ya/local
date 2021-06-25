@@ -2,21 +2,22 @@
 
 .section	.rodata.cst8, "aM", @progbits, 8
 	.align 8
-.L_2_pi:	.double  6.36619772367581343076e-01
-.L_pi_2:	.double  1.57079632679489661923e-00
+.L_2_pi:	.double	6.36619772367581343076e-01
+.L_pi_2:	.double	1.57079632679489661923e-00
+.L_mask:	.long	0x0000000003030303
 
 .text
 
-// void chord_zzz_arch_sin_nf64(double *restrict r, const double *restrict v, uintptr_t block, uintptr_t n)
-// rdi: r
-// rsi: v
+// void chord_zzz_arch_inner_sin_nf64(double *restrict r, const double *restrict v, uintptr_t block, uintptr_t n)
+// rdi: r     (32bytes align)
+// rsi: v     (32bytes align)
 // rdx: block (must block && block % 4 == 0)
 // rcx: n     (must n <= block)
 	.p2align 4
-	.globl	chord_zzz_arch_sin_nf64
-	.hidden	chord_zzz_arch_sin_nf64
-	.type	chord_zzz_arch_sin_nf64, @function
-chord_zzz_arch_sin_nf64:
+	.globl	chord_zzz_arch_inner_sin_nf64
+	.hidden	chord_zzz_arch_inner_sin_nf64
+	.type	chord_zzz_arch_inner_sin_nf64, @function
+chord_zzz_arch_inner_sin_nf64:
 	pushq	%rbp
 	pushq	%rbx
 	pushq	%r12
@@ -37,8 +38,9 @@ chord_zzz_arch_sin_nf64:
 	movq	%rax, %r11
 	movq	$0x8000000000000000, %r12
 	// load xmm1, xmm2
-	movsd	.L_2_pi(%rip), %xmm1
-	movsd	.L_pi_2(%rip), %xmm2
+	vbroadcastsd	.L_2_pi(%rip), %ymm1
+	vbroadcastsd	.L_pi_2(%rip), %ymm2
+	vpmovzxbd	.L_mask(%rip), %ymm3
 	// set jmp table
 	leaq	.L_case_n1(%rip), %rax
 	movq	%rax, -32(%rsp)
@@ -52,15 +54,38 @@ chord_zzz_arch_sin_nf64:
 	.p2align 4,,10
 	.p2align 4
 	.L_loop_check:
-		subq	$1, %rcx
-		movsd	(%rsi, %rcx, 8), %xmm0
-		movaps	%xmm0, %xmm3
-		mulsd	%xmm1, %xmm3
-		cvtsd2si %xmm3, %rax
-		cvtsi2sd %rax, %xmm3
-		mulsd	%xmm2, %xmm3
-		subsd	%xmm3, %xmm0
-		andq	$3, %rax
+		vmovapd	(%rsi), %ymm0
+		addq	$32, %rsi
+		vmulpd	%ymm1, %ymm0, %ymm4
+		vcvtpd2dq %ymm4, %xmm4
+		vcvtdq2pd %xmm4, %ymm5
+		vmulpd	%ymm2, %ymm5, %ymm5
+		vsubpd	%ymm5, %ymm0, %ymm0
+		vpand	%ymm3, %ymm4, %ymm4
+
+		movd	%xmm4, %eax
+		leaq	.L_loop_check_1(%rip), %rbx
+		jmpq	*-32(%rsp, %rax, 8)
+		.L_loop_check_1:
+		vpermilpd $0x09, %ymm0, %ymm0
+		vpshufd	$0x39, %ymm4, %ymm4
+
+		movd	%xmm4, %eax
+		leaq	.L_loop_check_2(%rip), %rbx
+		jmpq	*-32(%rsp, %rax, 8)
+		.L_loop_check_2:
+		vperm2f128 $0x01, %ymm0, %ymm0, %ymm0
+		vpshufd	$0x39, %ymm4, %ymm4
+
+		movd	%xmm4, %eax
+		leaq	.L_loop_check_3(%rip), %rbx
+		jmpq	*-32(%rsp, %rax, 8)
+		.L_loop_check_3:
+		vpermilpd $0x09, %ymm0, %ymm0
+		vpshufd	$0x39, %ymm4, %ymm4
+
+		movd	%xmm4, %eax
+		leaq	.L_loop_check(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 	.p2align 4,,10
 	.p2align 4
@@ -221,43 +246,47 @@ chord_zzz_arch_sin_nf64:
 	.p2align 4
 	.L_case_n1:
 		movsd	%xmm0, (%r8)
-		leaq	(%rdi, %rcx, 8), %rax
-		movq	%rax, (%r8, %rdx, 4)
-		addq	$8, %r8
+		movq	%rdi, (%r8, %rdx, 4)
+		leaq	8(%rdi), %rdi
+		leaq	8(%r8), %r8
+		subq	$1, %rcx
 		testq	%rcx, %rcx
-		jne	.L_loop_check
-		jmp	.L_calc_start
+		je	.L_calc_start
+		jmpq	*%rbx
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n2:
 		movsd	%xmm0, (%r9)
-		leaq	(%rdi, %rcx, 8), %rax
-		movq	%rax, (%r9, %rdx, 4)
-		addq	$8, %r9
+		movq	%rdi, (%r9, %rdx, 4)
+		leaq	8(%rdi), %rdi
+		leaq	8(%r9), %r9
+		subq	$1, %rcx
 		testq	%rcx, %rcx
-		jne	.L_loop_check
-		jmp	.L_calc_start
+		je	.L_calc_start
+		jmpq	*%rbx
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n3:
 		movsd	%xmm0, (%r10)
-		leaq	(%rdi, %rcx, 8), %rax
-		movq	%rax, (%r10, %rdx, 4)
-		addq	$8, %r10
+		movq	%rdi, (%r10, %rdx, 4)
+		leaq	8(%rdi), %rdi
+		leaq	8(%r10), %r10
+		subq	$1, %rcx
 		testq	%rcx, %rcx
-		jne	.L_loop_check
-		jmp	.L_calc_start
+		je	.L_calc_start
+		jmpq	*%rbx
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n4:
 		movsd	%xmm0, (%r11)
-		leaq	(%rdi, %rcx, 8), %rax
-		movq	%rax, (%r11, %rdx, 4)
-		addq	$8, %r11
+		movq	%rdi, (%r11, %rdx, 4)
+		leaq	8(%rdi), %rdi
+		leaq	8(%r11), %r11
+		subq	$1, %rcx
 		testq	%rcx, %rcx
-		jne	.L_loop_check
-		jmp	.L_calc_start
+		je	.L_calc_start
+		jmpq	*%rbx
 	.p2align 4,,10
 	.p2align 4
 
-	.size	chord_zzz_arch_sin_nf64, .-chord_zzz_arch_sin_nf64
+	.size	chord_zzz_arch_inner_sin_nf64, .-chord_zzz_arch_inner_sin_nf64
