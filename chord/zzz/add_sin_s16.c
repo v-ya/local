@@ -5,5 +5,5 @@ void chord_zzz_add_sin_s16(int16_t *restrict p, uintptr_t n, float a, float w, f
 	uintptr_t i;
 	a *= 0x7fff;
 	for (i = 0; i < n; ++i)
-		p[i] += (int16_t) a * sinf(w * i + q);
+		((uint16_t *) p)[i] += (int16_t) a * sinf(w * i + q);
 }

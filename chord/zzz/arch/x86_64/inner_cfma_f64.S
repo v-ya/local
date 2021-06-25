@@ -31,33 +31,19 @@ chord_zzz_arch_inner_cfma_f64:
 	.L_loop_check:
 	testq	%rdx, %rdx
 	jne	.L_loop
-	leaq	.L_rem_0(%rip), %rdx
-	movq	%rdx, -32(%rsp)
-	leaq	.L_rem_1(%rip), %rdx
-	movq	%rdx, -24(%rsp)
-	leaq	.L_rem_2(%rip), %rdx
-	movq	%rdx, -16(%rsp)
-	leaq	.L_rem_3(%rip), %rdx
-	movq	%rdx, -8(%rsp)
-	jmpq	*-32(%rsp, %rax, 8)
-	.L_rem_3:
-	movsd	16(%rsi, %rcx), %xmm0
-	movsd	16(%rdi, %rcx), %xmm1
-	mulsd	%xmm2, %xmm0
-	addsd	%xmm1, %xmm0
-	movsd	%xmm0, 16(%rdi, %rcx)
-	.L_rem_2:
-	movsd	8(%rsi, %rcx), %xmm0
-	movsd	8(%rdi, %rcx), %xmm1
-	mulsd	%xmm2, %xmm0
-	addsd	%xmm1, %xmm0
-	movsd	%xmm0, 8(%rdi, %rcx)
-	.L_rem_1:
+	jmp	.L_loop_rem_check
+	.p2align 4,,10
+	.p2align 4
+	.L_loop_rem:
 	movsd	(%rsi, %rcx), %xmm0
 	movsd	(%rdi, %rcx), %xmm1
 	mulsd	%xmm2, %xmm0
 	addsd	%xmm1, %xmm0
 	movsd	%xmm0, (%rdi, %rcx)
-	.L_rem_0:
+	leaq	8(%rcx), %rcx
+	subq	$1, %rax
+	.L_loop_rem_check:
+	testq	%rax, %rax
+	jne	.L_loop_rem
 	retq
 	.size	chord_zzz_arch_inner_cfma_f64, .-chord_zzz_arch_inner_cfma_f64
