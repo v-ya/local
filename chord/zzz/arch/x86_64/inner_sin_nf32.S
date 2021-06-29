@@ -43,7 +43,7 @@ chord_zzz_arch_inner_sin_nf32:
 	movl	$0x80000000, %r12d
 	movq	%rdi, %r13
 	xorl	%edi, %edi
-	// load xmm1, xmm2
+	// load ymm1, ymm2, ymm3
 	vbroadcastss	.L_2_pi(%rip), %ymm1
 	vbroadcastss	.L_pi_2(%rip), %ymm2
 	vpmovzxbd	.L_mask(%rip), %ymm3
@@ -69,28 +69,28 @@ chord_zzz_arch_inner_sin_nf32:
 		vsubps	%ymm5, %ymm0, %ymm0
 		vpand	%ymm3, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_1(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_1:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_2(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_2:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_3(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_3:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_4(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_4:
@@ -99,28 +99,28 @@ chord_zzz_arch_inner_sin_nf32:
 		vpshufd	$0x39, %ymm4, %ymm4
 		vperm2f128 $0x01, %ymm4, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_5(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_5:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_6(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_6:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check_7(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 		.L_loop_check_7:
 		vpermilps $0x39, %ymm0, %ymm0
 		vpshufd	$0x39, %ymm4, %ymm4
 
-		movd	%xmm4, %eax
+		vmovd	%xmm4, %eax
 		leaq	.L_loop_check(%rip), %rbx
 		jmpq	*-32(%rsp, %rax, 8)
 	.p2align 4,,10
@@ -382,11 +382,12 @@ chord_zzz_arch_inner_sin_nf32:
 	popq	%r12
 	popq	%rbx
 	popq	%rbp
+	vzeroupper
 	retq
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n1:
-		movss	%xmm0, (%r8)
+		vmovss	%xmm0, (%r8)
 		movl	%edi, (%r8, %rdx, 4)
 		leaq	1(%rdi), %rdi
 		leaq	4(%r8), %r8
@@ -396,7 +397,7 @@ chord_zzz_arch_inner_sin_nf32:
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n2:
-		movss	%xmm0, (%r9)
+		vmovss	%xmm0, (%r9)
 		movl	%edi, (%r9, %rdx, 4)
 		leaq	1(%rdi), %rdi
 		leaq	4(%r9), %r9
@@ -406,7 +407,7 @@ chord_zzz_arch_inner_sin_nf32:
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n3:
-		movss	%xmm0, (%r10)
+		vmovss	%xmm0, (%r10)
 		movl	%edi, (%r10, %rdx, 4)
 		leaq	1(%rdi), %rdi
 		leaq	4(%r10), %r10
@@ -416,7 +417,7 @@ chord_zzz_arch_inner_sin_nf32:
 	.p2align 4,,10
 	.p2align 4
 	.L_case_n4:
-		movss	%xmm0, (%r11)
+		vmovss	%xmm0, (%r11)
 		movl	%edi, (%r11, %rdx, 4)
 		leaq	1(%rdi), %rdi
 		leaq	4(%r11), %r11

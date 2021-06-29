@@ -22,8 +22,8 @@ chord_zzz_arch_inner_cfma_f32:
 	.p2align 4
 	.L_loop:
 	vmovaps	(%rsi, %rcx), %ymm0
-	vmovups	(%rdi, %rcx), %ymm1
 	vmulps	%ymm2, %ymm0, %ymm0
+	vmovups	(%rdi, %rcx), %ymm1
 	vaddps	%ymm1, %ymm0, %ymm0
 	vmovups	%ymm0, (%rdi, %rcx)
 	leaq	32(%rcx), %rcx
@@ -35,15 +35,16 @@ chord_zzz_arch_inner_cfma_f32:
 	.p2align 4,,10
 	.p2align 4
 	.L_loop_rem:
-	movss	(%rsi, %rcx), %xmm0
-	movss	(%rdi, %rcx), %xmm1
-	mulss	%xmm2, %xmm0
-	addss	%xmm1, %xmm0
-	movss	%xmm0, (%rdi, %rcx)
+	vmovss	(%rsi, %rcx), %xmm0
+	vmovss	(%rdi, %rcx), %xmm1
+	vmulss	%xmm2, %xmm0, %xmm0
+	vaddss	%xmm1, %xmm0, %xmm0
+	vmovss	%xmm0, (%rdi, %rcx)
 	leaq	4(%rcx), %rcx
 	subq	$1, %rax
 	.L_loop_rem_check:
 	testq	%rax, %rax
 	jne	.L_loop_rem
+	vzeroupper
 	retq
 	.size	chord_zzz_arch_inner_cfma_f32, .-chord_zzz_arch_inner_cfma_f32

@@ -18,31 +18,31 @@ chord_zzz_arch_inner_line_f32:
 	vbroadcastss %xmm0, %ymm3
 	vbroadcastss %xmm1, %ymm4
 	movq	$1, %rax
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, (%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, (%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 4(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 4(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 8(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 8(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 12(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 12(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 16(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 16(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 20(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 20(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 24(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 24(%rdi)
 	addq	%rax, %rdx
-	cvtsi2ss %rdx, %xmm0
-	movss	%xmm0, 28(%rdi)
+	vcvtsi2ss %rdx, %xmm0, %xmm0
+	vmovss	%xmm0, 28(%rdi)
 	movq	$8, %rax
-	cvtsi2ss %rax, %xmm0
+	vcvtsi2ss %rax, %xmm0, %xmm0
 	vmovaps	(%rdi), %ymm1
 	vbroadcastss %xmm0, %ymm2
 	.p2align 4,,10
@@ -56,5 +56,6 @@ chord_zzz_arch_inner_line_f32:
 	subq	$1, %rsi
 	testq	%rsi, %rsi
 	jne	.L_loop
+	vzeroupper
 	retq
 	.size	chord_zzz_arch_inner_line_f32, .-chord_zzz_arch_inner_line_f32
