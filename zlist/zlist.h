@@ -30,7 +30,7 @@ struct zlist_layer_t {
 struct zlist_list_t {
 	zlist_list_t *a;
 	zlist_list_t *b;
-	zlist_list_t *u;
+	zlist_layer_t *u;
 	int64_t n;
 };
 
@@ -39,6 +39,8 @@ void zlist_uini(zlist_t *restrict r, zlist_list_free_f func);
 
 zlist_t* zlist_alloc(uint32_t nl_max);
 void zlist_free(zlist_t *restrict r, zlist_list_free_f func);
+
+zlist_list_t* zlist_insert(zlist_t *restrict r, zlist_list_t *restrict v, zlist_list_t *restrict near);
 
 zlist_list_t* zlist_find_must(zlist_t *restrict r, int64_t a, int64_t b);
 zlist_list_t* zlist_find_near(zlist_t *restrict r, int64_t v);
