@@ -7,7 +7,7 @@ typedef struct zlist_t zlist_t;
 typedef struct zlist_layer_t zlist_layer_t;
 typedef struct zlist_list_t zlist_list_t;
 
-typedef void (*zlist_list_free_f)(zlist_list_t *restrict list);
+typedef void (*zlist_list_free_f)(zlist_list_t *restrict list, void *pri);
 
 struct zlist_t {
 	zlist_layer_t *layer;
@@ -34,11 +34,13 @@ struct zlist_list_t {
 	int64_t n;
 };
 
+void zlist_set_dprint(uintptr_t dp);
+
 zlist_t* zlist_init(zlist_t *restrict r, uint32_t nl_max);
-void zlist_uini(zlist_t *restrict r, zlist_list_free_f func);
+void zlist_uini(zlist_t *restrict r, zlist_list_free_f func, void *pri);
 
 zlist_t* zlist_alloc(uint32_t nl_max);
-void zlist_free(zlist_t *restrict r, zlist_list_free_f func);
+void zlist_free(zlist_t *restrict r, zlist_list_free_f func, void *pri);
 
 zlist_list_t* zlist_insert(zlist_t *restrict r, zlist_list_t *restrict v, zlist_list_t *restrict near);
 zlist_list_t* zlist_remove(zlist_t *restrict r, zlist_list_t *restrict v);

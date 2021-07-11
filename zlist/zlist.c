@@ -1,6 +1,17 @@
 #include "zlist.h"
 #include <stdlib.h>
 
+// #include <stdio.h>
+
+// static uintptr_t dprint = 0;
+
+// void zlist_set_dprint(uintptr_t dp)
+// {
+// 	dprint = dp;
+// }
+
+// #define dprint_function(_format, ...)  if (dprint) printf("(%s) " _format "\n", __func__, ##__VA_ARGS__)
+
 static void zlist_layer_cache_clear(void **restrict pc)
 {
 	register void *restrict p, *q;
@@ -39,7 +50,7 @@ static void zlist_layer_free_list(void **restrict pc, zlist_layer_t *p)
 	}
 }
 
-static void zlist_list_free_list(zlist_list_t *p, zlist_list_free_f func)
+static void zlist_list_free_list(zlist_list_t *p, zlist_list_free_f func, void *pri)
 {
 	zlist_list_t *q;
 	while (p->a) p = p->a;
@@ -48,7 +59,7 @@ static void zlist_list_free_list(zlist_list_t *p, zlist_list_free_f func)
 		p = p->b;
 		q->a = q->b = NULL;
 		q->u = NULL;
-		func(q);
+		func(q, pri);
 	}
 }
 
@@ -62,7 +73,7 @@ zlist_t* zlist_init(zlist_t *restrict r, uint32_t nl_max)
 	return r;
 }
 
-void zlist_uini(zlist_t *restrict r, zlist_list_free_f func)
+void zlist_uini(zlist_t *restrict r, zlist_list_free_f func, void *pri)
 {
 	zlist_layer_t *layer, *x;
 	uint32_t level;
@@ -75,7 +86,7 @@ void zlist_uini(zlist_t *restrict r, zlist_list_free_f func)
 			layer = x;
 		} while (level);
 		if (func)
-			zlist_list_free_list((zlist_list_t *) x, func);
+			zlist_list_free_list((zlist_list_t *) x, func, pri);
 	}
 	if (r->layer_cache)
 		zlist_layer_cache_clear(&r->layer_cache);
@@ -89,9 +100,9 @@ zlist_t* zlist_alloc(uint32_t nl_max)
 	return NULL;
 }
 
-void zlist_free(zlist_t *restrict r, zlist_list_free_f func)
+void zlist_free(zlist_t *restrict r, zlist_list_free_f func, void *pri)
 {
-	zlist_uini(r, func);
+	zlist_uini(r, func, pri);
 	free(r);
 }
 
@@ -118,7 +129,7 @@ static zlist_layer_t* zlist_layer_copy_ab(zlist_t *restrict r, zlist_layer_t *re
 	{
 		b->a = a;
 		if ((b->b = a->b))
-			b->b->a = a;
+			b->b->a = b;
 		a->b = b;
 		b->u = a->u;
 		b->xa = a->xa;
@@ -164,6 +175,8 @@ static void zlist_layer0_copy_reset_x(zlist_layer_t *restrict a, zlist_layer_t *
 	p = p->b;
 	b->xa = (zlist_layer_t *) p;
 	b->na = p->n;
+	for (n = b->nl; n; p = p->b, --n)
+		p->u = b;
 }
 
 static void zlist_layer_copy_reset_x(zlist_layer_t *restrict a, zlist_layer_t *restrict b, uint32_t n)
@@ -179,6 +192,8 @@ static void zlist_layer_copy_reset_x(zlist_layer_t *restrict a, zlist_layer_t *r
 	p = p->b;
 	b->xa = p;
 	b->na = p->na;
+	for (n = b->nl; n; p = p->b, --n)
+		p->u = b;
 }
 
 static inline zlist_layer_t* zlist_layer_fusion_ab_rbu(zlist_t *restrict r, zlist_layer_t *restrict a)
@@ -186,7 +201,7 @@ static inline zlist_layer_t* zlist_layer_fusion_ab_rbu(zlist_t *restrict r, zlis
 	zlist_layer_t *restrict b, *restrict u;
 	b = a->b;
 	if ((a->b = b->b))
-		b->b->a = a;
+		a->b->a = a;
 	a->xb = b->xb;
 	a->nb = b->nb;
 	a->nl += b->nl;
@@ -232,6 +247,8 @@ static zlist_layer_t* zlist_layer_division(zlist_t *restrict r, zlist_layer_t *r
 			else zlist_layer0_copy_reset_x(layer0, layer1, layer0->nl >> 1);
 			if ((layer1 = layer0->u))
 			{
+				if (layer1->xb == layer0)
+					layer1->xb = layer0->b;
 				if (++layer1->nl <= r->nl_max)
 				{
 					label_okay:
@@ -284,14 +301,14 @@ static inline zlist_list_t* zlist_list_x_layer0(zlist_t *restrict r, zlist_list_
 	if (!ub)
 	{
 		// a
-		ua->xa = (zlist_layer_t *) v;
-		zlist_layer_fix_range_a(ua, v->n);
+		ua->xb = (zlist_layer_t *) v;
+		zlist_layer_fix_range_b(ua, v->n);
 	}
 	else if (!ua)
 	{
 		// b
-		ub->xb = (zlist_layer_t *) v;
-		zlist_layer_fix_range_b(ua = ub, v->n);
+		ub->xa = (zlist_layer_t *) v;
+		zlist_layer_fix_range_a(ua = ub, v->n);
 	}
 	// else inner
 	v->u = ua;
@@ -312,7 +329,7 @@ static zlist_list_t* zlist_list_insert_a(zlist_t *restrict r, zlist_list_t *rest
 		b->a = v;
 		if ((ub = b->u)->nl < ua->nl)
 			ua = NULL;
-		if (ua != ub)
+		else if (ua != ub)
 			ub = NULL;
 	}
 	a->b = v;
@@ -331,7 +348,7 @@ static zlist_list_t* zlist_list_insert_b(zlist_t *restrict r, zlist_list_t *rest
 		a->b = v;
 		if ((ua = a->u)->nl < ub->nl)
 			ub = NULL;
-		if (ua != ub)
+		else if (ua != ub)
 			ua = NULL;
 	}
 	b->a = v;
