@@ -54,6 +54,8 @@ static void zlist_list_free_list(zlist_list_t *p, zlist_list_free_f func)
 
 zlist_t* zlist_init(zlist_t *restrict r, uint32_t nl_max)
 {
+	if (nl_max < 4)
+		nl_max = 4;
 	r->layer = NULL;
 	r->layer_cache = NULL;
 	r->nl_max = nl_max;
@@ -93,6 +95,22 @@ void zlist_free(zlist_t *restrict r, zlist_list_free_f func)
 	free(r);
 }
 
+static void zlist_layer_fix_range_a(zlist_layer_t *restrict layer, int64_t n)
+{
+	zlist_layer_t *restrict u;
+	layer->na = n;
+	while ((u = layer->u) && layer == u->xa)
+		(layer = u)->na = n;
+}
+
+static void zlist_layer_fix_range_b(zlist_layer_t *restrict layer, int64_t n)
+{
+	zlist_layer_t *restrict u;
+	layer->nb = n;
+	while ((u = layer->u) && layer == u->xb)
+		(layer = u)->nb = n;
+}
+
 static zlist_layer_t* zlist_layer_copy_ab(zlist_t *restrict r, zlist_layer_t *restrict a)
 {
 	zlist_layer_t *restrict b;
@@ -126,6 +144,8 @@ static zlist_layer_t* zlist_layer_upper_ab(zlist_t *restrict r, zlist_layer_t *r
 		u->nl = 2;
 		u->na = a->na;
 		u->nb = b->nb;
+		a->u = u;
+		b->u = u;
 		r->layer = u;
 	}
 	return u;
@@ -161,6 +181,46 @@ static void zlist_layer_copy_reset_x(zlist_layer_t *restrict a, zlist_layer_t *r
 	b->na = p->na;
 }
 
+static inline zlist_layer_t* zlist_layer_fusion_ab_rbu(zlist_t *restrict r, zlist_layer_t *restrict a)
+{
+	zlist_layer_t *restrict b, *restrict u;
+	b = a->b;
+	if ((a->b = b->b))
+		b->b->a = a;
+	a->xb = b->xb;
+	a->nb = b->nb;
+	a->nl += b->nl;
+	if ((u = b->u) != a->u)
+	{
+		zlist_layer_fix_range_b(a->u, a->nb);
+		zlist_layer_fix_range_a(u, (u->xa = b->a)->na);
+		--u->nl;
+	}
+	else if (u)
+	{
+		if (u->xb == b)
+			u->xb = a;
+		--u->nl;
+	}
+	zlist_layer_cache_free(&r->layer_cache, b);
+	return u;
+}
+
+static inline void zlist_layer_set_root(zlist_t *restrict r, zlist_layer_t *restrict root)
+{
+	zlist_layer_t *restrict u;
+	r->layer = root;
+	u = root->u;
+	root->u = NULL;
+	while ((root = u))
+	{
+		u = root->u;
+		zlist_layer_cache_free(&r->layer_cache, root);
+	}
+}
+
+static void zlist_layer_fusion(zlist_t *restrict r, zlist_layer_t *restrict a);
+
 static zlist_layer_t* zlist_layer_division(zlist_t *restrict r, zlist_layer_t *restrict layer0)
 {
 	zlist_layer_t *restrict layer1;
@@ -172,7 +232,7 @@ static zlist_layer_t* zlist_layer_division(zlist_t *restrict r, zlist_layer_t *r
 			else zlist_layer0_copy_reset_x(layer0, layer1, layer0->nl >> 1);
 			if ((layer1 = layer0->u))
 			{
-				if (++layer1->nl < r->nl_max)
+				if (++layer1->nl <= r->nl_max)
 				{
 					label_okay:
 					return layer0;
@@ -184,31 +244,38 @@ static zlist_layer_t* zlist_layer_division(zlist_t *restrict r, zlist_layer_t *r
 			{
 				if (zlist_layer_upper_ab(r, layer0))
 					goto label_okay;
+				zlist_layer_fusion(r, layer0);
 			}
 		}
 		return NULL;
 	}
 }
 
-static inline void zlist_layer_fix_range_a(zlist_layer_t *restrict layer, int64_t n)
+static void zlist_layer_fusion(zlist_t *restrict r, zlist_layer_t *restrict a)
 {
-	while (layer)
+	zlist_layer_t *restrict u;
+	for (;;)
 	{
-		if (layer->na < n)
-			break;
-		layer->na = n;
-		layer = layer->u;
-	}
-}
-
-static inline void zlist_layer_fix_range_b(zlist_layer_t *restrict layer, int64_t n)
-{
-	while (layer)
-	{
-		if (layer->nb > n)
-			break;
-		layer->nb = n;
-		layer = layer->u;
+		u = zlist_layer_fusion_ab_rbu(r, a);
+		if (a->nl > r->nl_max)
+			zlist_layer_division(r, a);
+		if (u->nl <= 1)
+		{
+			if ((a = u->a))
+			{
+				if (a->nl >= r->nl_max && u->b)
+					goto label_fusion_b;
+				continue;
+			}
+			else if (u->b)
+			{
+				label_fusion_b:
+				a = u;
+				continue;
+			}
+			else zlist_layer_set_root(r, u);
+		}
+		return ;
 	}
 }
 
@@ -228,7 +295,7 @@ static inline zlist_list_t* zlist_list_x_layer0(zlist_t *restrict r, zlist_list_
 	}
 	// else inner
 	v->u = ua;
-	if (++ua->nl < r->nl_max || zlist_layer_division(r, ua))
+	if (++ua->nl <= r->nl_max || zlist_layer_division(r, ua))
 		return v;
 	return NULL;
 }
@@ -274,6 +341,8 @@ static zlist_list_t* zlist_list_insert_b(zlist_t *restrict r, zlist_list_t *rest
 static zlist_list_t* zlist_list_insert_only(zlist_t *restrict r, zlist_list_t *restrict v)
 {
 	zlist_layer_t *restrict u;
+	v->a = v->b = NULL;
+	v->u = NULL;
 	if ((u = zlist_layer_cache_alloc(&r->layer_cache)))
 	{
 		u->a = u->b = u->u = NULL;
@@ -283,10 +352,41 @@ static zlist_list_t* zlist_list_insert_only(zlist_t *restrict r, zlist_list_t *r
 		u->nl = 1;
 		u->na = v->n;
 		u->nb = v->n;
+		v->u = u;
 		r->layer = u;
 		return v;
 	}
 	return NULL;
+}
+
+static void zlist_layer0_remove(zlist_t *restrict r, zlist_layer_t *restrict layer0, zlist_list_t *restrict v)
+{
+	if (layer0->nl > 1)
+	{
+		if (layer0->xa == (zlist_layer_t *) v)
+		{
+			layer0->xa = (zlist_layer_t *) v->b;
+			zlist_layer_fix_range_a(layer0, v->b->n);
+		}
+		if (layer0->xb == (zlist_layer_t *) v)
+		{
+			layer0->xb = (zlist_layer_t *) v->a;
+			zlist_layer_fix_range_b(layer0, v->a->n);
+		}
+		if (--layer0->nl <= 1)
+		{
+			if (layer0->a)
+				zlist_layer_fusion(r, layer0->a);
+			else if (layer0->b)
+				zlist_layer_fusion(r, layer0);
+			else zlist_layer_set_root(r, layer0);
+		}
+	}
+	else
+	{
+		r->layer = NULL;
+		zlist_layer_cache_free(&r->layer_cache, layer0);
+	}
 }
 
 zlist_list_t* zlist_insert(zlist_t *restrict r, zlist_list_t *restrict v, zlist_list_t *restrict near)
@@ -309,12 +409,29 @@ zlist_list_t* zlist_insert(zlist_t *restrict r, zlist_list_t *restrict v, zlist_
 	else
 	{
 		if (!zlist_list_insert_only(r, v))
-			goto label_fail;
+			goto label_fail_not_remove;
 	}
 	return v;
 	label_fail:
-	/// TODO: remove
+	zlist_remove(r, v);
+	label_fail_not_remove:
 	return NULL;
+}
+
+zlist_list_t* zlist_remove(zlist_t *restrict r, zlist_list_t *restrict v)
+{
+	zlist_list_t *restrict a, *restrict b;
+	if (v->u)
+	{
+		zlist_layer0_remove(r, v->u, v);
+		a = v->a;
+		b = v->b;
+		if (a) a->b = b;
+		if (b) b->a = a;
+		v->a = v->b = NULL;
+		v->u = NULL;
+	}
+	return v;
 }
 
 zlist_list_t* zlist_find_must(zlist_t *restrict r, int64_t a, int64_t b)
