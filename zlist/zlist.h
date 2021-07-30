@@ -34,8 +34,6 @@ struct zlist_list_t {
 	int64_t n;
 };
 
-void zlist_set_dprint(uintptr_t dp);
-
 zlist_t* zlist_init(zlist_t *restrict r, uint32_t nl_max);
 void zlist_uini(zlist_t *restrict r, zlist_list_free_f func, void *pri);
 

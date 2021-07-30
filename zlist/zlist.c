@@ -1,17 +1,6 @@
 #include "zlist.h"
 #include <stdlib.h>
 
-// #include <stdio.h>
-
-// static uintptr_t dprint = 0;
-
-// void zlist_set_dprint(uintptr_t dp)
-// {
-// 	dprint = dp;
-// }
-
-// #define dprint_function(_format, ...)  if (dprint) printf("(%s) " _format "\n", __func__, ##__VA_ARGS__)
-
 static void zlist_layer_cache_clear(void **restrict pc)
 {
 	register void *restrict p, *q;
@@ -196,6 +185,34 @@ static void zlist_layer_copy_reset_x(zlist_layer_t *restrict a, zlist_layer_t *r
 		p->u = b;
 }
 
+static void zlist_layer_fusion_reset_u_b2a(zlist_layer_t *restrict ub, zlist_layer_t *restrict ua)
+{
+	if (ub->level)
+	{
+		zlist_layer_t *restrict a, *restrict b;
+		a = ub->xa;
+		b = ub->xb;
+		goto label_entry_layer;
+		do {
+			a = a->b;
+			label_entry_layer:
+			a->u = ua;
+		} while (a != b);
+	}
+	else
+	{
+		zlist_list_t *restrict a, *restrict b;
+		a = (zlist_list_t *) ub->xa;
+		b = (zlist_list_t *) ub->xb;
+		goto label_entry_list;
+		do {
+			a = a->b;
+			label_entry_list:
+			a->u = ua;
+		} while (a != b);
+	}
+}
+
 static inline zlist_layer_t* zlist_layer_fusion_ab_rbu(zlist_t *restrict r, zlist_layer_t *restrict a)
 {
 	zlist_layer_t *restrict b, *restrict u;
@@ -205,10 +222,11 @@ static inline zlist_layer_t* zlist_layer_fusion_ab_rbu(zlist_t *restrict r, zlis
 	a->xb = b->xb;
 	a->nb = b->nb;
 	a->nl += b->nl;
+	zlist_layer_fusion_reset_u_b2a(b, a);
 	if ((u = b->u) != a->u)
 	{
 		zlist_layer_fix_range_b(a->u, a->nb);
-		zlist_layer_fix_range_a(u, (u->xa = b->a)->na);
+		zlist_layer_fix_range_a(u, (u->xa = b->b)->na);
 		--u->nl;
 	}
 	else if (u)
@@ -440,11 +458,11 @@ zlist_list_t* zlist_remove(zlist_t *restrict r, zlist_list_t *restrict v)
 	zlist_list_t *restrict a, *restrict b;
 	if (v->u)
 	{
-		zlist_layer0_remove(r, v->u, v);
 		a = v->a;
 		b = v->b;
 		if (a) a->b = b;
 		if (b) b->a = a;
+		zlist_layer0_remove(r, v->u, v);
 		v->a = v->b = NULL;
 		v->u = NULL;
 	}
