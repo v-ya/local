@@ -23,10 +23,10 @@ static uint64_t mix_str(register const char *restrict name)
 
 static uint64_t mix_num(register uint64_t mix)
 {
-	//mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
-	//mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
-	//mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
-	//mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
+	// mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
+	// mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
+	// mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
+	// mix += (mix<<3) + (mix>>2) + (mix<<1) + mix;
 	mix ^= mix >> 32;
 	mix ^= mix >> 16;
 	mix ^= mix >> 8;
@@ -40,33 +40,36 @@ static uint64_t mix_num(register uint64_t mix)
 static hashmap_vlist_t* hashmap_vlist_alloc(register const char *restrict name, register uint64_t head, const void *value, hashmap_func_free_f free_func)
 {
 	register hashmap_vlist_t *vl;
-	vl = (hashmap_vlist_t *) malloc(sizeof(hashmap_vlist_t));
-	if (vl)
+	if (name)
 	{
-		if (name)
+		uintptr_t n = strlen(name) + 1;
+		vl = (hashmap_vlist_t *) malloc(sizeof(hashmap_vlist_t) + n);
+		if (vl)
 		{
-			register uint64_t size;
-			size = strlen(name) + 1;
-			if ((vl->name = (char *) malloc(size))) memcpy((void *) vl->name, name, size);
-			else
-			{
-				free(vl);
-				return NULL;
-			}
+			vl->name = (const char *) memcpy(vl + 1, name, n);
+			goto label_okay;
 		}
-		else vl->name = NULL;
-		vl->head = head;
-		vl->value = (void *) value;
-		vl->free = free_func;
-		vl->next = NULL;
 	}
-	return vl;
+	else
+	{
+		vl = (hashmap_vlist_t *) malloc(sizeof(hashmap_vlist_t));
+		if (vl)
+		{
+			vl->name = NULL;
+			label_okay:
+			vl->head = head;
+			vl->value = (void *) value;
+			vl->free = free_func;
+			vl->next = NULL;
+			return vl;
+		}
+	}
+	return NULL;
 }
 
-static void hashmap_vlist_free(register hashmap_vlist_t *restrict vl)
+static inline void hashmap_vlist_free(register hashmap_vlist_t *restrict vl)
 {
 	if (vl->free) vl->free(vl);
-	if (vl->name) free((void *) vl->name);
 	free(vl);
 }
 
