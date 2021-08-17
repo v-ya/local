@@ -16,7 +16,7 @@ struct hashmap_vlist_t {
 	uint64_t head;
 	const char *name;
 	void *value;
-	hashmap_func_free_f freeFunc;
+	hashmap_func_free_f free;
 	hashmap_vlist_t *next;
 };
 
@@ -40,18 +40,18 @@ hashmap_vlist_t* hashmap_find_head(const hashmap_t *restrict hm, uint64_t head);
 void hashmap_delete_name(hashmap_t *restrict hm, const char *restrict name);
 void hashmap_delete_head(hashmap_t *restrict hm, uint64_t head);
 // 如果没有则添加，有则返回已存在的
-hashmap_vlist_t* hashmap_put_name(hashmap_t *restrict hm, const char *restrict name, const void *value, hashmap_func_free_f freeFunc);
-hashmap_vlist_t* hashmap_put_head(hashmap_t *restrict hm, uint64_t head, const void *value, hashmap_func_free_f freeFunc);
+hashmap_vlist_t* hashmap_put_name(hashmap_t *restrict hm, const char *restrict name, const void *value, hashmap_func_free_f free_func);
+hashmap_vlist_t* hashmap_put_head(hashmap_t *restrict hm, uint64_t head, const void *value, hashmap_func_free_f free_func);
 // 如果没有则添加，有则替换(释放旧的，创建新的)
-hashmap_vlist_t* hashmap_set_name(hashmap_t *restrict hm, const char *restrict name, const void *value, hashmap_func_free_f freeFunc);
-hashmap_vlist_t* hashmap_set_head(hashmap_t *restrict hm, uint64_t head, const void *value, hashmap_func_free_f freeFunc);
+hashmap_vlist_t* hashmap_set_name(hashmap_t *restrict hm, const char *restrict name, const void *value, hashmap_func_free_f free_func);
+hashmap_vlist_t* hashmap_set_head(hashmap_t *restrict hm, uint64_t head, const void *value, hashmap_func_free_f free_func);
 // 返回 value
 void* hashmap_get_name(const hashmap_t *restrict hm, const char *restrict name);
 void* hashmap_get_head(const hashmap_t *restrict hm, uint64_t head);
 // 遍历每一个子节点调用 callFunc
 void hashmap_call(const hashmap_t *restrict hm, hashmap_func_call_f callFunc, const void *data);
 void hashmap_call_v2(const hashmap_t *restrict hm, hashmap_func_call_v2_f callFunc, const void *v1, const void *v2);
-// 遍历每一个子节点调用 isfreeFunc，如果函数返回非零则释放改子节点
-void hashmap_isfree(hashmap_t *restrict hm, hashmap_func_isfree_f isfreeFunc, const void *data);
+// 遍历每一个子节点调用 isfree_func，如果函数返回非零则释放改子节点
+void hashmap_isfree(hashmap_t *restrict hm, hashmap_func_isfree_f isfree_func, const void *data);
 
 #endif

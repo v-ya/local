@@ -17,13 +17,13 @@ struct rbtree_t {
 	uint32_t color;
 	uint32_t mode;
 	void *value;
-	rbtree_func_free_f freeFunc;
+	rbtree_func_free_f free;
 };
 
 #define rbtree_color_red        0
 #define rbtree_color_black      1
 
-rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f freeFunc);
+rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f free_func);
 void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, rbtree_t *restrict p);
 void rbtree_delete(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index);
 rbtree_t* rbtree_find(rbtree_t *const restrict *restrict pr, const char *restrict name, uint64_t index);

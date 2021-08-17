@@ -421,7 +421,7 @@ static rbtree_t* rbtree_balance_delete_void(register rbtree_t *restrict p, rbtre
 	else return p;
 }
 
-rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f freeFunc)
+rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index, const void *value, rbtree_func_free_f free_func)
 {
 	register rbtree_t *v, *p, *restrict *restrict pv;
 	int s_cmp;
@@ -473,7 +473,7 @@ rbtree_t* rbtree_insert(rbtree_t *restrict *restrict pr, const char *restrict na
 	}
 	v->key_index = index;
 	v->value = (void *) value;
-	v->freeFunc = freeFunc;
+	v->free = free_func;
 	*pv = v;
 	return rbtree_balance_insert(v, pr);
 }
@@ -488,12 +488,12 @@ void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, register rbtree_t
 		{
 			pp = v;
 		} while ((v = v->l));
-		if (p->freeFunc) p->freeFunc(p);
+		if (p->free) p->free(p);
 		if (p->key_name) free((void *) p->key_name);
 		p->key_name = pp->key_name;
 		p->key_index = pp->key_index;
 		p->value = pp->value;
-		p->freeFunc = pp->freeFunc;
+		p->free = pp->free;
 		v = pp->r;
 		if (p == pp->u)
 		{
@@ -520,7 +520,7 @@ void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, register rbtree_t
 			else pp->r = v;
 		}
 		else *pr = v;
-		if (p->freeFunc) p->freeFunc(p);
+		if (p->free) p->free(p);
 		color = p->color;
 		free(p);
 		p = pp;
@@ -624,7 +624,7 @@ void rbtree_clear(rbtree_t *restrict *restrict pr)
 		else
 		{
 			c = v->u;
-			if (v->freeFunc) v->freeFunc(v);
+			if (v->free) v->free(v);
 			if (v->key_name) free((void *) v->key_name);
 			free(v);
 			v = c;
