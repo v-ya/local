@@ -33,13 +33,24 @@ struct vattr_vlist_t {
 
 vattr_s* vattr_alloc(void);
 
-vattr_vslot_t* vattr_get_vslot(vattr_s *restrict vattr, const char *restrict key);
-
-uintptr_t vattr_get_vslot_number(vattr_s *restrict vattr, const char *restrict key);
+vattr_vlist_t* vattr_first(vattr_s *restrict vattr);
+vattr_vlist_t* vattr_tail(vattr_s *restrict vattr);
+vattr_vlist_t* vattr_next(vattr_vlist_t *restrict vlist);
+vattr_vlist_t* vattr_last(vattr_vlist_t *restrict vlist);
+vattr_vlist_t* vattr_next_end(vattr_s *restrict vattr);
+vattr_vlist_t* vattr_last_end(vattr_s *restrict vattr);
 
 vattr_vlist_t* vattr_vslot_first(vattr_vslot_t *restrict vslot);
 vattr_vlist_t* vattr_vslot_tail(vattr_vslot_t *restrict vslot);
+vattr_vlist_t* vattr_vslot_next(vattr_vlist_t *restrict vlist);
+vattr_vlist_t* vattr_vslot_last(vattr_vlist_t *restrict vlist);
+vattr_vlist_t* vattr_vslot_next_end(vattr_vslot_t *restrict vslot);
+vattr_vlist_t* vattr_vslot_last_end(vattr_vslot_t *restrict vslot);
 vattr_vlist_t* vattr_vslot_index(vattr_vslot_t *restrict vslot, uintptr_t index);
+
+vattr_vslot_t* vattr_get_vslot(vattr_s *restrict vattr, const char *restrict key);
+
+uintptr_t vattr_get_vslot_number(vattr_s *restrict vattr, const char *restrict key);
 
 vattr_vlist_t* vattr_get_vlist_first(vattr_s *restrict vattr, const char *restrict key);
 vattr_vlist_t* vattr_get_vlist_tail(vattr_s *restrict vattr, const char *restrict key);
