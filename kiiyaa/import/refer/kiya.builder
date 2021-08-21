@@ -15,8 +15,10 @@
 	"refer_get_free"                 @null
 	"refer_save"                     @null
 	"refer_save_number"              @null
-	"refer_dump_string"              @null
 	"refer_dump_string_with_length"  @null
+	"refer_dump_string"              @null
+	"refer_dump_nstring_with_length" @null
+	"refer_dump_nstring"             @null
 	"refer_dump_data"                @null
 
 [] "kiya.export" @"kiya.export.all"

@@ -64,16 +64,6 @@ uint64_t refer_save_number(refer_t v)
 
 #include <string.h>
 
-refer_string_t refer_dump_string(const char *restrict string)
-{
-	char *restrict r;
-	size_t length;
-	length = strlen(string) + 1;
-	r = (char *) refer_alloc(length);
-	if (r) return memcpy(r, string, length);
-	return NULL;
-}
-
 refer_string_t refer_dump_string_with_length(const char *restrict string, size_t length)
 {
 	char *restrict r;
@@ -84,6 +74,29 @@ refer_string_t refer_dump_string_with_length(const char *restrict string, size_t
 		r[length] = 0;
 	}
 	return r;
+}
+
+refer_string_t refer_dump_string(const char *restrict string)
+{
+	return refer_dump_string_with_length(string, strlen(string));
+}
+
+refer_nstring_t refer_dump_nstring_with_length(const char *restrict string, size_t length)
+{
+	struct refer_nstring_s *restrict r;
+	r = (struct refer_nstring_s *) refer_alloc((sizeof(struct refer_nstring_s) + 1) + length);
+	if (r)
+	{
+		r->length = length;
+		memcpy(r->string, string, length);
+		r->string[length] = 0;
+	}
+	return r;
+}
+
+refer_nstring_t refer_dump_nstring(const char *restrict string)
+{
+	return refer_dump_nstring_with_length(string, strlen(string));
 }
 
 refer_t refer_dump_data(const void *restrict data, size_t size)
