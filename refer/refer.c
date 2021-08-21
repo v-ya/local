@@ -70,7 +70,8 @@ refer_string_t refer_dump_string_with_length(const char *restrict string, size_t
 	r = (char *) refer_alloc(length + 1);
 	if (r)
 	{
-		memcpy(r, string, length);
+		if (length)
+			memcpy(r, string, length);
 		r[length] = 0;
 	}
 	return r;
@@ -87,8 +88,8 @@ refer_nstring_t refer_dump_nstring_with_length(const char *restrict string, size
 	r = (struct refer_nstring_s *) refer_alloc((sizeof(struct refer_nstring_s) + 1) + length);
 	if (r)
 	{
-		r->length = length;
-		memcpy(r->string, string, length);
+		if ((r->length = length))
+			memcpy(r->string, string, length);
 		r->string[length] = 0;
 	}
 	return r;
