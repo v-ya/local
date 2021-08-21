@@ -1,7 +1,7 @@
 #include "vattr.h"
 #include <stdlib.h>
 
-#define inv_offset_ptr(_t, _m, _p)  (_t *) ((uintptr_t) (_p) - offsetof(_t, _m))
+#define inv_offset_ptr(_t, _m, _p)  ((_t *) ((uintptr_t) (_p) - offsetof(_t, _m)))
 
 // vlist
 
@@ -12,7 +12,7 @@ static vattr_vlist_t* vattr_vlist_alloc(register vattr_vslot_t *restrict vslot, 
 	{
 		// vattr list
 		if (!(r->vattr_next = *p_vattr))
-			*vslot->pp_vattr_tail = &r->vattr_next;
+			vslot->vattr->p_vattr_tail = &r->vattr_next;
 		else (*p_vattr)->p_vattr_next = &r->vattr_next;
 		r->p_vattr_next = p_vattr;
 		*p_vattr = r;
@@ -23,7 +23,7 @@ static vattr_vlist_t* vattr_vlist_alloc(register vattr_vslot_t *restrict vslot, 
 		r->p_vslot_next = p_vslot;
 		*p_vslot = r;
 		// slot
-		r->slot = vslot;
+		r->vslot = vslot;
 		// value
 		r->value = refer_save(value);
 		// vslot
@@ -34,11 +34,11 @@ static vattr_vlist_t* vattr_vlist_alloc(register vattr_vslot_t *restrict vslot, 
 
 static void vattr_vlist_free(register vattr_vlist_t *restrict vlist)
 {
-	register vattr_vslot_t *restrict vslot = vlist->slot;
+	register vattr_vslot_t *restrict vslot = vlist->vslot;
 	vslot->number -= 1;
 	if ((*vlist->p_vattr_next = vlist->vattr_next))
 		vlist->vattr_next->p_vattr_next = vlist->p_vattr_next;
-	else *vslot->pp_vattr_tail = vlist->p_vattr_next;
+	else vslot->vattr->p_vattr_tail = vlist->p_vattr_next;
 	if ((*vlist->p_vslot_next = vlist->vslot_next))
 		vlist->vslot_next->p_vslot_next = vlist->p_vslot_next;
 	else vslot->p_vslot_tail = vlist->p_vslot_next;
@@ -66,7 +66,7 @@ static vattr_vslot_t* vattr_vslot_alloc(vattr_s *restrict vattr)
 		r->number = 0;
 		r->vslot = NULL;
 		r->p_vslot_tail = &r->vslot;
-		r->pp_vattr_tail = &vattr->p_vattr_tail;
+		r->vattr = vattr;
 	}
 	return r;
 }
@@ -111,7 +111,7 @@ vattr_s* vattr_append(vattr_s *restrict dst, const vattr_s *restrict src)
 	const vattr_vlist_t *restrict v;
 	for (v = src->vattr; v; v = v->vattr_next)
 	{
-		if (!vattr_insert_tail(dst, v->slot->key, v->value))
+		if (!vattr_insert_tail(dst, v->vslot->key, v->value))
 			goto label_fail;
 	}
 	return dst;
@@ -125,67 +125,67 @@ vattr_s* vattr_copy(vattr_s *restrict dst, const vattr_s *restrict src)
 	return vattr_append(dst, src);
 }
 
-vattr_vlist_t* vattr_first(vattr_s *restrict vattr)
+vattr_vlist_t* vattr_first(const vattr_s *restrict vattr)
 {
 	return vattr->vattr;
 }
 
-vattr_vlist_t* vattr_tail(vattr_s *restrict vattr)
+vattr_vlist_t* vattr_tail(const vattr_s *restrict vattr)
 {
 	return inv_offset_ptr(vattr_vlist_t, vattr_next, vattr->p_vattr_tail);
 }
 
-vattr_vlist_t* vattr_next(vattr_vlist_t *restrict vlist)
+vattr_vlist_t* vattr_next(const vattr_vlist_t *restrict vlist)
 {
 	return vlist->vattr_next;
 }
 
-vattr_vlist_t* vattr_last(vattr_vlist_t *restrict vlist)
+vattr_vlist_t* vattr_last(const vattr_vlist_t *restrict vlist)
 {
 	return inv_offset_ptr(vattr_vlist_t, vattr_next, vlist->p_vattr_next);
 }
 
-vattr_vlist_t* vattr_next_end(vattr_s *restrict vattr)
+vattr_vlist_t* vattr_next_end(const vattr_s *restrict vattr)
 {
 	return NULL;
 }
 
-vattr_vlist_t* vattr_last_end(vattr_s *restrict vattr)
+vattr_vlist_t* vattr_last_end(const vattr_s *restrict vattr)
 {
 	return inv_offset_ptr(vattr_vlist_t, vattr_next, &vattr->vattr);
 }
 
-vattr_vlist_t* vattr_vslot_first(vattr_vslot_t *restrict vslot)
+vattr_vlist_t* vattr_vslot_first(const vattr_vslot_t *restrict vslot)
 {
 	return vslot->vslot;
 }
 
-vattr_vlist_t* vattr_vslot_tail(vattr_vslot_t *restrict vslot)
+vattr_vlist_t* vattr_vslot_tail(const vattr_vslot_t *restrict vslot)
 {
 	return inv_offset_ptr(vattr_vlist_t, vslot_next, vslot->p_vslot_tail);
 }
 
-vattr_vlist_t* vattr_vslot_next(vattr_vlist_t *restrict vlist)
+vattr_vlist_t* vattr_vslot_next(const vattr_vlist_t *restrict vlist)
 {
 	return vlist->vslot_next;
 }
 
-vattr_vlist_t* vattr_vslot_last(vattr_vlist_t *restrict vlist)
+vattr_vlist_t* vattr_vslot_last(const vattr_vlist_t *restrict vlist)
 {
 	return inv_offset_ptr(vattr_vlist_t, vslot_next, vlist->p_vslot_next);
 }
 
-vattr_vlist_t* vattr_vslot_next_end(vattr_vslot_t *restrict vslot)
+vattr_vlist_t* vattr_vslot_next_end(const vattr_vslot_t *restrict vslot)
 {
 	return NULL;
 }
 
-vattr_vlist_t* vattr_vslot_last_end(vattr_vslot_t *restrict vslot)
+vattr_vlist_t* vattr_vslot_last_end(const vattr_vslot_t *restrict vslot)
 {
 	return inv_offset_ptr(vattr_vlist_t, vslot_next, &vslot->vslot);
 }
 
-vattr_vlist_t* vattr_vslot_index(vattr_vslot_t *restrict vslot, uintptr_t index)
+vattr_vlist_t* vattr_vslot_index(const vattr_vslot_t *restrict vslot, uintptr_t index)
 {
 	if (index < vslot->number)
 	{
@@ -201,12 +201,12 @@ vattr_vlist_t* vattr_vslot_index(vattr_vslot_t *restrict vslot, uintptr_t index)
 	return NULL;
 }
 
-vattr_vslot_t* vattr_get_vslot(vattr_s *restrict vattr, const char *restrict key)
+vattr_vslot_t* vattr_get_vslot(const vattr_s *restrict vattr, const char *restrict key)
 {
 	return (vattr_vslot_t *) hashmap_get_name(&vattr->vslot, key);
 }
 
-uintptr_t vattr_get_vslot_number(vattr_s *restrict vattr, const char *restrict key)
+uintptr_t vattr_get_vslot_number(const vattr_s *restrict vattr, const char *restrict key)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = (vattr_vslot_t *) hashmap_get_name(&vattr->vslot, key)))
@@ -214,7 +214,7 @@ uintptr_t vattr_get_vslot_number(vattr_s *restrict vattr, const char *restrict k
 	return 0;
 }
 
-vattr_vlist_t* vattr_get_vlist_first(vattr_s *restrict vattr, const char *restrict key)
+vattr_vlist_t* vattr_get_vlist_first(const vattr_s *restrict vattr, const char *restrict key)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = (vattr_vslot_t *) hashmap_get_name(&vattr->vslot, key)))
@@ -222,7 +222,7 @@ vattr_vlist_t* vattr_get_vlist_first(vattr_s *restrict vattr, const char *restri
 	return NULL;
 }
 
-vattr_vlist_t* vattr_get_vlist_tail(vattr_s *restrict vattr, const char *restrict key)
+vattr_vlist_t* vattr_get_vlist_tail(const vattr_s *restrict vattr, const char *restrict key)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = (vattr_vslot_t *) hashmap_get_name(&vattr->vslot, key)))
@@ -230,7 +230,7 @@ vattr_vlist_t* vattr_get_vlist_tail(vattr_s *restrict vattr, const char *restric
 	return NULL;
 }
 
-vattr_vlist_t* vattr_get_vlist_index(vattr_s *restrict vattr, const char *restrict key, uintptr_t index)
+vattr_vlist_t* vattr_get_vlist_index(const vattr_s *restrict vattr, const char *restrict key, uintptr_t index)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = (vattr_vslot_t *) hashmap_get_name(&vattr->vslot, key)))
@@ -238,7 +238,7 @@ vattr_vlist_t* vattr_get_vlist_index(vattr_s *restrict vattr, const char *restri
 	return NULL;
 }
 
-refer_t vattr_get_first(vattr_s *restrict vattr, const char *restrict key)
+refer_t vattr_get_first(const vattr_s *restrict vattr, const char *restrict key)
 {
 	vattr_vlist_t *restrict vlist;
 	if ((vlist = vattr_get_vlist_first(vattr, key)))
@@ -246,7 +246,7 @@ refer_t vattr_get_first(vattr_s *restrict vattr, const char *restrict key)
 	return NULL;
 }
 
-refer_t vattr_get_tail(vattr_s *restrict vattr, const char *restrict key)
+refer_t vattr_get_tail(const vattr_s *restrict vattr, const char *restrict key)
 {
 	vattr_vlist_t *restrict vlist;
 	if ((vlist = vattr_get_vlist_tail(vattr, key)))
@@ -254,7 +254,7 @@ refer_t vattr_get_tail(vattr_s *restrict vattr, const char *restrict key)
 	return NULL;
 }
 
-refer_t vattr_get_index(vattr_s *restrict vattr, const char *restrict key, uintptr_t index)
+refer_t vattr_get_index(const vattr_s *restrict vattr, const char *restrict key, uintptr_t index)
 {
 	vattr_vlist_t *restrict vlist;
 	if ((vlist = vattr_get_vlist_index(vattr, key, index)))
@@ -283,37 +283,71 @@ vattr_vlist_t* vattr_set(vattr_s *restrict vattr, const char *restrict key, refe
 
 vattr_vlist_t* vattr_insert_vlist_last(vattr_vlist_t *restrict vlist, refer_t value)
 {
-	return vattr_vlist_alloc(vlist->slot, vlist->p_vattr_next, vlist->p_vslot_next, value);
+	return vattr_vlist_alloc(vlist->vslot, vlist->p_vattr_next, vlist->p_vslot_next, value);
 }
 
 vattr_vlist_t* vattr_insert_vlist_next(vattr_vlist_t *restrict vlist, refer_t value)
 {
-	return vattr_vlist_alloc(vlist->slot, &vlist->vattr_next, &vlist->vslot_next, value);
+	return vattr_vlist_alloc(vlist->vslot, &vlist->vattr_next, &vlist->vslot_next, value);
 }
 
-vattr_vlist_t* vattr_insert_vslot_first(vattr_vslot_t *restrict vslot, refer_t value)
+vattr_vlist_t* vattr_insert_vslot_first_vattr(vattr_vslot_t *restrict vslot, refer_t value)
+{
+	return vattr_vlist_alloc(vslot, &vslot->vattr->vattr, &vslot->vslot, value);
+}
+
+vattr_vlist_t* vattr_insert_vslot_first_vslot(vattr_vslot_t *restrict vslot, refer_t value)
 {
 	return vattr_vlist_alloc(vslot, vslot->vslot->p_vattr_next, &vslot->vslot, value);
 }
 
-vattr_vlist_t* vattr_insert_vslot_tail(vattr_vslot_t *restrict vslot, refer_t value)
+vattr_vlist_t* vattr_insert_vslot_tail_vslot(vattr_vslot_t *restrict vslot, refer_t value)
 {
-	return vattr_vlist_alloc(vslot, *vslot->pp_vattr_tail, vslot->p_vslot_tail, value);
+	return vattr_vlist_alloc(vslot, &inv_offset_ptr(vattr_vlist_t, vslot_next, vslot->p_vslot_tail)->vattr_next, &vslot->vslot, value);
 }
 
-vattr_vlist_t* vattr_insert_vslot_index(vattr_vslot_t *restrict vslot, uintptr_t index, refer_t value)
+vattr_vlist_t* vattr_insert_vslot_tail_vattr(vattr_vslot_t *restrict vslot, refer_t value)
+{
+	return vattr_vlist_alloc(vslot, vslot->vattr->p_vattr_tail, vslot->p_vslot_tail, value);
+}
+
+vattr_vlist_t* vattr_insert_vslot_index_last(vattr_vslot_t *restrict vslot, uintptr_t index, refer_t value)
 {
 	vattr_vlist_t *restrict vlist;
 	if ((vlist = vattr_vslot_index(vslot, index)))
-		return vattr_vlist_alloc(vlist->slot, vlist->p_vattr_next, vlist->p_vslot_next, value);
-	return vattr_vlist_alloc(vslot, *vslot->pp_vattr_tail, vslot->p_vslot_tail, value);
+		return vattr_vlist_alloc(vlist->vslot, vlist->p_vattr_next, vlist->p_vslot_next, value);
+	return vattr_vlist_alloc(vslot, vslot->vattr->p_vattr_tail, vslot->p_vslot_tail, value);
+}
+
+vattr_vlist_t* vattr_insert_vslot_index_next(vattr_vslot_t *restrict vslot, uintptr_t index, refer_t value)
+{
+	vattr_vlist_t *restrict vlist;
+	if ((vlist = vattr_vslot_index(vslot, index)))
+		return vattr_vlist_alloc(vlist->vslot, &vlist->vattr_next, &vlist->vslot_next, value);
+	return vattr_vlist_alloc(vslot, vslot->vattr->p_vattr_tail, vslot->p_vslot_tail, value);
 }
 
 vattr_vlist_t* vattr_insert_first(vattr_s *restrict vattr, const char *restrict key, refer_t value)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(vattr, key)))
-		return vattr_insert_vslot_first(vslot, value);
+		return vattr_insert_vslot_first_vattr(vslot, value);
+	return vattr_set(vattr, key, value);
+}
+
+vattr_vlist_t* vattr_insert_first_vslot(vattr_s *restrict vattr, const char *restrict key, refer_t value)
+{
+	vattr_vslot_t *restrict vslot;
+	if ((vslot = vattr_get_vslot(vattr, key)))
+		return vattr_insert_vslot_first_vslot(vslot, value);
+	return vattr_set(vattr, key, value);
+}
+
+vattr_vlist_t* vattr_insert_tail_vslot(vattr_s *restrict vattr, const char *restrict key, refer_t value)
+{
+	vattr_vslot_t *restrict vslot;
+	if ((vslot = vattr_get_vslot(vattr, key)))
+		return vattr_insert_vslot_tail_vslot(vslot, value);
 	return vattr_set(vattr, key, value);
 }
 
@@ -321,49 +355,57 @@ vattr_vlist_t* vattr_insert_tail(vattr_s *restrict vattr, const char *restrict k
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(vattr, key)))
-		return vattr_insert_vslot_tail(vslot, value);
+		return vattr_insert_vslot_tail_vattr(vslot, value);
 	return vattr_set(vattr, key, value);
 }
 
-vattr_vlist_t* vattr_insert_index(vattr_s *restrict vattr, const char *restrict key, uintptr_t index, refer_t value)
+vattr_vlist_t* vattr_insert_index_last(vattr_s *restrict vattr, const char *restrict key, uintptr_t index, refer_t value)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(vattr, key)))
-		return vattr_insert_vslot_index(vslot, index, value);
+		return vattr_insert_vslot_index_last(vslot, index, value);
 	return vattr_set(vattr, key, value);
 }
 
-vattr_vslot_t* vattr_delete_vlist(vattr_s *restrict vattr, vattr_vlist_t *restrict vlist)
+vattr_vlist_t* vattr_insert_index_next(vattr_s *restrict vattr, const char *restrict key, uintptr_t index, refer_t value)
 {
 	vattr_vslot_t *restrict vslot;
-	vslot = vlist->slot;
+	if ((vslot = vattr_get_vslot(vattr, key)))
+		return vattr_insert_vslot_index_next(vslot, index, value);
+	return vattr_set(vattr, key, value);
+}
+
+vattr_vslot_t* vattr_delete_vlist(vattr_vlist_t *restrict vlist)
+{
+	vattr_vslot_t *restrict vslot;
+	vslot = vlist->vslot;
 	vattr_vlist_free(vlist);
 	if (vslot->vslot)
 		return vslot;
-	hashmap_delete_name(&vattr->vslot, vslot->key);
+	hashmap_delete_name(&vslot->vattr->vslot, vslot->key);
 	return NULL;
 }
 
-void vattr_delete_vslot(vattr_s *restrict vattr, vattr_vslot_t *restrict vslot)
+void vattr_delete_vslot(vattr_vslot_t *restrict vslot)
 {
-	hashmap_delete_name(&vattr->vslot, vslot->key);
+	hashmap_delete_name(&vslot->vattr->vslot, vslot->key);
 }
 
-vattr_vslot_t* vattr_delete_vslot_first(vattr_s *restrict vattr, vattr_vslot_t *restrict vslot)
+vattr_vslot_t* vattr_delete_vslot_first(vattr_vslot_t *restrict vslot)
 {
-	return vattr_delete_vlist(vattr, vslot->vslot);
+	return vattr_delete_vlist(vslot->vslot);
 }
 
-vattr_vslot_t* vattr_delete_vslot_tail(vattr_s *restrict vattr, vattr_vslot_t *restrict vslot)
+vattr_vslot_t* vattr_delete_vslot_tail(vattr_vslot_t *restrict vslot)
 {
-	return vattr_delete_vlist(vattr, vattr_vslot_tail(vslot));
+	return vattr_delete_vlist(vattr_vslot_tail(vslot));
 }
 
-vattr_vslot_t* vattr_delete_vslot_index(vattr_s *restrict vattr, vattr_vslot_t *restrict vslot, uintptr_t index)
+vattr_vslot_t* vattr_delete_vslot_index(vattr_vslot_t *restrict vslot, uintptr_t index)
 {
 	vattr_vlist_t *restrict vlist;
 	if ((vlist = vattr_vslot_index(vslot, index)))
-		return vattr_delete_vlist(vattr, vlist);
+		return vattr_delete_vlist(vlist);
 	return vslot;
 }
 
@@ -376,7 +418,7 @@ vattr_vslot_t* vattr_delete_first(vattr_s *restrict vattr, const char *restrict 
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(vattr, key)))
-		return vattr_delete_vlist(vattr, vslot->vslot);
+		return vattr_delete_vlist(vslot->vslot);
 	return NULL;
 }
 
@@ -384,7 +426,7 @@ vattr_vslot_t* vattr_delete_tail(vattr_s *restrict vattr, const char *restrict k
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(vattr, key)))
-		return vattr_delete_vlist(vattr, vattr_vslot_tail(vslot));
+		return vattr_delete_vlist(vattr_vslot_tail(vslot));
 	return NULL;
 }
 
@@ -395,7 +437,7 @@ vattr_vslot_t* vattr_delete_index(vattr_s *restrict vattr, const char *restrict 
 	if ((vslot = vattr_get_vslot(vattr, key)))
 	{
 		if ((vlist = vattr_vslot_index(vslot, index)))
-			return vattr_delete_vlist(vattr, vlist);
+			return vattr_delete_vlist(vlist);
 	}
 	return vslot;
 }
