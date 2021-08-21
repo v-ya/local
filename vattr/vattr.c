@@ -101,6 +101,11 @@ vattr_s* vattr_alloc(void)
 	return NULL;
 }
 
+void vattr_clear(vattr_s *restrict vattr)
+{
+	hashmap_clear(&vattr->vslot);
+}
+
 vattr_vlist_t* vattr_first(vattr_s *restrict vattr)
 {
 	return vattr->vattr;
