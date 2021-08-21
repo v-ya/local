@@ -33,6 +33,8 @@ struct vattr_vlist_t {
 
 vattr_s* vattr_alloc(void);
 void vattr_clear(vattr_s *restrict vattr);
+vattr_s* vattr_append(vattr_s *restrict dst, const vattr_s *restrict src);
+vattr_s* vattr_copy(vattr_s *restrict dst, const vattr_s *restrict src);
 
 vattr_vlist_t* vattr_first(vattr_s *restrict vattr);
 vattr_vlist_t* vattr_tail(vattr_s *restrict vattr);

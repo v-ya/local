@@ -106,6 +106,25 @@ void vattr_clear(vattr_s *restrict vattr)
 	hashmap_clear(&vattr->vslot);
 }
 
+vattr_s* vattr_append(vattr_s *restrict dst, const vattr_s *restrict src)
+{
+	const vattr_vlist_t *restrict v;
+	for (v = src->vattr; v; v = v->vattr_next)
+	{
+		if (!vattr_insert_tail(dst, v->slot->key, v->value))
+			goto label_fail;
+	}
+	return dst;
+	label_fail:
+	return NULL;
+}
+
+vattr_s* vattr_copy(vattr_s *restrict dst, const vattr_s *restrict src)
+{
+	hashmap_clear(&dst->vslot);
+	return vattr_append(dst, src);
+}
+
 vattr_vlist_t* vattr_first(vattr_s *restrict vattr)
 {
 	return vattr->vattr;
