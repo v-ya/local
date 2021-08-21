@@ -59,3 +59,40 @@ uint64_t refer_save_number(refer_t v)
 {
 	return ((refer_s *) v - 1)->inode;
 }
+
+// data dump
+
+#include <string.h>
+
+refer_string_t refer_dump_string(const char *restrict string)
+{
+	char *restrict r;
+	size_t length;
+	length = strlen(string) + 1;
+	r = (char *) refer_alloc(length);
+	if (r) return memcpy(r, string, length);
+	return NULL;
+}
+
+refer_string_t refer_dump_string_with_length(const char *restrict string, size_t length)
+{
+	char *restrict r;
+	r = (char *) refer_alloc(length + 1);
+	if (r)
+	{
+		memcpy(r, string, length);
+		r[length] = 0;
+	}
+	return r;
+}
+
+refer_t refer_dump_data(const void *restrict data, size_t size)
+{
+	if (size)
+	{
+		void *restrict r;
+		r = (char *) refer_alloc(size);
+		if (r) return memcpy(r, data, size);
+	}
+	return NULL;
+}
