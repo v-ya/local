@@ -88,11 +88,13 @@ char* uhttp_build_header_write(const uhttp_s *restrict uhttp, char *restrict dat
 	{
 		// [name]: [value]\r\n
 		header = (uhttp_header_s *) v->value;
-		memcpy(data, header->name->string, n = header->name->length);
+		if ((n = header->name->length))
+			memcpy(data, header->name->string, n);
 		data += n;
 		*data++ = ':';
 		*data++ = ' ';
-		memcpy(data, header->value, n = header->value_length);
+		if ((n = header->value_length))
+			memcpy(data, header->value, n);
 		data += n;
 		*data++ = '\r';
 		*data++ = '\n';

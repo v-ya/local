@@ -74,6 +74,10 @@ uhttp_s* uhttp_set_request_refer_method(uhttp_s *restrict uhttp, refer_nstring_t
 uhttp_s* uhttp_set_request_refer_uri(uhttp_s *restrict uhttp, const char *restrict method, refer_nstring_t uri);
 uhttp_s* uhttp_set_request(uhttp_s *restrict uhttp, const char *restrict method, const char *restrict uri);
 uhttp_s* uhttp_set_response(uhttp_s *restrict uhttp, int code, const char *restrict desc);
+refer_nstring_t uhttp_get_request_method(uhttp_s *restrict uhttp);
+refer_nstring_t uhttp_get_request_uri(uhttp_s *restrict uhttp);
+int uhttp_get_response_code(uhttp_s *restrict uhttp);
+refer_nstring_t uhttp_get_response_desc(uhttp_s *restrict uhttp);
 uhttp_s* uhttp_refer_header_reset(uhttp_s *restrict uhttp, uhttp_header_s *restrict header);
 uhttp_s* uhttp_refer_header_first(uhttp_s *restrict uhttp, uhttp_header_s *restrict header);
 uhttp_s* uhttp_refer_header_last(uhttp_s *restrict uhttp, uhttp_header_s *restrict header);

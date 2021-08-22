@@ -194,23 +194,30 @@ uhttp_parse_stuts_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *rest
 	while (uhttp_parse_get_line(p + n_pos, n, &n_end, &n_line))
 	{
 		if (!n_end)
-			return uhttp_parse_stuts_okay;
-		if ((r = uhttp_parse_inner_header(uhttp, p, n_end)) != uhttp_parse_stuts_okay)
-			return r;
+		{
+			n_pos += n_line;
+			r = uhttp_parse_stuts_okay;
+			goto label_quit;
+		}
+		if ((r = uhttp_parse_inner_header(uhttp, p + n_pos, n_end)) != uhttp_parse_stuts_okay)
+			goto label_quit;
 		n_pos += n_line;
 	}
+	r = uhttp_parse_stuts_error_parse;
+	label_quit:
 	if (pos) *pos = n_pos;
-	return uhttp_parse_stuts_error_parse;
+	return r;
 }
 
 uhttp_parse_stuts_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
 {
-	uintptr_t np;
+	uintptr_t np1, np2;
 	uhttp_parse_stuts_t r;
-	r = uhttp_parse_line(uhttp, p, n, &np);
+	r = uhttp_parse_line(uhttp, p, n, &np1);
 	if (r == uhttp_parse_stuts_okay)
-		return uhttp_parse_header(uhttp, p + np, n - np, pos);
-	if (pos) *pos = np;
+		r = uhttp_parse_header(uhttp, p + np1, n - np1, &np2);
+	else np2 = 0;
+	if (pos) *pos = np1 + np2;
 	return r;
 }
 
