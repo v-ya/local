@@ -10,12 +10,13 @@ typedef struct uhttp_s uhttp_s;
 typedef struct uhttp_iter_header_id_t *uhttp_iter_header_id_t;
 typedef struct uhttp_iter_header_all_t *uhttp_iter_header_all_t;
 
-typedef enum uhttp_parse_step_t {
-	uhttp_parse_step_error       = -1,
-	uhttp_parse_step_okay        = 0,
-	uhttp_parse_step_wait_header = 1,
-	uhttp_parse_step_wait_line   = 2,
-} uhttp_parse_step_t;
+typedef enum uhttp_parse_stuts_t {
+	uhttp_parse_stuts_error_inner = -2,
+	uhttp_parse_stuts_error_parse = -1,
+	uhttp_parse_stuts_okay        = 0,
+	uhttp_parse_stuts_wait_header = 1,
+	uhttp_parse_stuts_wait_line   = 2,
+} uhttp_parse_stuts_t;
 
 typedef const struct uhttp_header_s {
 	refer_nstring_t name;
@@ -28,9 +29,10 @@ typedef struct uhttp_parse_context_t {
 	// user set && uhttp const
 	const char *data;
 	uintptr_t size;
-	// user set && uhttp modify
+	// user init && uhttp modify
 	uintptr_t pos;
-	uhttp_parse_step_t step;
+	uintptr_t pos_check;
+	uhttp_parse_stuts_t step;
 } uhttp_parse_context_t;
 
 // uhttp inst control
@@ -51,6 +53,8 @@ uhttp_header_s* uhttp_header_refer(refer_nstring_t name, const char *restrict va
 uhttp_header_s* uhttp_header_alloc_with_length(const char *restrict name, const char *restrict value, uintptr_t length);
 uhttp_header_s* uhttp_header_alloc_with_length2(const char *restrict name, uintptr_t name_length, const char *restrict value, uintptr_t value_length);
 uhttp_header_s* uhttp_header_alloc(const char *restrict name, const char *restrict value);
+uhttp_header_s* uhttp_header_refer_integer(refer_nstring_t name, int64_t value);
+uhttp_header_s* uhttp_header_alloc_integer(const char *restrict name, int64_t value);
 refer_string_t uhttp_header_new_id_with_length(const char *restrict name, uintptr_t length);
 refer_string_t uhttp_header_new_id_by_nstring(refer_nstring_t name);
 refer_string_t uhttp_header_new_id(const char *restrict name);
@@ -79,6 +83,10 @@ uhttp_s* uhttp_set_header_refer_name(uhttp_s *restrict uhttp, refer_nstring_t na
 uhttp_s* uhttp_insert_header_refer_name(uhttp_s *restrict uhttp, refer_nstring_t name, const char *restrict value);
 uhttp_s* uhttp_set_header(uhttp_s *restrict uhttp, const char *restrict name, const char *restrict value);
 uhttp_s* uhttp_insert_header(uhttp_s *restrict uhttp, const char *restrict name, const char *restrict value);
+uhttp_s* uhttp_set_header_integer_refer_name(uhttp_s *restrict uhttp, refer_nstring_t name, int64_t value);
+uhttp_s* uhttp_insert_header_integer_refer_name(uhttp_s *restrict uhttp, refer_nstring_t name, int64_t value);
+uhttp_s* uhttp_set_header_integer(uhttp_s *restrict uhttp, const char *restrict name, int64_t value);
+uhttp_s* uhttp_insert_header_integer(uhttp_s *restrict uhttp, const char *restrict name, int64_t value);
 void uhttp_delete_header(uhttp_s *restrict uhttp, const char *restrict id);
 void uhttp_delete_header_first(uhttp_s *restrict uhttp, const char *restrict id);
 void uhttp_delete_header_tail(uhttp_s *restrict uhttp, const char *restrict id);
@@ -86,9 +94,12 @@ void uhttp_delete_header_index(uhttp_s *restrict uhttp, const char *restrict id,
 uhttp_header_s* uhttp_find_header_first(uhttp_s *restrict uhttp, const char *restrict id);
 uhttp_header_s* uhttp_find_header_tail(uhttp_s *restrict uhttp, const char *restrict id);
 uhttp_header_s* uhttp_find_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index);
-const char* uhttp_get_header_first(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t *restrict length);
-const char* uhttp_get_header_tail(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t *restrict length);
-const char* uhttp_get_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index, uintptr_t *restrict length);
+const char* uhttp_get_header_first(uhttp_s *restrict uhttp, const char *restrict id);
+const char* uhttp_get_header_tail(uhttp_s *restrict uhttp, const char *restrict id);
+const char* uhttp_get_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index);
+int64_t uhttp_get_header_integer_first(uhttp_s *restrict uhttp, const char *restrict id);
+int64_t uhttp_get_header_integer_tail(uhttp_s *restrict uhttp, const char *restrict id);
+int64_t uhttp_get_header_integer_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index);
 uintptr_t uhttp_get_header_number(uhttp_s *restrict uhttp, const char *restrict id);
 uhttp_s* uhttp_copy_header_by_id(uhttp_s *restrict dst, const uhttp_s *restrict src, const char *restrict id);
 uhttp_iter_header_all_t uhttp_iter_header_all_init(uhttp_s *restrict uhttp);
@@ -96,6 +107,21 @@ uhttp_iter_header_id_t uhttp_iter_header_id_init(uhttp_s *restrict uhttp, const 
 uhttp_header_s* uhttp_iter_header_all_next(uhttp_iter_header_all_t *restrict iter);
 uhttp_header_s* uhttp_iter_header_id_next(uhttp_iter_header_id_t *restrict iter);
 
-// uhttp parse && build
+// uhttp build
+uintptr_t uhttp_build_line_length(const uhttp_s *restrict uhttp);
+char* uhttp_build_line_write(const uhttp_s *restrict uhttp, char *restrict data);
+uintptr_t uhttp_build_header_length(const uhttp_s *restrict uhttp);
+char* uhttp_build_header_write(const uhttp_s *restrict uhttp, char *restrict data);
+uintptr_t uhttp_build_length(const uhttp_s *restrict uhttp);
+char* uhttp_build_write(const uhttp_s *restrict uhttp, char *restrict data);
+char* uhttp_build(const uhttp_s *restrict uhttp, exbuffer_t *restrict message, uintptr_t *restrict length);
+
+// uhttp parse
+uhttp_parse_stuts_t uhttp_parse_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+uhttp_parse_stuts_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+uhttp_parse_stuts_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+void uhttp_parse_context_init(uhttp_parse_context_t *restrict context, uintptr_t pos);
+void uhttp_parse_context_set(uhttp_parse_context_t *restrict context, const void *restrict data, uintptr_t length);
+uhttp_parse_stuts_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context);
 
 #endif

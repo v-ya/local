@@ -5,6 +5,9 @@
 #include <rbtree.h>
 #include <vattr.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 struct uhttp_inst_s {
 	refer_nstring_t version;

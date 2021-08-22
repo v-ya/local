@@ -32,6 +32,11 @@ static inline void uhttp_header_build_id(char *restrict id, const char *restrict
 		id[i] = n2i[((uint8_t *) name)[i]];
 }
 
+static inline uintptr_t uhttp_header_build_integer(char *restrict buffer, int64_t value)
+{
+	return (uintptr_t) sprintf(buffer, "%" PRId64, value);
+}
+
 uhttp_header_s* uhttp_header_refer_with_length(refer_nstring_t name, const char *restrict value, uintptr_t length)
 {
 	struct uhttp_header_s *restrict r;
@@ -93,6 +98,18 @@ uhttp_header_s* uhttp_header_alloc(const char *restrict name, const char *restri
 	return uhttp_header_alloc_with_length(name, value, value?strlen(value):0);
 }
 
+uhttp_header_s* uhttp_header_refer_integer(refer_nstring_t name, int64_t value)
+{
+	char buffer[64];
+	return uhttp_header_refer_with_length(name, buffer, uhttp_header_build_integer(buffer, value));
+}
+
+uhttp_header_s* uhttp_header_alloc_integer(const char *restrict name, int64_t value)
+{
+	char buffer[64];
+	return uhttp_header_alloc_with_length(name, buffer, uhttp_header_build_integer(buffer, value));
+}
+
 refer_string_t uhttp_header_new_id_with_length(const char *restrict name, uintptr_t length)
 {
 	char *restrict id;
@@ -141,7 +158,7 @@ uhttp_s* uhttp_alloc(const uhttp_inst_s *restrict inst)
 	{
 		refer_set_free(r, (refer_free_f) uhttp_free_func);
 		r->inst = (const uhttp_inst_s *) refer_save(inst);
-		r->version = (refer_nstring_t) refer_save(inst->version);
+		r->version = (refer_nstring_t) refer_save(inst->version?inst->version:inst->empty);
 		if ((r->header = vattr_alloc()))
 			return r;
 		refer_free(r);
@@ -321,173 +338,121 @@ uhttp_s* uhttp_set_response(uhttp_s *restrict uhttp, int code, const char *restr
 	return NULL;
 }
 
-uhttp_s* uhttp_refer_header_reset(uhttp_s *restrict uhttp, uhttp_header_s *restrict header)
-{
-	if (vattr_set(uhttp->header, header->id, header))
-		return uhttp;
-	return NULL;
-}
-
-uhttp_s* uhttp_refer_header_first(uhttp_s *restrict uhttp, uhttp_header_s *restrict header)
-{
-	if (vattr_insert_first_vslot(uhttp->header, header->id, header))
-		return uhttp;
-	return NULL;
-}
-
-uhttp_s* uhttp_refer_header_last(uhttp_s *restrict uhttp, uhttp_header_s *restrict header)
-{
-	if (vattr_insert_tail_vslot(uhttp->header, header->id, header))
-		return uhttp;
-	return NULL;
-}
-
-uhttp_s* uhttp_refer_header_tail(uhttp_s *restrict uhttp, uhttp_header_s *restrict header)
-{
-	if (vattr_insert_tail(uhttp->header, header->id, header))
-		return uhttp;
-	return NULL;
-}
-
-uhttp_s* uhttp_refer_header_index(uhttp_s *restrict uhttp, uhttp_header_s *restrict header, uintptr_t index)
-{
-	if (vattr_insert_index_last(uhttp->header, header->id, index, header))
-		return uhttp;
-	return NULL;
-}
-
-uhttp_s* uhttp_set_header_refer_name(uhttp_s *restrict uhttp, refer_nstring_t name, const char *restrict value)
-{
-	uhttp_s *restrict r;
-	uhttp_header_s *restrict header;
-	r = NULL;
-	if ((header = uhttp_header_refer(name, value)))
-	{
-		if (vattr_set(uhttp->header, header->id, header))
-			r = uhttp;
-		refer_free(header);
+#define d_refer_header(_name, _call)  \
+	uhttp_s* _name(uhttp_s *restrict uhttp, uhttp_header_s *restrict header)\
+	{\
+		if (_call(uhttp->header, header->id, header))\
+			return uhttp;\
+		return NULL;\
 	}
-	return r;
-}
-
-uhttp_s* uhttp_insert_header_refer_name(uhttp_s *restrict uhttp, refer_nstring_t name, const char *restrict value)
-{
-	uhttp_s *restrict r;
-	uhttp_header_s *restrict header;
-	r = NULL;
-	if ((header = uhttp_header_refer(name, value)))
-	{
-		if (vattr_insert_tail(uhttp->header, header->id, header))
-			r = uhttp;
-		refer_free(header);
+#define d_refer_header_index(_name, _call)  \
+	uhttp_s* _name(uhttp_s *restrict uhttp, uhttp_header_s *restrict header, uintptr_t index)\
+	{\
+		if (_call(uhttp->header, header->id, index, header))\
+			return uhttp;\
+		return NULL;\
 	}
-	return r;
-}
 
-uhttp_s* uhttp_set_header(uhttp_s *restrict uhttp, const char *restrict name, const char *restrict value)
-{
-	uhttp_s *restrict r;
-	uhttp_header_s *restrict header;
-	r = NULL;
-	if ((header = uhttp_header_alloc(name, value)))
-	{
-		if (vattr_set(uhttp->header, header->id, header))
-			r = uhttp;
-		refer_free(header);
+d_refer_header(uhttp_refer_header_reset, vattr_set)
+d_refer_header(uhttp_refer_header_first, vattr_insert_first_vslot)
+d_refer_header(uhttp_refer_header_last, vattr_insert_tail_vslot)
+d_refer_header(uhttp_refer_header_tail, vattr_insert_tail)
+d_refer_header_index(uhttp_refer_header_index, vattr_insert_index_last)
+
+#undef d_refer_header
+#undef d_refer_header_index
+
+#define d_set_header(_name, _build, _set, _type_name, _type_value)  \
+	uhttp_s* _name(uhttp_s *restrict uhttp, _type_name name, _type_value value)\
+	{\
+		uhttp_s *restrict r;\
+		uhttp_header_s *restrict header;\
+		r = NULL;\
+		if ((header = _build(name, value)))\
+		{\
+			if (_set(uhttp->header, header->id, header))\
+				r = uhttp;\
+			refer_free(header);\
+		}\
+		return r;\
 	}
-	return r;
-}
 
-uhttp_s* uhttp_insert_header(uhttp_s *restrict uhttp, const char *restrict name, const char *restrict value)
-{
-	uhttp_s *restrict r;
-	uhttp_header_s *restrict header;
-	r = NULL;
-	if ((header = uhttp_header_alloc(name, value)))
-	{
-		if (vattr_insert_tail(uhttp->header, header->id, header))
-			r = uhttp;
-		refer_free(header);
+d_set_header(uhttp_set_header_refer_name, uhttp_header_refer, vattr_set, refer_nstring_t, const char *restrict)
+d_set_header(uhttp_insert_header_refer_name, uhttp_header_refer, vattr_insert_tail, refer_nstring_t, const char *restrict)
+d_set_header(uhttp_set_header, uhttp_header_alloc, vattr_set, const char *restrict, const char *restrict)
+d_set_header(uhttp_insert_header, uhttp_header_alloc, vattr_insert_tail, const char *restrict, const char *restrict)
+
+d_set_header(uhttp_set_header_integer_refer_name, uhttp_header_refer_integer, vattr_set, refer_nstring_t, int64_t)
+d_set_header(uhttp_insert_header_integer_refer_name, uhttp_header_refer_integer, vattr_insert_tail, refer_nstring_t, int64_t)
+d_set_header(uhttp_set_header_integer, uhttp_header_alloc_integer, vattr_set, const char *restrict, int64_t)
+d_set_header(uhttp_insert_header_integer, uhttp_header_alloc_integer, vattr_insert_tail, const char *restrict, int64_t)
+
+#undef d_set_header
+
+#define d_delete_header(_name, _call)  \
+	void _name(uhttp_s *restrict uhttp, const char *restrict id)\
+	{\
+		_call(uhttp->header, id);\
 	}
-	return r;
-}
-
-void uhttp_delete_header(uhttp_s *restrict uhttp, const char *restrict id)
-{
-	vattr_delete(uhttp->header, id);
-}
-
-void uhttp_delete_header_first(uhttp_s *restrict uhttp, const char *restrict id)
-{
-	vattr_delete_first(uhttp->header, id);
-}
-
-void uhttp_delete_header_tail(uhttp_s *restrict uhttp, const char *restrict id)
-{
-	vattr_delete_tail(uhttp->header, id);
-}
-
-void uhttp_delete_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)
-{
-	vattr_delete_index(uhttp->header, id, index);
-}
-
-uhttp_header_s* uhttp_find_header_first(uhttp_s *restrict uhttp, const char *restrict id)
-{
-	return (uhttp_header_s *) vattr_get_first(uhttp->header, id);
-}
-
-uhttp_header_s* uhttp_find_header_tail(uhttp_s *restrict uhttp, const char *restrict id)
-{
-	return (uhttp_header_s *) vattr_get_tail(uhttp->header, id);
-}
-
-uhttp_header_s* uhttp_find_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)
-{
-	return (uhttp_header_s *) vattr_get_index(uhttp->header, id, index);
-}
-
-const char* uhttp_get_header_first(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t *restrict length)
-{
-	uhttp_header_s *restrict header;
-	if ((header = (uhttp_header_s *) vattr_get_first(uhttp->header, id)))
-	{
-		if (length)
-			*length = header->value_length;
-		return header->value;
+#define d_delete_header_index(_name, _call)  \
+	void _name(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
+	{\
+		_call(uhttp->header, id, index);\
 	}
-	if (length)
-		*length = 0;
-	return NULL;
-}
 
-const char* uhttp_get_header_tail(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t *restrict length)
-{
-	uhttp_header_s *restrict header;
-	if ((header = (uhttp_header_s *) vattr_get_tail(uhttp->header, id)))
-	{
-		if (length)
-			*length = header->value_length;
-		return header->value;
-	}
-	if (length)
-		*length = 0;
-	return NULL;
-}
+d_delete_header(uhttp_delete_header, vattr_delete)
+d_delete_header(uhttp_delete_header_first, vattr_delete_first)
+d_delete_header(uhttp_delete_header_tail, vattr_delete_tail)
+d_delete_header_index(uhttp_delete_header_index, vattr_delete_index)
 
-const char* uhttp_get_header_index(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index, uintptr_t *restrict length)
-{
-	uhttp_header_s *restrict header;
-	if ((header = (uhttp_header_s *) vattr_get_index(uhttp->header, id, index)))
-	{
-		if (length)
-			*length = header->value_length;
-		return header->value;
+#undef d_delete_header
+#undef d_delete_header_index
+
+#define d_find_header(_name, _call)  \
+	uhttp_header_s* _name(uhttp_s *restrict uhttp, const char *restrict id)\
+	{\
+		return (uhttp_header_s *) _call(uhttp->header, id);\
 	}
-	if (length)
-		*length = 0;
-	return NULL;
-}
+#define d_find_header_index(_name, _call)  \
+	uhttp_header_s* _name(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
+	{\
+		return (uhttp_header_s *) _call(uhttp->header, id, index);\
+	}
+
+d_find_header(uhttp_find_header_first, vattr_get_first)
+d_find_header(uhttp_find_header_tail, vattr_get_tail)
+d_find_header_index(uhttp_find_header_index, vattr_get_index)
+
+#undef d_find_header
+#undef d_find_header_index
+
+#define d_get_header(_name, _get, _ret_type, _ret_value, _ret_default)  \
+	_ret_type _name(uhttp_s *restrict uhttp, const char *restrict id)\
+	{\
+		uhttp_header_s *restrict header;\
+		if ((header = (uhttp_header_s *) _get(uhttp->header, id)))\
+			return _ret_value;\
+		return _ret_default;\
+	}
+#define d_get_header_index(_name, _get, _ret_type, _ret_value, _ret_default)  \
+	_ret_type _name(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
+	{\
+		uhttp_header_s *restrict header;\
+		if ((header = (uhttp_header_s *) _get(uhttp->header, id, index)))\
+			return _ret_value;\
+		return _ret_default;\
+	}
+
+d_get_header(uhttp_get_header_first, vattr_get_first, const char*, header->value, NULL)
+d_get_header(uhttp_get_header_tail, vattr_get_tail, const char*, header->value, NULL)
+d_get_header_index(uhttp_get_header_index, vattr_get_index, const char*, header->value, NULL)
+
+d_get_header(uhttp_get_header_integer_first, vattr_get_first, int64_t, (int64_t) strtoll(header->value, NULL, 0), 0)
+d_get_header(uhttp_get_header_integer_tail, vattr_get_tail, int64_t, (int64_t) strtoll(header->value, NULL, 0), 0)
+d_get_header_index(uhttp_get_header_integer_index, vattr_get_index, int64_t, (int64_t) strtoll(header->value, NULL, 0), 0)
+
+#undef d_get_header
+#undef d_get_header_index
 
 uintptr_t uhttp_get_header_number(uhttp_s *restrict uhttp, const char *restrict id)
 {
