@@ -33,6 +33,7 @@ static void transport_tcp_free_func(transport_tcp_s *restrict r)
 		refer_free(r->local_ip);
 	if (r->remote_ip)
 		refer_free(r->remote_ip);
+	transport_final(&r->tp);
 }
 
 static transport_s* transport_tcp_send(transport_tcp_s *restrict r, const void *data, uintptr_t n, uintptr_t *restrict rn)
