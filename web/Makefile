@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lexbuffer -luhttp -ltransport -soname ${TARGET}
 
-OBJECT		= web-client.o web-server.o web-transport.o
+OBJECT		= web-client.o web-server.o web-transport.o web-request.o web-method.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

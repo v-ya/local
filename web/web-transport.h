@@ -3,6 +3,7 @@
 
 #include <refer.h>
 #include <uhttp.h>
+#include <exbuffer.h>
 #include <transport/tcp.h>
 
 typedef struct web_transport_recv_attr_t {
@@ -16,6 +17,6 @@ transport_s* web_transport_send_http(transport_s *restrict tp, const uhttp_s *re
 transport_s* web_transport_send_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *restrict cache, const char *body, uintptr_t body_length);
 transport_s* web_transport_recv_http(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *restrict cache, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms);
 transport_s* web_transport_recv_body(transport_s *restrict tp, const uhttp_s *restrict http, exbuffer_t *restrict body, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms);
-transport_s* web_transport_recv_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *restrict body, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms);
+transport_s* web_transport_recv_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *cache, exbuffer_t *body, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms);
 
 #endif

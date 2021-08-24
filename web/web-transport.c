@@ -2,7 +2,7 @@
 
 #define web_transport_define_timeout_ms  5000
 
-static const char *s_http_header_id_context_length = "context-length";
+static const char *s_http_header_id_content_length = "content-length";
 
 transport_s* web_transport_send_http(transport_s *restrict tp, const uhttp_s *restrict http, exbuffer_t *restrict cache)
 {
@@ -19,8 +19,8 @@ transport_s* web_transport_send_http(transport_s *restrict tp, const uhttp_s *re
 transport_s* web_transport_send_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *restrict cache, const char *body, uintptr_t body_length)
 {
 	uintptr_t rn;
-	if (uhttp_find_header_first(http, s_http_header_id_context_length) ||
-		uhttp_insert_header_integer(http, "Context-Length", (int64_t) body_length))
+	if (uhttp_find_header_first(http, s_http_header_id_content_length) ||
+		uhttp_insert_header_integer(http, "Content-Length", (int64_t) body_length))
 	{
 		if (web_transport_send_http(tp, http, cache))
 		{
@@ -52,7 +52,7 @@ transport_s* web_transport_recv_http(transport_s *restrict tp, uhttp_s *restrict
 		uhttp_parse_context_set(&context, data, 0);
 		do {
 			ra.timeout_ms = die - now;
-			if (!transport_recv(tp, cache, block - context.size, &rn, &ra))
+			if (!transport_recv(tp, data + context.size, block - context.size, &rn, &ra))
 				break;
 			if (rn)
 			{
@@ -101,7 +101,7 @@ transport_s* web_transport_recv_body(transport_s *restrict tp, const uhttp_s *re
 	void *data;
 	start = now = 0;
 	body->used = 0;
-	if ((body_length = (uintptr_t) uhttp_get_header_integer_first(http, s_http_header_id_context_length)))
+	if ((body_length = (uintptr_t) uhttp_get_header_integer_first(http, s_http_header_id_content_length)))
 	{
 		if (attr && body_length > attr->http_body_max_length)
 			goto label_fail;
@@ -125,14 +125,14 @@ transport_s* web_transport_recv_body(transport_s *restrict tp, const uhttp_s *re
 	goto label_quit;
 }
 
-transport_s* web_transport_recv_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *restrict body, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms)
+transport_s* web_transport_recv_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *cache, exbuffer_t *body, const web_transport_recv_attr_t *restrict attr, uintptr_t *restrict cost_time_ms)
 {
 	web_transport_recv_attr_t a;
 	uintptr_t cost1, cost2;
 	cost1 = cost2 = 0;
 	body->used = 0;
 	if (attr) a = *attr, attr = &a;
-	tp = web_transport_recv_http(tp, http, body, attr, &cost1);
+	tp = web_transport_recv_http(tp, http, cache, attr, &cost1);
 	if (tp)
 	{
 		if (attr) a.http_recv_timeout_ms = (a.http_recv_timeout_ms > cost1)?(a.http_recv_timeout_ms - cost1):0;
