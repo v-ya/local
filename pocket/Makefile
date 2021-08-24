@@ -27,7 +27,7 @@ ${TARGET}: ${OBJECT}
 	${LD} ${LDFLAGS-VERIFY} -o ${TARGET-VERIFY} ${OBJECT-VERIFY}
 
 clear:
-	rm -f ${TARGET} *.o
+	rm -f ${TARGET} *.o verify/*.o
 install: ${TARGET} ${HEADER}
 	sudo cp ${TARGET} /usr/local/lib/
 	sudo mkdir -p /usr/local/include/pocket/
