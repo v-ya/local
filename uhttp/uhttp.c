@@ -157,10 +157,15 @@ uhttp_s* uhttp_alloc(const uhttp_inst_s *restrict inst)
 	if ((r = (uhttp_s *) refer_alloz(sizeof(uhttp_s))))
 	{
 		refer_set_free(r, (refer_free_f) uhttp_free_func);
-		r->inst = (const uhttp_inst_s *) refer_save(inst);
-		r->version = (refer_nstring_t) refer_save(inst->version?inst->version:inst->empty);
-		if ((r->header = vattr_alloc()))
-			return r;
+		if (inst)
+			r->inst = (const uhttp_inst_s *) refer_save(inst);
+		else r->inst = inst = uhttp_inst_alloc_http11_without_status();
+		if (r->inst)
+		{
+			r->version = (refer_nstring_t) refer_save(inst->version?inst->version:inst->empty);
+			if ((r->header = vattr_alloc()))
+				return r;
+		}
 		refer_free(r);
 	}
 	return NULL;

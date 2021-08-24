@@ -83,3 +83,15 @@ uhttp_inst_s* uhttp_inst_alloc_http11(void)
 	}
 	return NULL;
 }
+
+uhttp_inst_s* uhttp_inst_alloc_http11_without_status(void)
+{
+	uhttp_inst_s *restrict r;
+	if ((r = uhttp_inst_alloc_empty()))
+	{
+		if (uhttp_inst_set_version(r, "HTTP/1.1"))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}

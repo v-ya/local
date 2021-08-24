@@ -46,6 +46,7 @@ refer_nstring_t uhttp_inst_get_status(const uhttp_inst_s *restrict inst, int sta
 
 // uhttp inst alloc
 uhttp_inst_s* uhttp_inst_alloc_http11(void);
+uhttp_inst_s* uhttp_inst_alloc_http11_without_status(void);
 
 // uhttp header alloc
 uhttp_header_s* uhttp_header_refer_with_length(refer_nstring_t name, const char *restrict value, uintptr_t length);
