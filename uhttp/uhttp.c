@@ -235,6 +235,13 @@ uhttp_s* uhttp_copy_header(uhttp_s *restrict dst, const uhttp_s *restrict src)
 	return NULL;
 }
 
+uhttp_s* uhttp_append_header(uhttp_s *restrict dst, const uhttp_s *restrict src)
+{
+	if (vattr_append(dst->header, src->header))
+		return dst;
+	return NULL;
+}
+
 uhttp_s* uhttp_copy(uhttp_s *restrict dst, const uhttp_s *restrict src)
 {
 	uhttp_copy_line(dst, src);

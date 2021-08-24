@@ -67,6 +67,7 @@ void uhttp_clear_header(uhttp_s *restrict uhttp);
 void uhttp_clear(uhttp_s *restrict uhttp);
 void uhttp_copy_line(uhttp_s *restrict dst, const uhttp_s *restrict src);
 uhttp_s* uhttp_copy_header(uhttp_s *restrict dst, const uhttp_s *restrict src);
+uhttp_s* uhttp_append_header(uhttp_s *restrict dst, const uhttp_s *restrict src);
 uhttp_s* uhttp_copy(uhttp_s *restrict dst, const uhttp_s *restrict src);
 void uhttp_refer_request(uhttp_s *restrict uhttp, refer_nstring_t method, refer_nstring_t uri);
 void uhttp_refer_response(uhttp_s *restrict uhttp, int code, refer_nstring_t desc);
