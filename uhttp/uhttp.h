@@ -10,13 +10,13 @@ typedef struct uhttp_s uhttp_s;
 typedef struct uhttp_iter_header_id_t *uhttp_iter_header_id_t;
 typedef struct uhttp_iter_header_all_t *uhttp_iter_header_all_t;
 
-typedef enum uhttp_parse_stuts_t {
-	uhttp_parse_stuts_error_inner = -2,
-	uhttp_parse_stuts_error_parse = -1,
-	uhttp_parse_stuts_okay        = 0,
-	uhttp_parse_stuts_wait_header = 1,
-	uhttp_parse_stuts_wait_line   = 2,
-} uhttp_parse_stuts_t;
+typedef enum uhttp_parse_status_t {
+	uhttp_parse_status_error_inner = -2,
+	uhttp_parse_status_error_parse = -1,
+	uhttp_parse_status_okay        = 0,
+	uhttp_parse_status_wait_header = 1,
+	uhttp_parse_status_wait_line   = 2,
+} uhttp_parse_status_t;
 
 typedef const struct uhttp_header_s {
 	refer_nstring_t name;
@@ -32,7 +32,7 @@ typedef struct uhttp_parse_context_t {
 	// user init && uhttp modify
 	uintptr_t pos;
 	uintptr_t pos_check;
-	uhttp_parse_stuts_t step;
+	uhttp_parse_status_t step;
 } uhttp_parse_context_t;
 
 // uhttp inst control
@@ -122,11 +122,11 @@ char* uhttp_build_write(const uhttp_s *restrict uhttp, char *restrict data);
 char* uhttp_build(const uhttp_s *restrict uhttp, exbuffer_t *restrict message, uintptr_t *restrict length);
 
 // uhttp parse
-uhttp_parse_stuts_t uhttp_parse_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
-uhttp_parse_stuts_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
-uhttp_parse_stuts_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+uhttp_parse_status_t uhttp_parse_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+uhttp_parse_status_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
+uhttp_parse_status_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos);
 void uhttp_parse_context_init(uhttp_parse_context_t *restrict context, uintptr_t pos);
 void uhttp_parse_context_set(uhttp_parse_context_t *restrict context, const void *restrict data, uintptr_t length);
-uhttp_parse_stuts_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context);
+uhttp_parse_status_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context);
 
 #endif

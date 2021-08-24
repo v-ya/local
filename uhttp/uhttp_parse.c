@@ -58,7 +58,7 @@ static inline refer_nstring_t uhttp_parse_inner_check_version(refer_nstring_t ve
 	return NULL;
 }
 
-static uhttp_parse_stuts_t uhttp_parse_inner_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n)
+static uhttp_parse_status_t uhttp_parse_inner_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n)
 {
 	refer_nstring_t s1, s2;
 	uintptr_t pos1, pos2;
@@ -123,18 +123,18 @@ static uhttp_parse_stuts_t uhttp_parse_inner_line(uhttp_s *restrict uhttp, const
 	// clear
 	refer_free(s1);
 	if (s2) refer_free(s2);
-	return uhttp_parse_stuts_okay;
+	return uhttp_parse_status_okay;
 	label_error_parse:
 	if (s1) refer_free(s1);
 	if (s2) refer_free(s2);
-	return uhttp_parse_stuts_error_parse;
+	return uhttp_parse_status_error_parse;
 	label_error_inner:
 	if (s1) refer_free(s1);
 	if (s2) refer_free(s2);
-	return uhttp_parse_stuts_error_inner;
+	return uhttp_parse_status_error_inner;
 }
 
-static uhttp_parse_stuts_t uhttp_parse_inner_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n)
+static uhttp_parse_status_t uhttp_parse_inner_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n)
 {
 	refer_nstring_t name;
 	uhttp_header_s *restrict header;
@@ -166,55 +166,55 @@ static uhttp_parse_stuts_t uhttp_parse_inner_header(uhttp_s *restrict uhttp, con
 	// clear
 	refer_free(name);
 	refer_free(header);
-	return uhttp_parse_stuts_okay;
+	return uhttp_parse_status_okay;
 	label_error_parse:
 	if (name) refer_free(name);
 	if (header) refer_free(header);
-	return uhttp_parse_stuts_error_parse;
+	return uhttp_parse_status_error_parse;
 	label_error_inner:
 	if (name) refer_free(name);
 	if (header) refer_free(header);
-	return uhttp_parse_stuts_error_inner;
+	return uhttp_parse_status_error_inner;
 }
 
-uhttp_parse_stuts_t uhttp_parse_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
+uhttp_parse_status_t uhttp_parse_line(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
 {
 	uintptr_t n_end, n_line;
 	p = uhttp_parse_get_line(p, n, &n_end, &n_line);
 	if (pos) *pos = n_line;
 	if (p) return uhttp_parse_inner_line(uhttp, p, n_end);
-	return uhttp_parse_stuts_error_parse;
+	return uhttp_parse_status_error_parse;
 }
 
-uhttp_parse_stuts_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
+uhttp_parse_status_t uhttp_parse_header(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
 {
 	uintptr_t n_end, n_line, n_pos;
-	uhttp_parse_stuts_t r;
+	uhttp_parse_status_t r;
 	n_pos = 0;
 	while (uhttp_parse_get_line(p + n_pos, n, &n_end, &n_line))
 	{
 		if (!n_end)
 		{
 			n_pos += n_line;
-			r = uhttp_parse_stuts_okay;
+			r = uhttp_parse_status_okay;
 			goto label_quit;
 		}
-		if ((r = uhttp_parse_inner_header(uhttp, p + n_pos, n_end)) != uhttp_parse_stuts_okay)
+		if ((r = uhttp_parse_inner_header(uhttp, p + n_pos, n_end)) != uhttp_parse_status_okay)
 			goto label_quit;
 		n_pos += n_line;
 	}
-	r = uhttp_parse_stuts_error_parse;
+	r = uhttp_parse_status_error_parse;
 	label_quit:
 	if (pos) *pos = n_pos;
 	return r;
 }
 
-uhttp_parse_stuts_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
+uhttp_parse_status_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p, uintptr_t n, uintptr_t *restrict pos)
 {
 	uintptr_t np1, np2;
-	uhttp_parse_stuts_t r;
+	uhttp_parse_status_t r;
 	r = uhttp_parse_line(uhttp, p, n, &np1);
-	if (r == uhttp_parse_stuts_okay)
+	if (r == uhttp_parse_status_okay)
 		r = uhttp_parse_header(uhttp, p + np1, n - np1, &np2);
 	else np2 = 0;
 	if (pos) *pos = np1 + np2;
@@ -227,7 +227,7 @@ void uhttp_parse_context_init(uhttp_parse_context_t *restrict context, uintptr_t
 	context->size = 0;
 	context->pos = pos;
 	context->pos_check = pos;
-	context->step = uhttp_parse_stuts_wait_line;
+	context->step = uhttp_parse_status_wait_line;
 }
 
 void uhttp_parse_context_set(uhttp_parse_context_t *restrict context, const void *restrict data, uintptr_t length)
@@ -254,28 +254,28 @@ static inline const char* uhttp_parse_context_get_line(uhttp_parse_context_t *re
 	return NULL;
 }
 
-uhttp_parse_stuts_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context)
+uhttp_parse_status_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context)
 {
 	const char *restrict p;
 	uintptr_t n;
-	uhttp_parse_stuts_t r;
+	uhttp_parse_status_t r;
 	switch (context->step)
 	{
-		case uhttp_parse_stuts_wait_line:
+		case uhttp_parse_status_wait_line:
 			if (!(p = uhttp_parse_context_get_line(context, &n)))
-				return uhttp_parse_stuts_wait_line;
+				return uhttp_parse_status_wait_line;
 			r = uhttp_parse_inner_line(uhttp, p, n);
 			if (r < 0) goto label_fail_must;
-			context->step = uhttp_parse_stuts_wait_header;
+			context->step = uhttp_parse_status_wait_header;
 			// fall through
-		case uhttp_parse_stuts_wait_header:
+		case uhttp_parse_status_wait_header:
 			while ((p = uhttp_parse_context_get_line(context, &n)))
 			{
 				if (!n) goto label_okay;
 				r = uhttp_parse_inner_header(uhttp, p, n);
 				if (r < 0) goto label_fail_maybe;
 			}
-			return uhttp_parse_stuts_wait_header;
+			return uhttp_parse_status_wait_header;
 		default:
 			return context->step;
 	}
@@ -284,5 +284,5 @@ uhttp_parse_stuts_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse
 	label_fail_maybe:
 	return r;
 	label_okay:
-	return (context->step = uhttp_parse_stuts_okay);
+	return (context->step = uhttp_parse_status_okay);
 }
