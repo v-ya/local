@@ -33,4 +33,9 @@ transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, ui
 transport_s* transport_push_recv(transport_s *restrict r, const void *data, uintptr_t n);
 void transport_discard_cache(transport_s *restrict r);
 
+// other
+
+uint64_t transport_timestamp_ms(void);
+uint64_t transport_timestamp_us(void);
+
 #endif

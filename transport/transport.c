@@ -127,3 +127,21 @@ void transport_discard_cache(transport_s *restrict r)
 {
 	transport_cache_discard(&r->cache);
 }
+
+// other
+
+#include "inner/time.h"
+
+uint64_t transport_timestamp_ms(void)
+{
+	struct timespec t = {.tv_sec = 0, .tv_nsec = 0};
+	transport_inner_timespec_now(&t);
+	return transport_inner_timespec_to_ms(&t);
+}
+
+uint64_t transport_timestamp_us(void)
+{
+	struct timespec t = {.tv_sec = 0, .tv_nsec = 0};
+	transport_inner_timespec_now(&t);
+	return transport_inner_timespec_to_us(&t);
+}

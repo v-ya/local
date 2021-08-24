@@ -1,5 +1,5 @@
 TARGET		= libtransport.so
-HEADER		= transport.h
+HEADER		= transport.h tcp.h
 
 CC		= gcc
 LD		= ld

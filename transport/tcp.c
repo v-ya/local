@@ -112,11 +112,11 @@ transport_s* transport_tcp_alloc_ipv4_connect(const char *restrict remote_ip, ui
 	return transport_tcp_alloc_ipv4_connect_with_bind(NULL, 0, remote_ip, remote_port, attr);
 }
 
-transport_s* transport_tcp_wait_connect(transport_s *restrict r, uint64_t connect_timeout_ms)
+transport_s* transport_tcp_wait_connect(transport_s *restrict r, uint64_t connect_timeout_ms, const volatile uintptr_t *running)
 {
 	if (r->type == t_type && me(r)->status == transport_tcp_status_connect_start)
 	{
-		if (!transport_inner_socket_connect_wait(me(r)->sock, connect_timeout_ms))
+		if (!transport_inner_socket_connect_wait(me(r)->sock, connect_timeout_ms, running))
 		{
 			me(r)->status = transport_tcp_status_okay;
 			return r;

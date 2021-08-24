@@ -34,7 +34,7 @@ int transport_inner_socket_connect_start(transport_inner_socket_t sock, const st
 	return -1;
 }
 
-int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t timeout_ms)
+int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t timeout_ms, const volatile uintptr_t *running)
 {
 	struct timespec start, curr;
 	uint64_t cost;
@@ -48,7 +48,9 @@ int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t 
 		pfd.revents = 0;
 		cost = 0;
 		do {
-			value = poll(&pfd, 1, timeout_ms - cost);
+			value = poll(&pfd, 1, running?5:(timeout_ms - cost));
+			if (running && !*running)
+				break;
 			if (value > 0)
 			{
 				len = sizeof(value);
