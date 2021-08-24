@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 
 typedef int transport_inner_socket_t;
 

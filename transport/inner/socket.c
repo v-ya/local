@@ -1,9 +1,9 @@
 #include "socket.h"
 #include "time.h"
+#include "define.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <errno.h>
 #include <memory.h>
 
 transport_inner_socket_t transport_inner_socket_create_tcp(void)
@@ -48,7 +48,7 @@ int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t 
 		pfd.revents = 0;
 		cost = 0;
 		do {
-			value = poll(&pfd, 1, running?5:(timeout_ms - cost));
+			value = poll(&pfd, 1, running?transport_inner_define_time_gap_ms:(timeout_ms - cost));
 			if (running && !*running)
 				break;
 			if (value > 0)
@@ -56,7 +56,7 @@ int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t 
 				len = sizeof(value);
 				if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &value, &len) < 0)
 					break;
-				if (!value && ~(value = fcntl(sock, F_GETFL)) && ~fcntl(sock, F_SETFL, value & ~O_NONBLOCK))
+				if (!value)
 					return 0;
 				break;
 			}

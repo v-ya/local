@@ -1,6 +1,14 @@
 #define _DEFAULT_SOURCE
 #include "time.h"
 
+int transport_inner_sleep_maybe_ms(uint64_t ms)
+{
+	struct timespec t;
+	t.tv_sec = ms / 1000;
+	t.tv_nsec = (ms % 1000) * 1000000;
+	return nanosleep(&t, NULL);
+}
+
 struct timespec* transport_inner_timespec_now(struct timespec *restrict r)
 {
 	if (!clock_gettime(CLOCK_MONOTONIC, r))

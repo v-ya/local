@@ -37,10 +37,11 @@ static void transport_tcp_free_func(transport_tcp_s *restrict r)
 
 static transport_s* transport_tcp_send(transport_tcp_s *restrict r, const void *data, uintptr_t n, uintptr_t *restrict rn)
 {
+	*rn = 0;
 	if (r->status == transport_tcp_status_okay)
 	{
 		ssize_t ret;
-		if ((ret = send(r->sock, data, n, 0)) >= 0)
+		if ((ret = send(r->sock, data, n, MSG_DONTWAIT)) >= 0)
 		{
 			*rn = (uintptr_t) ret;
 			return &r->tp;
@@ -51,14 +52,18 @@ static transport_s* transport_tcp_send(transport_tcp_s *restrict r, const void *
 
 static transport_s* transport_tcp_recv(transport_tcp_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn)
 {
+	*rn = 0;
 	if (r->status == transport_tcp_status_okay)
 	{
 		ssize_t ret;
-		if ((ret = recv(r->sock, data, n, 0)) >= 0)
+		if ((ret = recv(r->sock, data, n, MSG_DONTWAIT)) >= 0)
 		{
 			*rn = (uintptr_t) ret;
+			label_return:
 			return &r->tp;
 		}
+		else if (errno == EAGAIN)
+			goto label_return;
 	}
 	return NULL;
 }

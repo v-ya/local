@@ -1,4 +1,6 @@
 #include "transport.h"
+#include "inner/time.h"
+#include "inner/define.h"
 #include <stdlib.h>
 #include <memory.h>
 
@@ -97,20 +99,52 @@ transport_s* transport_send(transport_s *restrict r, const void *data, uintptr_t
 	return NULL;
 }
 
-transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn)
+transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn, const transport_recv_attr_t *restrict attr)
 {
 	uintptr_t _rn;
+	uintptr_t n1;
 	if (!rn) rn = &_rn;
 	*rn = 0;
 	if (r->recv)
 	{
-		uintptr_t n1;
-		uintptr_t n2;
-		if (!r->cache.used)
-			return r->recv(r, data, n, rn);
-		if ((n1 = transport_cache_pull(&r->cache, data, n)) < n)
-			(r = r->recv(r, data + n1, n - n1, &n2)), n1 += n2;
-		*rn = n1;
+		if (r->cache.used)
+		{
+			*rn += (n1 = transport_cache_pull(&r->cache, data, n));
+			data += n1;
+			n -= n1;
+		}
+		if (n)
+		{
+			if (attr && (attr->recv_some || attr->recv_full))
+			{
+				uint64_t die_timestamp;
+				const volatile uintptr_t *running;
+				if (!attr->recv_full && *rn)
+					goto label_once;
+				running = attr->running;
+				die_timestamp = transport_timestamp_ms() + attr->timeout_ms;
+				goto label_entry;
+				do {
+					transport_inner_sleep_maybe_ms(transport_inner_define_time_gap_ms);
+					label_entry:
+					r = r->recv(r, data, n, &n1);
+					*rn += n1;
+					data += n1;
+					n -= n1;
+					if ((n1 && !attr->recv_full) || !n)
+						goto label_okay;
+				} while (r && (!running || *running) &&
+					transport_timestamp_ms() < die_timestamp);
+				r = NULL;
+			}
+			else
+			{
+				label_once:
+				r = r->recv(r, data, n, &n1);
+				*rn += n1;
+			}
+		}
+		label_okay:
 		return r;
 	}
 	return NULL;
@@ -129,8 +163,6 @@ void transport_discard_cache(transport_s *restrict r)
 }
 
 // other
-
-#include "inner/time.h"
 
 uint64_t transport_timestamp_ms(void)
 {
