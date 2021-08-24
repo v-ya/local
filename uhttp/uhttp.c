@@ -345,22 +345,22 @@ uhttp_s* uhttp_set_response(uhttp_s *restrict uhttp, int code, const char *restr
 	return NULL;
 }
 
-refer_nstring_t uhttp_get_request_method(uhttp_s *restrict uhttp)
+refer_nstring_t uhttp_get_request_method(const uhttp_s *restrict uhttp)
 {
 	return uhttp->request_method;
 }
 
-refer_nstring_t uhttp_get_request_uri(uhttp_s *restrict uhttp)
+refer_nstring_t uhttp_get_request_uri(const uhttp_s *restrict uhttp)
 {
 	return uhttp->request_uri;
 }
 
-int uhttp_get_response_code(uhttp_s *restrict uhttp)
+int uhttp_get_response_code(const uhttp_s *restrict uhttp)
 {
 	return (int) uhttp->status_code;
 }
 
-refer_nstring_t uhttp_get_response_desc(uhttp_s *restrict uhttp)
+refer_nstring_t uhttp_get_response_desc(const uhttp_s *restrict uhttp)
 {
 	return uhttp->status_desc;
 }
@@ -436,12 +436,12 @@ d_delete_header_index(uhttp_delete_header_index, vattr_delete_index)
 #undef d_delete_header_index
 
 #define d_find_header(_name, _call)  \
-	uhttp_header_s* _name(uhttp_s *restrict uhttp, const char *restrict id)\
+	uhttp_header_s* _name(const uhttp_s *restrict uhttp, const char *restrict id)\
 	{\
 		return (uhttp_header_s *) _call(uhttp->header, id);\
 	}
 #define d_find_header_index(_name, _call)  \
-	uhttp_header_s* _name(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
+	uhttp_header_s* _name(const uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
 	{\
 		return (uhttp_header_s *) _call(uhttp->header, id, index);\
 	}
@@ -454,7 +454,7 @@ d_find_header_index(uhttp_find_header_index, vattr_get_index)
 #undef d_find_header_index
 
 #define d_get_header(_name, _get, _ret_type, _ret_value, _ret_default)  \
-	_ret_type _name(uhttp_s *restrict uhttp, const char *restrict id)\
+	_ret_type _name(const uhttp_s *restrict uhttp, const char *restrict id)\
 	{\
 		uhttp_header_s *restrict header;\
 		if ((header = (uhttp_header_s *) _get(uhttp->header, id)))\
@@ -462,7 +462,7 @@ d_find_header_index(uhttp_find_header_index, vattr_get_index)
 		return _ret_default;\
 	}
 #define d_get_header_index(_name, _get, _ret_type, _ret_value, _ret_default)  \
-	_ret_type _name(uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
+	_ret_type _name(const uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index)\
 	{\
 		uhttp_header_s *restrict header;\
 		if ((header = (uhttp_header_s *) _get(uhttp->header, id, index)))\
@@ -481,7 +481,7 @@ d_get_header_index(uhttp_get_header_integer_index, vattr_get_index, int64_t, (in
 #undef d_get_header
 #undef d_get_header_index
 
-uintptr_t uhttp_get_header_number(uhttp_s *restrict uhttp, const char *restrict id)
+uintptr_t uhttp_get_header_number(const uhttp_s *restrict uhttp, const char *restrict id)
 {
 	return vattr_get_vslot_number(uhttp->header, id);
 }
