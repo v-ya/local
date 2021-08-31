@@ -96,7 +96,7 @@ struct sockaddr* transport_inner_socket_ipv4_addr(struct sockaddr_in *restrict a
 {
 	uint8_t ipv4[4];
 	if (len) *len = sizeof(struct sockaddr_in);
-	if (ip && port && port < 65536 && transport_inner_ipv4_s2a(ip, ipv4))
+	if (ip && transport_inner_ipv4_s2a(ip, ipv4, &port))
 	{
 		addr->sin_family = AF_INET;
 		addr->sin_addr.s_addr = htonl(((((((uint32_t) ipv4[0] << 8) | ipv4[1]) << 8) | ipv4[2]) << 8) | ipv4[3]);
