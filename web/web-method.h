@@ -19,7 +19,7 @@ typedef struct web_method_s web_method_s;
 
 web_method_s* web_method_alloc(void);
 
-refer_nstring_t web_method_get(web_method_s *restrict r, web_method_id_t mid);
+refer_nstring_t web_method_get(const web_method_s *restrict r, web_method_id_t mid);
 
 refer_nstring_t web_method_set(web_method_s *restrict r, const char *restrict method, web_method_id_t *restrict mid);
 

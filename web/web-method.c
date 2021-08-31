@@ -78,7 +78,7 @@ web_method_s* web_method_alloc(void)
 	return NULL;
 }
 
-refer_nstring_t web_method_get(web_method_s *restrict r, web_method_id_t mid)
+refer_nstring_t web_method_get(const web_method_s *restrict r, web_method_id_t mid)
 {
 	if ((uintptr_t) mid < r->used)
 		return r->m[(uintptr_t) mid];
