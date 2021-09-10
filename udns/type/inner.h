@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define udns_inner_align(_n)  (((_n) + 15) & ~15)
+
 uintptr_t udns_inner_unicode4utf8(uint32_t *restrict unicode, uintptr_t unicode_size, const char *restrict utf8, uintptr_t utf8_size);
 uintptr_t udns_inner_unicode2utf8(const uint32_t *restrict unicode, uintptr_t unicode_size, char *restrict utf8, uintptr_t utf8_size);
 

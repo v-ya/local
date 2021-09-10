@@ -42,4 +42,20 @@ struct udns_inst_s {
 	udns_type_func_t func[udns_type_max];
 };
 
+struct udns_s {
+	udns_inst_s *inst;
+	vattr_s *question;
+	vattr_s *answer;
+	vattr_s *authority;
+	vattr_s *additional;
+	uintptr_t n_question;
+	uintptr_t n_answer;
+	uintptr_t n_authority;
+	uintptr_t n_additional;
+	uint32_t id;
+	uint32_t flags;
+};
+
+const udns_type_func_t* udns_inst_inner_get_func(udns_inst_s *restrict inst, udns_type_t type);
+
 #endif

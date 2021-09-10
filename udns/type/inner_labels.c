@@ -107,6 +107,7 @@ udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, c
 	udns_inner_label_ctx_t ctx;
 	uintptr_t i, n, l;
 	i = n = 0;
+	if (pos) i = *pos;
 	while (i < size && (l = (uintptr_t) p[i++]))
 	{
 		if (i + l >= size)
@@ -123,6 +124,8 @@ udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, c
 	}
 	if (n) --n;
 	r->data[n] = 0;
+	if (pos) *pos = i;
+	if (length) *length = n;
 	return r;
 	label_fail:
 	return NULL;

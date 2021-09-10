@@ -96,10 +96,10 @@ typedef enum udns_type_t {
 	udns_type_https      = 65, // HTTPS Binding
 } udns_type_t;
 
-typedef struct udns_inst_s udns_inst_s;
+typedef const struct udns_inst_s udns_inst_s;
 typedef struct udns_s udns_s;
 
-typedef struct udns_question_s {
+typedef const struct udns_question_s {
 	// name
 	const char *name_string;
 	const uint8_t *labels_data;
@@ -109,7 +109,7 @@ typedef struct udns_question_s {
 	udns_class_t class;
 } udns_question_s;
 
-typedef struct udns_sesource_s {
+typedef const struct udns_resource_s {
 	// name
 	const char *name_string;
 	const uint8_t *labels_data;
@@ -123,8 +123,33 @@ typedef struct udns_sesource_s {
 	udns_class_t class;
 	// ttl
 	uint32_t ttl;
-} udns_sesource_s;
+} udns_resource_s;
 
 udns_inst_s* udns_inst_alloc(void);
+
+udns_s* udns_alloc(udns_inst_s *restrict inst);
+void udns_clear(udns_s *restrict udns);
+void udns_set_qr(udns_s *restrict udns, uintptr_t qr);
+void udns_set_opcode(udns_s *restrict udns, udns_opcode_t opcode);
+void udns_set_aa(udns_s *restrict udns, uintptr_t aa);
+void udns_set_tc(udns_s *restrict udns, uintptr_t tc);
+void udns_set_rd(udns_s *restrict udns, uintptr_t rd);
+void udns_set_ra(udns_s *restrict udns, uintptr_t ra);
+void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode);
+uintptr_t udns_get_qr(udns_s *restrict udns);
+udns_opcode_t udns_get_opcode(udns_s *restrict udns);
+uintptr_t udns_get_aa(udns_s *restrict udns);
+uintptr_t udns_get_tc(udns_s *restrict udns);
+uintptr_t udns_get_rd(udns_s *restrict udns);
+uintptr_t udns_get_ra(udns_s *restrict udns);
+udns_rcode_t udns_get_rcode(udns_s *restrict udns);
+udns_s* udns_add_question(udns_s *restrict udns, udns_question_s *restrict question);
+udns_s* udns_add_answer(udns_s *restrict udns, udns_resource_s *restrict answer);
+udns_s* udns_add_authority(udns_s *restrict udns, udns_resource_s *restrict authority);
+udns_s* udns_add_additional(udns_s *restrict udns, udns_resource_s *restrict additional);
+udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name, udns_type_t type, udns_class_t class);
+
+udns_question_s* udns_question_alloc(const char *restrict name, udns_type_t type, udns_class_t class);
+udns_question_s* udns_question_parse(const uint8_t *restrict data, uintptr_t size, uintptr_t *restrict pos);
 
 #endif

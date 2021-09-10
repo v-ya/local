@@ -2,8 +2,8 @@
 #include "type/func.h"
 #include <memory.h>
 
-static inline udns_inst_s* udns_inst_set_func(
-	udns_inst_s *restrict r, udns_type_t type,
+static inline struct udns_inst_s* udns_inst_set_func(
+	struct udns_inst_s *restrict r, udns_type_t type,
 	const char *restrict name, uintptr_t length,
 	udns_type_arg_do_f initial, udns_type_arg_do_f finaly,
 	udns_type_parse_length_f parse_length, udns_type_build_length_f build_length,
@@ -27,8 +27,8 @@ static inline udns_inst_s* udns_inst_set_func(
 
 udns_inst_s* udns_inst_alloc(void)
 {
-	udns_inst_s *restrict r;
-	r = (udns_inst_s *) refer_alloz(sizeof(udns_inst_s));
+	struct udns_inst_s *restrict r;
+	r = (struct udns_inst_s *) refer_alloz(sizeof(struct udns_inst_s));
 	if (r)
 	{
 		if (
@@ -47,5 +47,13 @@ udns_inst_s* udns_inst_alloc(void)
 		1) return r;
 		refer_free(r);
 	}
+	return NULL;
+}
+
+const udns_type_func_t* udns_inst_inner_get_func(udns_inst_s *restrict inst, udns_type_t type)
+{
+	const udns_type_func_t *restrict func;
+	if ((uint32_t) type < udns_type_max && (func = inst->func + type)->type_name[0])
+		return func;
 	return NULL;
 }
