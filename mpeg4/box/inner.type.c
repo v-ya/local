@@ -2,7 +2,7 @@
 
 static const char* utf82unicode(const char *restrict s, uint32_t *restrict unicode, uint32_t *restrict error)
 {
-	const uint8_t uclength[64] = {
+	static const uint8_t uclength[64] = {
 		// 1 0xxxxx -
 		[0x00 ... 0x1f] = 1,
 		// 1 10xxxx -
