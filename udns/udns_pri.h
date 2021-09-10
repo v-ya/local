@@ -1,0 +1,45 @@
+#ifndef _udns_pri_h_
+#define _udns_pri_h_
+
+#include "udns.h"
+#include <vattr.h>
+
+#define udns_type_max       128
+#define udns_type_name_max  16
+
+struct udns_type_arg_stack_t {
+	uintptr_t used[256];
+};
+
+typedef void (*udns_type_arg_do_f)(struct udns_type_arg_stack_t *restrict arg);
+typedef uintptr_t (*udns_type_parse_length_f)(const uint8_t *restrict data, uintptr_t length, struct udns_type_arg_stack_t *restrict arg);
+typedef uintptr_t (*udns_type_build_length_f)(const char *parse, struct udns_type_arg_stack_t *restrict arg);
+typedef struct udns_type_arg_stack_t* (*udns_type_parse_write_f)(char *restrict parse, struct udns_type_arg_stack_t *restrict arg);
+typedef struct udns_type_arg_stack_t* (*udns_type_build_write_f)(uint8_t *restrict data, struct udns_type_arg_stack_t *restrict arg);
+
+typedef enum udns_header_flags_t {
+	udns_header_flags_qr          = 0x8000,
+	udns_header_flags_opcode_mask = 0x7800,
+	udns_header_flags_aa          = 0x0400,
+	udns_header_flags_tc          = 0x0200,
+	udns_header_flags_rd          = 0x0100,
+	udns_header_flags_ra          = 0x0080,
+	udns_header_flags_z_mask      = 0x0070,
+	udns_header_flags_rcode_mask  = 0x000f,
+} udns_header_flags_t;
+
+typedef struct udns_type_func_t {
+	char type_name[udns_type_name_max];
+	udns_type_arg_do_f initial;
+	udns_type_arg_do_f finaly;
+	udns_type_parse_length_f parse_length;
+	udns_type_build_length_f build_length;
+	udns_type_parse_write_f parse_write;
+	udns_type_build_write_f build_write;
+} udns_type_func_t;
+
+struct udns_inst_s {
+	udns_type_func_t func[udns_type_max];
+};
+
+#endif
