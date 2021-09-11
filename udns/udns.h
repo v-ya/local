@@ -2,6 +2,7 @@
 #define _udns_h_
 
 #include <refer.h>
+#include <exbuffer.h>
 
 typedef enum udns_opcode_t {
 	udns_opcode_query  = 0,
@@ -136,13 +137,13 @@ void udns_set_tc(udns_s *restrict udns, uintptr_t tc);
 void udns_set_rd(udns_s *restrict udns, uintptr_t rd);
 void udns_set_ra(udns_s *restrict udns, uintptr_t ra);
 void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode);
-uintptr_t udns_get_qr(udns_s *restrict udns);
-udns_opcode_t udns_get_opcode(udns_s *restrict udns);
-uintptr_t udns_get_aa(udns_s *restrict udns);
-uintptr_t udns_get_tc(udns_s *restrict udns);
-uintptr_t udns_get_rd(udns_s *restrict udns);
-uintptr_t udns_get_ra(udns_s *restrict udns);
-udns_rcode_t udns_get_rcode(udns_s *restrict udns);
+uintptr_t udns_get_qr(const udns_s *restrict udns);
+udns_opcode_t udns_get_opcode(const udns_s *restrict udns);
+uintptr_t udns_get_aa(const udns_s *restrict udns);
+uintptr_t udns_get_tc(const udns_s *restrict udns);
+uintptr_t udns_get_rd(const udns_s *restrict udns);
+uintptr_t udns_get_ra(const udns_s *restrict udns);
+udns_rcode_t udns_get_rcode(const udns_s *restrict udns);
 udns_s* udns_add_question(udns_s *restrict udns, udns_question_s *restrict question);
 udns_s* udns_add_answer(udns_s *restrict udns, udns_resource_s *restrict answer);
 udns_s* udns_add_authority(udns_s *restrict udns, udns_resource_s *restrict authority);
@@ -151,5 +152,9 @@ udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name,
 
 udns_question_s* udns_question_alloc(const char *restrict name, udns_type_t type, udns_class_t class);
 udns_question_s* udns_question_parse(const uint8_t *restrict data, uintptr_t size, uintptr_t *restrict pos);
+
+uintptr_t udns_build_length(const udns_s *restrict udns);
+uint8_t* udns_build_write(const udns_s *restrict udns, uint8_t *restrict data);
+uint8_t* udns_build(const udns_s *restrict udns, exbuffer_t *restrict data, uintptr_t *restrict length);
 
 #endif

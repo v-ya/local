@@ -85,19 +85,16 @@ udns_inner_labels_t* udns_inner_labels4string(udns_inner_labels_t *restrict r, c
 	do {
 		if (!udns_inner_label_get(&ctx, s, (const char **) &s))
 			goto label_fail;
+		if (*s == '.') ++s;
 		if (n + ctx.n_rdata >= sizeof(r->data))
 			goto label_fail;
 		r->data[n++] = (uint8_t) ctx.n_rdata;
 		if (ctx.n_rdata)
 			memcpy(r->data + n, ctx.rdata, ctx.n_rdata);
 		n += ctx.n_rdata;
-	} while (ctx.n_rdata && *s);
-	if (n < sizeof(r->data))
-	{
-		r->data[n++] = 0;
-		if (size) *size = n;
-		return r;
-	}
+	} while (ctx.n_rdata);
+	if (size) *size = n;
+	return r;
 	label_fail:
 	return NULL;
 }

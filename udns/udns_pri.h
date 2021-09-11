@@ -56,6 +56,15 @@ struct udns_s {
 	uint32_t flags;
 };
 
+typedef struct udns_header_t {
+	uint16_t id;
+	uint16_t flags;
+	uint16_t n_question;
+	uint16_t n_answer;
+	uint16_t n_authority;
+	uint16_t n_additional;
+} __attribute__((packed)) udns_header_t;
+
 const udns_type_func_t* udns_inst_inner_get_func(udns_inst_s *restrict inst, udns_type_t type);
 
 #endif

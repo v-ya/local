@@ -86,50 +86,54 @@ void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode)
 	udns->flags = (udns->flags & (uint32_t) udns_header_flags_rcode_mask) | ((uint32_t) rcode & (uint32_t) udns_header_flags_rcode_mask);
 }
 
-uintptr_t udns_get_qr(udns_s *restrict udns)
+uintptr_t udns_get_qr(const udns_s *restrict udns)
 {
 	return !!(udns->flags & udns_header_flags_qr);
 }
 
-udns_opcode_t udns_get_opcode(udns_s *restrict udns)
+udns_opcode_t udns_get_opcode(const udns_s *restrict udns)
 {
 	return (udns_opcode_t) ((udns->flags & (uint32_t) udns_header_flags_opcode_mask) >> 11);
 }
 
-uintptr_t udns_get_aa(udns_s *restrict udns)
+uintptr_t udns_get_aa(const udns_s *restrict udns)
 {
 	return !!(udns->flags & udns_header_flags_aa);
 }
 
-uintptr_t udns_get_tc(udns_s *restrict udns)
+uintptr_t udns_get_tc(const udns_s *restrict udns)
 {
 	return !!(udns->flags & udns_header_flags_tc);
 }
 
-uintptr_t udns_get_rd(udns_s *restrict udns)
+uintptr_t udns_get_rd(const udns_s *restrict udns)
 {
 	return !!(udns->flags & udns_header_flags_rd);
 }
 
-uintptr_t udns_get_ra(udns_s *restrict udns)
+uintptr_t udns_get_ra(const udns_s *restrict udns)
 {
 	return !!(udns->flags & udns_header_flags_ra);
 }
 
-udns_rcode_t udns_get_rcode(udns_s *restrict udns)
+udns_rcode_t udns_get_rcode(const udns_s *restrict udns)
 {
 	return (udns_rcode_t) (udns->flags & (uint32_t) udns_header_flags_rcode_mask);
 }
 
-static vattr_vlist_t* udns_add_qr(udns_s *restrict udns, vattr_s **restrict vattr, udns_type_t type, refer_t qr)
+static udns_s* udns_add_qr(udns_s *restrict udns, vattr_s **restrict vattr, udns_type_t type, refer_t qr, uintptr_t *restrict n)
 {
 	const udns_type_func_t *restrict func;
-	if ((func = udns_inst_inner_get_func(udns->inst, type)))
+	if (*n < 0x10000 && (func = udns_inst_inner_get_func(udns->inst, type)))
 	{
 		if (*vattr)
 		{
 			label_add:
-			return vattr_insert_tail(*vattr, func->type_name, qr);
+			if (vattr_insert_tail(*vattr, func->type_name, qr))
+			{
+				*n += 1;
+				return udns;
+			}
 		}
 		else if ((*vattr = vattr_alloc()))
 			goto label_add;
@@ -137,44 +141,26 @@ static vattr_vlist_t* udns_add_qr(udns_s *restrict udns, vattr_s **restrict vatt
 	return NULL;
 }
 
+#define udns_add_qr_proxy(_u, _t, _qr)  udns_add_qr((_u), &(_u)->_t, (_qr)->type, _qr, &(_u)->n_##_t)
+
 udns_s* udns_add_question(udns_s *restrict udns, udns_question_s *restrict question)
 {
-	if (udns_add_qr(udns, &udns->question, question->type, question))
-	{
-		udns->n_question += 1;
-		return udns;
-	}
-	return NULL;
+	return udns_add_qr_proxy(udns, question, question);
 }
 
 udns_s* udns_add_answer(udns_s *restrict udns, udns_resource_s *restrict answer)
 {
-	if (udns_add_qr(udns, &udns->answer, answer->type, answer))
-	{
-		udns->n_answer += 1;
-		return udns;
-	}
-	return NULL;
+	return udns_add_qr_proxy(udns, answer, answer);
 }
 
 udns_s* udns_add_authority(udns_s *restrict udns, udns_resource_s *restrict authority)
 {
-	if (udns_add_qr(udns, &udns->authority, authority->type, authority))
-	{
-		udns->n_authority += 1;
-		return udns;
-	}
-	return NULL;
+	return udns_add_qr_proxy(udns, authority, authority);
 }
 
 udns_s* udns_add_additional(udns_s *restrict udns, udns_resource_s *restrict additional)
 {
-	if (udns_add_qr(udns, &udns->additional, additional->type, additional))
-	{
-		udns->n_additional += 1;
-		return udns;
-	}
-	return NULL;
+	return udns_add_qr_proxy(udns, additional, additional);
 }
 
 udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name, udns_type_t type, udns_class_t class)
@@ -184,7 +170,7 @@ udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name,
 	r = NULL;
 	if ((question = udns_question_alloc(name, type, class)))
 	{
-		if (udns_add_question(udns, question))
+		if (udns_add_qr_proxy(udns, question, question))
 			r = udns;
 		refer_free(question);
 	}
