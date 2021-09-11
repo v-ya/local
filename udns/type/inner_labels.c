@@ -102,28 +102,75 @@ udns_inner_labels_t* udns_inner_labels4string(udns_inner_labels_t *restrict r, c
 udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos, uintptr_t *restrict length)
 {
 	udns_inner_label_ctx_t ctx;
-	uintptr_t i, n, l;
+	uintptr_t i, n, l, pos_point;
 	i = n = 0;
 	if (pos) i = *pos;
-	while (i < size && (l = (uintptr_t) p[i++]))
+	if (i < size)
 	{
-		if (i + l >= size)
-			goto label_fail;
-		if (!udns_inner_label_set(&ctx, p + i, l))
-			goto label_fail;
-		i += l;
-		if (n + ctx.n_rdata >= sizeof(r->data))
-			goto label_fail;
-		if (ctx.n_rdata)
-			memcpy(r->data + n, ctx.rdata, ctx.n_rdata);
-		n += ctx.n_rdata;
-		r->data[n++] = '.';
+		if (p[i] >= 0xc0)
+			goto label_point;
+		pos_point = 0;
+		label_find:
+		while (i < size && (l = (uintptr_t) p[i++]))
+		{
+			if (i + l >= size)
+				goto label_fail;
+			if (!udns_inner_label_set(&ctx, p + i, l))
+				goto label_fail;
+			i += l;
+			if (n + ctx.n_rdata >= sizeof(r->data))
+				goto label_fail;
+			if (ctx.n_rdata)
+				memcpy(r->data + n, ctx.rdata, ctx.n_rdata);
+			n += ctx.n_rdata;
+			r->data[n++] = '.';
+		}
+		if (n) --n;
+		r->data[n] = 0;
+		if (pos) *pos = pos_point?pos_point:i;
+		if (length) *length = n;
+		return r;
+		label_point:
+		if ((pos_point = i + 2) <= size)
+		{
+			i = (((uintptr_t) p[i] & 0x3f) << 8) | (uintptr_t) p[i + 1];
+			goto label_find;
+		}
 	}
-	if (n) --n;
-	r->data[n] = 0;
-	if (pos) *pos = i;
-	if (length) *length = n;
-	return r;
 	label_fail:
 	return NULL;
+}
+
+uintptr_t udns_inner_labels_skip(const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos)
+{
+	uintptr_t i, l;
+	i = 0;
+	if (pos) i = *pos;
+	if (i < size)
+	{
+		if (p[i] >= 0xc0)
+			goto label_point;
+		while (i < size && (l = (uintptr_t) p[i++]))
+		{
+			if (i + l >= size)
+				goto label_fail;
+			i += l;
+		}
+		label_okay:
+		l = i;
+		if (pos)
+		{
+			l = i - *pos;
+			*pos = i;
+		}
+		return l;
+		label_point:
+		if (i + 2 <= size)
+		{
+			i += 2;
+			goto label_okay;
+		}
+	}
+	label_fail:
+	return 0;
 }

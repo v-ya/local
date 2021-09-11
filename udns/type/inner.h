@@ -24,5 +24,6 @@ typedef struct udns_inner_labels_t {
 
 udns_inner_labels_t* udns_inner_labels4string(udns_inner_labels_t *restrict r, const char *restrict s, uintptr_t *restrict size);
 udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos, uintptr_t *restrict length);
+uintptr_t udns_inner_labels_skip(const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos);
 
 #endif

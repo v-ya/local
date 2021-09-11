@@ -97,6 +97,14 @@ typedef enum udns_type_t {
 	udns_type_https      = 65, // HTTPS Binding
 } udns_type_t;
 
+typedef enum udns_parse_flags_t {
+	udns_parse_flags_normal         = 0x0000,
+	udns_parse_flags_ignore_unknow  = 0x0001,
+	udns_parse_flags_ignore_qrfail  = 0x0002,
+	udns_parse_flags_ignore_format  = 0x0004,
+	udns_parse_flags_dont_clear     = 0x0010,
+} udns_parse_flags_t;
+
 typedef const struct udns_inst_s udns_inst_s;
 typedef struct udns_s udns_s;
 
@@ -151,10 +159,11 @@ udns_s* udns_add_additional(udns_s *restrict udns, udns_resource_s *restrict add
 udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name, udns_type_t type, udns_class_t class);
 
 udns_question_s* udns_question_alloc(const char *restrict name, udns_type_t type, udns_class_t class);
-udns_question_s* udns_question_parse(const uint8_t *restrict data, uintptr_t size, uintptr_t *restrict pos);
 
 uintptr_t udns_build_length(const udns_s *restrict udns);
 uint8_t* udns_build_write(const udns_s *restrict udns, uint8_t *restrict data);
 uint8_t* udns_build(const udns_s *restrict udns, exbuffer_t *restrict data, uintptr_t *restrict length);
+
+udns_s* udns_parse(udns_s *restrict udns, const uint8_t *restrict data, uintptr_t size, uintptr_t *restrict rpos, udns_parse_flags_t flags);
 
 #endif
