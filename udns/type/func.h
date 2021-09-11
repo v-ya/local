@@ -45,6 +45,14 @@ inner_type_build_write(a);
 #define udns_func_type_cname_pw udns_func_type_domain_pw
 #define udns_func_type_cname_bw udns_func_type_domain_bw
 
+// soa
+inner_type_initial(soa);
+inner_type_finaly(soa);
+inner_type_parse_length(soa);
+inner_type_build_length(soa);
+inner_type_parse_write(soa);
+inner_type_build_write(soa);
+
 // aaaa
 inner_type_initial(aaaa);
 #define udns_func_type_aaaa_finaly NULL

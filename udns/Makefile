@@ -4,7 +4,7 @@ HEADER		= udns.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lvattr -lexbuffer -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lvattr -lexbuffer -ljson -soname ${TARGET}
 
 OBJECT		= udns_inst.o udns.o udns_question.o udns_resource.o udns_build.o udns_parse.o $(patsubst %.c, %.o, $(wildcard type/*.c))
 

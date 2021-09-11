@@ -45,6 +45,7 @@ udns_inst_s* udns_inst_alloc(void)
 			d_type(a) &&
 			d_type(ns) &&
 			d_type(cname) &&
+			d_type(soa) &&
 			d_type(aaaa) &&
 			#undef d_type
 		1) return r;
