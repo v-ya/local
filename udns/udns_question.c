@@ -45,6 +45,7 @@ udns_question_s* udns_question_inner_parse(const uint8_t *restrict data, uintptr
 		udns_inner_labels4string(&labels_data, (char *) labels_string.data, &n_labels) &&
 		p + 4 <= size)
 	{
+		++n_name;
 		memcpy(&type, data + p, sizeof(type));
 		memcpy(&class, data + p + sizeof(type), sizeof(class));
 		p += sizeof(type) + sizeof(class);

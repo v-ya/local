@@ -108,6 +108,9 @@ typedef enum udns_parse_flags_t {
 typedef const struct udns_inst_s udns_inst_s;
 typedef struct udns_s udns_s;
 
+typedef struct udns_iter_question_t *udns_iter_question_t;
+typedef struct udns_iter_resource_t *udns_iter_resource_t;
+
 typedef const struct udns_question_s {
 	// name
 	const char *name_string;
@@ -138,6 +141,7 @@ udns_inst_s* udns_inst_alloc(void);
 
 udns_s* udns_alloc(udns_inst_s *restrict inst);
 void udns_clear(udns_s *restrict udns);
+void udns_set_id(udns_s *restrict udns, uint32_t id);
 void udns_set_qr(udns_s *restrict udns, uintptr_t qr);
 void udns_set_opcode(udns_s *restrict udns, udns_opcode_t opcode);
 void udns_set_aa(udns_s *restrict udns, uintptr_t aa);
@@ -145,6 +149,7 @@ void udns_set_tc(udns_s *restrict udns, uintptr_t tc);
 void udns_set_rd(udns_s *restrict udns, uintptr_t rd);
 void udns_set_ra(udns_s *restrict udns, uintptr_t ra);
 void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode);
+uint32_t udns_get_id(const udns_s *restrict udns);
 uintptr_t udns_get_qr(const udns_s *restrict udns);
 udns_opcode_t udns_get_opcode(const udns_s *restrict udns);
 uintptr_t udns_get_aa(const udns_s *restrict udns);
@@ -157,6 +162,18 @@ udns_s* udns_add_answer(udns_s *restrict udns, udns_resource_s *restrict answer)
 udns_s* udns_add_authority(udns_s *restrict udns, udns_resource_s *restrict authority);
 udns_s* udns_add_additional(udns_s *restrict udns, udns_resource_s *restrict additional);
 udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name, udns_type_t type, udns_class_t class);
+udns_question_s* udns_get_question(const udns_s *restrict udns, udns_type_t type);
+udns_resource_s* udns_get_answer(const udns_s *restrict udns, udns_type_t type);
+udns_resource_s* udns_get_authority(const udns_s *restrict udns, udns_type_t type);
+udns_resource_s* udns_get_additional(const udns_s *restrict udns, udns_type_t type);
+udns_iter_question_t udns_iter_question(const udns_s *restrict udns, const udns_type_t *restrict type);
+udns_iter_resource_t udns_iter_answer(const udns_s *restrict udns, const udns_type_t *restrict type);
+udns_iter_resource_t udns_iter_authority(const udns_s *restrict udns, const udns_type_t *restrict type);
+udns_iter_resource_t udns_iter_additional(const udns_s *restrict udns, const udns_type_t *restrict type);
+udns_question_s* udns_iter_question_next(udns_iter_question_t *restrict iter);
+udns_question_s* udns_iter_question_next_by_type(udns_iter_question_t *restrict iter);
+udns_resource_s* udns_iter_resource_next(udns_iter_resource_t *restrict iter);
+udns_resource_s* udns_iter_resource_next_by_type(udns_iter_resource_t *restrict iter);
 
 udns_question_s* udns_question_alloc(const char *restrict name, udns_type_t type, udns_class_t class);
 

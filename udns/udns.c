@@ -46,6 +46,11 @@ void udns_clear(udns_s *restrict udns)
 	udns->flags = 0;
 }
 
+void udns_set_id(udns_s *restrict udns, uint32_t id)
+{
+	udns->id = id;
+}
+
 void udns_set_qr(udns_s *restrict udns, uintptr_t qr)
 {
 	if (qr) udns->flags |= (uint32_t) udns_header_flags_qr;
@@ -84,6 +89,11 @@ void udns_set_ra(udns_s *restrict udns, uintptr_t ra)
 void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode)
 {
 	udns->flags = (udns->flags & (uint32_t) udns_header_flags_rcode_mask) | ((uint32_t) rcode & (uint32_t) udns_header_flags_rcode_mask);
+}
+
+uint32_t udns_get_id(const udns_s *restrict udns)
+{
+	return udns->id;
 }
 
 uintptr_t udns_get_qr(const udns_s *restrict udns)
@@ -175,4 +185,115 @@ udns_s* udns_add_question_info(udns_s *restrict udns, const char *restrict name,
 		refer_free(question);
 	}
 	return r;
+}
+
+udns_question_s* udns_get_question(const udns_s *restrict udns, udns_type_t type)
+{
+	const udns_type_func_t *restrict func;
+	if (udns->n_question && (func = udns_inst_inner_get_func(udns->inst, type)))
+		return (udns_question_s *) vattr_get_first(udns->question, func->type_name);
+	return NULL;
+}
+
+udns_resource_s* udns_get_answer(const udns_s *restrict udns, udns_type_t type)
+{
+	const udns_type_func_t *restrict func;
+	if (udns->n_answer && (func = udns_inst_inner_get_func(udns->inst, type)))
+		return (udns_resource_s *) vattr_get_first(udns->answer, func->type_name);
+	return NULL;
+}
+
+udns_resource_s* udns_get_authority(const udns_s *restrict udns, udns_type_t type)
+{
+	const udns_type_func_t *restrict func;
+	if (udns->n_authority && (func = udns_inst_inner_get_func(udns->inst, type)))
+		return (udns_resource_s *) vattr_get_first(udns->authority, func->type_name);
+	return NULL;
+}
+
+udns_resource_s* udns_get_additional(const udns_s *restrict udns, udns_type_t type)
+{
+	const udns_type_func_t *restrict func;
+	if (udns->n_additional && (func = udns_inst_inner_get_func(udns->inst, type)))
+		return (udns_resource_s *) vattr_get_first(udns->additional, func->type_name);
+	return NULL;
+}
+
+static vattr_vlist_t* udns_iter_begin(const vattr_s *restrict vattr, udns_inst_s *restrict inst, const udns_type_t *restrict type)
+{
+	if (vattr)
+	{
+		if (type)
+		{
+			const udns_type_func_t *restrict func;
+			vattr_vslot_t *restrict vslot;
+			if ((func = udns_inst_inner_get_func(inst, *type)) &&
+				(vslot = vattr_get_vslot(vattr, func->type_name)))
+				return vslot->vslot;
+		}
+		else return vattr->vattr;
+	}
+	return NULL;
+}
+
+udns_iter_question_t udns_iter_question(const udns_s *restrict udns, const udns_type_t *restrict type)
+{
+	return (udns_iter_question_t) udns_iter_begin(udns->question, udns->inst, type);
+}
+
+udns_iter_resource_t udns_iter_answer(const udns_s *restrict udns, const udns_type_t *restrict type)
+{
+	return (udns_iter_resource_t) udns_iter_begin(udns->answer, udns->inst, type);
+}
+
+udns_iter_resource_t udns_iter_authority(const udns_s *restrict udns, const udns_type_t *restrict type)
+{
+	return (udns_iter_resource_t) udns_iter_begin(udns->authority, udns->inst, type);
+}
+
+udns_iter_resource_t udns_iter_additional(const udns_s *restrict udns, const udns_type_t *restrict type)
+{
+	return (udns_iter_resource_t) udns_iter_begin(udns->additional, udns->inst, type);
+}
+
+static refer_t udns_iter_next_attr(vattr_vlist_t **restrict iter)
+{
+	vattr_vlist_t *restrict v;
+	if ((v = *iter))
+	{
+		*iter = v->vattr_next;
+		return v->value;
+	}
+	return NULL;
+}
+
+static refer_t udns_iter_next_slot(vattr_vlist_t **restrict iter)
+{
+	vattr_vlist_t *restrict v;
+	if ((v = *iter))
+	{
+		*iter = v->vslot_next;
+		return v->value;
+	}
+	return NULL;
+}
+
+udns_question_s* udns_iter_question_next(udns_iter_question_t *restrict iter)
+{
+	return (udns_question_s *) udns_iter_next_attr((vattr_vlist_t **) iter);
+}
+
+udns_question_s* udns_iter_question_next_by_type(udns_iter_question_t *restrict iter)
+{
+	return (udns_question_s *) udns_iter_next_slot((vattr_vlist_t **) iter);
+}
+
+udns_resource_s* udns_iter_resource_next(udns_iter_resource_t *restrict iter)
+{
+	return (udns_resource_s *) udns_iter_next_attr((vattr_vlist_t **) iter);
+}
+
+udns_resource_s* udns_iter_resource_next_by_type(udns_iter_resource_t *restrict iter)
+{
+	return (udns_resource_s *) udns_iter_next_slot((vattr_vlist_t **) iter);
 }

@@ -50,6 +50,7 @@ udns_resource_s* udns_resource_inner_parse(udns_inst_s *restrict inst, const uin
 		udns_inner_labels4string(&labels_data, (char *) labels_string.data, &n_labels) &&
 		p + 10 <= size)
 	{
+		++n_name;
 		memcpy(&type, data + p, sizeof(type));
 		memcpy(&class, data + p + 2, sizeof(class));
 		memcpy(&ttl, data + p + 4, sizeof(ttl));
