@@ -26,4 +26,7 @@ udns_inner_labels_t* udns_inner_labels4string(udns_inner_labels_t *restrict r, c
 udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos, uintptr_t *restrict length);
 uintptr_t udns_inner_labels_skip(const uint8_t *restrict p, uintptr_t size, uintptr_t *restrict pos);
 
+uint8_t* udns_inner_get_ipv4(const char *restrict s_ipv4, uint8_t *restrict a_ipv4);
+uint8_t* udns_inner_get_ipv6(const char *restrict s_ipv6, uint8_t *restrict a_ipv6);
+
 #endif

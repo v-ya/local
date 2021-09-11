@@ -43,6 +43,9 @@ udns_inst_s* udns_inst_alloc(void)
 				udns_func_type_##_name##_bw\
 				)
 			d_type(a) &&
+			d_type(ns) &&
+			d_type(cname) &&
+			d_type(aaaa) &&
 			#undef d_type
 		1) return r;
 		refer_free(r);

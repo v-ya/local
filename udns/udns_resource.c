@@ -36,7 +36,7 @@ udns_resource_s* udns_resource_inner_parse(udns_inst_s *restrict inst, const uin
 {
 	struct udns_resource_s *restrict r;
 	const udns_type_func_t *restrict func;
-	uintptr_t p, n, p_name, p_labels, p_parse, p_data, n_name, n_labels, n_data, n_parse;
+	uintptr_t p, n, l, p_name, p_labels, p_parse, p_data, n_name, n_labels, n_data, n_parse;
 	struct udns_type_arg_stack_t arg;
 	udns_inner_labels_t labels_string;
 	udns_inner_labels_t labels_data;
@@ -57,15 +57,16 @@ udns_resource_s* udns_resource_inner_parse(udns_inst_s *restrict inst, const uin
 		memcpy(&length, data + p + 8, sizeof(length));
 		p += 10;
 		t = (udns_type_t) ntohs(type);
-		n_data = (uintptr_t) ntohs(length);
-		if (n_data <= size - p)
+		l = (uintptr_t) ntohs(length);
+		if (l <= size - p)
 		{
-			if ((func = udns_inst_inner_get_func(inst, t)) && func->parse_length && func->parse_write)
+			if ((func = udns_inst_inner_get_func(inst, t)))
 			{
 				if (func->initial)
 					func->initial(&arg);
-				n_parse = func->parse_length(data + p, n_data, &arg);
-				if (~n_parse)
+				n_parse = func->parse_length(&arg, data, p + l, p);
+				n_data = func->build_length(&arg, NULL);
+				if (~n_parse && ~n_data)
 				{
 					n = udns_inner_align(sizeof(udns_resource_s));
 					p_name = n;
@@ -86,15 +87,16 @@ udns_resource_s* udns_resource_inner_parse(udns_inst_s *restrict inst, const uin
 						r->name_string = memcpy((uint8_t *) r + p_name, labels_string.data, n_name);
 						r->labels_data = memcpy((uint8_t *) r + p_labels, labels_data.data, n_labels);
 						r->labels_length = n_labels;
-						if (func->parse_write((char *) r + p_parse, &arg))
+						if (func->parse_write(&arg, (char *) r + p_parse) &&
+							func->build_write(&arg, (uint8_t *) r + p_data))
 						{
 							r->data_parse = (char *) r + p_parse;
-							r->data = memcpy((uint8_t *) r + p_data, data + p, n_data);
+							r->data = (uint8_t *) r + p_data;
 							r->length = n_data;
 							r->type = t;
 							r->class = (udns_class_t) ntohs(class);
 							r->ttl = ntohl(ttl);
-							p += n_data;
+							p += l;
 							if (func->finaly)
 								func->finaly(&arg);
 							*pos = p;

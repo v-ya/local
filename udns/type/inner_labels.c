@@ -103,15 +103,11 @@ udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, c
 {
 	udns_inner_label_ctx_t ctx;
 	uintptr_t i, n, l, pos_point;
-	i = n = 0;
+	i = n = pos_point = 0;
 	if (pos) i = *pos;
-	if (i < size)
+	while (i < size && (l = (uintptr_t) p[i++]))
 	{
-		if (p[i] >= 0xc0)
-			goto label_point;
-		pos_point = 0;
-		label_find:
-		while (i < size && (l = (uintptr_t) p[i++]))
+		if (!(l & 0xc0))
 		{
 			if (i + l >= size)
 				goto label_fail;
@@ -125,18 +121,21 @@ udns_inner_labels_t* udns_inner_labels2string(udns_inner_labels_t *restrict r, c
 			n += ctx.n_rdata;
 			r->data[n++] = '.';
 		}
-		if (n) --n;
-		r->data[n] = 0;
-		if (pos) *pos = pos_point?pos_point:i;
-		if (length) *length = n;
-		return r;
-		label_point:
-		if ((pos_point = i + 2) <= size)
+		else
 		{
-			i = (((uintptr_t) p[i] & 0x3f) << 8) | (uintptr_t) p[i + 1];
-			goto label_find;
+			// point
+			if (i >= size)
+				goto label_fail;
+			if (!pos_point)
+				pos_point = i + 1;
+			i = ((l & 0x3f) << 8) | (uintptr_t) p[i];
 		}
 	}
+	if (n) --n;
+	r->data[n] = 0;
+	if (pos) *pos = pos_point?pos_point:i;
+	if (length) *length = n;
+	return r;
 	label_fail:
 	return NULL;
 }
@@ -146,31 +145,30 @@ uintptr_t udns_inner_labels_skip(const uint8_t *restrict p, uintptr_t size, uint
 	uintptr_t i, l;
 	i = 0;
 	if (pos) i = *pos;
-	if (i < size)
+	while (i < size && (l = (uintptr_t) p[i++]))
 	{
-		if (p[i] >= 0xc0)
-			goto label_point;
-		while (i < size && (l = (uintptr_t) p[i++]))
+		if (!(l & 0xc0))
 		{
 			if (i + l >= size)
 				goto label_fail;
 			i += l;
 		}
-		label_okay:
-		l = i;
-		if (pos)
+		else
 		{
-			l = i - *pos;
-			*pos = i;
-		}
-		return l;
-		label_point:
-		if (i + 2 <= size)
-		{
-			i += 2;
-			goto label_okay;
+			// point
+			if (i >= size)
+				goto label_fail;
+			++i;
+			break;
 		}
 	}
+	l = i;
+	if (pos)
+	{
+		l = i - *pos;
+		*pos = i;
+	}
+	return l;
 	label_fail:
 	return 0;
 }

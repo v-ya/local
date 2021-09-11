@@ -4,18 +4,19 @@
 #include "udns.h"
 #include <vattr.h>
 
-#define udns_type_max       128
-#define udns_type_name_max  16
+#define udns_type_max        128
+#define udns_type_name_max   16
+#define udns_arg_stack_size  4096
 
 struct udns_type_arg_stack_t {
-	uintptr_t used[256];
+	uintptr_t used[udns_arg_stack_size / sizeof(uintptr_t)];
 };
 
 typedef void (*udns_type_arg_do_f)(struct udns_type_arg_stack_t *restrict arg);
-typedef uintptr_t (*udns_type_parse_length_f)(const uint8_t *restrict data, uintptr_t length, struct udns_type_arg_stack_t *restrict arg);
-typedef uintptr_t (*udns_type_build_length_f)(const char *parse, struct udns_type_arg_stack_t *restrict arg);
-typedef struct udns_type_arg_stack_t* (*udns_type_parse_write_f)(char *restrict parse, struct udns_type_arg_stack_t *restrict arg);
-typedef struct udns_type_arg_stack_t* (*udns_type_build_write_f)(uint8_t *restrict data, struct udns_type_arg_stack_t *restrict arg);
+typedef uintptr_t (*udns_type_parse_length_f)(struct udns_type_arg_stack_t *restrict arg, const uint8_t *restrict data, uintptr_t size, uintptr_t pos);
+typedef uintptr_t (*udns_type_build_length_f)(struct udns_type_arg_stack_t *restrict arg, const char *parse);
+typedef struct udns_type_arg_stack_t* (*udns_type_parse_write_f)(struct udns_type_arg_stack_t *restrict arg, char *restrict parse);
+typedef struct udns_type_arg_stack_t* (*udns_type_build_write_f)(struct udns_type_arg_stack_t *restrict arg, uint8_t *restrict data);
 
 typedef enum udns_header_flags_t {
 	udns_header_flags_qr          = 0x8000,
