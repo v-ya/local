@@ -3,10 +3,10 @@ HEADER		= uhttp.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lrbtree -lvattr -lexbuffer -soname ${TARGET}
 
-OBJECT		= uhttp_inst.o uhttp.o uhttp_build.o uhttp_parse.o uhttp_inst_http11.o
+OBJECT		= uhttp_inst.o uhttp.o uhttp_build.o uhttp_parse.o uhttp_inst_http11.o uhttp_uri.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

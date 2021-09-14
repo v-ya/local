@@ -8,6 +8,7 @@ struct vattr_s;
 
 typedef struct uhttp_inst_s uhttp_inst_s;
 typedef struct uhttp_s uhttp_s;
+typedef struct uhttp_uri_s uhttp_uri_s;
 
 typedef struct uhttp_iter_header_id_t *uhttp_iter_header_id_t;
 typedef struct uhttp_iter_header_all_t *uhttp_iter_header_all_t;
@@ -132,5 +133,22 @@ uhttp_parse_status_t uhttp_parse(uhttp_s *restrict uhttp, const char *restrict p
 void uhttp_parse_context_init(uhttp_parse_context_t *restrict context, uintptr_t pos);
 void uhttp_parse_context_set(uhttp_parse_context_t *restrict context, const void *restrict data, uintptr_t length);
 uhttp_parse_status_t uhttp_parse_context_try(uhttp_s *restrict uhttp, uhttp_parse_context_t *restrict context);
+
+// uhttp uri
+uhttp_uri_s* uhttp_uri_alloc(void);
+void uhttp_uri_clear(uhttp_uri_s *restrict uri);
+refer_nstring_t uhttp_uri_refer_uri(uhttp_uri_s *restrict uri, refer_nstring_t value);
+refer_nstring_t uhttp_uri_set_uri(uhttp_uri_s *restrict uri, const char *restrict value);
+refer_nstring_t uhttp_uri_refer_path(uhttp_uri_s *restrict uri, refer_nstring_t value);
+refer_nstring_t uhttp_uri_set_path(uhttp_uri_s *restrict uri, const char *restrict value);
+uhttp_uri_s* uhttp_uri_parse_data(uhttp_uri_s *restrict uri, const char *restrict param_data, uintptr_t param_size);
+uhttp_uri_s* uhttp_uri_set_param(uhttp_uri_s *restrict uri, const char *restrict key, const char *restrict value);
+uhttp_uri_s* uhttp_uri_insert_param(uhttp_uri_s *restrict uri, const char *restrict key, const char *restrict value);
+void uhttp_uri_delete_param(uhttp_uri_s *restrict uri, const char *restrict key);
+void uhttp_uri_delete_param_index(uhttp_uri_s *restrict uri, const char *restrict key, uintptr_t index);
+refer_nstring_t uhttp_uri_get_uri(uhttp_uri_s *restrict uri);
+refer_nstring_t uhttp_uri_get_path(const uhttp_uri_s *restrict uri);
+const char* uhttp_uri_get_param(const uhttp_uri_s *restrict uri, const char *restrict key, uintptr_t *restrict value_length);
+const char* uhttp_uri_get_param_index(const uhttp_uri_s *restrict uri, const char *restrict key, uintptr_t index, uintptr_t *restrict value_length);
 
 #endif

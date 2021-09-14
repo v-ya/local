@@ -28,6 +28,12 @@ struct uhttp_s {
 	vattr_s *header;
 };
 
+struct uhttp_uri_s {
+	refer_nstring_t uri_build;
+	refer_nstring_t uri_path;
+	vattr_s *param;
+};
+
 struct uhttp_iter_header_id_t {
 	vattr_vlist_t iter;
 };
