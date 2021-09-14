@@ -20,7 +20,7 @@ udns_s* udns_alloc(udns_inst_s *restrict inst)
 	if ((r = (udns_s *) refer_alloz(sizeof(udns_s))))
 	{
 		refer_set_free(r, (refer_free_f) udns_free_func);
-		r->inst = inst?((udns_inst_s *) refer_save(inst)):udns_inst_alloc();
+		r->inst = inst?((udns_inst_s *) refer_save(inst)):udns_inst_alloc_mini();
 		if (r->inst)
 			return r;
 		refer_free(r);
@@ -89,6 +89,11 @@ void udns_set_ra(udns_s *restrict udns, uintptr_t ra)
 void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode)
 {
 	udns->flags = (udns->flags & (uint32_t) udns_header_flags_rcode_mask) | ((uint32_t) rcode & (uint32_t) udns_header_flags_rcode_mask);
+}
+
+udns_inst_s* udns_get_inst(const udns_s *restrict udns)
+{
+	return udns->inst;
 }
 
 uint32_t udns_get_id(const udns_s *restrict udns)

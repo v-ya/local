@@ -137,6 +137,9 @@ typedef const struct udns_resource_s {
 	uint32_t ttl;
 } udns_resource_s;
 
+// only {a, cname, aaaa}
+udns_inst_s* udns_inst_alloc_mini(void);
+// {a, ns, cname, soa, aaaa}
 udns_inst_s* udns_inst_alloc(void);
 
 udns_s* udns_alloc(udns_inst_s *restrict inst);
@@ -149,6 +152,7 @@ void udns_set_tc(udns_s *restrict udns, uintptr_t tc);
 void udns_set_rd(udns_s *restrict udns, uintptr_t rd);
 void udns_set_ra(udns_s *restrict udns, uintptr_t ra);
 void udns_set_rcode(udns_s *restrict udns, udns_rcode_t rcode);
+udns_inst_s* udns_get_inst(const udns_s *restrict udns);
 uint32_t udns_get_id(const udns_s *restrict udns);
 uintptr_t udns_get_qr(const udns_s *restrict udns);
 udns_opcode_t udns_get_opcode(const udns_s *restrict udns);
