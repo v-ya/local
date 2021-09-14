@@ -4,6 +4,8 @@
 #include <refer.h>
 #include <exbuffer.h>
 
+struct vattr_s;
+
 typedef struct uhttp_inst_s uhttp_inst_s;
 typedef struct uhttp_s uhttp_s;
 
@@ -108,8 +110,9 @@ int64_t uhttp_get_header_integer_tail(const uhttp_s *restrict uhttp, const char 
 int64_t uhttp_get_header_integer_index(const uhttp_s *restrict uhttp, const char *restrict id, uintptr_t index);
 uintptr_t uhttp_get_header_number(const uhttp_s *restrict uhttp, const char *restrict id);
 uhttp_s* uhttp_copy_header_by_id(uhttp_s *restrict dst, const uhttp_s *restrict src, const char *restrict id);
-uhttp_iter_header_all_t uhttp_iter_header_all_init(uhttp_s *restrict uhttp);
-uhttp_iter_header_id_t uhttp_iter_header_id_init(uhttp_s *restrict uhttp, const char *restrict id);
+const struct vattr_s* uhttp_header_vattr(const uhttp_s *restrict uhttp);
+uhttp_iter_header_all_t uhttp_iter_header_all_init(const uhttp_s *restrict uhttp);
+uhttp_iter_header_id_t uhttp_iter_header_id_init(const uhttp_s *restrict uhttp, const char *restrict id);
 uhttp_header_s* uhttp_iter_header_all_next(uhttp_iter_header_all_t *restrict iter);
 uhttp_header_s* uhttp_iter_header_id_next(uhttp_iter_header_id_t *restrict iter);
 

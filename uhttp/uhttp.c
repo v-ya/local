@@ -513,12 +513,17 @@ uhttp_s* uhttp_copy_header_by_id(uhttp_s *restrict dst, const uhttp_s *restrict 
 	return NULL;
 }
 
-uhttp_iter_header_all_t uhttp_iter_header_all_init(uhttp_s *restrict uhttp)
+const struct vattr_s* uhttp_header_vattr(const uhttp_s *restrict uhttp)
+{
+	return uhttp->header;
+}
+
+uhttp_iter_header_all_t uhttp_iter_header_all_init(const uhttp_s *restrict uhttp)
 {
 	return (uhttp_iter_header_all_t) uhttp->header->vattr;
 }
 
-uhttp_iter_header_id_t uhttp_iter_header_id_init(uhttp_s *restrict uhttp, const char *restrict id)
+uhttp_iter_header_id_t uhttp_iter_header_id_init(const uhttp_s *restrict uhttp, const char *restrict id)
 {
 	vattr_vslot_t *restrict vslot;
 	if ((vslot = vattr_get_vslot(uhttp->header, id)))
