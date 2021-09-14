@@ -14,16 +14,21 @@ refer_t refer_alloc(size_t size)
 	{
 		r->inode = 1;
 		r->free_func = NULL;
+		return (refer_t) (r + 1);
 	}
-	return (refer_t) (r + 1);
+	return (refer_t) r;
 }
 
 refer_t refer_alloz(size_t size)
 {
 	refer_s *r;
 	r = (refer_s *) calloc(1, size + sizeof(refer_s));
-	if (r) r->inode = 1;
-	return (refer_t) (r + 1);
+	if (r)
+	{
+		r->inode = 1;
+		return (refer_t) (r + 1);
+	}
+	return (refer_t) r;
 }
 
 refer_t refer_free(refer_t v)
