@@ -164,6 +164,13 @@ void transport_discard_cache(transport_s *restrict r)
 
 // other
 
+uint64_t transport_timestamp_sec(void)
+{
+	struct timespec t = {.tv_sec = 0, .tv_nsec = 0};
+	transport_inner_timespec_now(&t);
+	return (uint64_t) t.tv_sec;
+}
+
 uint64_t transport_timestamp_ms(void)
 {
 	struct timespec t = {.tv_sec = 0, .tv_nsec = 0};

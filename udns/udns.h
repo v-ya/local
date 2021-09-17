@@ -142,6 +142,9 @@ udns_inst_s* udns_inst_alloc_mini(void);
 // {a, ns, cname, soa, aaaa}
 udns_inst_s* udns_inst_alloc(void);
 
+int udns_check_ipv4(const char *restrict ipv4, uint8_t array[4]);
+int udns_check_ipv6(const char *restrict ipv6, uint8_t array[16]);
+
 udns_s* udns_alloc(udns_inst_s *restrict inst);
 void udns_clear(udns_s *restrict udns);
 void udns_set_id(udns_s *restrict udns, uint32_t id);

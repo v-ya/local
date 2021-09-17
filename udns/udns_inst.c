@@ -97,3 +97,19 @@ const udns_type_func_t* udns_inst_inner_get_func(udns_inst_s *restrict inst, udn
 		return func;
 	return NULL;
 }
+
+#include "type/inner.h"
+
+int udns_check_ipv4(const char *restrict ipv4, uint8_t array[4])
+{
+	uint8_t a[4];
+	if (!array) array = a;
+	return udns_inner_get_ipv4(ipv4, array)?0:-1;
+}
+
+int udns_check_ipv6(const char *restrict ipv6, uint8_t array[16])
+{
+	uint8_t a[16];
+	if (!array) array = a;
+	return udns_inner_get_ipv6(ipv6, array)?0:-1;
+}

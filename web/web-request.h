@@ -7,6 +7,7 @@
 #include "web-method.h"
 
 struct transport_s;
+struct web_dns_s;
 
 typedef const struct web_request_inst_s {
 	// inst refer
@@ -53,12 +54,14 @@ refer_nstring_t web_request_set_target(web_request_s *restrict request, const ch
 refer_nstring_t web_request_set_host(web_request_s *restrict request, const char *restrict host);
 refer_nstring_t web_request_set_method(web_request_s *restrict request, web_method_id_t method_id);
 refer_nstring_t web_request_set_uri(web_request_s *restrict request, const char *restrict uri);
+refer_nstring_t web_request_set_ip_and_port(web_request_s *restrict request, const char *restrict ip, uint32_t port);
+web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct web_dns_s *restrict dns, const char *restrict full_uri);
 
 struct transport_s* web_request_open_tp(web_request_s *restrict request, uintptr_t connect_timeout_ms, const volatile uintptr_t *running);
 void web_request_close_tp(web_request_s *restrict request);
 
 web_request_s* web_request_send_request(web_request_s *restrict request, const void *body, uintptr_t body_length);
-web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost);
+web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
 web_request_s* web_request_recv_response_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
 
 const uint8_t* web_request_get_body_data(web_request_s *restrict request, uintptr_t *restrict length);

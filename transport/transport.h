@@ -43,6 +43,7 @@ void transport_discard_cache(transport_s *restrict r);
 
 // other
 
+uint64_t transport_timestamp_sec(void);
 uint64_t transport_timestamp_ms(void);
 uint64_t transport_timestamp_us(void);
 

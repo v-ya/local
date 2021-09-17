@@ -453,3 +453,85 @@ const char* uhttp_uri_get_param_index(const uhttp_uri_s *restrict uri, const cha
 		*value_length = 0;
 	return NULL;
 }
+
+// uri cut
+
+int uhttp_uri_tear_with_length(const char *restrict full_uri, uintptr_t length, refer_nstring_t *restrict protocol, refer_nstring_t *restrict host, uint32_t *restrict port, refer_nstring_t *restrict uri)
+{
+	const char *p, *p_protocol, *p_host, *p_port, *p_uri;
+	uintptr_t n, n_protocol, n_host, n_port, n_uri;
+	int ret;
+	p_protocol = p_host = p_port = p_uri = NULL;
+	p = memchr(full_uri, '/', length);
+	if (!p) goto label_not_protocol_and_uri;
+	if (p > full_uri && *(p - 1) == ':' && p + 1 < full_uri + length && *(p + 1) == '/')
+	{
+		// this protocol
+		p_protocol = full_uri;
+		n_protocol = (uintptr_t) p - (uintptr_t) full_uri - 1;
+		n = n_protocol + 3;
+		full_uri += n;
+		length -= n;
+		p = memchr(full_uri, '/', length);
+		if (!p)
+		{
+			label_not_protocol_and_uri:
+			p = full_uri + length;
+		}
+		goto label_set_host_and_port;
+	}
+	else
+	{
+		// no protocol
+		label_set_host_and_port:
+		p_host = full_uri;
+		n_host = (uintptr_t) p - (uintptr_t) full_uri;
+		full_uri += n_host;
+		length -= n_host;
+	}
+	// uri
+	p_uri = full_uri;
+	n_uri = length;
+	// tear host and port
+	p = memchr(p_host, ':', n_host);
+	if (p)
+	{
+		n = (uintptr_t) p - (uintptr_t) p_host;
+		p_port = p + 1;
+		n_port = n_host - n - 1;
+		n_host = n;
+	}
+	// build protocol host port uri
+	ret = 0;
+	if (protocol)
+	{
+		if (!(*protocol = (p_protocol?refer_dump_nstring_with_length(p_protocol, n_protocol):refer_dump_nstring("http"))))
+			--ret;
+	}
+	if (host)
+	{
+		if (!(*host = refer_dump_nstring_with_length(p_host, n_host)))
+			--ret;
+	}
+	if (port)
+	{
+		*port = 0;
+		if (p_port)
+		{
+			for (n = 0; n < n_port && p_port[n] >= '0' && p_port[n] <= '9'; ++n)
+				*port = (*port * 10) + (p_port[n] - '0');
+			*port &= 0xffff;
+		}
+	}
+	if (uri)
+	{
+		if (!(*uri = ((p_uri && n_uri)?refer_dump_nstring_with_length(p_uri, n_uri):refer_dump_nstring("/"))))
+			--ret;
+	}
+	return ret;
+}
+
+int uhttp_uri_tear(const char *restrict full_uri, refer_nstring_t *restrict protocol, refer_nstring_t *restrict host, uint32_t *restrict port, refer_nstring_t *restrict uri)
+{
+	return uhttp_uri_tear_with_length(full_uri, strlen(full_uri), protocol, host, port, uri);
+}

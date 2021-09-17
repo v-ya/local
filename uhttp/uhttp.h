@@ -150,5 +150,7 @@ refer_nstring_t uhttp_uri_get_uri(uhttp_uri_s *restrict uri);
 refer_nstring_t uhttp_uri_get_path(const uhttp_uri_s *restrict uri);
 const char* uhttp_uri_get_param(const uhttp_uri_s *restrict uri, const char *restrict key, uintptr_t *restrict value_length);
 const char* uhttp_uri_get_param_index(const uhttp_uri_s *restrict uri, const char *restrict key, uintptr_t index, uintptr_t *restrict value_length);
+int uhttp_uri_tear_with_length(const char *restrict full_uri, uintptr_t length, refer_nstring_t *restrict protocol, refer_nstring_t *restrict host, uint32_t *restrict port, refer_nstring_t *restrict uri);
+int uhttp_uri_tear(const char *restrict full_uri, refer_nstring_t *restrict protocol, refer_nstring_t *restrict host, uint32_t *restrict port, refer_nstring_t *restrict uri);
 
 #endif

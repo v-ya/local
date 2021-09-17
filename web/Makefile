@@ -4,9 +4,9 @@ HEADER		= web-client.h web-server.h web-request.h web-transport.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lexbuffer -luhttp -ltransport -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lhashmap -lexbuffer -luhttp -ludns -ltransport -soname ${TARGET}
 
-OBJECT		= web-client.o web-server.o web-transport.o web-request.o web-method.o
+OBJECT		= $(patsubst %.c, %.o, $(wildcard web-*.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

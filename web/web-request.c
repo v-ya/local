@@ -1,5 +1,9 @@
 #include "web-request.h"
 #include "web-transport.h"
+#include "web-dns.h"
+#include <udns.h>
+#include <stdio.h>
+#include <string.h>
 
 static void web_request_inst_free_func(struct web_request_inst_s *restrict r)
 {
@@ -124,6 +128,45 @@ d_set_nstring(uri)
 #undef d_refer
 #undef d_set_nstring
 
+refer_nstring_t web_request_set_ip_and_port(web_request_s *restrict request, const char *restrict ip, uint32_t port)
+{
+	refer_nstring_t v, r;
+	char buffer[64];
+	int n;
+	v = NULL;
+	if ((n = snprintf(buffer, sizeof(buffer), "%s:%u", ip, port & 0xffff)) > 0 && (uintptr_t) n < sizeof(buffer))
+		v = refer_dump_nstring_with_length(buffer, (uintptr_t) n);
+	r = web_request_refer_target(request, v);
+	if (v) refer_free(v);
+	return r;
+}
+
+web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct web_dns_s *restrict dns, const char *restrict full_uri)
+{
+	web_request_s *r;
+	refer_nstring_t protocol, host, ip, uri;
+	uint32_t port;
+	r = NULL;
+	if (!uhttp_uri_tear(full_uri, &protocol, &host, &port, &uri) &&
+		!strcmp(protocol->string, "http"))
+	{
+		if (!udns_check_ipv4(host->string, NULL))
+			ip = host;
+		else if (dns)
+			ip = web_dns_get_ipv4(dns, host->string);
+		else ip = NULL;
+		if (ip && web_request_refer_host(request, host) &&
+			web_request_refer_uri(request, uri) &&
+			(port?web_request_set_ip_and_port(request, ip->string, port):
+				web_request_refer_target(request, ip)))
+			r = request;
+	}
+	if (protocol) refer_free(protocol);
+	if (host) refer_free(host);
+	if (uri) refer_free(uri);
+	return r;
+}
+
 struct transport_s* web_request_open_tp(web_request_s *restrict request, uintptr_t connect_timeout_ms, const volatile uintptr_t *running)
 {
 	transport_s *restrict tp;
@@ -183,7 +226,7 @@ web_request_s* web_request_send_request(web_request_s *restrict request, const v
 	return NULL;
 }
 
-web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost)
+web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost_time_ms)
 {
 	web_request_inst_s *restrict inst;
 	inst = request->inst;
@@ -195,7 +238,7 @@ web_request_s* web_request_recv_response(web_request_s *restrict request, uintpt
 			.http_body_max_length = inst->body_limit_bytes,
 			.http_recv_timeout_ms = inst->recv_timeout_ms
 		};
-		if (web_transport_recv_http_with_body(request->tp, request->response, &request->head_cache, &request->body, &attr, cost))
+		if (web_transport_recv_http_with_body(request->tp, request->response, &request->head_cache, &request->body, &attr, cost_time_ms))
 			return request;
 	}
 	return NULL;
