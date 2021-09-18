@@ -42,6 +42,7 @@ struct web_request_inst_s* web_request_inst_alloc(const uhttp_inst_s *http_inst,
 
 web_request_s* web_request_alloc(web_request_inst_s *restrict inst);
 web_request_s* web_request_dump(web_request_s *restrict request);
+void web_request_clear(web_request_s *restrict request);
 
 refer_nstring_t web_request_refer_target(web_request_s *restrict request, refer_nstring_t target);
 refer_nstring_t web_request_refer_host(web_request_s *restrict request, refer_nstring_t host);
@@ -63,6 +64,10 @@ void web_request_close_tp(web_request_s *restrict request);
 web_request_s* web_request_send_request(web_request_s *restrict request, const void *body, uintptr_t body_length);
 web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
 web_request_s* web_request_recv_response_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
+
+web_request_s* web_request_recv_request(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
+web_request_s* web_request_recv_request_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
+web_request_s* web_request_send_response(web_request_s *restrict request, const void *body, uintptr_t body_length);
 
 const uint8_t* web_request_get_body_data(web_request_s *restrict request, uintptr_t *restrict length);
 const char* web_request_get_body_string(web_request_s *restrict request);
