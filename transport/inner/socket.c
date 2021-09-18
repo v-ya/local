@@ -68,6 +68,52 @@ int transport_inner_socket_connect_wait(transport_inner_socket_t sock, uint64_t 
 	return -1;
 }
 
+int transport_inner_socket_listen(transport_inner_socket_t sock, int n)
+{
+	int flags;
+	if (~(flags = fcntl(sock, F_GETFL)) && ~fcntl(sock, F_SETFL, flags | O_NONBLOCK) && !listen(sock, n))
+		return 0;
+	return -1;
+}
+
+int transport_inner_socket_accept_wait(transport_inner_socket_t sock, transport_inner_socket_t *restrict rsock, uint64_t timeout_ms, const volatile uintptr_t *running)
+{
+	struct timespec start, curr;
+	uint64_t cost;
+	*rsock = -1;
+	if (transport_inner_timespec_now(&start))
+	{
+		struct pollfd pfd;
+		int value;
+		pfd.fd = sock;
+		pfd.events = ~0;
+		pfd.revents = 0;
+		cost = 0;
+		do {
+			value = poll(&pfd, 1, running?transport_inner_define_time_gap_ms:(timeout_ms - cost));
+			if (running && !*running)
+				break;
+			if (value > 0)
+			{
+				value = accept(sock, NULL, NULL);
+				if (value >= 0)
+				{
+					*rsock = value;
+					break;
+				}
+				if ((value = errno) != EAGAIN && value != EWOULDBLOCK)
+					goto label_fail;
+			}
+			if (!transport_inner_timespec_now(&curr))
+				break;
+			cost = transport_inner_timespec_to_ms(transport_inner_timespec_diff(&curr, &curr, &start));
+		} while (cost < timeout_ms);
+		return 0;
+	}
+	label_fail:
+	return -1;
+}
+
 int transport_inner_socket_set_timeout_send(transport_inner_socket_t sock, uint64_t timeout_ms)
 {
 	struct timeval timeout;
@@ -86,6 +132,24 @@ int transport_inner_socket_set_reuse_addr(transport_inner_socket_t sock)
 {
 	int value = 1;
 	return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+}
+
+struct sockaddr* transport_inner_socket_get_local(transport_inner_socket_t sock, transport_inner_addr_param_t *restrict addr)
+{
+	socklen_t len;
+	len = sizeof(*addr);
+	if (!getsockname(sock, &addr->addr, &len))
+		return &addr->addr;
+	return NULL;
+}
+
+struct sockaddr* transport_inner_socket_get_remote(transport_inner_socket_t sock, transport_inner_addr_param_t *restrict addr)
+{
+	socklen_t len;
+	len = sizeof(*addr);
+	if (!getpeername(sock, &addr->addr, &len))
+		return &addr->addr;
+	return NULL;
 }
 
 // addr
@@ -107,3 +171,21 @@ struct sockaddr* transport_inner_socket_ipv4_addr(struct sockaddr_in *restrict a
 	return NULL;
 }
 
+refer_string_t transport_inner_socket_addr2info(struct sockaddr *restrict addr, uint32_t *restrict port)
+{
+	char ip[64];
+	switch (addr->sa_family)
+	{
+		case AF_INET:
+			// ipv4
+			*port = (uint32_t) ntohs(((struct sockaddr_in *) addr)->sin_port);
+			return refer_dump_string(transport_inner_ipv4_s4a(ip, (uint8_t *) &((struct sockaddr_in *) addr)->sin_addr));
+		case AF_INET6:
+			// ipv6
+			*port = (uint32_t) ntohs(((struct sockaddr_in6 *) addr)->sin6_port);
+			return NULL;
+		default:
+			*port = 0;
+			return NULL;
+	}
+}

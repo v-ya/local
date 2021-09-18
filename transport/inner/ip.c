@@ -1,4 +1,5 @@
 #include "ip.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 uint8_t* transport_inner_ipv4_s2a(const char *restrict s_ipv4, uint8_t a_ipv4[4], uint32_t *restrict port)
@@ -27,4 +28,10 @@ uint8_t* transport_inner_ipv4_s2a(const char *restrict s_ipv4, uint8_t a_ipv4[4]
 	}
 	label_fail:
 	return NULL;
+}
+
+char* transport_inner_ipv4_s4a(char s_ipv4[16], const uint8_t a_ipv4[4])
+{
+	sprintf(s_ipv4, "%u.%u.%u.%u", a_ipv4[0], a_ipv4[1], a_ipv4[2], a_ipv4[3]);
+	return s_ipv4;
 }
