@@ -97,7 +97,8 @@ char* uhttp_uri_param_write_vdata2value(char *restrict value, const char *restri
 			goto label_normal;
 		else
 		{
-			*value++ = (char) ((c2hex[i + 1] << 4) | c2hex[i + 2]);
+			*value++ = (char) ((c2hex[((const uint8_t *) vdata)[i + 1]] << 4) |
+						c2hex[((const uint8_t *) vdata)[i + 2]]);
 			i += 2;
 		}
 	}
