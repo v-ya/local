@@ -11,10 +11,16 @@ OBJECT		= yaw.o mutex.o spin.o rwlock.o signal.o
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
 
-.PHONY: clear install uninstall
+.PHONY: verify clear install uninstall
 
 ${TARGET}: ${OBJECT}
 	${LD} ${LDFLAGS} -o $@ $^
+
+test.elf: _test.o ${TARGET}
+	${CC} -lrefer -lpthread -L. -lyaw -Wl,--rpath=. -o $@ $<
+
+verify: test.elf
+	valgrind --leak-check=full ./test.elf
 
 clear:
 	rm -f ${TARGET} *.o

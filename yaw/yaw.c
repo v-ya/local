@@ -13,15 +13,19 @@ typedef struct yaw_real_s {
 static void yaw_real_free_func(yaw_real_s *restrict r)
 {
 	r->yaw.running = 0;
-	if (r->thread && r->detach)
-		pthread_join(r->thread, NULL);
+	if (r->thread && !r->detach)
+	{
+		pthread_t thread;
+		if ((thread = pthread_self()) != r->thread)
+			pthread_join(r->thread, NULL);
+		else pthread_detach(thread);
+	}
 	if (r->yaw.pri)
 		refer_free(r->yaw.pri);
 }
 
 static void* yaw_thread_func(void *yaw)
 {
-	refer_save(yaw);
 	((yaw_s *) yaw)->func((yaw_s *) yaw);
 	((yaw_s *) yaw)->running = 0;
 	refer_free(yaw);
@@ -48,8 +52,10 @@ yaw_s* yaw_start(yaw_s *restrict yaw, const void *data)
 		yaw->running = 1;
 		yaw->data = (void *) data;
 		((yaw_real_s *) yaw)->detach = 0;
+		refer_save(yaw);
 		if (!pthread_create(&((yaw_real_s *) yaw)->thread, NULL, yaw_thread_func, yaw))
 			return yaw;
+		refer_free(yaw);
 	}
 	return NULL;
 }
