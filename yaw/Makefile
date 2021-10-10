@@ -3,7 +3,7 @@ HEADER		= yaw.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lpthread -soname ${TARGET}
 
 OBJECT		= yaw.o mutex.o spin.o rwlock.o signal.o
@@ -20,7 +20,8 @@ test.elf: _test.o ${TARGET}
 	${CC} -lrefer -lpthread -L. -lyaw -Wl,--rpath=. -o $@ $<
 
 verify: test.elf
-	valgrind --leak-check=full ./test.elf
+#	valgrind --leak-check=full ./test.elf
+	./test.elf
 
 clear:
 	rm -f ${TARGET} *.o

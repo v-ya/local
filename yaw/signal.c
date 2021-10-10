@@ -1,8 +1,5 @@
-#define _DEFAULT_SOURCE
+#include "inline_futex.h"
 #include "yaw.h"
-#include <linux/futex.h>
-#include <sys/syscall.h>
-#include <unistd.h>
 
 typedef struct yaw_signal_futex_s {
 	yaw_signal_s signal;
@@ -27,7 +24,7 @@ static yaw_signal_s* yaw_signal_futex_wait(yaw_signal_s *ys, uint32_t status)
 	if (me(ys)->status == status)
 	{
 		__sync_fetch_and_add(&me(ys)->number, 1);
-		syscall(SYS_futex, &me(ys)->status, FUTEX_WAIT_PRIVATE, status, NULL);
+		yaw_inline_futex_wait(&me(ys)->status, status, NULL);
 		__sync_fetch_and_sub(&me(ys)->number, 1);
 		return (me(ys)->status == status)?ys:NULL;
 	}
@@ -39,7 +36,7 @@ static uint32_t yaw_signal_futex_wake(yaw_signal_s *ys, uint32_t number)
 	if (number > INT32_MAX)
 		number = INT32_MAX;
 	if (number)
-		return syscall(SYS_futex, &me(ys)->status, FUTEX_WAKE_PRIVATE, number);
+		return yaw_inline_futex_wake(&me(ys)->status, number);
 	return 0;
 }
 
@@ -52,7 +49,7 @@ static yaw_signal_s* yaw_signal_futex_wait_time(yaw_signal_s *ys, uint32_t statu
 			.tv_nsec = (usec % 1000000) * 1000
 		};
 		__sync_fetch_and_add(&me(ys)->number, 1);
-		syscall(SYS_futex, &me(ys)->status, FUTEX_WAIT_PRIVATE, status, &ts);
+		yaw_inline_futex_wait(&me(ys)->status, status, &ts);
 		__sync_fetch_and_sub(&me(ys)->number, 1);
 		return (me(ys)->status == status)?ys:NULL;
 	}
