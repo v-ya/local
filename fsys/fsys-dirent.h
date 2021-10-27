@@ -2,6 +2,7 @@
 #define _fsys_dirent_h_
 
 #include "fsys.h"
+#include "fsys-type.h"
 #include <exbuffer.h>
 #include <dirent.h>
 

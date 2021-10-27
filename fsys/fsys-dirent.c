@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-typedef typeof(((struct dirent *) 0)->d_type) fsys_dir_local_type_t;
-
 static exbuffer_t* fsys_dir_path_push(exbuffer_t *restrict ep, const char *restrict name, uintptr_t *restrict pp_end, uintptr_t *restrict pp_name)
 {
 	char *p;
@@ -112,23 +110,12 @@ static fsys_dir_s* fsys_dir_stack_pop(fsys_dir_s *restrict r)
 	return NULL;
 }
 
-static inline fsys_type_t fsys_dir_get_type(fsys_dir_local_type_t type)
-{
-	switch (type)
-	{
-		case DT_DIR: return fsys_type_dirent;
-		case DT_REG: return fsys_type_file;
-		case DT_LNK: return fsys_type_link;
-		default: return fsys_type_unknow;
-	}
-}
-
 static fsys_type_t fsys_dir_get_type_by_path(const char *restrict path)
 {
 
 	struct stat st;
 	if (!stat(path, &st))
-		return fsys_dir_get_type((fsys_dir_local_type_t) IFTODT(st.st_mode));
+		return fsys_dt2type((fsys_dt_type_t) IFTODT(st.st_mode));
 	return fsys_type_unknow;
 }
 
@@ -219,7 +206,7 @@ fsys_dir_s* fsys_dir_read(fsys_dir_s *restrict dir, fsys_dir_item_t *restrict it
 		{
 			if (fsys_dir_is_cd_name(d->d_name))
 				goto label_skip_this;
-			type = fsys_dir_get_type(d->d_type);
+			type = fsys_dt2type(d->d_type);
 			pos = dir->pp_name;
 			if (!fsys_dir_path_push(&dir->path_buffer, d->d_name, &pos, &dir->pp_name))
 				goto label_fail;
