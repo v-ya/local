@@ -13,7 +13,9 @@ typedef struct args_t {
 	const char *time;
 	const char *description;
 	const char *flag;
+	const char *sync;
 	uintptr_t o_builder_srcipt;
+	uintptr_t sync_quiet;
 } args_t;
 
 args_t* args_get(args_t *restrict pri, int argc, const char *argv[]);

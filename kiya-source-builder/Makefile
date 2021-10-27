@@ -5,7 +5,7 @@ LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -lrefer -lhashmap -largs -lexbuffer -ljson -lfsys -lpocket -lpocket-saver -lpocket-verify
 
-OBJECT		= entry.o entry_args.o builder.script.o builder.pocket.o
+OBJECT		= entry.o entry_args.o builder.script.o builder.pocket.o sync.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

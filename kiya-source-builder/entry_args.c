@@ -84,6 +84,20 @@ static args_deal_func(__script, args_t*)
 	return 0;
 }
 
+static args_deal_func(_s, args_t*)
+{
+	if (!value) return -1;
+	pri->sync = value;
+	++*index;
+	return 0;
+}
+
+static args_deal_func(__sync_quiet, args_t*)
+{
+	pri->sync_quiet = 1;
+	return 0;
+}
+
 static args_deal_func(_h, args_t*)
 {
 	return 1;
@@ -93,7 +107,7 @@ static void args_help(const char *exec)
 {
 	printf(
 		"%s <[--] intput>     [-o output]\n"
-		"\t*" "--             [input source full path]\n"
+		"\t*" "--             [input source full path dir]\n"
 		"\t " "-o             [output source pocket | pocket builder script]\n"
 		"\t " "--verify       [attr::verify, default: \"*>^~64.4\"]\n"
 		"\t " "--version      [attr::version]\n"
@@ -102,6 +116,8 @@ static void args_help(const char *exec)
 		"\t " "--description  [attr::description text file path]\n"
 		"\t " "--flag         [attr::flag]\n"
 		"\t " "--script       [force output format is builder script]\n"
+		"\t+" "-s/--sync      [sync path dir, will copy diff pocket to input]\n"
+		"\t " "--sync-quiet   [don't print sync copy notify]\n"
 		"\t*" "-h/--help\n"
 		, exec
 	);
@@ -117,7 +133,7 @@ static args_t* args_check(args_t *restrict pri)
 {
 	if (pri->input)
 	{
-		if (!pri->output)
+		if (!pri->output && !pri->sync)
 			pri->o_builder_srcipt = 1;
 		return pri;
 	}
@@ -140,6 +156,9 @@ args_t* args_get(args_t *restrict pri, int argc, const char *argv[])
 	if (!args_set_command(&args, "--description", (args_deal_f) __description)) goto label_fail;
 	if (!args_set_command(&args, "--flag",        (args_deal_f) __flag))        goto label_fail;
 	if (!args_set_command(&args, "--script",      (args_deal_f) __script))      goto label_fail;
+	if (!args_set_command(&args, "-s",            (args_deal_f) _s))            goto label_fail;
+	if (!args_set_command(&args, "--sync",        (args_deal_f) _s))            goto label_fail;
+	if (!args_set_command(&args, "--sync-quiet",  (args_deal_f) __sync_quiet))  goto label_fail;
 	if (!args_set_command(&args, "-h",            (args_deal_f) _h))            goto label_fail;
 	if (!args_set_command(&args, "--help",        (args_deal_f) _h))            goto label_fail;
 	r = args_deal(argc, argv, &args, (args_deal_f) __, pri);

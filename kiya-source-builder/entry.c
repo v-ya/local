@@ -1,5 +1,6 @@
 #include "entry_args.h"
 #include "builder.h"
+#include "sync.h"
 #include <pocket/pocket.h>
 #include <pocket/pocket-verify.h>
 #include <hashmap.h>
@@ -31,15 +32,15 @@ static void scan_env_free_func(scan_env_s *restrict r)
 	hashmap_uini(&r->name);
 }
 
-static scan_env_s *scan_env_alloc(void)
+static scan_env_s *scan_env_alloc(pocket_verify_s *verify)
 {
 	scan_env_s *restrict r;
 	r = (scan_env_s *) refer_alloz(sizeof(scan_env_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) scan_env_free_func);
-		if ((r->verify = pocket_verify_default()) &&
-			hashmap_init(&r->name))
+		r->verify = (pocket_verify_s *) refer_save(verify);
+		if (hashmap_init(&r->name))
 			return r;
 		refer_free(r);
 	}
@@ -134,37 +135,93 @@ static scan_env_s* scan_dirent(scan_env_s *restrict env, const char *restrict pa
 	goto label_fail;
 }
 
+static int sync_report_func(const args_t *restrict args, sync_status_t status, const char *restrict dst_rpath, const char *restrict src_rpath)
+{
+	if (!args->sync_quiet || (status == sync_status_fail && dst_rpath))
+	{
+		switch (status)
+		{
+			// case sync_status_same:
+			// 	printf("[=] %s\n", src_rpath);
+			// 	goto label_continue;
+			case sync_status_copy:
+				printf("[+] %s\n", dst_rpath);
+				goto label_continue;
+			case sync_status_delete:
+				printf("[-] %s\n", dst_rpath);
+				goto label_continue;
+			case sync_status_fail:
+				if (dst_rpath && src_rpath)
+				{
+					printf("!+! %s\n", dst_rpath);
+					goto label_interrupt;
+				}
+				else if (dst_rpath)
+				{
+					printf("!-! %s\n", dst_rpath);
+					goto label_interrupt;
+				}
+				else if (src_rpath)
+				{
+					printf("[.] %s\n", src_rpath);
+					goto label_continue;
+				}
+			default:
+				break;
+		}
+	}
+	label_continue:
+	return 0;
+	label_interrupt:
+	return 0;
+}
+
 int main(int argc, const char *argv[])
 {
 	int ret = 1;
 	args_t args;
 	if (args_get(&args, argc, argv))
 	{
-		scan_env_s *restrict env;
-		source_builder_s *restrict sb;
-		if ((env = scan_env_alloc()))
+		pocket_verify_s *verify;
+		if ((verify = pocket_verify_default()))
 		{
-			if (args.o_builder_srcipt)
-				sb = source_builder_alloc_script(args.output);
-			else sb = source_builder_alloc_pocket(env->verify);
-			if (sb)
+			if (args.sync)
 			{
-				scan_env_set_builder(env, sb);
-				if (args.verify) sb->verify(sb, args.verify);
-				if (args.version) sb->version(sb, args.version);
-				if (args.author) sb->author(sb, args.author);
-				if (args.time) sb->time(sb, args.time);
-				if (args.description) sb->description(sb, args.description);
-				if (args.flag) sb->flag(sb, args.flag);
-				if (scan_dirent(env, args.input))
-				{
-					if (sb->save(sb, args.output)) ret = 0;
-					else printf("save kiya source(%s) fail\n", args.output);
-				}
-				else printf("build kiya source fail\n");
-				refer_free(sb);
+				if (!sync_pocket_ignore_time(verify, args.input, args.sync, (sync_report_f) sync_report_func, &args))
+					ret = 0;
+				else printf("sync (%s) to (%s) fail\n", args.sync, args.input);
 			}
-			refer_free(env);
+			if (args.output || args.o_builder_srcipt)
+			{
+				scan_env_s *restrict env;
+				source_builder_s *restrict sb;
+				ret = 1;
+				if ((env = scan_env_alloc(verify)))
+				{
+					if (args.o_builder_srcipt)
+						sb = source_builder_alloc_script(args.output);
+					else sb = source_builder_alloc_pocket(env->verify);
+					if (sb)
+					{
+						scan_env_set_builder(env, sb);
+						if (args.verify) sb->verify(sb, args.verify);
+						if (args.version) sb->version(sb, args.version);
+						if (args.author) sb->author(sb, args.author);
+						if (args.time) sb->time(sb, args.time);
+						if (args.description) sb->description(sb, args.description);
+						if (args.flag) sb->flag(sb, args.flag);
+						if (scan_dirent(env, args.input))
+						{
+							if (sb->save(sb, args.output)) ret = 0;
+							else printf("save kiya source(%s) fail\n", args.output);
+						}
+						else printf("build kiya source fail\n");
+						refer_free(sb);
+					}
+					refer_free(env);
+				}
+			}
+			refer_free(verify);
 		}
 	}
 	return ret;
