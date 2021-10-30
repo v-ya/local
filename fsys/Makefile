@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lexbuffer -soname ${TARGET}
 
-OBJECT		= fsys-rpath.o fsys-dirent.o fsys-ctrl.o
+OBJECT		= fsys-rpath.o fsys-file.o fsys-dirent.o fsys-ctrl.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

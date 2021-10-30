@@ -1,5 +1,4 @@
 #define _GNU_SOURCE
-#include "fsys.h"
 #include "fsys-type.h"
 #include <unistd.h>
 #include <sys/types.h>
@@ -53,7 +52,7 @@ int fsys_ctrl_copy(const char *restrict dst, const char *restrict src)
 	ret = -1;
 	if (dst && src && ~(fs = open(src, O_RDONLY)))
 	{
-		if (!fstat(fs, &st) && ~(fd = open(dst, O_CREAT | O_EXCL | O_WRONLY, 0644)))
+		if (!fstat(fs, &st) && ~(fd = open(dst, O_CREAT | O_EXCL | O_WRONLY, fsys_default_open_mode)))
 		{
 			size = st.st_size;
 			while (size > 0)
