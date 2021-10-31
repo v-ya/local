@@ -1,12 +1,12 @@
 TARGET		= libtparse.so
-HEADER		= tparse.h tword.h
+HEADER		= tword.h tmapping.h tstring.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lexbuffer -soname ${TARGET}
 
-OBJECT		= tparse.o tword.o tmapping.o
+OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

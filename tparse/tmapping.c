@@ -250,14 +250,14 @@ refer_t tparse_tmapping_test_single(tparse_tmapping_single_s *restrict mp, char 
 
 refer_t tparse_tmapping_test_multi(tparse_tmapping_multi_s *restrict mp, char c)
 {
-	return tparse_tmapping_inner_multi_list_test(&mp->multi, c);
+	return tparse_tmapping_inner_multi_list_test(mp->multi, c);
 }
 
 refer_t tparse_tmapping_test_mixing(tparse_tmapping_mixing_s *restrict mp, char c)
 {
 	refer_t s, m;
 	s = tparse_tmapping_inner_single_test(&mp->single, c);
-	m = tparse_tmapping_inner_multi_list_test(&mp->multi, c);
+	m = mp->multi?tparse_tmapping_inner_multi_list_test(mp->multi, c):NULL;
 	return s?s:m;
 }
 
@@ -268,10 +268,10 @@ void tparse_tmapping_clear_single(tparse_tmapping_single_s *restrict mp)
 
 void tparse_tmapping_clear_multi(tparse_tmapping_multi_s *restrict mp)
 {
-	tparse_tmapping_inner_multi_list_clear(&mp->multi);
+	tparse_tmapping_inner_multi_list_clear(mp->multi);
 }
 
 void tparse_tmapping_clear_mixing(tparse_tmapping_mixing_s *restrict mp)
 {
-	tparse_tmapping_inner_multi_list_clear(&mp->multi);
+	tparse_tmapping_inner_multi_list_clear(mp->multi);
 }
