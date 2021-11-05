@@ -1,5 +1,5 @@
 TARGET		= libtparse.so
-HEADER		= tword.h tmapping.h tstring.h
+HEADER		= tword.h tmapping.h tstring.h tstack.h
 
 CC		= gcc
 LD		= ld

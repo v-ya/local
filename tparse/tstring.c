@@ -9,7 +9,7 @@ struct tparse_tstring_value_t {
 };
 
 struct tparse_tstring_s {
-	tparse_tmapping_mixing_s *mixing;
+	tparse_tmapping_s *mapping;
 	tparse_tstring_trigger_s *head;
 	tparse_tstring_trigger_s *tail;
 	tparse_tstring_value_t value;
@@ -56,8 +56,8 @@ void tparse_tstring_value_finally(tparse_tstring_value_t *restrict value)
 
 static void tparse_tstring_free_func(tparse_tstring_s *restrict r)
 {
-	if (r->mixing)
-		refer_free(r->mixing);
+	if (r->mapping)
+		refer_free(r->mapping);
 	if (r->head)
 		refer_free(r->head);
 	if (r->tail)
@@ -72,7 +72,7 @@ tparse_tstring_s* tparse_tstring_alloc_empty(void)
 	{
 		refer_set_free(r, (refer_free_f) tparse_tstring_free_func);
 		if (exbuffer_init(&r->value.value, 0) &&
-			(r->mixing = tparse_tmapping_alloc_mixing()))
+			(r->mapping = tparse_tmapping_alloc_mixing()))
 			return r;
 		refer_free(r);
 	}
@@ -90,7 +90,7 @@ tparse_tstring_s* tparse_tstring_set_trigger(tparse_tstring_s *restrict ts, tpar
 				p = &ts->head;
 				goto label_replace;
 			case tparse_tstring_trigger_inner:
-				if (inner_name && tparse_tmapping_add_mixing(ts->mixing, inner_name, trigger))
+				if (inner_name && ts->mapping->add(ts->mapping, inner_name, trigger))
 					goto label_okay;
 				goto label_fail;
 			case tparse_tstring_trigger_tail:
@@ -121,13 +121,15 @@ tparse_tstring_s* tparse_tstring_set_trigger_func(tparse_tstring_s *restrict ts,
 
 void tparse_tstring_clear(tparse_tstring_s *restrict ts)
 {
-	tparse_tmapping_clear_mixing(ts->mixing);
+	ts->mapping->clear(ts->mapping);
 	ts->value.value.used = 0;
 }
 
 tparse_tstring_s* tparse_tstring_transport(tparse_tstring_s *restrict ts, const char *restrict data, uintptr_t size, uintptr_t pos, uintptr_t *restrict rpos)
 {
 	tparse_tstring_trigger_s *restrict t;
+	tparse_tmapping_s *restrict mp;
+	mp = ts->mapping;
 	ts->value.finally = 0;
 	if ((t = ts->head))
 	{
@@ -138,7 +140,7 @@ tparse_tstring_s* tparse_tstring_transport(tparse_tstring_s *restrict ts, const 
 	{
 		if (!tparse_tstring_value_inline_append_char(&ts->value, data[pos]))
 			goto label_fail;
-		t = (tparse_tstring_trigger_s *) tparse_tmapping_test_mixing(ts->mixing, data[pos]);
+		t = (tparse_tstring_trigger_s *) mp->test(mp, data[pos]);
 		++pos;
 		if (t)
 		{

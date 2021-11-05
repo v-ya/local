@@ -4,6 +4,10 @@
 
 // type
 
+typedef struct tparse_tmapping_single_s tparse_tmapping_single_s;
+typedef struct tparse_tmapping_multi_s tparse_tmapping_multi_s;
+typedef struct tparse_tmapping_mixing_s tparse_tmapping_mixing_s;
+
 typedef struct tparse_tmapping_single_t tparse_tmapping_single_t;
 typedef struct tparse_tmapping_multi_t tparse_tmapping_multi_t;
 
@@ -24,15 +28,18 @@ struct tparse_tmapping_multi_t {
 };
 
 struct tparse_tmapping_single_s {
+	tparse_tmapping_s tmapping;
 	tparse_tmapping_single_t single;
 };
 
 struct tparse_tmapping_multi_s {
+	tparse_tmapping_s tmapping;
 	tparse_tmapping_multi_t *multi;
 	tparse_tmapping_multi_t **p_multi_tail;
 };
 
 struct tparse_tmapping_mixing_s {
+	tparse_tmapping_s tmapping;
 	tparse_tmapping_single_t single;
 	tparse_tmapping_multi_t *multi;
 	tparse_tmapping_multi_t **p_multi_tail;
@@ -176,47 +183,17 @@ static void tparse_tmapping_free_func(tparse_tmapping_mixing_s *restrict r)
 	tparse_tmapping_inner_multi_list_free(r->multi);
 }
 
-tparse_tmapping_single_s* tparse_tmapping_alloc_single(void)
+static tparse_tmapping_single_s* tparse_tmapping_add_single(tparse_tmapping_single_s *restrict mp, const char *restrict name, refer_t value)
 {
-	tparse_tmapping_single_s *restrict r;
-	r = (tparse_tmapping_single_s *) refer_alloz(sizeof(tparse_tmapping_single_s));
-	if (r) refer_set_free(r, (refer_free_f) tparse_tmapping_single_free_func);
-	return r;
-}
-
-tparse_tmapping_multi_s* tparse_tmapping_alloc_multi(void)
-{
-	tparse_tmapping_multi_s *restrict r;
-	r = (tparse_tmapping_multi_s *) refer_alloc(sizeof(tparse_tmapping_multi_s));
-	if (r)
+	if (name && (!name[0] || !name[1]))
 	{
-		refer_set_free(r, (refer_free_f) tparse_tmapping_multi_free_func);
-		r->multi = NULL;
-		r->p_multi_tail = &r->multi;
+		tparse_tmapping_inner_single_set(&mp->single, *(const uint8_t *) name, value);
+		return mp;
 	}
-	return r;
+	return NULL;
 }
 
-tparse_tmapping_mixing_s* tparse_tmapping_alloc_mixing(void)
-{
-	tparse_tmapping_mixing_s *restrict r;
-	r = (tparse_tmapping_mixing_s *) refer_alloz(sizeof(tparse_tmapping_mixing_s));
-	if (r)
-	{
-		refer_set_free(r, (refer_free_f) tparse_tmapping_free_func);
-		r->multi = NULL;
-		r->p_multi_tail = &r->multi;
-	}
-	return r;
-}
-
-tparse_tmapping_single_s* tparse_tmapping_add_single(tparse_tmapping_single_s *restrict mp, char name, refer_t value)
-{
-	tparse_tmapping_inner_single_set(&mp->single, (uint8_t) name, value);
-	return mp;
-}
-
-tparse_tmapping_multi_s* tparse_tmapping_add_multi(tparse_tmapping_multi_s *restrict mp, const char *restrict name, refer_t value)
+static tparse_tmapping_multi_s* tparse_tmapping_add_multi(tparse_tmapping_multi_s *restrict mp, const char *restrict name, refer_t value)
 {
 	tparse_tmapping_multi_t *restrict item;
 	if ((item = tparse_tmapping_inner_multi_alloc(name, value)))
@@ -227,7 +204,7 @@ tparse_tmapping_multi_s* tparse_tmapping_add_multi(tparse_tmapping_multi_s *rest
 	return NULL;
 }
 
-tparse_tmapping_mixing_s* tparse_tmapping_add_mixing(tparse_tmapping_mixing_s *restrict mp, const char *restrict name, refer_t value)
+static tparse_tmapping_mixing_s* tparse_tmapping_add_mixing(tparse_tmapping_mixing_s *restrict mp, const char *restrict name, refer_t value)
 {
 	tparse_tmapping_multi_t *restrict item;
 	if (name)
@@ -243,17 +220,17 @@ tparse_tmapping_mixing_s* tparse_tmapping_add_mixing(tparse_tmapping_mixing_s *r
 	return NULL;
 }
 
-refer_t tparse_tmapping_test_single(tparse_tmapping_single_s *restrict mp, char c)
+static refer_t tparse_tmapping_test_single(tparse_tmapping_single_s *restrict mp, char c)
 {
 	return tparse_tmapping_inner_single_test(&mp->single, c);
 }
 
-refer_t tparse_tmapping_test_multi(tparse_tmapping_multi_s *restrict mp, char c)
+static refer_t tparse_tmapping_test_multi(tparse_tmapping_multi_s *restrict mp, char c)
 {
 	return tparse_tmapping_inner_multi_list_test(mp->multi, c);
 }
 
-refer_t tparse_tmapping_test_mixing(tparse_tmapping_mixing_s *restrict mp, char c)
+static refer_t tparse_tmapping_test_mixing(tparse_tmapping_mixing_s *restrict mp, char c)
 {
 	refer_t s, m;
 	s = tparse_tmapping_inner_single_test(&mp->single, c);
@@ -261,17 +238,63 @@ refer_t tparse_tmapping_test_mixing(tparse_tmapping_mixing_s *restrict mp, char 
 	return s?s:m;
 }
 
-void tparse_tmapping_clear_single(tparse_tmapping_single_s *restrict mp)
+static void tparse_tmapping_clear_single(tparse_tmapping_single_s *restrict mp)
 {
 	return ;
 }
 
-void tparse_tmapping_clear_multi(tparse_tmapping_multi_s *restrict mp)
+static void tparse_tmapping_clear_multi(tparse_tmapping_multi_s *restrict mp)
 {
 	tparse_tmapping_inner_multi_list_clear(mp->multi);
 }
 
-void tparse_tmapping_clear_mixing(tparse_tmapping_mixing_s *restrict mp)
+static void tparse_tmapping_clear_mixing(tparse_tmapping_mixing_s *restrict mp)
 {
 	tparse_tmapping_inner_multi_list_clear(mp->multi);
 }
+
+#define d_tmapping(_t)  r->tmapping.add = (tparse_tmapping_add_f) tparse_tmapping_add_##_t;\
+			r->tmapping.test = (tparse_tmapping_test_f) tparse_tmapping_test_##_t;\
+			r->tmapping.clear = (tparse_tmapping_clear_f) tparse_tmapping_clear_##_t
+
+tparse_tmapping_s* tparse_tmapping_alloc_single(void)
+{
+	tparse_tmapping_single_s *restrict r;
+	r = (tparse_tmapping_single_s *) refer_alloz(sizeof(tparse_tmapping_single_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) tparse_tmapping_single_free_func);
+		d_tmapping(single);
+	}
+	return &r->tmapping;
+}
+
+tparse_tmapping_s* tparse_tmapping_alloc_multi(void)
+{
+	tparse_tmapping_multi_s *restrict r;
+	r = (tparse_tmapping_multi_s *) refer_alloc(sizeof(tparse_tmapping_multi_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) tparse_tmapping_multi_free_func);
+		r->multi = NULL;
+		r->p_multi_tail = &r->multi;
+		d_tmapping(multi);
+	}
+	return &r->tmapping;
+}
+
+tparse_tmapping_s* tparse_tmapping_alloc_mixing(void)
+{
+	tparse_tmapping_mixing_s *restrict r;
+	r = (tparse_tmapping_mixing_s *) refer_alloz(sizeof(tparse_tmapping_mixing_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) tparse_tmapping_free_func);
+		r->multi = NULL;
+		r->p_multi_tail = &r->multi;
+		d_tmapping(mixing);
+	}
+	return &r->tmapping;
+}
+
+#undef d_tmapping
