@@ -1,4 +1,5 @@
 #include "tstring.h"
+#include "tmapping.h"
 
 typedef struct tparse_tstring_trigger_check_s {
 	tparse_tstring_trigger_s trigger;
@@ -162,7 +163,7 @@ static tparse_tstring_s* tparse_tstring_cstring_set_head_trigger(tparse_tstring_
 static tparse_tstring_s* tparse_tstring_alloc_c_parse(const char *restrict quotes)
 {
 	tparse_tstring_s *restrict r;
-	if ((r = tparse_tstring_alloc_empty()))
+	if ((r = tparse_tstring_alloc_empty(tparse_tmapping_alloc_single)))
 	{
 		if (tparse_tstring_cstring_set_head_trigger(r, *quotes) &&
 			tparse_tstring_set_trigger_func(r, tparse_tstring_trigger_inner, "\\", tparse_tstring_cstring_escape_parse_func) &&

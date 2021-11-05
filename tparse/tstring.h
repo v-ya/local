@@ -3,6 +3,8 @@
 
 #include <refer.h>
 
+struct tparse_tmapping_s;
+
 typedef struct tparse_tstring_s tparse_tstring_s;
 typedef struct tparse_tstring_trigger_s tparse_tstring_trigger_s;
 typedef struct tparse_tstring_value_t tparse_tstring_value_t;
@@ -28,7 +30,7 @@ void tparse_tstring_value_finally(tparse_tstring_value_t *restrict value);
 
 // inst build
 
-tparse_tstring_s* tparse_tstring_alloc_empty(void);
+tparse_tstring_s* tparse_tstring_alloc_empty(struct tparse_tmapping_s* (*mp_alloc_func)(void));
 tparse_tstring_s* tparse_tstring_set_trigger(tparse_tstring_s *restrict ts, tparse_tstring_trigger_t type, const char *restrict inner_name, tparse_tstring_trigger_s *trigger);
 tparse_tstring_s* tparse_tstring_set_trigger_func(tparse_tstring_s *restrict ts, tparse_tstring_trigger_t type, const char *restrict inner_name, tparse_tstring_trigger_f trigger_func);
 

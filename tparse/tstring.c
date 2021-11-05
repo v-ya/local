@@ -65,14 +65,14 @@ static void tparse_tstring_free_func(tparse_tstring_s *restrict r)
 	exbuffer_uini(&r->value.value);
 }
 
-tparse_tstring_s* tparse_tstring_alloc_empty(void)
+tparse_tstring_s* tparse_tstring_alloc_empty(struct tparse_tmapping_s* (*mp_alloc_func)(void))
 {
 	tparse_tstring_s *restrict r;
-	if ((r = (tparse_tstring_s *) refer_alloz(sizeof(tparse_tstring_s))))
+	if (mp_alloc_func && (r = (tparse_tstring_s *) refer_alloz(sizeof(tparse_tstring_s))))
 	{
 		refer_set_free(r, (refer_free_f) tparse_tstring_free_func);
 		if (exbuffer_init(&r->value.value, 0) &&
-			(r->mapping = tparse_tmapping_alloc_mixing()))
+			(r->mapping = mp_alloc_func()))
 			return r;
 		refer_free(r);
 	}
