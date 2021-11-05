@@ -34,6 +34,7 @@ tparse_tstack_s* tparse_tstack_alloc(void)
 		{
 			r->depth_max_backup_size = ~(uintptr_t) 0;
 			r->log2align = 4;
+			return r;
 		}
 		refer_free(r);
 	}
