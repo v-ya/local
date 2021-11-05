@@ -6,6 +6,8 @@
 #define exbuffer_min_size       64
 #define exbuffer_max_log2align  20
 
+#define exbuffer_align2mask(_l2a)  (((uintptr_t) 1 << _l2a) - 1)
+
 static inline uintptr_t exbuffer_size_fix(register uintptr_t size)
 {
 	if (size && size <= 0x80000000)
@@ -29,8 +31,8 @@ static inline uintptr_t exbuffer_default_align(register uintptr_t cpos)
 
 static inline void* exbuffer_align(void *ptr, register uint32_t log2align)
 {
-	log2align = ((uintptr_t) 1 << log2align) - 1;
-	return (void *) (((uintptr_t) ptr + log2align) & ~log2align);
+	register uintptr_t m = exbuffer_align2mask(log2align);
+	return (void *) (((uintptr_t) ptr + m) & ~m);
 }
 
 static exbuffer_t* exbuffer_exsize(exbuffer_t *restrict r, uintptr_t size)
@@ -133,11 +135,13 @@ void* exbuffer_mono(exbuffer_t *restrict eb, uintptr_t size, uint32_t log2align,
 	void *restrict r;
 	if (log2align <= exbuffer_max_log2align)
 	{
-		size += ((uintptr_t) 1 << log2align) - 1;
+		size += exbuffer_align2mask(log2align);
 		if ((r = exbuffer_need(eb, size)))
 		{
 			eb->cpos = exbuffer_default_align(eb->cpos + size);
-			return exbuffer_align(r, log2align);
+			r = exbuffer_align(r, log2align);
+			if (rpos) *rpos = (uintptr_t) r - (uintptr_t) eb->data;
+			return r;
 		}
 	}
 	return NULL;
@@ -148,11 +152,15 @@ void* exbuffer_monz(exbuffer_t *restrict eb, uintptr_t size, uint32_t log2align,
 	void *restrict r;
 	if (log2align <= exbuffer_max_log2align)
 	{
-		size += ((uintptr_t) 1 << log2align) - 1;
+		uintptr_t osize;
+		osize = size;
+		size += exbuffer_align2mask(log2align);
 		if ((r = exbuffer_need(eb, size)))
 		{
 			eb->cpos = exbuffer_default_align(eb->cpos + size);
-			return exbuffer_align(memset(r, 0, size), log2align);
+			r = exbuffer_align(r, log2align);
+			if (rpos) *rpos = (uintptr_t) r - (uintptr_t) eb->data;
+			return memset(r, 0, osize);
 		}
 	}
 	return NULL;
