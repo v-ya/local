@@ -18,18 +18,6 @@ struct cparse_value_s* cparse_inner_alloc_value_empty(cparse_value_type_t type)
 	return r;
 }
 
-struct cparse_value_s* cparse_inner_alloc_value_string(cparse_value_type_t type, const char *restrict string, uintptr_t length)
-{
-	struct cparse_value_s *restrict r;
-	if ((r = cparse_inner_alloc_value_empty(type)))
-	{
-		if ((r->data.refer = refer_dump_string_with_length(string, length)))
-			return r;
-		refer_free(r);
-	}
-	return NULL;
-}
-
 struct cparse_value_s* cparse_inner_alloc_value_nstring(cparse_value_type_t type, const char *restrict string, uintptr_t length)
 {
 	struct cparse_value_s *restrict r;

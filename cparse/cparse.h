@@ -16,16 +16,18 @@ struct cparse_scope_s {
 };
 
 typedef enum cparse_value_type_t {
-	cparse_value$scope,       // {...}
-	cparse_value$key,         // _abc$01
-	cparse_value$string,      // "..."
-	cparse_value$chars,       // '...'
-	cparse_value$number,      // -1.23, +15u, 0x2233, ...
-	cparse_value$operator,    // +-*/%...
-	cparse_value$include$sys, // #include <...>
-	cparse_value$include$cur, // #include "..."
-	cparse_value$define,      // #define, #undef
-	cparse_value$check,       // #if, ##elif
+	cparse_value$scope,       // scope:    {...}
+	cparse_value$key,         // -:        _abc$01
+	cparse_value$string,      // string:   "..."
+	cparse_value$chars,       // chars:    '...'
+	cparse_value$number,      // number:   -1.23, +15u, 0x2233, ...
+	cparse_value$operator,    // -:        +-*/%...
+	cparse_value$comment,     // comment:  /*...*/, //...
+	cparse_value$pretreat,    // pretreat: unknow pretreatment
+	cparse_value$include$sys, // include:  #include <...>
+	cparse_value$include$cur, // include:  #include "..."
+	cparse_value$define,      // -:        #define, #undef
+	cparse_value$check,       // -:        #if, ##elif
 } cparse_value_type_t;
 
 typedef union cparse_value_data_t {
@@ -34,7 +36,9 @@ typedef union cparse_value_data_t {
 	refer_nstring_t string;
 	refer_nstring_t chars;
 	refer_nstring_t number;
-	refer_string_t include;
+	refer_nstring_t comment;
+	refer_nstring_t pretreat;
+	refer_nstring_t include;
 } cparse_value_data_t;
 
 struct cparse_value_s {

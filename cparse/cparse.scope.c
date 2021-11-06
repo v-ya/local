@@ -12,23 +12,33 @@ static void cparse_scope_free_func(cparse_scope_s *restrict r)
 		refer_free(r->name);
 }
 
+cparse_scope_s* cparse_inner_alloc_scope_empty(void)
+{
+	cparse_scope_s *restrict r;
+	r = (cparse_scope_s *) refer_alloz(sizeof(cparse_scope_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) cparse_scope_free_func);
+		if ((r->scope = vattr_alloc()))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
 cparse_scope_s* cparse_scope_alloc(cparse_inst_s *restrict inst, refer_nstring_t code, refer_string_t path, refer_string_t name)
 {
 	cparse_scope_s *restrict r;
 	if (code)
 	{
-		r = (cparse_scope_s *) refer_alloz(sizeof(cparse_scope_s));
-		if (r)
+		if ((r = cparse_inner_alloc_scope_empty()))
 		{
-			refer_set_free(r, (refer_free_f) cparse_scope_free_func);
-			if ((r->scope = vattr_alloc()))
-			{
-				r->code = (refer_nstring_t) refer_save(code);
-				r->path = (refer_string_t) refer_save(path);
-				r->name = (refer_string_t) refer_save(name);
-				if (cparse_inner_scope_parse(inst, r->scope, code->string, code->length))
-					return r;
-			}
+			r->code = (refer_nstring_t) refer_save(code);
+			r->path = (refer_string_t) refer_save(path);
+			r->name = (refer_string_t) refer_save(name);
+			cparse_inst_clear(inst);
+			if (cparse_inner_scope_parse(inst, r->scope, code->string, code->length))
+				return r;
 			refer_free(r);
 		}
 	}

@@ -4,7 +4,7 @@ HEADER		= cparse.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lvattr -ltparse -lfsys -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lhashmap -lvattr -ltparse -lfsys -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 

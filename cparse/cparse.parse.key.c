@@ -25,7 +25,7 @@ static cparse_parse_s* cparse_inner_parse_key(cparse_parse_key_s *restrict pri, 
 	if (context->pos > pos)
 	{
 		key = tparse_tstring_cache_get(pri->cache, context->data + pos, context->pos - pos);
-		if (vattr_insert_tail(context->scope, key, pri->value))
+		if (key && vattr_insert_tail(context->scope, key, pri->value))
 			return &pri->parse;
 	}
 	return NULL;
