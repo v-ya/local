@@ -7,6 +7,8 @@
 typedef struct args_t {
 	const char *input;
 	const char *output;
+	const char *kiya_pocket_path;
+	uintptr_t kiya_xmsize;
 } args_t;
 
 void args_help(const char *exec);

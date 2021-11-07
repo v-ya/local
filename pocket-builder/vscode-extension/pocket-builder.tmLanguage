@@ -85,6 +85,23 @@
 		</dict>
 		<dict>
 			<key>name</key>
+			<string>keyword.control</string>
+			<key>begin</key>
+			<string>\(</string>
+			<key>end</key>
+			<string>\)</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>name</key>
+					<string>support.function</string>
+					<key>match</key>
+					<string>".*?(?&lt;![^\\][\\])"</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>name</key>
 			<string>support.function</string>
 			<key>begin</key>
 			<string>=[0-9]*&gt;\s*\(\s*(u8|s8|u16|s16|u32|s32|u64|s64|f32|f64)\s*(\[\s*[0-9a-fx]*\s*\])?\)\s*\{</string>

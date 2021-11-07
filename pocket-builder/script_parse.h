@@ -8,7 +8,7 @@
 
 const char* parse_key(exbuffer_t *restrict buffer, const char *restrict *restrict p);
 exbuffer_t* parse_value(exbuffer_t *restrict buffer, const char *restrict *restrict p, uintptr_t *restrict align);
-exbuffer_t* load_file(exbuffer_t *restrict buffer, const char *restrict path);
-exbuffer_t* load_text(exbuffer_t *restrict buffer, const char *restrict path);
+exbuffer_t* parse_load_file(exbuffer_t *restrict buffer, const char *restrict path);
+exbuffer_t* parse_load_text(exbuffer_t *restrict buffer, const char *restrict path);
 
 #endif

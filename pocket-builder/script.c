@@ -2,7 +2,10 @@
 #include "script_header.h"
 #include "script_ptag.h"
 #include "script_parse.h"
+#include <mlog.h>
 #include <stdlib.h>
+#include <dlfcn.h>
+#include <string.h>
 
 script_t* script_alloc(void)
 {
@@ -27,7 +30,59 @@ void script_free(script_t *restrict s)
 	hashmap_uini(&s->header);
 	hashmap_uini(&s->ptag);
 	if (s->buffer) exbuffer_free(s->buffer);
+	if (s->kiya && s->kiya_free)
+		s->kiya_free(s->kiya);
+	if (s->libkiya)
+		dlclose(s->libkiya);
 	free(s);
+}
+
+script_t* script_kiya_enable(script_t *restrict s, uintptr_t xmsize, struct pocket_verify_s *verify)
+{
+	kiya_t* (*kiya_alloc)(mlog_s *restrict mlog, size_t xsize);
+	void (*kiya_set_verify)(kiya_t *restrict kiya, const struct pocket_verify_s *verify);
+	mlog_s *restrict ml;
+	ml = NULL;
+	if (!s->libkiya && !s->kiya)
+	{
+		s->libkiya = dlopen("libkiya.so", RTLD_LOCAL | RTLD_NOW);
+		if (s->libkiya)
+		{
+			kiya_alloc = dlsym(s->libkiya, "kiya_alloc");
+			kiya_set_verify = dlsym(s->libkiya, "kiya_set_verify");
+			s->kiya_free = dlsym(s->libkiya, "kiya_free");
+			s->kiya_load_path = dlsym(s->libkiya, "kiya_load_path");
+			s->kiya_symbol = dlsym(s->libkiya, "kiya_symbol");
+			if (kiya_alloc && kiya_set_verify && s->kiya_free && s->kiya_load_path && s->kiya_symbol)
+			{
+				ml = mlog_alloc(0);
+				if (ml)
+				{
+					mlog_set_report(ml, mlog_report_stdout_func, NULL);
+					s->kiya = kiya_alloc(ml, xmsize);
+					refer_free(ml);
+					ml = NULL;
+					if (s->kiya)
+					{
+						kiya_set_verify(s->kiya, verify);
+						return s;
+					}
+				}
+			}
+		}
+	}
+	if (ml) refer_free(ml);
+	return NULL;
+}
+
+script_t* script_kiya_load(script_t *restrict s, const char *restrict kiya_pocket_path)
+{
+	if (s->kiya && s->kiya_load_path && kiya_pocket_path)
+	{
+		if (s->kiya_load_path(s->kiya, kiya_pocket_path))
+			return s;
+	}
+	return NULL;
 }
 
 typedef void* (*script_parse_stream_f)(void *restrict pri, const char *restrict name);
@@ -169,6 +224,89 @@ static script_t* script_working_create(script_t *restrict script, pocket_saver_s
 	return r;
 }
 
+typedef struct script_working_kiya_call_arg_t {
+	exbuffer_t data;
+	exbuffer_t pointer;
+	uintptr_t argc;
+	const char **argv;
+} script_working_kiya_call_arg_t;
+
+static script_working_kiya_call_arg_t* script_working_kiya_call_get_arg_func(script_working_kiya_call_arg_t *restrict arg, const char *restrict name)
+{
+	uintptr_t size;
+	uintptr_t pos;
+	size = strlen(name) + 1;
+	pos = arg->data.used;
+	if (exbuffer_append(&arg->data, name, size) &&
+		(arg->argv = exbuffer_append(&arg->pointer, &pos, sizeof(pos))))
+	{
+		arg->argc += 1;
+		return arg;
+	}
+	return NULL;
+}
+
+static script_working_kiya_call_arg_t* script_working_kiya_call_get_arg(script_working_kiya_call_arg_t *restrict arg, const char *restrict *restrict p)
+{
+	uintptr_t data_start, i;
+	const char *restrict s;
+	if (*(s = *p) == '(')
+	{
+		++s;
+		skip_space(s);
+		if ((script_string_stream(&s, (script_parse_stream_f) script_working_kiya_call_get_arg_func, arg)))
+		{
+			skip_space(s);
+			if (*s == ')')
+			{
+				*p = s + 1;
+				data_start = (uintptr_t) arg->data.data;
+				for (i = 0; i < arg->argc; ++i)
+					arg->argv[i] += data_start;
+				return arg;
+			}
+		}
+	}
+	*p = s;
+	return NULL;
+}
+
+static pocket_saver_index_t* script_working_kiya_call(script_t *restrict script, pocket_saver_s *restrict saver, pocket_saver_index_t *restrict working, const char *restrict *restrict p)
+{
+	script_working_kiya_call_arg_t arg;
+	pocket_builder_kiya_main_f kmain;
+	pocket_saver_index_t *rw;
+	rw = NULL;
+	if (script->kiya && script->kiya_symbol)
+	{
+		if (!exbuffer_init(&arg.data, 0))
+			goto label_fail_data;
+		if (!exbuffer_init(&arg.pointer, 0))
+			goto label_fail_pointer;
+		arg.argc = 0;
+		arg.argv = NULL;
+		if (script_working_kiya_call_get_arg(&arg, p) && arg.argc && arg.argv)
+		{
+			kmain = (pocket_builder_kiya_main_f) script->kiya_symbol(script->kiya, NULL, arg.argv[0]);
+			if (kmain)
+				rw = kmain(saver, working, arg.argc, arg.argv);
+		}
+		exbuffer_uini(&arg.pointer);
+		label_fail_pointer:
+		exbuffer_uini(&arg.data);
+		label_fail_data:
+		;
+	}
+	return rw;
+}
+
+pocket_builder_kiya_main_f script_kiya_symbol(script_t *restrict s, const char *restrict symbol)
+{
+	if (s->kiya && s->kiya_symbol && symbol)
+		return (pocket_builder_kiya_main_f) s->kiya_symbol(s->kiya, NULL, symbol);
+	return NULL;
+}
+
 const char* script_build(script_t *restrict script, pocket_saver_s *restrict saver, const char *restrict s, const char *restrict *restrict linker)
 {
 	pocket_saver_index_t *restrict working;
@@ -199,6 +337,10 @@ const char* script_build(script_t *restrict script, pocket_saver_s *restrict sav
 			case '\"':
 				if (!script_working_create(script, saver, working, &s))
 					goto label_fail;
+				continue;
+			case '(':
+				working = script_working_kiya_call(script, saver, working, &s);
+				if (!working) goto label_fail;
 				continue;
 			case '~':
 				*linker = s + 1;

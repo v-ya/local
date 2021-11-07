@@ -1,6 +1,5 @@
 #include "script_parse.h"
 #include <json.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -196,13 +195,13 @@ exbuffer_t* parse_value(exbuffer_t *restrict buffer, const char *restrict *restr
 			else if (*s == '@')
 			{
 				// load text
-				if (*++s == '\"' && (s = json_decode(*p = s, &v)) && load_text(buffer, v->value.string))
+				if (*++s == '\"' && (s = json_decode(*p = s, &v)) && parse_load_text(buffer, v->value.string))
 					r = buffer;
 			}
 			else if (*s == '&')
 			{
 				// load file
-				if (*++s == '\"' && (s = json_decode(*p = s, &v)) && load_file(buffer, v->value.string))
+				if (*++s == '\"' && (s = json_decode(*p = s, &v)) && parse_load_file(buffer, v->value.string))
 					r = buffer;
 			}
 			else if (*s == '(')
@@ -218,34 +217,34 @@ exbuffer_t* parse_value(exbuffer_t *restrict buffer, const char *restrict *restr
 	return r;
 }
 
-exbuffer_t* load_file(exbuffer_t *restrict buffer, const char *restrict path)
+#include <fsys.h>
+
+exbuffer_t* parse_load_file(exbuffer_t *restrict buffer, const char *restrict path)
 {
 	exbuffer_t *r;
-	FILE *fp;
-	size_t n;
+	fsys_file_s *fp;
+	uint64_t size;
+	uintptr_t n;
 	r = NULL;
 	buffer->used = 0;
-	fp = fopen(path, "rb");
+	fp = fsys_file_alloc(path, fsys_file_flag_read);
 	if (fp)
 	{
-		fseek(fp, 0, SEEK_END);
-		n = ftell(fp);
-		if (n && exbuffer_need(buffer, n))
+		if (fsys_file_attr_size(fp, &size) && (n = (uintptr_t) size) && exbuffer_need(buffer, n))
 		{
 			buffer->used = n;
-			fseek(fp, 0, SEEK_SET);
-			if (fread(buffer->data, 1, n, fp) == n)
+			if (fsys_file_read(fp, buffer->data, n, &n) && n == buffer->used)
 				r = buffer;
 		}
-		fclose(fp);
+		refer_free(fp);
 	}
 	return r;
 }
 
-exbuffer_t* load_text(exbuffer_t *restrict buffer, const char *restrict path)
+exbuffer_t* parse_load_text(exbuffer_t *restrict buffer, const char *restrict path)
 {
 	char stail = 0;
-	if (load_file(buffer, path) && exbuffer_append(buffer, &stail, 1))
+	if (parse_load_file(buffer, path) && exbuffer_append(buffer, &stail, 1))
 		return buffer;
 	return NULL;
 }
