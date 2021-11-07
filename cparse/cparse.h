@@ -13,6 +13,8 @@ struct cparse_scope_s {
 	refer_nstring_t code; // code
 	refer_string_t path;  // ex: dir/
 	refer_string_t name;  // ex: code.c
+	uintptr_t code_offset;
+	uintptr_t code_length;
 };
 
 typedef enum cparse_value_type_t {

@@ -103,7 +103,7 @@ static cparse_parse_s* cparse_inner_parse_pre(cparse_parse_pre_s *restrict pri, 
 			{
 				// proxy to call
 				cparse_inst_context_t c;
-				c.scope = context->scope;
+				c = *context;
 				c.data = data;
 				c.size = length;
 				c.pos = 0;

@@ -36,8 +36,10 @@ cparse_scope_s* cparse_scope_alloc(cparse_inst_s *restrict inst, refer_nstring_t
 			r->code = (refer_nstring_t) refer_save(code);
 			r->path = (refer_string_t) refer_save(path);
 			r->name = (refer_string_t) refer_save(name);
+			r->code_offset = 0;
+			r->code_length = code->length;
 			cparse_inst_clear(inst);
-			if (cparse_inner_scope_parse(inst, r->scope, code->string, code->length))
+			if (cparse_inner_scope_parse(inst, r))
 				return r;
 			refer_free(r);
 		}

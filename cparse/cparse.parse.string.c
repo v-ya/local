@@ -17,11 +17,10 @@ static cparse_parse_s* cparse_inner_parse_ts_nstring(cparse_parse_string_s *rest
 {
 	cparse_parse_s *ret;
 	tparse_tstring_s *ts;
-	uintptr_t pos;
 	ret = NULL;
 	ts = pri->ts;
 	tparse_tstring_clear(ts);
-	if (tparse_tstring_transport(ts, context->data, context->size, pos = context->pos - 1, &context->pos))
+	if (tparse_tstring_transport(ts, context->data, context->size, context->pos - 1, &context->pos))
 	{
 		cparse_value_s *restrict v;
 		const char *restrict string;
