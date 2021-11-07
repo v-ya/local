@@ -944,22 +944,25 @@ void pocket_saver_build_free(uint8_t *restrict pocket)
 	free(pocket);
 }
 
+#include <fsys.h>
+
 pocket_saver_s* pocket_saver_save(pocket_saver_s *restrict saver, const char *restrict path, const struct pocket_verify_s *restrict verify)
 {
 	pocket_saver_s *r;
 	uint8_t *data;
 	uint64_t size;
+	uintptr_t n;
 	r = NULL;
 	data = pocket_saver_build(saver, &size, verify);
 	if (data)
 	{
-		FILE *fp;
-		fp = fopen(path, "wb");
+		fsys_file_s *fp;
+		fp = fsys_file_alloc(path, fsys_file_flag_write | fsys_file_flag_create | fsys_file_flag_truncate);
 		if (fp)
 		{
-			if (fwrite(data, 1, (size_t) size, fp) == (size_t) size)
+			if (fsys_file_write(fp, data, (uintptr_t) size, &n) && n == (uintptr_t) size)
 				r = saver;
-			fclose(fp);
+			refer_free(fp);
 		}
 		free(data);
 	}

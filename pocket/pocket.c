@@ -1,9 +1,9 @@
 #include "pocket.h"
 #include "pocket-verify.h"
 #include <rbtree.h>
+#include <fsys.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #define pocket_attr_bits  5
 
@@ -366,26 +366,27 @@ pocket_s* pocket_alloc(uint8_t *restrict pocket, uint64_t size, const struct poc
 pocket_s* pocket_load(const char *restrict path, const struct pocket_verify_s *restrict verify)
 {
 	pocket_s *r;
-	FILE *fp;
+	fsys_file_s *fp;
 	r = NULL;
-	fp = fopen(path, "rb");
+	fp = fsys_file_alloc(path, fsys_file_flag_read);
 	if (fp)
 	{
-		size_t n;
-		fseek(fp, 0, SEEK_END);
-		if ((n = ftell(fp)) >= sizeof(pocket_header_t))
+		uint64_t size;
+		uintptr_t n;
+		if (fsys_file_attr_size(fp, &size) && (n = (uintptr_t) size) >= sizeof(pocket_header_t))
 		{
 			uint8_t *data;
 			data = (uint8_t *) malloc(n);
 			if (data)
 			{
-				fseek(fp, 0, SEEK_SET);
-				if (fread(data, 1, n, fp) == n && (r = pocket_alloc(data, n, verify)))
+				if (fsys_file_read(fp, data, n, &n) &&
+					n == (uintptr_t) size &&
+					(r = pocket_alloc(data, n, verify)))
 					refer_set_free(r, (refer_free_f) pocket_free_ntr_func);
 				else free(data);
 			}
 		}
-		fclose(fp);
+		refer_free(fp);
 	}
 	return r;
 }

@@ -7,8 +7,8 @@ HEADER		= pocket.h pocket-saver.h pocket-verify.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS-POCKET	= -shared -soname ${TARGET-POCKET} -lrefer -lrbtree
-LDFLAGS-SAVER	= -shared -soname ${TARGET-SAVER} -lrefer -lhashmap -lrbtree
+LDFLAGS-POCKET	= -shared -soname ${TARGET-POCKET} -lrefer -lrbtree -lfsys
+LDFLAGS-SAVER	= -shared -soname ${TARGET-SAVER} -lrefer -lhashmap -lrbtree -lfsys
 LDFLAGS-VERIFY	= -shared -soname ${TARGET-VERIFY} -lrefer -lhashmap
 
 OBJECT-POCKET	= pocket.o
