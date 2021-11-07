@@ -177,15 +177,22 @@ kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path)
 	return NULL;
 }
 
-kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret)
+void* kiya_symbol(kiya_t *restrict kiya, const char *name, const char *restrict symbol)
 {
 	dylink_pool_t *pool;
+	if (name) pool = hashmap_get_name(&kiya->dylink, name);
+	else pool = kiya->pool;
+	if (pool && symbol)
+		return dylink_pool_get_symbol(pool, symbol, NULL);
+	return NULL;
+}
+
+kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret)
+{
 	kiya_main_f func;
 	const kiya_args_t *restrict args;
 	int r;
-	if (name) pool = hashmap_get_name(&kiya->dylink, name);
-	else pool = kiya->pool;
-	if (pool && main && (func = (kiya_main_f) dylink_pool_get_symbol(pool, main, NULL)))
+	if (main && (func = (kiya_main_f) kiya_symbol(kiya, NULL, main)))
 	{
 		if (!name) name = main;
 		if ((args = (kiya_args_t *) hashmap_get_name(&kiya->args, name)))

@@ -20,6 +20,7 @@ kiya_t* kiya_set_source(kiya_t *restrict kiya, const char *restrict name, const 
 kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const char *restrict value);
 kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket);
 kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path);
+void* kiya_symbol(kiya_t *restrict kiya, const char *name, const char *restrict symbol);
 kiya_t* kiya_do(kiya_t *restrict kiya, const char *name, const char *restrict main, int *restrict ret);
 
 #endif
