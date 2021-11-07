@@ -1,7 +1,20 @@
+cc		= gcc
+ld		= ld
+dylink		= dylink
+ccflags		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
 pocket-builder	= pocket-builder
 
-${target}.kiya: kiya.builder
+${target}.kiya: kiya.builder ../import-api-by-c-header.kiya
+	${pocket-builder} --kiya ../import-api-by-c-header.kiya $< -o $@
+
+../import-api-by-c-header.kiya: ../import-api-by-c-header.builder ../import-api-by-c-header.dy
 	${pocket-builder} $< -o $@
+
+../import-api-by-c-header.dy: ../import-api-by-c-header.o
+	${dylink} $< -o $@
+
+../import-api-by-c-header.o: ../import-api-by-c-header.c
+	${cc} ${ccflags} -c $< -o $@
 
 .PHONY: clear
 clear:
