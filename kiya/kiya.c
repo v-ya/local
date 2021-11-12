@@ -163,6 +163,7 @@ kiya_t* kiya_load(kiya_t *restrict kiya, pocket_s *restrict pocket)
 	return NULL;
 }
 
+static kiya_t* kiya_kirakira_check_like(kiya_t *restrict kiya, const char *restrict name);
 kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path)
 {
 	pocket_s *restrict pocket;
@@ -171,8 +172,11 @@ kiya_t* kiya_load_path(kiya_t *restrict kiya, const char *restrict path)
 	{
 		kiya = kiya_load(kiya, pocket);
 		refer_free(pocket);
+		label_okay:
 		return kiya;
 	}
+	else if (kiya_kirakira_check_like(kiya, path))
+		goto label_okay;
 	else mlog_printf(kiya->mlog, "kiya pocket(%s) load fail\n", path);
 	return NULL;
 }
@@ -219,9 +223,12 @@ static kiya_t* kiya_kirakira_check_like(kiya_t *restrict kiya, const char *restr
 		if (!kiya_load_path(kiya, path))
 			name = NULL;
 		vl->value = (void *) path;
-		hashmap_delete_name(&kiya->source, name);
-		if (name && hashmap_get_name(&kiya->kiya, name))
-			goto label_okay;
+		if (name)
+		{
+			hashmap_delete_name(&kiya->source, name);
+			if (hashmap_get_name(&kiya->kiya, name))
+				goto label_okay;
+		}
 	}
 	return NULL;
 }
