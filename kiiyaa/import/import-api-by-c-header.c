@@ -17,7 +17,7 @@ static const char* scope_get_func_check(vattr_vlist_t *it, vattr_vlist_t *b, vat
 	// find ')'
 	if (it == e)
 		goto label_fail;
-	if (*it->vslot->key == '*')
+	if (*it->vslot->key == '*' || *it->vslot->key == '(')
 		goto label_fail;
 	depth = 0;
 	while (it != e)
