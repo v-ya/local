@@ -11,7 +11,7 @@ int transport_inner_sleep_maybe_ms(uint64_t ms)
 
 struct timespec* transport_inner_timespec_now(struct timespec *restrict r)
 {
-	if (!clock_gettime(CLOCK_MONOTONIC, r))
+	if (!clock_gettime(CLOCK_MONOTONIC_COARSE, r))
 		return r;
 	return NULL;
 }

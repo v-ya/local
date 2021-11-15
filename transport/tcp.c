@@ -127,7 +127,7 @@ refer_string_t transport_tcp_remote(transport_s *restrict r, uint32_t *restrict 
 	return NULL;
 }
 
-transport_s* transport_tcp_alloc_ipv4_connect_with_bind(const char *restrict local_ip, uint32_t local_port, const char *restrict remote_ip, uint32_t remote_port, const transport_tcp_attr_t *restrict attr)
+transport_s* transport_tcp_alloc_ipv4_connect_with_bind(const char *restrict local_ip, uint32_t local_port, const char *restrict remote_ip, uint32_t remote_port)
 {
 	transport_tcp_s *restrict r;
 	struct sockaddr_in remote, local;
@@ -149,13 +149,8 @@ transport_s* transport_tcp_alloc_ipv4_connect_with_bind(const char *restrict loc
 					if (transport_inner_socket_bind(r->sock, local_addr, local_len))
 						goto label_fail;
 				}
-				if (attr)
-				{
-					if (transport_inner_socket_set_timeout_send(r->sock, (uint64_t) attr->send_timeout_ms))
-						goto label_fail;
-					if (transport_inner_socket_set_timeout_recv(r->sock, (uint64_t) attr->recv_timeout_ms))
-						goto label_fail;
-				}
+				if (transport_inner_socket_set_nonblock(r->sock))
+					goto label_fail;
 				if (!transport_inner_socket_connect_start(r->sock, remote_addr, remote_len))
 					return &r->tp;
 			}
@@ -166,9 +161,9 @@ transport_s* transport_tcp_alloc_ipv4_connect_with_bind(const char *restrict loc
 	return NULL;
 }
 
-transport_s* transport_tcp_alloc_ipv4_connect(const char *restrict remote_ip, uint32_t remote_port, const transport_tcp_attr_t *restrict attr)
+transport_s* transport_tcp_alloc_ipv4_connect(const char *restrict remote_ip, uint32_t remote_port)
 {
-	return transport_tcp_alloc_ipv4_connect_with_bind(NULL, 0, remote_ip, remote_port, attr);
+	return transport_tcp_alloc_ipv4_connect_with_bind(NULL, 0, remote_ip, remote_port);
 }
 
 transport_s* transport_tcp_wait_connect(transport_s *restrict r, uint64_t connect_timeout_ms, const volatile uintptr_t *running)

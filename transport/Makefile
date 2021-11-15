@@ -1,12 +1,12 @@
 TARGET		= libtransport.so
-HEADER		= transport.h tcp.h
+HEADER		= transport.h tcp.h udp.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -soname ${TARGET}
 
-OBJECT		= transport.o tcp.o $(patsubst %.c, %.o, $(wildcard inner/*.c))
+OBJECT		= transport.o tcp.o udp.o $(patsubst %.c, %.o, $(wildcard inner/*.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
