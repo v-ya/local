@@ -2,92 +2,41 @@
 #include <hashmap.h>
 #include <exbuffer.h>
 #include <udns.h>
-#include <transport/tcp.h>
+#include <transport/udp.h>
+#include <queue/queue.h>
+#include <yaw.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 
 typedef struct web_dns_item_t {
 	refer_nstring_t hit;
-	udns_s *udns;
 	uint64_t tkill;
 } web_dns_item_t;
+
+typedef struct web_dns_core_s {
+	yaw_s *task;
+	udns_inst_s *inst;
+	transport_s *tp;
+	yaw_lock_s *read;
+	yaw_lock_s *write;
+	yaw_signal_s *s_task;
+	yaw_signal_s *s_okay;
+	queue_s *q_task;
+	queue_s *q_data;
+	hashmap_t ipv4;
+	hashmap_t ipv6;
+} web_dns_core_s;
 
 struct web_dns_s {
 	refer_string_t target;
 	udns_inst_s *inst;
-	hashmap_t ipv4;
-	hashmap_t ipv6;
-	exbuffer_t buffer;
+	transport_s *tp;
+	web_dns_core_s *core;
 	const volatile uintptr_t *runing;
+	uintptr_t gap;
 	uintptr_t ntry;
 	uint64_t timeout;
 };
-
-static inline transport_s* web_dns_udns_request_tcp_connect_and_call(transport_s *restrict tcp, udns_s *restrict udns, exbuffer_t *restrict eb, const volatile uintptr_t *runing, uint64_t timeout)
-{
-	uint8_t *restrict data;
-	uintptr_t size;
-	uintptr_t rn;
-	uint64_t tk, tn;
-	transport_recv_attr_t attr = {
-		.running = runing,
-		.timeout_ms = 0,
-		.recv_some = 1,
-		.recv_full = 1
-	};
-	size = udns_build_length(udns);
-	if (size && size < 0x10000 && (data = (uint8_t *) exbuffer_need(eb, size + 2)))
-	{
-		*(uint16_t *) data = htons((uint16_t) size);
-		if (udns_build_write(udns, data + 2))
-		{
-			size += 2;
-			tk = transport_timestamp_ms() + timeout;
-			if (transport_tcp_wait_connect(tcp, timeout, runing) &&
-				transport_send(tcp, data, size, &rn) && rn == size &&
-				(tn = transport_timestamp_ms()) <= tk)
-			{
-				attr.timeout_ms = tk - tn;
-				if ((data = (uint8_t *) exbuffer_need(eb, 2)) &&
-					transport_recv(tcp, data, 2, NULL, &attr) &&
-					(tn = transport_timestamp_ms()) <= tk)
-				{
-					attr.timeout_ms = tk - tn;
-					size = (uintptr_t) ntohs(*(uint16_t *) data);
-					if (size && (data = (uint8_t *) exbuffer_need(eb, size)) &&
-						transport_recv(tcp, data, size, NULL, &attr) &&
-						udns_parse(udns, data, size, NULL, udns_parse_flags_ignore_unknow))
-						return tcp;
-				}
-			}
-		}
-	}
-	return NULL;
-}
-
-static udns_s* web_dns_udns_request_tcp(web_dns_s *restrict inst, udns_s *restrict udns, const char *restrict domain, udns_type_t type)
-{
-	transport_s *restrict tcp;
-	uintptr_t ntry;
-	ntry = inst->ntry;
-	while (ntry)
-	{
-		udns_clear(udns);
-		udns_set_rd(udns, 1);
-		if (!udns_add_question_info(udns, domain, type, udns_class_in))
-			break;
-		if (!(tcp = transport_tcp_alloc_ipv4_connect(inst->target, 53, NULL)))
-			break;
-		if (web_dns_udns_request_tcp_connect_and_call(tcp, udns, &inst->buffer, inst->runing, inst->timeout))
-			goto label_okay;
-		refer_free(tcp);
-		--ntry;
-	}
-	return NULL;
-	label_okay:
-	refer_free(tcp);
-	return udns;
-}
 
 static void web_dns_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
@@ -96,91 +45,210 @@ static void web_dns_hashmap_free_func(hashmap_vlist_t *restrict vl)
 	{
 		if (r->hit)
 			refer_free(r->hit);
-		if (r->udns)
-			refer_free(r->udns);
 		free(r);
 	}
 }
 
-static void web_dns_free_func(web_dns_s *restrict r)
+static inline udns_s* web_dns_core_get_data(web_dns_core_s *restrict core)
 {
-	if (r->target)
-		refer_free(r->target);
-	if (r->inst)
-		refer_free(r->inst);
-	hashmap_uini(&r->ipv4);
-	hashmap_uini(&r->ipv6);
-	exbuffer_uini(&r->buffer);
+	udns_s *restrict r;
+	return (void) ((r = (udns_s *) core->q_data->pull(core->q_data)) || (r = udns_alloc(core->inst))), r;
 }
 
-static refer_nstring_t web_dns_item_replace(web_dns_item_t *restrict item, const char *restrict hit, udns_s *restrict udns, uint64_t tkill)
+static inline void web_dns_core_put_data(web_dns_core_s *restrict core, udns_s *restrict udns)
 {
-	if (item->hit)
-		refer_free(item->hit);
-	if (item->udns)
-		refer_free(item->udns);
-	if (hit) item->hit = refer_dump_nstring(hit);
-	else item->hit = NULL;
-	item->udns = (udns_s *) refer_save(udns);
-	item->tkill = tkill;
-	return item->hit;
+	udns_clear(udns);
+	core->q_data->push(core->q_data, udns);
+	refer_free(udns);
 }
 
-static web_dns_item_t* web_dns_hashmap_set(hashmap_t *restrict hm, const char *restrict domain, const char *restrict hit, udns_s *restrict udns, uint64_t tkill)
+static udns_s* web_dns_core_get_question(web_dns_core_s *restrict core, const char *restrict domain, udns_type_t type)
+{
+	udns_s *restrict r;
+	if ((r = web_dns_core_get_data(core)))
+	{
+		udns_set_rd(r, 1);
+		if (udns_add_question_info(r, domain, type, udns_class_in))
+			return r;
+		web_dns_core_put_data(core, r);
+	}
+	return NULL;
+}
+
+static hashmap_t* web_dns_core_update_hashmap(hashmap_t *restrict h, const char *restrict domain, const char *restrict hit, uint64_t tkill)
 {
 	web_dns_item_t *restrict item;
-	if ((item = (web_dns_item_t *) hashmap_get_name(hm, domain)))
+	if ((item = (web_dns_item_t *) hashmap_get_name(h, domain)))
 	{
 		label_find:
-		if (web_dns_item_replace(item, hit, udns, tkill))
-			return item;
+		if (item->hit)
+		{
+			refer_free(item->hit);
+			item->hit = NULL;
+		}
+		item->tkill = tkill;
+		if ((item->hit = refer_dump_nstring(hit)))
+			return h;
 	}
 	else if ((item = (web_dns_item_t *) calloc(1, sizeof(web_dns_item_t))))
 	{
-		if (hashmap_set_name(hm, domain, item, web_dns_hashmap_free_func))
+		if (hashmap_set_name(h, domain, item, web_dns_hashmap_free_func))
 			goto label_find;
 		free(item);
 	}
 	return NULL;
 }
 
-static refer_nstring_t web_dns_hashmap_get(hashmap_t *restrict hm, web_dns_s *restrict inst, const char *restrict domain, udns_type_t type)
+static web_dns_core_s* web_dns_core_update(web_dns_core_s *restrict core, udns_s *restrict udns)
 {
-	web_dns_item_t *restrict item;
-	udns_s *restrict udns;
-	udns_resource_s *restrict resource;
-	uint64_t tkill;
-	tkill = transport_timestamp_sec();
-	if ((item = (web_dns_item_t *) hashmap_get_name(hm, domain)) && tkill <= item->tkill)
+	udns_question_s *restrict q;
+	udns_resource_s *restrict r;
+	hashmap_t *restrict h;
+	if ((q = udns_get_question(udns, udns_type_a)))
 	{
-		label_okay:
-		return item->hit;
+		r = udns_get_answer(udns, udns_type_a);
+		h = &core->ipv4;
 	}
-	if (inst->target)
+	else if ((q = udns_get_question(udns, udns_type_aaaa)))
 	{
-		if (item && item->udns)
-			udns = (udns_s *) refer_save(item->udns);
-		else udns = udns_alloc(inst->inst);
-		if (udns)
+		r = udns_get_answer(udns, udns_type_aaaa);
+		h = &core->ipv6;
+	}
+	else goto label_fail;
+	if (r)
+	{
+		yaw_lock_lock(core->write);
+		h = web_dns_core_update_hashmap(h, q->name_string, r->data_parse, yaw_timestamp_sec() + (uint64_t) r->ttl);
+		yaw_lock_unlock(core->write);
+		if (h) return core;
+	}
+	label_fail:
+	return NULL;
+}
+
+static web_dns_core_s* web_dns_core_push_task(web_dns_core_s *restrict core, const char *restrict domain, udns_type_t type)
+{
+	udns_s *restrict q;
+	if ((q = web_dns_core_get_question(core, domain, type)))
+	{
+		if (core->q_task->push(core->q_task, q))
 		{
-			if (web_dns_udns_request_tcp(inst, udns, domain, type) &&
-				(resource = udns_get_answer(udns, type)) &&
-				resource->data_parse)
-			{
-				tkill = transport_timestamp_sec() + resource->ttl;
-				if (item && web_dns_item_replace(item, resource->data_parse, udns, tkill))
-					goto label_okay_free_udns;
-				else if (!item && (item = web_dns_hashmap_set(hm, domain, resource->data_parse, udns, tkill)))
-				{
-					label_okay_free_udns:
-					refer_free(udns);
-					goto label_okay;
-				}
-			}
-			refer_free(udns);
+			refer_free(q);
+			yaw_signal_wake(core->s_task, ~0);
+			return core;
 		}
+		web_dns_core_put_data(core, q);
 	}
 	return NULL;
+}
+
+static void web_dns_core_task(yaw_s *task)
+{
+	web_dns_core_s *restrict core;
+	udns_s *restrict d;
+	web_dns_core_s *updated;
+	uintptr_t length;
+	uint8_t data[4096];
+	core = (web_dns_core_s *) task->data;
+	if (core->inst && core->tp)
+	{
+		while (task->running)
+		{
+			while ((d = (udns_s *) core->q_task->pull(core->q_task)))
+			{
+				if ((length = udns_build_length(d)) <= sizeof(data) && udns_build_write(d, data))
+					transport_send(core->tp, data, length, NULL);
+				web_dns_core_put_data(core, d);
+			}
+			updated = NULL;
+			while (transport_recv(core->tp, data, sizeof(data), &length, NULL) && length)
+			{
+				if ((d = web_dns_core_get_data(core)))
+				{
+					if (udns_parse(d, data, length, NULL, udns_parse_flags_ignore_unknow) &&
+						web_dns_core_update(core, d))
+						updated = core;
+					web_dns_core_put_data(core, d);
+				}
+			}
+			if (updated)
+				yaw_signal_wake(core->s_okay, ~0);
+			yaw_signal_wait_time(core->s_task, 0, 50000);
+		}
+	}
+}
+
+static void web_dns_core_free_func(web_dns_core_s *restrict r)
+{
+	if (r->task)
+	{
+		yaw_stop(r->task);
+		if (r->s_task)
+			yaw_signal_wake(r->s_task, ~0);
+		yaw_wait(r->task);
+		refer_free(r->task);
+	}
+	if (r->inst)
+		refer_free(r->inst);
+	if (r->tp)
+		refer_free(r->tp);
+	if (r->read)
+		refer_free(r->read);
+	if (r->write)
+		refer_free(r->write);
+	if (r->s_task)
+		refer_free(r->s_task);
+	if (r->s_okay)
+		refer_free(r->s_okay);
+	if (r->q_task)
+		refer_free(r->q_task);
+	if (r->q_data)
+		refer_free(r->q_data);
+	hashmap_uini(&r->ipv4);
+	hashmap_uini(&r->ipv6);
+}
+
+web_dns_core_s* web_dns_core_alloc(udns_inst_s *inst, transport_s *tp, uintptr_t queue_size)
+{
+	web_dns_core_s *restrict r;
+	r = (web_dns_core_s *) refer_alloz(sizeof(web_dns_core_s));
+	if (r)
+	{
+		r->inst = (udns_inst_s *) refer_save(inst);
+		r->tp = (transport_s *) refer_save(tp);
+		refer_set_free(r, (refer_free_f) web_dns_core_free_func);
+		if (yaw_lock_alloc_rwlock(&r->read, &r->write))
+			goto label_fail;
+		if (!(r->s_task = yaw_signal_alloc()))
+			goto label_fail;
+		if (!(r->s_okay = yaw_signal_alloc()))
+			goto label_fail;
+		if (!(r->q_task = queue_alloc_ring(queue_size)))
+			goto label_fail;
+		if (!(r->q_data = queue_alloc_ring(queue_size)))
+			goto label_fail;
+		if (!hashmap_init(&r->ipv4))
+			goto label_fail;
+		if (!hashmap_init(&r->ipv6))
+			goto label_fail;
+		if ((r->task = yaw_alloc_and_start(web_dns_core_task, NULL, r)))
+			return r;
+		label_fail:
+		refer_free(r);
+	}
+	return NULL;
+}
+
+static void web_dns_free_func(web_dns_s *restrict r)
+{
+	if (r->core)
+		refer_free(r->core);
+	if (r->tp)
+		refer_free(r->tp);
+	if (r->inst)
+		refer_free(r->inst);
+	if (r->target)
+		refer_free(r->target);
 }
 
 web_dns_s* web_dns_alloc(const char *restrict target)
@@ -189,16 +257,18 @@ web_dns_s* web_dns_alloc(const char *restrict target)
 	if ((r = (web_dns_s *) refer_alloz(sizeof(web_dns_s))))
 	{
 		refer_set_free(r, (refer_free_f) web_dns_free_func);
-		if ((!target || (r->target = refer_dump_string(target))) &&
-			(r->inst = udns_inst_alloc_mini()) &&
-			hashmap_init(&r->ipv4) &&
-			hashmap_init(&r->ipv6) &&
-			exbuffer_init(&r->buffer, 0))
+		if ((!target || (r->target = refer_dump_string(target))))
 		{
-			r->runing = NULL;
-			r->ntry = 1;
-			r->timeout = 500;
-			return r;
+			if ((!r->target || ((r->inst = udns_inst_alloc_mini()) &&
+				(r->tp = transport_udp_alloc_ipv4()) &&
+				transport_udp_set_remote(r->tp, r->target, 53))) &&
+				(r->core = web_dns_core_alloc(r->inst, r->tp, 1024)))
+			{
+				r->runing = NULL;
+				r->gap = 50000;
+				web_dns_attr_set_timeout(r, 0, 0);
+				return r;
+			}
 		}
 		refer_free(r);
 	}
@@ -213,33 +283,102 @@ void web_dns_attr_set_running(web_dns_s *restrict dns, const volatile uintptr_t 
 void web_dns_attr_set_timeout(web_dns_s *restrict dns, uintptr_t ntry, uint64_t timeout_ms)
 {
 	if (!ntry)
-		ntry = 1;
+		ntry = 3;
 	if (!timeout_ms)
 		timeout_ms = 500;
 	dns->ntry = ntry;
-	dns->timeout = timeout_ms;
+	dns->timeout = timeout_ms * 1000;
 }
 
-web_dns_s* web_dns_set_ipv4(web_dns_s *restrict dns, const char *restrict domain, const char *restrict ipv4)
+web_dns_s* web_dns_set_ipv4(web_dns_s *dns, const char *restrict domain, const char *restrict ipv4)
 {
-	if (web_dns_hashmap_set(&dns->ipv4, domain, ipv4, NULL, ~(uint64_t) 0))
-		return dns;
+	web_dns_core_s *restrict core;
+	yaw_lock_s *restrict lock;
+	hashmap_t *h;
+	lock = (core = dns->core)->write;
+	yaw_lock_lock(lock);
+	h = web_dns_core_update_hashmap(&core->ipv4, domain, ipv4, ~(uint64_t) 0);
+	yaw_lock_unlock(lock);
+	return h?dns:NULL;
+}
+
+web_dns_s* web_dns_set_ipv6(web_dns_s *dns, const char *restrict domain, const char *restrict ipv6)
+{
+	web_dns_core_s *restrict core;
+	yaw_lock_s *restrict lock;
+	hashmap_t *h;
+	lock = (core = dns->core)->write;
+	yaw_lock_lock(lock);
+	h = web_dns_core_update_hashmap(&core->ipv6, domain, ipv6, ~(uint64_t) 0);
+	yaw_lock_unlock(lock);
+	return h?dns:NULL;
+}
+
+static inline refer_nstring_t web_dns_get_save_ip_by_cache(hashmap_t *restrict h, yaw_lock_s *restrict read, const char *restrict domain, uint64_t curr)
+{
+	web_dns_item_t *restrict item;
+	refer_nstring_t r;
+	yaw_lock_lock(read);
+	if ((item = (web_dns_item_t *) hashmap_get_name(h, domain)) && item->tkill >= curr && item->hit)
+		r = (refer_nstring_t) refer_save(item->hit);
+	else r = NULL;
+	yaw_lock_unlock(read);
+	return r;
+}
+
+static refer_nstring_t web_dns_get_save_ip(web_dns_s *dns, hashmap_t *restrict h, const char *restrict domain, udns_type_t type)
+{
+	web_dns_core_s *restrict core;
+	refer_nstring_t rip;
+	uintptr_t i, t;
+	const volatile uintptr_t *runing;
+	uint64_t curr;
+	uint64_t ts_curr;
+	uint64_t ts_edge;
+	if (domain)
+	{
+		curr = yaw_timestamp_sec();
+		core = dns->core;
+		if ((rip = web_dns_get_save_ip_by_cache(h, core->read, domain, curr)))
+		{
+			label_okay:
+			return rip;
+		}
+		if (dns->tp)
+		{
+			runing = dns->runing;
+			for (i = 0; i < dns->ntry; ++i)
+			{
+				if (web_dns_core_push_task(core, domain, type))
+				{
+					ts_edge = (ts_curr = yaw_timestamp_msec()) + dns->timeout;
+					goto label_entry;
+					do {
+						ts_curr = yaw_timestamp_msec();
+						if ((!runing || *runing) && ts_curr < ts_edge)
+						{
+							t = (uintptr_t) ts_edge - ts_curr;
+							if (t > dns->gap)
+								t = dns->gap;
+							if (t) yaw_signal_wait_time(core->s_okay, 0, t);
+						}
+						label_entry:
+						if ((rip = web_dns_get_save_ip_by_cache(h, core->read, domain, curr)))
+							goto label_okay;
+					} while ((!runing || *runing) && ts_curr < ts_edge);
+				}
+			}
+		}
+	}
 	return NULL;
 }
 
-web_dns_s* web_dns_set_ipv6(web_dns_s *restrict dns, const char *restrict domain, const char *restrict ipv6)
+refer_nstring_t web_dns_get_save_ipv4(web_dns_s *dns, const char *restrict domain)
 {
-	if (web_dns_hashmap_set(&dns->ipv6, domain, ipv6, NULL, ~(uint64_t) 0))
-		return dns;
-	return NULL;
+	return web_dns_get_save_ip(dns, &dns->core->ipv4, domain, udns_type_a);
 }
 
-refer_nstring_t web_dns_get_ipv4(web_dns_s *restrict dns, const char *restrict domain)
+refer_nstring_t web_dns_get_save_ipv6(web_dns_s *dns, const char *restrict domain)
 {
-	return web_dns_hashmap_get(&dns->ipv4, dns, domain, udns_type_a);
-}
-
-refer_nstring_t web_dns_get_ipv6(web_dns_s *restrict dns, const char *restrict domain)
-{
-	return web_dns_hashmap_get(&dns->ipv6, dns, domain, udns_type_aaaa);
+	return web_dns_get_save_ip(dns, &dns->core->ipv6, domain, udns_type_aaaa);
 }

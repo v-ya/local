@@ -160,17 +160,17 @@ refer_nstring_t web_request_set_ip_and_port(web_request_s *restrict request, con
 web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct web_dns_s *restrict dns, const char *restrict full_uri)
 {
 	web_request_s *r;
-	refer_nstring_t protocol, host, ip, uri;
+	refer_nstring_t protocol, host, uri, ip;
 	uint32_t port;
 	r = NULL;
+	ip = NULL;
 	if (!uhttp_uri_tear(full_uri, &protocol, &host, &port, &uri) &&
 		!strcmp(protocol->string, "http"))
 	{
 		if (!udns_check_ipv4(host->string, NULL))
-			ip = host;
+			ip = (refer_nstring_t) refer_save(host);
 		else if (dns)
-			ip = web_dns_get_ipv4(dns, host->string);
-		else ip = NULL;
+			ip = web_dns_get_save_ipv4(dns, host->string);
 		if (ip && web_request_refer_host(request, host) &&
 			web_request_refer_uri(request, uri) &&
 			(port?web_request_set_ip_and_port(request, ip->string, port):
@@ -180,6 +180,7 @@ web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct 
 	if (protocol) refer_free(protocol);
 	if (host) refer_free(host);
 	if (uri) refer_free(uri);
+	if (ip) refer_free(ip);
 	return r;
 }
 
@@ -187,7 +188,7 @@ struct transport_s* web_request_open_tp(web_request_s *restrict request, uintptr
 {
 	transport_s *restrict tp;
 	web_request_close_tp(request);
-	if (request->target && (tp = transport_tcp_alloc_ipv4_connect(request->target->string, 80, NULL)))
+	if (request->target && (tp = transport_tcp_alloc_ipv4_connect(request->target->string, 80)))
 	{
 		if (transport_tcp_wait_connect(tp, (uint64_t) connect_timeout_ms, running))
 			web_request_refer_tp(request, tp);
