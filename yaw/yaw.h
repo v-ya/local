@@ -55,6 +55,11 @@ void yaw_msleep(uintptr_t msec);
 void yaw_usleep(uintptr_t usec);
 void yaw_nsleep(uintptr_t nsec);
 
+uint64_t yaw_timestamp_sec(void);
+uint64_t yaw_timestamp_msec(void);
+uint64_t yaw_timestamp_usec(void);
+uint64_t yaw_timestamp_nsec(void);
+
 yaw_lock_s* yaw_lock_alloc_mutex(void);
 yaw_lock_s* yaw_lock_alloc_spin(void);
 int yaw_lock_alloc_rwlock(yaw_lock_s *restrict *restrict read, yaw_lock_s *restrict *restrict write);

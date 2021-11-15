@@ -138,3 +138,37 @@ void yaw_nsleep(uintptr_t nsec)
 {
 	yaw_sleep_tspec(nsec / 1000000000, nsec % 1000000000);
 }
+
+#include "inline_futex.h"
+
+uint64_t yaw_timestamp_sec(void)
+{
+	struct timespec ts;
+	if (yaw_inline_timespec_curr(&ts))
+		return (uint64_t) ts.tv_sec;
+	return 0;
+}
+
+uint64_t yaw_timestamp_msec(void)
+{
+	struct timespec ts;
+	if (yaw_inline_timespec_curr(&ts))
+		return (uint64_t) ts.tv_sec * dt_s2ms + (uint64_t) ts.tv_nsec / dt_ms2ns;
+	return 0;
+}
+
+uint64_t yaw_timestamp_usec(void)
+{
+	struct timespec ts;
+	if (yaw_inline_timespec_curr(&ts))
+		return (uint64_t) ts.tv_sec * dt_s2us + (uint64_t) ts.tv_nsec / dt_us2ns;
+	return 0;
+}
+
+uint64_t yaw_timestamp_nsec(void)
+{
+	struct timespec ts;
+	if (yaw_inline_timespec_curr(&ts))
+		return (uint64_t) ts.tv_sec * dt_s2ns + (uint64_t) ts.tv_nsec;
+	return 0;
+}

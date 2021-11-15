@@ -12,6 +12,8 @@
 #include <time.h>
 
 #define dt_us2ns 1000
+#define dt_ms2ns 1000000
+#define dt_s2ms  1000
 #define dt_s2us  1000000
 #define dt_s2ns  1000000000
 
@@ -50,10 +52,6 @@ static inline struct timespec* yaw_inline_timespec_calc(struct timespec *__restr
 	}
 	return NULL;
 }
-
-#undef dt_us2ns
-#undef dt_s2us
-#undef dt_s2ns
 
 typedef uint32_t (*yaw_inline_futex_wait_test_f)(volatile uint32_t *address, uint32_t waitat);
 
