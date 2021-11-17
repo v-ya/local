@@ -28,14 +28,18 @@ static void pocket_dump_desc(const pocket_s *restrict pocket, const pocket_heade
 
 static void pocket_dump_tree(const pocket_s *restrict pocket, const pocket_attr_t *restrict attr, uint32_t n)
 {
+	register pocket_tag_t tag;
 	++n;
-	printf("%*c%-48s | %10lu | %s\n",
+	tag = pocket_preset_tag(pocket, attr);
+	printf("%*c%-48s | %10lu | %s%s%s\n",
 		n << 1, 0,
 		attr->name.string?attr->name.string:"",
 		attr->size,
-		attr->tag.string?attr->tag.string:"@null"
+		attr->tag.string?attr->tag.string:"@null",
+		(tag == pocket_tag$string && attr->data.ptr)?" => ":"",
+		(tag == pocket_tag$string && attr->data.ptr)?((const char *) attr->data.ptr):""
 	);
-	if (pocket_preset_tag(pocket, attr) == pocket_tag$index)
+	if (tag == pocket_tag$index)
 	{
 		const pocket_attr_t *restrict c;
 		uint64_t i;
