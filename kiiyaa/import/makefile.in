@@ -7,6 +7,9 @@ pocket-builder	= pocket-builder
 ${target}.kiya: kiya.builder
 	${pocket-builder} --kiya ../../pocket-builder-kiya/kiiyaa $< -o $@
 
+kiya.builder:
+	@sh ../builder.sh ${target} ${header} >$@
+
 .PHONY: clear
 clear:
-	rm -f *.kiya
+	rm -f *.kiya *.builder
