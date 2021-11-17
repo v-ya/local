@@ -34,7 +34,7 @@
 	"cparse_scope_load" @null
 
 [$ "kiya" "dylink"]
-	"import-api-by-c-header" @"dylink" => &"../import-api-by-c-header.dy"
+	"import-api-by-c-header" @"dylink" => &"import-api-by-c-header.dy"
 
 [$ "kiya" "parse"]
 	"kiya.export" @null
