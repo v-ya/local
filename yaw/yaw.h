@@ -17,6 +17,7 @@ typedef yaw_signal_s* (*yaw_signal_wait_f)(yaw_signal_s *ys, uint32_t status);
 typedef uint32_t (*yaw_signal_wake_f)(yaw_signal_s *ys, uint32_t number);
 typedef yaw_signal_s* (*yaw_signal_wait_time_f)(yaw_signal_s *ys, uint32_t status, uintptr_t usec);
 typedef uint32_t (*yaw_signal_sink_number_f)(yaw_signal_s *ys);
+typedef uint32_t (*yaw_signal_inc_f)(yaw_signal_s *ys);
 
 struct yaw_s {
 	volatile uintptr_t running;
@@ -39,6 +40,7 @@ struct yaw_signal_s {
 	yaw_signal_wake_f wake;
 	yaw_signal_wait_time_f wait_time;
 	yaw_signal_sink_number_f sink_number;
+	yaw_signal_inc_f inc;
 };
 
 yaw_s* yaw_alloc(yaw_do_f func, refer_t pri);
@@ -77,5 +79,6 @@ yaw_signal_s* yaw_signal_alloc(void);
 #define yaw_signal_wake(_ys, _n)            (_ys)->wake(_ys, _n)
 #define yaw_signal_wait_time(_ys, _s, _us)  (_ys)->wait_time(_ys, _s, _us)
 #define yaw_signal_sink_number(_ys)         (_ys)->sink_number(_ys)
+#define yaw_signal_inc(_ys)                 (_ys)->inc(_ys)
 
 #endif
