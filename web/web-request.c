@@ -26,6 +26,7 @@ struct web_request_inst_s* web_request_inst_alloc(const uhttp_inst_s *http_inst,
 		r->method = method?((const web_method_s *) refer_save(method)):web_method_alloc();
 		r->head_limit_bytes = 128 << 10;
 		r->body_limit_bytes = 8 << 20;
+		r->connect_timeout_ms = 3000;
 		r->send_timeout_ms = 3000;
 		r->recv_timeout_ms = 3000;
 		if (r->http_inst && r->method)
@@ -184,13 +185,13 @@ web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct 
 	return r;
 }
 
-struct transport_s* web_request_open_tp(web_request_s *restrict request, uintptr_t connect_timeout_ms, const volatile uintptr_t *running)
+struct transport_s* web_request_open_tp(web_request_s *restrict request)
 {
 	transport_s *restrict tp;
 	web_request_close_tp(request);
 	if (request->target && (tp = transport_tcp_alloc_ipv4_connect(request->target->string, 80)))
 	{
-		if (transport_tcp_wait_connect(tp, (uint64_t) connect_timeout_ms, running))
+		if (transport_tcp_wait_connect(tp, (uint64_t) request->inst->connect_timeout_ms, request->inst->running))
 			web_request_refer_tp(request, tp);
 		refer_free(tp);
 	}
@@ -206,21 +207,13 @@ void web_request_close_tp(web_request_s *restrict request)
 	}
 }
 
-web_request_s* web_request_send_request(web_request_s *restrict request, const void *body, uintptr_t body_length)
+static web_request_s* web_request_send_http_with_attch_header(web_request_s *restrict request, uhttp_s *restrict http, const void *body, uintptr_t body_length)
 {
-	uhttp_clear(request->request);
-	if ((request->tp || web_request_open_tp(request, 3000, NULL)) && request->method && request->uri)
+	if (request->tp)
 	{
+		web_transport_attr_t attr;
 		web_request_inst_s *restrict inst;
-		uhttp_s *restrict http;
 		inst = request->inst;
-		http = request->request;
-		uhttp_refer_request(http, request->method, request->uri);
-		if (request->host || request->target)
-		{
-			if (!uhttp_set_header_refer_name(http, inst->header_host->name, request->host?request->host->string:request->target->string))
-				goto label_fail;
-		}
 		if (request->attch_header)
 		{
 			if (!uhttp_append_header(http, request->attch_header))
@@ -228,88 +221,103 @@ web_request_s* web_request_send_request(web_request_s *restrict request, const v
 		}
 		if (!uhttp_set_header_integer_refer_name(http, inst->header_content_length->name, (int64_t) body_length))
 			goto label_fail;
-		if (web_transport_send_http(request->tp, http, &request->head_cache))
-		{
-			if (body && body_length)
-			{
-				uintptr_t rn;
-				if (!transport_send(request->tp, body, body_length, &rn) || rn != body_length)
-					goto label_fail;
-			}
+		attr.running = inst->running;
+		attr.http_head_max_length = inst->head_limit_bytes;
+		attr.http_body_max_length = inst->body_limit_bytes;
+		attr.http_transport_timeout_ms = inst->send_timeout_ms;
+		if (web_transport_send_http_with_body(request->tp, http, &request->head_cache, body, body_length, &attr))
 			return request;
-		}
 	}
 	label_fail:
 	return NULL;
 }
 
-web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost_time_ms)
+web_request_s* web_request_send_request(web_request_s *restrict request, const void *body, uintptr_t body_length)
+{
+	uhttp_clear(request->request);
+	if ((request->tp || web_request_open_tp(request)) && request->method && request->uri)
+	{
+		uhttp_s *restrict http;
+		http = request->request;
+		uhttp_refer_request(http, request->method, request->uri);
+		if (request->host || request->target)
+		{
+			if (!uhttp_set_header_refer_name(http, request->inst->header_host->name, request->host?request->host->string:request->target->string))
+				goto label_fail;
+		}
+		return web_request_send_http_with_attch_header(request, http, body, body_length);
+	}
+	label_fail:
+	return NULL;
+}
+
+web_request_s* web_request_recv_response(web_request_s *restrict request)
 {
 	web_request_inst_s *restrict inst;
 	inst = request->inst;
 	if (request->tp)
 	{
-		web_transport_recv_attr_t attr = {
+		web_transport_attr_t attr = {
 			.running = inst->running,
 			.http_head_max_length = inst->head_limit_bytes,
 			.http_body_max_length = inst->body_limit_bytes,
-			.http_recv_timeout_ms = inst->recv_timeout_ms
+			.http_transport_timeout_ms = inst->recv_timeout_ms
 		};
-		if (web_transport_recv_http_with_body(request->tp, request->response, &request->head_cache, &request->body, &attr, cost_time_ms))
+		if (web_transport_recv_http_with_body(request->tp, request->response, &request->head_cache, &request->body, &attr))
 			return request;
 	}
 	return NULL;
 }
 
-web_request_s* web_request_recv_response_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms)
+web_request_s* web_request_recv_response_without_body(web_request_s *restrict request)
 {
 	web_request_inst_s *restrict inst;
 	inst = request->inst;
 	if (request->tp)
 	{
-		web_transport_recv_attr_t attr = {
+		web_transport_attr_t attr = {
 			.running = inst->running,
 			.http_head_max_length = inst->head_limit_bytes,
 			.http_body_max_length = inst->body_limit_bytes,
-			.http_recv_timeout_ms = inst->recv_timeout_ms
+			.http_transport_timeout_ms = inst->recv_timeout_ms
 		};
-		if (web_transport_recv_http(request->tp, request->response, &request->head_cache, &attr, cost_time_ms))
+		if (web_transport_recv_http(request->tp, request->response, &request->head_cache, &attr))
 			return request;
 	}
 	return NULL;
 }
 
-web_request_s* web_request_recv_request(web_request_s *restrict request, uintptr_t *restrict cost_time_ms)
+web_request_s* web_request_recv_request(web_request_s *restrict request)
 {
 	web_request_inst_s *restrict inst;
 	inst = request->inst;
 	if (request->tp)
 	{
-		web_transport_recv_attr_t attr = {
+		web_transport_attr_t attr = {
 			.running = inst->running,
 			.http_head_max_length = inst->head_limit_bytes,
 			.http_body_max_length = inst->body_limit_bytes,
-			.http_recv_timeout_ms = inst->recv_timeout_ms
+			.http_transport_timeout_ms = inst->recv_timeout_ms
 		};
-		if (web_transport_recv_http_with_body(request->tp, request->request, &request->head_cache, &request->body, &attr, cost_time_ms))
+		if (web_transport_recv_http_with_body(request->tp, request->request, &request->head_cache, &request->body, &attr))
 			return request;
 	}
 	return NULL;
 }
 
-web_request_s* web_request_recv_request_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms)
+web_request_s* web_request_recv_request_without_body(web_request_s *restrict request)
 {
 	web_request_inst_s *restrict inst;
 	inst = request->inst;
 	if (request->tp)
 	{
-		web_transport_recv_attr_t attr = {
+		web_transport_attr_t attr = {
 			.running = inst->running,
 			.http_head_max_length = inst->head_limit_bytes,
 			.http_body_max_length = inst->body_limit_bytes,
-			.http_recv_timeout_ms = inst->recv_timeout_ms
+			.http_transport_timeout_ms = inst->recv_timeout_ms
 		};
-		if (web_transport_recv_http(request->tp, request->request, &request->head_cache, &attr, cost_time_ms))
+		if (web_transport_recv_http(request->tp, request->request, &request->head_cache, &attr))
 			return request;
 	}
 	return NULL;
@@ -317,32 +325,7 @@ web_request_s* web_request_recv_request_without_body(web_request_s *restrict req
 
 web_request_s* web_request_send_response(web_request_s *restrict request, const void *body, uintptr_t body_length)
 {
-	if (request->tp)
-	{
-		web_request_inst_s *restrict inst;
-		uhttp_s *restrict http;
-		inst = request->inst;
-		http = request->response;
-		if (request->attch_header)
-		{
-			if (!uhttp_append_header(http, request->attch_header))
-				goto label_fail;
-		}
-		if (!uhttp_set_header_integer_refer_name(http, inst->header_content_length->name, (int64_t) body_length))
-			goto label_fail;
-		if (web_transport_send_http(request->tp, http, &request->head_cache))
-		{
-			if (body && body_length)
-			{
-				uintptr_t rn;
-				if (!transport_send(request->tp, body, body_length, &rn) || rn != body_length)
-					goto label_fail;
-			}
-			return request;
-		}
-	}
-	label_fail:
-	return NULL;
+	return web_request_send_http_with_attch_header(request, request->response, body, body_length);
 }
 
 const uint8_t* web_request_get_body_data(web_request_s *restrict request, uintptr_t *restrict length)

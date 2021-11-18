@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 
+#define web_dns_time_gap_usec  50000
+
 typedef struct web_dns_item_t {
 	refer_nstring_t hit;
 	uint64_t tkill;
@@ -37,6 +39,12 @@ struct web_dns_s {
 	uintptr_t ntry;
 	uint64_t timeout;
 };
+
+static inline void web_dns_signal_wake_all(yaw_signal_s *s)
+{
+	yaw_signal_inc(s);
+	yaw_signal_wake(s, ~0);
+}
 
 static void web_dns_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
@@ -134,7 +142,7 @@ static web_dns_core_s* web_dns_core_push_task(web_dns_core_s *restrict core, con
 		if (core->q_task->push(core->q_task, q))
 		{
 			refer_free(q);
-			yaw_signal_wake(core->s_task, ~0);
+			web_dns_signal_wake_all(core->s_task);
 			return core;
 		}
 		web_dns_core_put_data(core, q);
@@ -146,34 +154,35 @@ static void web_dns_core_task(yaw_s *task)
 {
 	web_dns_core_s *restrict core;
 	udns_s *restrict d;
-	web_dns_core_s *updated;
 	uintptr_t length;
+	uint32_t status, updated;
 	uint8_t data[4096];
 	core = (web_dns_core_s *) task->data;
 	if (core->inst && core->tp)
 	{
 		while (task->running)
 		{
+			status = yaw_signal_get(core->s_task);
 			while ((d = (udns_s *) core->q_task->pull(core->q_task)))
 			{
 				if ((length = udns_build_length(d)) <= sizeof(data) && udns_build_write(d, data))
-					transport_send(core->tp, data, length, NULL);
+					transport_send(core->tp, data, length, NULL, NULL);
 				web_dns_core_put_data(core, d);
 			}
-			updated = NULL;
+			updated = 0;
 			while (transport_recv(core->tp, data, sizeof(data), &length, NULL) && length)
 			{
 				if ((d = web_dns_core_get_data(core)))
 				{
 					if (udns_parse(d, data, length, NULL, udns_parse_flags_ignore_unknow) &&
 						web_dns_core_update(core, d))
-						updated = core;
+						updated = 1;
 					web_dns_core_put_data(core, d);
 				}
 			}
 			if (updated)
-				yaw_signal_wake(core->s_okay, ~0);
-			yaw_signal_wait_time(core->s_task, 0, 50000);
+				web_dns_signal_wake_all(core->s_okay);
+			yaw_signal_wait_time(core->s_task, status, web_dns_time_gap_usec);
 		}
 	}
 }
@@ -184,7 +193,7 @@ static void web_dns_core_free_func(web_dns_core_s *restrict r)
 	{
 		yaw_stop(r->task);
 		if (r->s_task)
-			yaw_signal_wake(r->s_task, ~0);
+			web_dns_signal_wake_all(r->s_task);
 		yaw_wait(r->task);
 		refer_free(r->task);
 	}
@@ -265,7 +274,7 @@ web_dns_s* web_dns_alloc(const char *restrict target)
 				(r->core = web_dns_core_alloc(r->inst, r->tp, 1024)))
 			{
 				r->runing = NULL;
-				r->gap = 50000;
+				r->gap = web_dns_time_gap_usec;
 				web_dns_attr_set_timeout(r, 0, 0);
 				return r;
 			}
@@ -335,6 +344,7 @@ static refer_nstring_t web_dns_get_save_ip(web_dns_s *dns, hashmap_t *restrict h
 	uint64_t curr;
 	uint64_t ts_curr;
 	uint64_t ts_edge;
+	uint32_t status;
 	if (domain)
 	{
 		curr = yaw_timestamp_sec();
@@ -347,22 +357,24 @@ static refer_nstring_t web_dns_get_save_ip(web_dns_s *dns, hashmap_t *restrict h
 		if (dns->tp)
 		{
 			runing = dns->runing;
+			status = 0;
 			for (i = 0; i < dns->ntry; ++i)
 			{
 				if (web_dns_core_push_task(core, domain, type))
 				{
-					ts_edge = (ts_curr = yaw_timestamp_msec()) + dns->timeout;
+					ts_edge = (ts_curr = yaw_timestamp_usec()) + dns->timeout;
 					goto label_entry;
 					do {
-						ts_curr = yaw_timestamp_msec();
+						ts_curr = yaw_timestamp_usec();
 						if ((!runing || *runing) && ts_curr < ts_edge)
 						{
 							t = (uintptr_t) ts_edge - ts_curr;
 							if (t > dns->gap)
 								t = dns->gap;
-							if (t) yaw_signal_wait_time(core->s_okay, 0, t);
+							if (t) yaw_signal_wait_time(core->s_okay, status, t);
 						}
 						label_entry:
+						status = yaw_signal_get(core->s_okay);
 						if ((rip = web_dns_get_save_ip_by_cache(h, core->read, domain, curr)))
 							goto label_okay;
 					} while ((!runing || *runing) && ts_curr < ts_edge);

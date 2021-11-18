@@ -1,5 +1,5 @@
 TARGET		= libweb.so
-HEADER		= web-client.h web-server.h web-request.h web-transport.h
+HEADER		= web-client.h web-server.h web-dns.h web-request.h web-transport.h web-method.h
 
 CC		= gcc
 LD		= ld

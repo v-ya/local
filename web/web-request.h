@@ -17,6 +17,7 @@ typedef const struct web_request_inst_s {
 	const volatile uintptr_t *running;
 	uintptr_t head_limit_bytes;
 	uintptr_t body_limit_bytes;
+	uintptr_t connect_timeout_ms;
 	uintptr_t send_timeout_ms;
 	uintptr_t recv_timeout_ms;
 	// header
@@ -58,15 +59,15 @@ refer_nstring_t web_request_set_uri(web_request_s *restrict request, const char 
 refer_nstring_t web_request_set_ip_and_port(web_request_s *restrict request, const char *restrict ip, uint32_t port);
 web_request_s* web_request_set_full_uri(web_request_s *restrict request, struct web_dns_s *restrict dns, const char *restrict full_uri);
 
-struct transport_s* web_request_open_tp(web_request_s *restrict request, uintptr_t connect_timeout_ms, const volatile uintptr_t *running);
+struct transport_s* web_request_open_tp(web_request_s *restrict request);
 void web_request_close_tp(web_request_s *restrict request);
 
 web_request_s* web_request_send_request(web_request_s *restrict request, const void *body, uintptr_t body_length);
-web_request_s* web_request_recv_response(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
-web_request_s* web_request_recv_response_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
+web_request_s* web_request_recv_response(web_request_s *restrict request);
+web_request_s* web_request_recv_response_without_body(web_request_s *restrict request);
 
-web_request_s* web_request_recv_request(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
-web_request_s* web_request_recv_request_without_body(web_request_s *restrict request, uintptr_t *restrict cost_time_ms);
+web_request_s* web_request_recv_request(web_request_s *restrict request);
+web_request_s* web_request_recv_request_without_body(web_request_s *restrict request);
 web_request_s* web_request_send_response(web_request_s *restrict request, const void *body, uintptr_t body_length);
 
 const uint8_t* web_request_get_body_data(web_request_s *restrict request, uintptr_t *restrict length);
