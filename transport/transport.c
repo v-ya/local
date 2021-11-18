@@ -89,17 +89,66 @@ void transport_final(transport_s *restrict r)
 		free(r->cache.data);
 }
 
-transport_s* transport_send(transport_s *restrict r, const void *data, uintptr_t n, uintptr_t *restrict rn)
+typedef transport_s* (*transport_attr_do_f)(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn);
+
+static inline transport_s* transport_attr_do(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn, transport_attr_t *restrict attr, transport_attr_do_f do_func)
+{
+	if (n)
+	{
+		uintptr_t n1;
+		if (attr && (attr->flags & (transport_attr_flag_do_some | transport_attr_flag_do_full)))
+		{
+			const volatile uintptr_t *running;
+			uint64_t die_timestamp;
+			if (!(attr->flags & transport_attr_flag_do_full) && *rn)
+				goto label_once;
+			running = attr->running;
+			die_timestamp = transport_timestamp_ms() + attr->timeout_ms;
+			goto label_entry;
+			do {
+				transport_inner_sleep_maybe_ms(transport_inner_define_time_gap_ms);
+				label_entry:
+				r = do_func(r, data, n, &n1);
+				*rn += n1;
+				data += n1;
+				n -= n1;
+				if (!n || (!(attr->flags & transport_attr_flag_do_full) && n1))
+				{
+					if (attr->flags & transport_attr_flag_modify_timeout)
+					{
+						uint64_t now;
+						if (die_timestamp >= (now = transport_timestamp_ms()))
+							attr->timeout_ms = die_timestamp - now;
+						else attr->timeout_ms = 0;
+					}
+					goto label_okay;
+				}
+			} while (r && (!running || *running) &&
+				transport_timestamp_ms() < die_timestamp);
+			r = NULL;
+		}
+		else
+		{
+			label_once:
+			r = do_func(r, data, n, &n1);
+			*rn += n1;
+		}
+	}
+	label_okay:
+	return r;
+}
+
+transport_s* transport_send(transport_s *restrict r, const void *data, uintptr_t n, uintptr_t *restrict rn, transport_attr_t *restrict attr)
 {
 	uintptr_t _rn;
 	if (!rn) rn = &_rn;
 	*rn = 0;
 	if (r->send)
-		return r->send(r, data, n, rn);
+		return transport_attr_do(r, (void *) data, n, rn, attr, (transport_attr_do_f) r->send);
 	return NULL;
 }
 
-transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn, const transport_recv_attr_t *restrict attr)
+transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, uintptr_t *restrict rn, transport_attr_t *restrict attr)
 {
 	uintptr_t _rn;
 	uintptr_t n1;
@@ -113,39 +162,7 @@ transport_s* transport_recv(transport_s *restrict r, void *data, uintptr_t n, ui
 			data += n1;
 			n -= n1;
 		}
-		if (n)
-		{
-			if (attr && (attr->recv_some || attr->recv_full))
-			{
-				uint64_t die_timestamp;
-				const volatile uintptr_t *running;
-				if (!attr->recv_full && *rn)
-					goto label_once;
-				running = attr->running;
-				die_timestamp = transport_timestamp_ms() + attr->timeout_ms;
-				goto label_entry;
-				do {
-					transport_inner_sleep_maybe_ms(transport_inner_define_time_gap_ms);
-					label_entry:
-					r = r->recv(r, data, n, &n1);
-					*rn += n1;
-					data += n1;
-					n -= n1;
-					if ((n1 && !attr->recv_full) || !n)
-						goto label_okay;
-				} while (r && (!running || *running) &&
-					transport_timestamp_ms() < die_timestamp);
-				r = NULL;
-			}
-			else
-			{
-				label_once:
-				r = r->recv(r, data, n, &n1);
-				*rn += n1;
-			}
-		}
-		label_okay:
-		return r;
+		return transport_attr_do(r, data, n, rn, attr, (transport_attr_do_f) r->recv);
 	}
 	return NULL;
 }

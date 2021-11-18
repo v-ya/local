@@ -45,8 +45,11 @@ static transport_s* transport_tcp_send(transport_tcp_s *restrict r, const void *
 		if ((ret = send(r->sock, data, n, MSG_DONTWAIT)) >= 0)
 		{
 			*rn = (uintptr_t) ret;
+			label_return:
 			return &r->tp;
 		}
+		else if (errno == EAGAIN)
+			goto label_return;
 	}
 	return NULL;
 }

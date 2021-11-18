@@ -39,8 +39,11 @@ static transport_s* transport_udp_send(transport_udp_s *restrict r, const void *
 	if ((ret = sendto(r->sock, data, n, MSG_DONTWAIT, &r->remote_addr.addr, r->addr_length)) >= 0)
 	{
 		*rn = (uintptr_t) ret;
+		label_return:
 		return &r->tp;
 	}
+	else if (errno == EAGAIN)
+		goto label_return;
 	return NULL;
 }
 
