@@ -1,6 +1,7 @@
 #include "web-request.h"
 #include "web-transport.h"
 #include "web-dns.h"
+#include <transport/tcp.h>
 #include <udns.h>
 #include <stdio.h>
 #include <string.h>

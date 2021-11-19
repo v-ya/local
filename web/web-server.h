@@ -7,6 +7,7 @@
 #include <transport/transport.h>
 
 typedef struct web_server_s web_server_s;
+typedef struct web_server_route_s web_server_route_s;
 typedef struct web_server_limit_t web_server_limit_t;
 typedef struct web_server_status_t web_server_status_t;
 typedef struct web_server_request_t web_server_request_t;
@@ -44,7 +45,7 @@ struct web_server_limit_t {
 	// http 请求的 header 最大限制
 	uintptr_t http_max_length;
 	// http 请求的 body 最大限制
-	uintptr_t http_max_length;
+	uintptr_t body_max_length;
 	// (web_server_s) 所负责的 接收行为 的超时时间
 	uintptr_t transport_recv_timeout_ms;
 	// (web_server_s) 所负责的 发送行为 的超时时间
@@ -87,5 +88,9 @@ struct web_server_s {
 	const web_server_limit_t *limit;
 	const web_server_status_t *status;
 };
+
+web_server_s* web_server_alloc(const uhttp_inst_s *restrict http_inst, const web_server_limit_t *restrict limit);
+web_server_s* web_server_add_bind(web_server_s *server, const char *restrict ip, uint32_t port, uint32_t nlisten);
+web_server_route_s* web_server_route_alloc(web_server_request_f func, refer_t pri, web_server_request_flag_t flags);
 
 #endif
