@@ -1,4 +1,5 @@
 #include "web-server.h"
+#include "web-transport.h"
 #include <transport/tcp.h>
 #include <queue/queue.h>
 #include <hashmap.h>
@@ -8,6 +9,7 @@
 
 typedef struct web_server_bind_s web_server_bind_s;
 typedef struct web_server_pri_s web_server_pri_s;
+typedef struct web_server_request_s web_server_request_s;
 
 struct web_server_route_s {
 	web_server_request_f func;
@@ -38,9 +40,31 @@ struct web_server_pri_s {
 	yaw_s *working_array[];
 };
 
+struct web_server_request_s {
+	web_server_request_t request;
+	exbuffer_t request_body;
+	exbuffer_t response_body;
+	web_server_request_f func;
+	uint64_t recv_timeout_ms;
+};
+
+static const char *s_http_header_id_content_length = "content-length";
+
 static void web_server_thread_bind(yaw_s *restrict yaw);
 static void web_server_thread_working(yaw_s *restrict yaw);
-// static void web_server_thread_detach(yaw_s *restrict yaw);
+static void web_server_thread_detach(yaw_s *restrict yaw);
+
+static void web_server_detach_clear(queue_s *q_detach)
+{
+	yaw_s *y;
+	queue_pull_f pull;
+	pull = q_detach->pull;
+	while ((y = (yaw_s *) pull(q_detach)))
+	{
+		yaw_stop_and_wait(y);
+		refer_free(y);
+	}
+}
 
 static void web_server_route_free_func(web_server_route_s *restrict r)
 {
@@ -51,7 +75,10 @@ static void web_server_route_free_func(web_server_route_s *restrict r)
 static void web_server_bind_free_func(web_server_bind_s *restrict r)
 {
 	if (r->thread)
+	{
+		yaw_stop_and_wait(r->thread);
 		refer_free(r->thread);
+	}
 	if (r->listen)
 		refer_free(r->listen);
 }
@@ -86,6 +113,43 @@ static void web_server_pri_clear_bind_list(web_server_bind_s *list)
 	}
 }
 
+static void web_server_request_free_func(web_server_request_s *restrict r)
+{
+	if (r->request.tp)
+		refer_free(r->request.tp);
+	if (r->request.request_uri)
+		refer_free(r->request.request_uri);
+	if (r->request.request_http)
+		refer_free(r->request.request_http);
+	if (r->request.response_http)
+		refer_free(r->request.response_http);
+	exbuffer_uini(&r->request_body);
+	exbuffer_uini(&r->response_body);
+}
+
+static web_server_request_s* web_server_request_alloc(const web_server_s *server, transport_s *tp, uhttp_s *request_http)
+{
+	web_server_request_s *restrict r;
+	if ((r = (web_server_request_s *) refer_alloz(sizeof(web_server_request_s))))
+	{
+		refer_set_free(r, (refer_free_f) web_server_request_free_func);
+		if (exbuffer_init(&r->request_body, 0) &&
+			exbuffer_init(&r->response_body, 0) &&
+			(r->request.request_uri = uhttp_uri_alloc()) &&
+			(r->request.response_http = uhttp_alloc(server->http_inst)))
+		{
+			r->request.server = server;
+			r->request.tp = (transport_s *) refer_save(tp);
+			r->request.request_http = (uhttp_s *) refer_save(request_http);
+			r->request.request_body = &r->request_body;
+			r->request.response_body = &r->response_body;
+			return r;
+		}
+		refer_free(r);
+	}
+	return NULL;
+}
+
 static void web_server_pri_free_func(web_server_pri_s *restrict r)
 {
 	uintptr_t i;
@@ -101,7 +165,10 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	for (i = 0; i < r->limit.working_number; ++i)
 	{
 		if (r->working_array[i])
+		{
+			yaw_stop_and_wait(r->working_array[i]);
 			refer_free(r->working_array[i]);
+		}
 	}
 	// release detach (wait)
 	while (r->status.detach)
@@ -110,7 +177,10 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	if (r->q_transport)
 		refer_free(r->q_transport);
 	if (r->q_detach)
+	{
+		web_server_detach_clear(r->q_detach);
 		refer_free(r->q_detach);
+	}
 	// release lock && signal
 	if (r->register_read)
 		refer_free(r->register_read);
@@ -232,17 +302,274 @@ web_server_route_s* web_server_route_alloc(web_server_request_f func, refer_t pr
 
 // thread
 
+static transport_s* web_server_inner_push_tp(web_server_pri_s *restrict p, transport_s *tp)
+{
+	__sync_fetch_and_add(&p->status.transport, 1);
+	__sync_fetch_and_add(&p->status.wait_req, 1);
+	if (p->q_transport->push(p->q_transport, tp))
+	{
+		yaw_signal_inc(p->signal);
+		yaw_signal_wake(p->signal, ~0);
+	}
+	else
+	{
+		__sync_fetch_and_sub(&p->status.wait_req, 1);
+		__sync_fetch_and_sub(&p->status.transport, 1);
+		tp = NULL;
+	}
+	return tp;
+}
+
+static void web_server_working_route_do_finally(web_server_pri_s *restrict p, web_server_request_s *restrict req)
+{
+	if (req->request.flags & web_server_request_flag__req_body_discard)
+	{
+		int64_t length;
+		length = uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length);
+		if (length > 0 && req->request.request_body->used < (uintptr_t) length)
+		{
+			transport_attr_t ta;
+			uintptr_t n;
+			ta.running = &p->server.running;
+			ta.timeout_ms = p->limit.transport_recv_timeout_ms;
+			ta.flags = transport_attr_flag_do_full;
+			n = (uintptr_t) length - req->request.request_body->used;
+			if (!exbuffer_need(req->request.request_body, n) ||
+				!transport_recv(req->request.tp, req->request.request_body->data, n, NULL, &ta))
+				req->request.flags |= web_server_request_flag__attr_force_close;
+		}
+	}
+	/// TODO: connection keep-alive => push `tp` to q_transport, and don't sub status.transport
+	__sync_fetch_and_sub(&p->status.transport, 1);
+}
+
+static void web_server_working_route_do_response(web_server_pri_s *restrict p, web_server_request_s *restrict req)
+{
+	web_transport_attr_t attr;
+	transport_attr_t ta;
+	if (req->request.flags & web_server_request_flag__res_route)
+	{
+		const web_server_route_s *restrict route;
+		yaw_lock_lock(p->register_read);
+		route = hashmap_get_head(&p->response_route, (uint64_t) uhttp_get_response_code(req->request.response_http));
+		if (route) refer_save(route);
+		yaw_lock_unlock(p->register_read);
+		if (route)
+		{
+			if (req->request.pri)
+				refer_free(req->request.pri);
+			req->request.pri = refer_save(route->pri);
+			req->func = route->func;
+			refer_free(route);
+			req->func(&req->request);
+		}
+	}
+	attr.running = &p->server.running;
+	attr.http_transport_timeout_ms = p->limit.transport_send_timeout_ms;
+	attr.http_head_max_length = p->limit.http_max_length;
+	attr.http_body_max_length = p->limit.body_max_length;
+	switch (req->request.flags & (web_server_request_flag__res_http_by_user | web_server_request_flag__res_body_by_user))
+	{
+		case web_server_request_flag__res_http_by_user:
+			web_transport_send_http(
+				req->request.tp,
+				req->request.response_http,
+				req->request.request_body,
+				&attr);
+			break;
+		case web_server_request_flag__res_body_by_user:
+			ta.running = attr.running;
+			ta.timeout_ms = attr.http_transport_timeout_ms;
+			ta.flags = transport_attr_flag_do_full;
+			transport_send(
+				req->request.tp,
+				req->request.response_body->data,
+				req->request.response_body->used,
+				NULL, &ta);
+			break;
+		case web_server_request_flag__res_http_by_user | web_server_request_flag__res_body_by_user:
+			web_transport_send_http_with_body(
+				req->request.tp,
+				req->request.response_http,
+				req->request.request_body,
+				req->request.response_body->data,
+				req->request.response_body->used,
+				&attr);
+			break;
+		default:
+			break;
+	}
+}
+
+static void web_server_working_route_do_request(web_server_pri_s *restrict p, transport_s *tp, uhttp_s *http)
+{
+	web_server_request_s *restrict req;
+	const web_server_route_s *restrict route;
+	hashmap_t *restrict url_mapping;
+	yaw_s *detach;
+	refer_nstring_t method;
+	refer_nstring_t uri;
+	if ((method = uhttp_get_request_method(http)) &&
+		(uri = uhttp_get_request_uri(http)) &&
+		(req = web_server_request_alloc(&p->server, tp, http)))
+	{
+		if (uhttp_uri_refer_uri(req->request.request_uri, uri) &&
+			(uri = uhttp_uri_get_path(req->request.request_uri)))
+		{
+			route = NULL;
+			yaw_lock_lock(p->register_read);
+			if ((url_mapping = (hashmap_t *) hashmap_get_name(&p->request_route, method->string)))
+			{
+				route = hashmap_get_name(url_mapping, uri->string);
+				if (route) refer_save(route);
+			}
+			yaw_lock_unlock(p->register_read);
+			if (route)
+			{
+				req->request.pri = refer_save(route->pri);
+				req->request.flags = route->flags;
+				req->func = route->func;
+				refer_free(route);
+				if ((req->request.flags & web_server_request_flag__attr_mini) &&
+					!uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length))
+				{
+					const web_server_request_t *c;
+					__sync_fetch_and_add(&p->status.working, 1);
+					c = req->func(&req->request);
+					__sync_fetch_and_sub(&p->status.working, 1);
+					if (c) goto label_finally;
+					else goto label_fail_response_500;
+				}
+				else if (__sync_add_and_fetch(&p->status.detach, 1) <= p->limit.detach_number &&
+					(detach = yaw_alloc_and_start(web_server_thread_detach, req, NULL)))
+					refer_free(detach);
+				else
+				{
+					__sync_fetch_and_sub(&p->status.detach, 1);
+					label_fail_response_500:
+					uhttp_refer_response(req->request.response_http, 500, NULL);
+					label_fail_response:
+					req->request.flags |= web_server_request_flag__req_body_discard | web_server_request_flag__res_route;
+					label_finally:
+					web_server_working_route_do_response(p, req);
+					web_server_working_route_do_finally(p, req);
+				}
+			}
+			else
+			{
+				uhttp_refer_response(req->request.response_http, 404, NULL);
+				goto label_fail_response;
+			}
+		}
+		refer_free(req);
+	}
+}
+
 static void web_server_thread_bind(yaw_s *restrict yaw)
 {
-	;
+	transport_tcp_server_s *restrict listen;
+	web_server_pri_s *restrict p;
+	transport_s *tp;
+	listen = ((web_server_bind_s *) yaw->data)->listen;
+	p = ((web_server_bind_s *) yaw->data)->weak_inst;
+	while (p->server.running && yaw->running)
+	{
+		if (transport_tcp_server_accept(listen, &tp, web_server_time_gap_msec, &p->server.running))
+		{
+			web_server_inner_push_tp(p, tp);
+			refer_free(tp);
+		}
+	}
 }
 
 static void web_server_thread_working(yaw_s *restrict yaw)
 {
-	;
+	web_server_pri_s *restrict p;
+	web_transport_poll_http_s *restrict tpoll_http;
+	transport_s *tp;
+	uhttp_s *http;
+	uintptr_t number;
+	uint32_t status;
+	p = (web_server_pri_s *) yaw->data;
+	tpoll_http = NULL;
+	number = 0;
+	while (p->server.running && yaw->running)
+	{
+		status = yaw_signal_get(p->signal);
+		while (number < p->limit.wait_req_max_number && (p->limit.working_number * number <= p->status.wait_req) &&
+			(tpoll_http || (tpoll_http = web_transport_poll_http_alloc(p->server.http_inst, p->limit.http_max_length))) &&
+			(tp = (transport_s *) p->q_transport->pull(p->q_transport)))
+		{
+			if (web_transport_poll_http_join(tpoll_http, tp, p->limit.transport_recv_timeout_ms))
+				++number;
+			else
+			{
+				__sync_fetch_and_sub(&p->status.wait_req, 1);
+				__sync_fetch_and_sub(&p->status.transport, 1);
+			}
+			refer_free(tp);
+		}
+		while (web_transport_poll_http_pop(tpoll_http, &tp, &http, NULL))
+		{
+			--number;
+			__sync_fetch_and_sub(&p->status.wait_req, 1);
+			if (http)
+			{
+				web_server_working_route_do_request(p, tp, http);
+				refer_free(tp);
+				refer_free(http);
+			}
+			else
+			{
+				__sync_fetch_and_sub(&p->status.transport, 1);
+				refer_free(tp);
+			}
+		}
+		yaw_signal_wait_time(p->signal, status, web_server_time_gap_msec * 1000);
+	}
+	if (tpoll_http)
+		refer_free(tpoll_http);
 }
 
-// static void web_server_thread_detach(yaw_s *restrict yaw)
-// {
-// 	;
-// }
+static void web_server_thread_detach(yaw_s *restrict yaw)
+{
+	web_server_request_s *restrict req;
+	web_server_pri_s *restrict p;
+	req = (web_server_request_s *) yaw->pri;
+	p = (web_server_pri_s *) req->request.server;
+	yaw->pri = NULL;
+	if (req)
+	{
+		if (!(req->request.flags & (web_server_request_flag__req_body_by_user | web_server_request_flag__req_body_discard)))
+		{
+			// recv body
+			int64_t length;
+			length = uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length);
+			if (length > 0)
+			{
+				transport_attr_t ta;
+				uintptr_t n;
+				ta.running = &p->server.running;
+				ta.timeout_ms = req->recv_timeout_ms;
+				ta.flags = transport_attr_flag_do_full;
+				n = (uintptr_t) length;
+				if (!exbuffer_need(req->request.request_body, n))
+					goto label_fail;
+				if (!transport_recv(req->request.tp, req->request.request_body->data, n, &req->request.request_body->used, &ta))
+					goto label_fail;
+			}
+		}
+		if (!req->func(&req->request))
+		{
+			label_fail:
+			uhttp_refer_response(req->request.response_http, 500, NULL);
+			req->request.flags |= web_server_request_flag__res_route;
+		}
+		web_server_working_route_do_response(p, req);
+		web_server_working_route_do_finally(p, req);
+		refer_free(req);
+	}
+	web_server_detach_clear(p->q_detach);
+	p->q_detach->push(p->q_detach, yaw);
+	__sync_fetch_and_sub(&p->status.detach, 1);
+}

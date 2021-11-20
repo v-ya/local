@@ -35,8 +35,8 @@ enum web_server_request_flag_t {
 	// (register) 只负责更改 code 返回状态，由 (web_server_s) 依据 code 重新路由
 	web_server_request_flag__res_route        = 0x0040,
 
-	// (web_server_s) 为该请求分配独立线程；默认使用工作线程
-	web_server_request_flag__attr_detach      = 0x0100,
+	// (web_server_s) 为该请求使用工作线程；默认分配独立线程
+	web_server_request_flag__attr_mini        = 0x0100,
 	// (web_server_s) 将强制关闭传输当该次请求结束，而忽略 "Connection" 字段；默认根据 "Connection" 字段决定
 	web_server_request_flag__attr_force_close = 0x0200,
 };
@@ -63,7 +63,7 @@ struct web_server_limit_t {
 struct web_server_status_t {
 	// 当前的连接数
 	volatile uintptr_t transport;
-	// 当前工作线程中等待解析请求头的数目
+	// 当前等待解析请求头的数目
 	volatile uintptr_t wait_req;
 	// 当前工作线程中正在处理的数目
 	volatile uintptr_t working;
@@ -80,6 +80,7 @@ struct web_server_request_t {
 	uhttp_s *response_http;
 	exbuffer_t *request_body;
 	exbuffer_t *response_body;
+	web_server_request_flag_t flags;
 };
 
 struct web_server_s {
