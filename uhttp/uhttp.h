@@ -25,6 +25,7 @@ typedef const struct uhttp_header_s {
 	refer_nstring_t name;
 	const char *id;
 	const char *value;
+	const char *value_id;
 	uintptr_t value_length;
 } uhttp_header_s;
 

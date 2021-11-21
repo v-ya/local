@@ -41,7 +41,7 @@ uhttp_header_s* uhttp_header_refer_with_length(refer_nstring_t name, const char 
 {
 	struct uhttp_header_s *restrict r;
 	char *restrict p;
-	r = (struct uhttp_header_s *) refer_alloc((sizeof(struct uhttp_header_s) + 2) + name->length + length);
+	r = (struct uhttp_header_s *) refer_alloc((sizeof(struct uhttp_header_s) + 3) + name->length + length * 2);
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) uhttp_header_free_func);
@@ -55,8 +55,19 @@ uhttp_header_s* uhttp_header_refer_with_length(refer_nstring_t name, const char 
 		}
 		*p++ = 0;
 		r->value = p;
-		memcpy(p, value, length);
-		p[length] = 0;
+		if (length)
+		{
+			memcpy(p, value, length);
+			p += length;
+		}
+		*p++ = 0;
+		r->value_id = p;
+		if (length)
+		{
+			uhttp_header_build_id(p, value, length);
+			p += length;
+		}
+		*p++ = 0;
 		r->value_length = length;
 	}
 	return r;

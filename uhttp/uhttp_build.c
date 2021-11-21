@@ -123,6 +123,7 @@ char* uhttp_build(const uhttp_s *restrict uhttp, exbuffer_t *restrict message, u
 	if ((p = (char *) exbuffer_need(message, n + 1)))
 		*uhttp_build_write(uhttp, p) = 0;
 	else n = 0;
+	message->used = n;
 	if (length)
 		*length = n;
 	return p;
