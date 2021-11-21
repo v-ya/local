@@ -93,5 +93,14 @@ struct web_server_s {
 web_server_s* web_server_alloc(const uhttp_inst_s *restrict http_inst, const web_server_limit_t *restrict limit);
 web_server_s* web_server_add_bind(web_server_s *server, const char *restrict ip, uint32_t port, uint32_t nlisten);
 web_server_route_s* web_server_route_alloc(web_server_request_f func, refer_t pri, web_server_request_flag_t flags);
+web_server_s* web_server_register_pretreat_by_route(web_server_s *server, const web_server_route_s *restrict route);
+web_server_s* web_server_register_request_by_route(web_server_s *server, const char *restrict method, const char *restrict uri, const web_server_route_s *restrict route);
+web_server_s* web_server_register_response_by_route(web_server_s *server, int code, const web_server_route_s *restrict route);
+web_server_s* web_server_register_pretreat(web_server_s *server, web_server_request_f func, refer_t pri);
+web_server_s* web_server_register_request(web_server_s *server, const char *restrict method, const char *restrict uri, web_server_request_f func, refer_t pri, web_server_request_flag_t flags);
+web_server_s* web_server_register_response(web_server_s *server, int code, web_server_request_f func, refer_t pri);
+const web_server_route_s* web_server_find_pretreat_save(web_server_s *server);
+const web_server_route_s* web_server_find_request_save(web_server_s *server, const char *restrict method, const char *restrict uri);
+const web_server_route_s* web_server_find_response_save(web_server_s *server, int code);
 
 #endif

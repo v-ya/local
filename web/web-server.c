@@ -4,6 +4,7 @@
 #include <queue/queue.h>
 #include <hashmap.h>
 #include <yaw.h>
+#include <string.h>
 
 #define web_server_time_gap_msec  50
 
@@ -35,6 +36,7 @@ struct web_server_pri_s {
 	web_server_bind_s *bind_list;
 	queue_s *q_transport;
 	queue_s *q_detach;
+	const web_server_route_s *pretreat_route;
 	hashmap_t request_route;  // method => uri => (web_server_route_t *)
 	hashmap_t response_route; // code => (web_server_route_t *)
 	yaw_s *working_array[];
@@ -49,6 +51,7 @@ struct web_server_request_s {
 };
 
 static const char *s_http_header_id_content_length = "content-length";
+static const char *s_http_header_id_connection     = "connection";
 
 static void web_server_thread_bind(yaw_s *restrict yaw);
 static void web_server_thread_working(yaw_s *restrict yaw);
@@ -150,6 +153,14 @@ static web_server_request_s* web_server_request_alloc(const web_server_s *server
 	return NULL;
 }
 
+static inline void web_server_request_set_route_do(web_server_request_s *restrict r, const web_server_route_s *restrict route)
+{
+	if (r->request.pri)
+		refer_free(r->request.pri);
+	r->request.pri = refer_save(route->pri);
+	r->func = route->func;
+}
+
 static void web_server_pri_free_func(web_server_pri_s *restrict r)
 {
 	uintptr_t i;
@@ -159,8 +170,6 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 		yaw_signal_inc(r->signal);
 		yaw_signal_wake(r->signal, ~0);
 	}
-	// release bind
-	web_server_pri_clear_bind_list(r->bind_list);
 	// release working
 	for (i = 0; i < r->limit.working_number; ++i)
 	{
@@ -173,6 +182,8 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	// release detach (wait)
 	while (r->status.detach)
 		yaw_msleep(web_server_time_gap_msec);
+	// release bind
+	web_server_pri_clear_bind_list(r->bind_list);
 	// release queue
 	if (r->q_transport)
 		refer_free(r->q_transport);
@@ -191,6 +202,8 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	if (r->signal)
 		refer_free(r->signal);
 	// release route
+	if (r->pretreat_route)
+		refer_free(r->pretreat_route);
 	hashmap_uini(&r->request_route);
 	hashmap_uini(&r->response_route);
 	// release server
@@ -289,7 +302,8 @@ web_server_s* web_server_add_bind(web_server_s *server, const char *restrict ip,
 web_server_route_s* web_server_route_alloc(web_server_request_f func, refer_t pri, web_server_request_flag_t flags)
 {
 	web_server_route_s *restrict r;
-	if ((r = (web_server_route_s *) refer_alloc(sizeof(web_server_route_s))))
+	r = NULL;
+	if (func && (r = (web_server_route_s *) refer_alloc(sizeof(web_server_route_s))))
 	{
 		r->pri = NULL;
 		refer_set_free(r, (refer_free_f) web_server_route_free_func);
@@ -300,7 +314,192 @@ web_server_route_s* web_server_route_alloc(web_server_request_f func, refer_t pr
 	return r;
 }
 
+web_server_s* web_server_register_pretreat_by_route(web_server_s *server, const web_server_route_s *restrict route)
+{
+	web_server_pri_s *restrict p;
+	p = (web_server_pri_s *) server;
+	yaw_lock_lock(p->register_write);
+	if (p->pretreat_route)
+		refer_free(p->pretreat_route);
+	p->pretreat_route = (const web_server_route_s *) refer_save(route);
+	yaw_lock_unlock(p->register_write);
+	return server;
+}
+
+static void web_server_inner_request_route_free_func(hashmap_vlist_t *restrict vl)
+{
+	if (vl->value)
+		hashmap_free((hashmap_t *) vl->value);
+}
+
+static void web_server_inner_uri_mapping_free_func(hashmap_vlist_t *restrict vl)
+{
+	if (vl->value)
+		refer_free(vl->value);
+}
+
+static web_server_s* web_server_inner_register_request(web_server_pri_s *restrict p, const char *restrict method, const char *restrict uri, const web_server_route_s *restrict route)
+{
+	hashmap_t *restrict uri_mapping;
+	if ((uri_mapping = hashmap_get_name(&p->request_route, method)))
+	{
+		label_uri_mapping:
+		if (hashmap_set_name(uri_mapping, uri, route, web_server_inner_uri_mapping_free_func))
+		{
+			refer_save(route);
+			return &p->server;
+		}
+	}
+	else if ((uri_mapping = hashmap_alloc()))
+	{
+		if (hashmap_set_name(&p->request_route, method, uri_mapping, web_server_inner_request_route_free_func))
+			goto label_uri_mapping;
+		hashmap_free(uri_mapping);
+	}
+	return NULL;
+}
+
+static web_server_s* web_server_inner_register_response(web_server_pri_s *restrict p, int code, const web_server_route_s *restrict route)
+{
+	if (hashmap_set_head(&p->response_route, (uint64_t) code, route, web_server_inner_uri_mapping_free_func))
+	{
+		refer_save(route);
+		return &p->server;
+	}
+	return NULL;
+}
+
+static const web_server_route_s* web_server_inner_find_request(web_server_pri_s *restrict p, const char *restrict method, const char *restrict uri)
+{
+	hashmap_t *restrict uri_mapping;
+	if ((uri_mapping = hashmap_get_name(&p->request_route, method)))
+		return (const web_server_route_s *) hashmap_get_name(uri_mapping, uri);
+	return NULL;
+}
+
+static const web_server_route_s* web_server_inner_find_response(web_server_pri_s *restrict p, int code)
+{
+	return (const web_server_route_s *) hashmap_get_head(&p->response_route, (uint64_t) code);
+}
+
+web_server_s* web_server_register_request_by_route(web_server_s *server, const char *restrict method, const char *restrict uri, const web_server_route_s *restrict route)
+{
+	web_server_pri_s *p;
+	p = (web_server_pri_s *) server;
+	server = NULL;
+	if (method && uri)
+	{
+		yaw_lock_lock(p->register_write);
+		server = web_server_inner_register_request(p, method, uri, route);
+		yaw_lock_unlock(p->register_write);
+	}
+	return server;
+}
+
+web_server_s* web_server_register_response_by_route(web_server_s *server, int code, const web_server_route_s *restrict route)
+{
+	web_server_pri_s *p;
+	p = (web_server_pri_s *) server;
+	yaw_lock_lock(p->register_write);
+	server = web_server_inner_register_response(p, code, route);
+	yaw_lock_unlock(p->register_write);
+	return server;
+}
+
+web_server_s* web_server_register_pretreat(web_server_s *server, web_server_request_f func, refer_t pri)
+{
+	web_server_route_s *restrict route;
+	if ((route = web_server_route_alloc(func, pri, 0)))
+	{
+		server = web_server_register_pretreat_by_route(server, route);
+		refer_free(route);
+		return server;
+	}
+	return NULL;
+}
+
+web_server_s* web_server_register_request(web_server_s *server, const char *restrict method, const char *restrict uri, web_server_request_f func, refer_t pri, web_server_request_flag_t flags)
+{
+	web_server_route_s *restrict route;
+	if ((route = web_server_route_alloc(func, pri, flags)))
+	{
+		server = web_server_register_request_by_route(server, method, uri, route);
+		refer_free(route);
+		return server;
+	}
+	return NULL;
+}
+
+web_server_s* web_server_register_response(web_server_s *server, int code, web_server_request_f func, refer_t pri)
+{
+	web_server_route_s *restrict route;
+	if ((route = web_server_route_alloc(func, pri, 0)))
+	{
+		server = web_server_register_response_by_route(server, code, route);
+		refer_free(route);
+		return server;
+	}
+	return NULL;
+}
+
+const web_server_route_s* web_server_find_pretreat_save(web_server_s *server)
+{
+	web_server_pri_s *p;
+	const web_server_route_s *route;
+	p = (web_server_pri_s *) server;
+	yaw_lock_lock(p->register_read);
+	route = (const web_server_route_s *) refer_save(p->pretreat_route);
+	yaw_lock_unlock(p->register_read);
+	return route;
+}
+
+const web_server_route_s* web_server_find_request_save(web_server_s *server, const char *restrict method, const char *restrict uri)
+{
+	web_server_pri_s *p;
+	const web_server_route_s *route;
+	p = (web_server_pri_s *) server;
+	yaw_lock_lock(p->register_read);
+	route = (const web_server_route_s *) refer_save(web_server_inner_find_request(p, method, uri));
+	yaw_lock_unlock(p->register_read);
+	return route;
+}
+
+const web_server_route_s* web_server_find_response_save(web_server_s *server, int code)
+{
+	web_server_pri_s *p;
+	const web_server_route_s *route;
+	p = (web_server_pri_s *) server;
+	yaw_lock_lock(p->register_read);
+	route = (const web_server_route_s *) refer_save(web_server_inner_find_response(p, code));
+	yaw_lock_unlock(p->register_read);
+	return route;
+}
+
 // thread
+
+static inline uintptr_t web_server_inner_get_context_length(const uhttp_s *restrict http)
+{
+	register int64_t length;
+	length = uhttp_get_header_integer_first(http, s_http_header_id_content_length);
+	if (length < 0) length = 0;
+	return (uintptr_t) length;
+}
+
+static inline int web_server_inner_get_is_keepalive(const uhttp_s *restrict http)
+{
+	uhttp_header_s *restrict c;
+	c = uhttp_find_header_first(http, s_http_header_id_connection);
+	return (c && !strcmp(c->value_id, "keep-alive"));
+}
+
+static inline uhttp_s* web_server_inner_set_close(uhttp_s *restrict http)
+{
+	uhttp_header_s *restrict c;
+	c = uhttp_find_header_first(http, s_http_header_id_connection);
+	if (c && !strcmp(c->value_id, "close"))
+		return http;
+	return uhttp_set_header(http, "Connection", "close");
+}
 
 static transport_s* web_server_inner_push_tp(web_server_pri_s *restrict p, transport_s *tp)
 {
@@ -322,25 +521,26 @@ static transport_s* web_server_inner_push_tp(web_server_pri_s *restrict p, trans
 
 static void web_server_working_route_do_finally(web_server_pri_s *restrict p, web_server_request_s *restrict req)
 {
-	if (req->request.flags & web_server_request_flag__req_body_discard)
+	if ((req->request.flags & (web_server_request_flag__req_body_discard | web_server_request_flag__attr_force_close))
+		== web_server_request_flag__req_body_discard)
 	{
-		int64_t length;
-		length = uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length);
-		if (length > 0 && req->request.request_body->used < (uintptr_t) length)
+		uintptr_t length;
+		length = web_server_inner_get_context_length(req->request.request_http);
+		if (req->request.request_body->used < length)
 		{
 			transport_attr_t ta;
-			uintptr_t n;
 			ta.running = &p->server.running;
 			ta.timeout_ms = p->limit.transport_recv_timeout_ms;
 			ta.flags = transport_attr_flag_do_full;
-			n = (uintptr_t) length - req->request.request_body->used;
-			if (!exbuffer_need(req->request.request_body, n) ||
-				!transport_recv(req->request.tp, req->request.request_body->data, n, NULL, &ta))
+			length -= req->request.request_body->used;
+			if (!exbuffer_need(req->request.request_body, length) ||
+				!transport_recv(req->request.tp, req->request.request_body->data, length, NULL, &ta))
 				req->request.flags |= web_server_request_flag__attr_force_close;
 		}
 	}
-	/// TODO: connection keep-alive => push `tp` to q_transport, and don't sub status.transport
 	__sync_fetch_and_sub(&p->status.transport, 1);
+	if (!(req->request.flags & web_server_request_flag__attr_force_close))
+		web_server_inner_push_tp(p, req->request.tp);
 }
 
 static void web_server_working_route_do_response(web_server_pri_s *restrict p, web_server_request_s *restrict req)
@@ -356,28 +556,40 @@ static void web_server_working_route_do_response(web_server_pri_s *restrict p, w
 		yaw_lock_unlock(p->register_read);
 		if (route)
 		{
-			if (req->request.pri)
-				refer_free(req->request.pri);
-			req->request.pri = refer_save(route->pri);
-			req->func = route->func;
+			web_server_request_set_route_do(req, route);
 			refer_free(route);
 			req->func(&req->request);
 		}
 	}
+	if (!web_server_inner_get_is_keepalive(req->request.request_http) ||
+		!web_server_inner_get_is_keepalive(req->request.response_http))
+		req->request.flags |= web_server_request_flag__attr_force_close;
+	if ((req->request.flags & (web_server_request_flag__res_http_by_user | web_server_request_flag__attr_force_close))
+		== (web_server_request_flag__attr_force_close))
+		web_server_inner_set_close(req->request.response_http);
 	attr.running = &p->server.running;
 	attr.http_transport_timeout_ms = p->limit.transport_send_timeout_ms;
 	attr.http_head_max_length = p->limit.http_max_length;
 	attr.http_body_max_length = p->limit.body_max_length;
 	switch (req->request.flags & (web_server_request_flag__res_http_by_user | web_server_request_flag__res_body_by_user))
 	{
-		case web_server_request_flag__res_http_by_user:
+		case 0:
+			web_transport_send_http_with_body(
+				req->request.tp,
+				req->request.response_http,
+				req->request.request_body,
+				req->request.response_body->data,
+				req->request.response_body->used,
+				&attr);
+			break;
+		case web_server_request_flag__res_body_by_user:
 			web_transport_send_http(
 				req->request.tp,
 				req->request.response_http,
 				req->request.request_body,
 				&attr);
 			break;
-		case web_server_request_flag__res_body_by_user:
+		case web_server_request_flag__res_http_by_user:
 			ta.running = attr.running;
 			ta.timeout_ms = attr.http_transport_timeout_ms;
 			ta.flags = transport_attr_flag_do_full;
@@ -387,15 +599,6 @@ static void web_server_working_route_do_response(web_server_pri_s *restrict p, w
 				req->request.response_body->used,
 				NULL, &ta);
 			break;
-		case web_server_request_flag__res_http_by_user | web_server_request_flag__res_body_by_user:
-			web_transport_send_http_with_body(
-				req->request.tp,
-				req->request.response_http,
-				req->request.request_body,
-				req->request.response_body->data,
-				req->request.response_body->used,
-				&attr);
-			break;
 		default:
 			break;
 	}
@@ -404,8 +607,8 @@ static void web_server_working_route_do_response(web_server_pri_s *restrict p, w
 static void web_server_working_route_do_request(web_server_pri_s *restrict p, transport_s *tp, uhttp_s *http)
 {
 	web_server_request_s *restrict req;
-	const web_server_route_s *restrict route;
-	hashmap_t *restrict url_mapping;
+	const web_server_route_s *restrict route, *restrict pretreat;
+	const web_server_request_t *c;
 	yaw_s *detach;
 	refer_nstring_t method;
 	refer_nstring_t uri;
@@ -416,24 +619,28 @@ static void web_server_working_route_do_request(web_server_pri_s *restrict p, tr
 		if (uhttp_uri_refer_uri(req->request.request_uri, uri) &&
 			(uri = uhttp_uri_get_path(req->request.request_uri)))
 		{
-			route = NULL;
 			yaw_lock_lock(p->register_read);
-			if ((url_mapping = (hashmap_t *) hashmap_get_name(&p->request_route, method->string)))
-			{
-				route = hashmap_get_name(url_mapping, uri->string);
-				if (route) refer_save(route);
-			}
+			route = (const web_server_route_s *) refer_save(web_server_inner_find_request(p, method->string, uri->string));
+			if (route)
+				pretreat = (const web_server_route_s *) refer_save(p->pretreat_route);
+			else pretreat = NULL;
 			yaw_lock_unlock(p->register_read);
 			if (route)
 			{
-				req->request.pri = refer_save(route->pri);
+				c = &req->request;
 				req->request.flags = route->flags;
-				req->func = route->func;
+				if (pretreat)
+				{
+					web_server_request_set_route_do(req, pretreat);
+					c = req->func(&req->request);
+					refer_free(pretreat);
+				}
+				web_server_request_set_route_do(req, route);
 				refer_free(route);
+				if (!c) goto label_fail_response_500;
 				if ((req->request.flags & web_server_request_flag__attr_mini) &&
 					!uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length))
 				{
-					const web_server_request_t *c;
 					__sync_fetch_and_add(&p->status.working, 1);
 					c = req->func(&req->request);
 					__sync_fetch_and_sub(&p->status.working, 1);
@@ -476,9 +683,13 @@ static void web_server_thread_bind(yaw_s *restrict yaw)
 	{
 		if (transport_tcp_server_accept(listen, &tp, web_server_time_gap_msec, &p->server.running))
 		{
-			web_server_inner_push_tp(p, tp);
-			refer_free(tp);
+			if (tp)
+			{
+				web_server_inner_push_tp(p, tp);
+				refer_free(tp);
+			}
 		}
+		else yaw_msleep(web_server_time_gap_msec);
 	}
 }
 
@@ -543,19 +754,17 @@ static void web_server_thread_detach(yaw_s *restrict yaw)
 		if (!(req->request.flags & (web_server_request_flag__req_body_by_user | web_server_request_flag__req_body_discard)))
 		{
 			// recv body
-			int64_t length;
-			length = uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length);
+			uintptr_t length;
+			length = web_server_inner_get_context_length(req->request.request_http);
 			if (length > 0)
 			{
 				transport_attr_t ta;
-				uintptr_t n;
 				ta.running = &p->server.running;
 				ta.timeout_ms = req->recv_timeout_ms;
 				ta.flags = transport_attr_flag_do_full;
-				n = (uintptr_t) length;
-				if (!exbuffer_need(req->request.request_body, n))
+				if (!exbuffer_need(req->request.request_body, length))
 					goto label_fail;
-				if (!transport_recv(req->request.tp, req->request.request_body->data, n, &req->request.request_body->used, &ta))
+				if (!transport_recv(req->request.tp, req->request.request_body->data, length, &req->request.request_body->used, &ta))
 					goto label_fail;
 			}
 		}
