@@ -1,0 +1,7 @@
+	http 交互抽象层
+		web-client.h    : http 客户端
+		web-server.h    : http 服务端
+		web-dns.h       : dns 请求缓存实例
+		web-request.h   : http 请求
+		web-transport.h : http 传输
+		web-method.h    : http 类型实例
