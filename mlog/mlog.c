@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <yaw.h>
 
 static void mlog_free_func(mlog_s *restrict r)
 {
 	if (r->mlog) free(r->mlog);
 	if (r->pri) refer_free(r->pri);
+	if (r->locker) refer_free(r->locker);
 }
 
 mlog_s* mlog_alloc(uint32_t init2exp)
@@ -41,6 +43,14 @@ mlog_s* mlog_set_report(mlog_s *restrict r, mlog_report_f report_func, refer_t p
 	return r;
 }
 
+mlog_s* mlog_set_locker(mlog_s *restrict r, struct yaw_lock_s *locker)
+{
+	if (r->locker)
+		refer_free(r->locker);
+	r->locker = (struct yaw_lock_s *) refer_save(locker);
+	return r;
+}
+
 mlog_s* mlog_expand(mlog_s *restrict r)
 {
 	char *rr;
@@ -63,6 +73,9 @@ mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...)
 {
 	va_list list;
 	size_t n, nn;
+	yaw_lock_s *restrict locker;
+	if ((locker = r->locker))
+		yaw_lock_lock(locker);
 	if (r && (r->length + 1 < r->size || (r = mlog_expand(r))))
 	{
 		label_try:
@@ -79,6 +92,8 @@ mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...)
 		if (!r->report || !r->report(r->mlog + r->length, n, r->pri))
 			r->length += n;
 	}
+	if (locker)
+		yaw_lock_unlock(locker);
 	return r;
 }
 
