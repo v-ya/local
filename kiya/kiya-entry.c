@@ -91,7 +91,7 @@ static const char ** main_arg_go(inst_t *restrict inst, uintptr_t argc, const ch
 			--argc;
 			inst->xmsize = strtoul(*++argv, NULL, 0);
 		}
-		if (!strcmp(s, "amsize"))
+		else if (!strcmp(s, "amsize"))
 		{
 			--argc;
 			inst->amsize = strtoul(*++argv, NULL, 0);
