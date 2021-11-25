@@ -1,5 +1,5 @@
 output	= output
-list	= $(patsubst %/Makefile,%,$(wildcard */*/Makefile))
+list	= $(patsubst %/Makefile, '%', $(wildcard */*/Makefile))
 
 %/:
 	@mkdir $@

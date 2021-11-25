@@ -1,3 +1,3 @@
 target	= ahaa.test
 object	= test.o
-include ../makefile.in
+include ../../build-kiya.in
