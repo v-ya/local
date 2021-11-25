@@ -39,7 +39,7 @@ void script_free(script_t *restrict s)
 
 script_t* script_kiya_enable(script_t *restrict s, uintptr_t xmsize, struct pocket_verify_s *verify)
 {
-	kiya_t* (*kiya_alloc)(mlog_s *restrict mlog, size_t xsize);
+	kiya_t* (*kiya_alloc)(mlog_s *restrict mlog, uintptr_t xsize, uintptr_t asize);
 	void (*kiya_set_verify)(kiya_t *restrict kiya, const struct pocket_verify_s *verify);
 	mlog_s *restrict ml;
 	ml = NULL;
@@ -59,7 +59,7 @@ script_t* script_kiya_enable(script_t *restrict s, uintptr_t xmsize, struct pock
 				if (ml)
 				{
 					mlog_set_report(ml, mlog_report_stdout_func, NULL);
-					s->kiya = kiya_alloc(ml, xmsize);
+					s->kiya = kiya_alloc(ml, xmsize, 0);
 					refer_free(ml);
 					ml = NULL;
 					if (s->kiya)
