@@ -136,15 +136,16 @@ kiya_t* kiya_set_arg(kiya_t *restrict kiya, const char *restrict name, const cha
 		else if ((args = kiya_args_alloc()))
 		{
 			register hashmap_vlist_t *restrict vl;
-			if ((vl =  hashmap_set_name(&kiya->args, name, args, kiya_args_free_func)))
+			if ((vl = hashmap_set_name(&kiya->args, name, args, kiya_args_free_func)))
 			{
 				kiya_args_idol(args, vl->name);
 				go:
 				if (kiya_args_set(kiya->ap, args, value))
 					return kiya;
 			}
-			kiya_args_free(args);
+			else kiya_args_free(args);
 		}
+		mlog_printf(kiya->mlog, "kiya set arg[%s](%s) fail\n", name, value);
 	}
 	return NULL;
 }
