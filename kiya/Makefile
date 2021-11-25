@@ -9,7 +9,7 @@ DYLINK		= dylink
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 CCFLAGS-DYLINK	= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
 LDFLAGS-LIB	= -shared -ldl -lrefer -lhashmap -lmlog -ldylink -lpocket -soname ${TARGET-LIB}
-LDFLAGS-BIN	= -lrefer -lmlog -lpocket -lpocket-verify -L. -lkiya
+LDFLAGS-BIN	= -lrefer -lmlog -lyaw -lpocket -lpocket-verify -L. -lkiya
 
 OBJECT-LIB	= kiya.o kiya_args.o core/core.o
 OBJECT-BIN	= kiya-entry.o
