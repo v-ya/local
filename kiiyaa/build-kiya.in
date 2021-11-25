@@ -17,7 +17,7 @@ ${target}.dy: ${target}.r.o
 	${dylink} '$<' -o '$@'
 
 ${target}.r.o: ${object}
-	${ld} -r '$<' -o '$@'
+	${ld} -r $^ -o '$@'
 
 .PHONY: clear
 clear:

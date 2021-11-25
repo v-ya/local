@@ -1,0 +1,6 @@
+# 预定义解析器
+@"parse"
+	"console.main.parse.command"                                    # 加载命令
+		[root "console.main.parse.command"]                     # 加载命令列表
+			"command" @string => "allocer-symbol"           # "allocer-symbol" => (console_command_s* (*)(void))
+			# ...

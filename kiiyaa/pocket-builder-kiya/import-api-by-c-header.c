@@ -94,7 +94,7 @@ static cparse_scope_s* scope_get_func(cparse_scope_s *scope, pocket_saver_s *res
 
 static cparse_inst_s *inst;
 
-const char* initial(uintptr_t argc, const char *argv[])
+const char* initial(uintptr_t argc, const char *const argv[])
 {
 	if ((inst = cparse_inst_alloc()))
 		return NULL;

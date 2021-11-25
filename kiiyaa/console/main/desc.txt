@@ -1,0 +1,2 @@
+	控制台入口
+	(parse) "console.main.parse.command" => 加载命令
