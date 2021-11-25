@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <yaw.h>
 
 static void mlog_free_func(mlog_s *restrict r)
@@ -108,7 +109,7 @@ mlog_s* mlog_clear(mlog_s *restrict r)
 
 int mlog_report_stdout_func(const char *restrict msg, size_t length, refer_t pri)
 {
-	if (length) fwrite(msg, 1, length, stdout);
+	if (length) write(STDOUT_FILENO, msg, length);
 	return 1;
 }
 
