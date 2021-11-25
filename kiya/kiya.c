@@ -34,7 +34,7 @@ struct kiya_t {
 };
 
 static kiya_t* kiya_load_core(kiya_t *restrict kiya);
-kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize)
+kiya_t* kiya_alloc(mlog_s *restrict mlog, uintptr_t xsize, uintptr_t asize)
 {
 	kiya_t *restrict kiya;
 	kiya = (kiya_t *) calloc(1, sizeof(kiya_t));
@@ -51,7 +51,7 @@ kiya_t* kiya_alloc(mlog_s *restrict mlog, size_t xsize)
 		{
 			kiya->mlog = (mlog_s *) refer_save(mlog);
 			kiya->pool = dylink_pool_alloc(dylink_mechine_x86_64, m_x86_64_dylink_set, m_x86_64_dylink_plt_set, xsize);
-			kiya->ap = kiya_args_pool_alloc();
+			kiya->ap = kiya_args_pool_alloc(asize);
 			if (kiya->pool && kiya->ap)
 			{
 				if (kiya_load_core(kiya))

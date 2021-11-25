@@ -12,7 +12,7 @@ struct kiya_args_t {
 	const char **argv;
 };
 
-kiya_args_pool_t* kiya_args_pool_alloc(void);
+kiya_args_pool_t* kiya_args_pool_alloc(uintptr_t size);
 kiya_args_t* kiya_args_alloc(void);
 void kiya_args_pool_free(kiya_args_pool_t *restrict r);
 void kiya_args_free(kiya_args_t *restrict r);

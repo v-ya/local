@@ -35,18 +35,25 @@
 	"finally" @string => "uini"               # 终止化执行(在最后按照加载顺序倒序执行)
 
 # kiya 预定义内容
-symbol:
-	$tag     ((hashmap_t *) => (kiya_tag_f))         类型映射池
-	$parse   ((hashmap_t *) => (kiya_parse_f))       解析映射池
-	$symbol  ((hashmap_t *) => (dylink_pool_t *))    符号映射池
-	malloc
-	calloc
-	realloc
-	free
-parse:
-	"kiya.export"                                    将本地符号池的符号映射到公共符号池
-		[root] "kiya.export" @"kiya.export.all"  导出全部符号
-		[root "kiya.export"]                     导出指定符号
+@"symbol" # 全局导出符号
+	# 导出变量
+	"$kiya"    # ((hashmap_t *) =name> (kiya_kirakira_t *)) r-only inner id 映射
+	"$args"    # ((hashmap_t *) =name> (kiya_args_t *))     r-only inner 参数映射
+	"$tag"     # ((hashmap_t *) =name> (kiya_tag_f))        r-only user  类型映射
+	"$parse"   # ((hashmap_t *) =name> (kiya_parse_f))      r-only user  解析映射
+	"$pocket"  # ((hashmap_t *) =name> (pocket_s *))        r-only user  pocket 映射
+	"$source"  # ((hashmap_t *) =name> (const char *))      r-only inner 加载路径映射
+	"$dylink"  # ((hashmap_t *) =name> (dylink_pool_t *))   r-only user  符号池映射
+	"$mlog"    # (mlog_s *)                                 r/w    user  标准输出
+	# 导出函数
+	"malloc"
+	"calloc"
+	"realloc"
+	"free"
+@"parse" # 预定义解析器
+	"kiya.export"                                    # 将本地符号池的符号映射到公共符号池
+		[root] "kiya.export" @"kiya.export.all"  # 导出全部符号
+		[root "kiya.export"]                     # 导出指定符号
 			"symbol" @null
 			"src-symbol" @string => "dst-symbol"
 			# ...

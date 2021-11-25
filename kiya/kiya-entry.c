@@ -9,6 +9,7 @@ typedef struct inst_t {
 	kiya_t *restrict kiya;
 	pocket_verify_s *restrict verify;
 	uintptr_t xmsize;
+	uintptr_t amsize;
 	const char *name;
 	const char *main;
 } inst_t;
@@ -62,6 +63,7 @@ static const char ** main_arg_go(inst_t *restrict inst, uintptr_t argc, const ch
 			"\t" "call [name].main\n"
 			"options:\n"
 			"\t" "--xmsize  <xmsize>\n"
+			"\t" "--amsize  <amsize>\n"
 			"\t" "--name    <name>\n"
 			"\t" "--main    <main>\n"
 			"args:\n"
@@ -89,6 +91,11 @@ static const char ** main_arg_go(inst_t *restrict inst, uintptr_t argc, const ch
 			--argc;
 			inst->xmsize = strtoul(*++argv, NULL, 0);
 		}
+		if (!strcmp(s, "amsize"))
+		{
+			--argc;
+			inst->amsize = strtoul(*++argv, NULL, 0);
+		}
 		else if (!strcmp(s, "name"))
 		{
 			--argc;
@@ -112,6 +119,7 @@ int main(int argc, const char *argv[])
 	const char **rargv;
 	int ret = 0;
 	inst.xmsize = (1 << 20);
+	inst.amsize = 1024;
 	inst.name = NULL;
 	inst.main = "main";
 	if ((rargv = main_arg_go(&inst, (uintptr_t) argc, argv, &rargc)))
@@ -121,7 +129,7 @@ int main(int argc, const char *argv[])
 		if (inst.mlog)
 		{
 			mlog_set_report(inst.mlog, mlog_report_stdout_func, NULL);
-			inst.kiya = kiya_alloc(inst.mlog, inst.xmsize);
+			inst.kiya = kiya_alloc(inst.mlog, inst.xmsize, inst.amsize);
 			inst.verify = pocket_verify_default();
 			if (inst.kiya && inst.verify)
 			{
