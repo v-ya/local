@@ -107,6 +107,15 @@ static int sync_pocket_compare_tree(const pocket_attr_t *restrict d, const pocke
 	return -1;
 }
 
+static int sync_pocket_compare_tree_check(const pocket_attr_t *restrict d, const pocket_attr_t *restrict s)
+{
+	if (d && s)
+		return sync_pocket_compare_tree(d, s);
+	else if (!d && !s)
+		return 0;
+	return -1;
+}
+
 static int sync_pocket_compare(const pocket_verify_s *restrict verify, const char *restrict path, pocket_s *restrict sp)
 {
 	pocket_s *restrict dp;
@@ -118,8 +127,8 @@ static int sync_pocket_compare(const pocket_verify_s *restrict verify, const cha
 		sync_pocket_compare_reset_ignore(dp);
 		sync_pocket_compare_reset_ignore(sp);
 		if (!sync_pocket_compare_header(pocket_header(dp), pocket_header(sp)) &&
-			!sync_pocket_compare_tree(pocket_system(dp), pocket_system(sp)) &&
-			!sync_pocket_compare_tree(pocket_user(dp), pocket_user(sp)))
+			!sync_pocket_compare_tree_check(pocket_system(dp), pocket_system(sp)) &&
+			!sync_pocket_compare_tree_check(pocket_user(dp), pocket_user(sp)))
 			ret = 0;
 		refer_free(dp);
 	}
