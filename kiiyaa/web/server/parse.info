@@ -1,0 +1,53 @@
+# 预定义解析器
+@"parse"
+	"web.server.parse"                # 解析器名称
+		[root "web.server.parse"] # 解析器使用根节点 (必须)
+
+# 解析器根节点下子节点 (均可选)
+# 如果某个节点下预期可能出现 ‘#’ 起始的名称，则起始 "##name" => "#name"，所有未预期的 "#command" 将忽略
+[root.parse "header"]          # 默认响应 http 头域操作
+	"#clear" @null         # 清除之前所有 header 设置
+	"#clear" @index        # 清除该节点下所有指定名称的 header 设置 (大小写敏感)
+		"Header-Name" @null
+		# ...
+	"Header-Name" @string  # 添加 header 设置 (Header-Name: value)
+		=> "value"
+	"Header-Name" @index   # 批量添加 header 设置
+		"name-const" @text => "value"    # (Header-Name: value)
+		"name-build" @string => "symbol" # symbol => (inst_web_server_value_allocer_f)
+		# ...
+	# ...
+[root.parse "tag.local"]       # 本地作用域使用的 tag
+[root.parse "tag.global"]      # 添加当前和之后作用域使用预设 tag
+	"tag-allocer" @string  # 构建器构建函数符号映射 => (inst_web_server_tag_allocer_f)
+		=> "symbol"
+	"tag-compose" @index   # 构建器构造
+		"request" @string => "symbol" # (必须) @string 请求处理函数符号
+		"allocer" @string => "symbol" # (可选) @string 请求处理私有数据构造函数符号
+		"flags" @index                # (可选) @index  请求处理标志容器 (可选择下列零到多个)
+			"req.body.by-user"     @null # request 负责接收请求 body
+			"req.body.discard"     @null # request 不关心请求 body
+			"res.http.by-user"     @null # request 负责发送响应 http
+			"res.body.by-user"     @null # request 负责发送响应 body
+			"res.route"            @null # request 只负责更改响应状态，响应报文将根据 code 路由生成
+			"res.attr.mini"        @null # 认为该请求是迷你请求，请求使用工作线程处理而不单独新建线程(但该请求必须不带 body)
+			"res.attr.force-close" @null # 本次请求结束后强制关闭传输
+	# ...
+[root.parse "register"]        # 注册 url 映射
+	"#stack" @u32 => (u32) { 64 } # 目录嵌套深度，仅预期出现在注册根节点
+	# 递归检测
+	"#register" @string    # "curr/" => "tag"
+		=> "tag"
+	"path" @index          # push curr, curr = "curr/path", do ... done, pop curr
+		# call 递归检测
+	"part" @string         # "curr/part" => "tag"
+		=> "tag"
+	# ...
+[root.parse "bind"]            # 添加服务绑定 ip 地址和端口
+	"name-default" @string # 缺省映射方式
+		=> "ip:port"
+	"name-full" @index     # 完整映射方式
+		"address" @string => "ip[:port]" # (必须) @string   ip 地址，如果附带端口将覆盖 port
+		"port" @u32 => (u32) { 0 }       # (可选) (@u32)[1] 绑定端口
+		"listen" @u32 => (u32) { 4096 }  # (可选) (@u32)[1] 监听队列最大长度
+	# ...
