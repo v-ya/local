@@ -78,9 +78,12 @@ static void initial_args(web_server_limit_t *restrict limit, uintptr_t argc, con
 	}
 }
 
+inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limit);
+hashmap_vlist_t* initial_parse(void);
+void finally_parse(void);
+
 const char* initial(uintptr_t argc, const char *const argv[])
 {
-	inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limit);
 	web_server_limit_t limit = {
 		.http_max_length = 0,
 		.body_max_length = 0,
@@ -93,13 +96,19 @@ const char* initial(uintptr_t argc, const char *const argv[])
 	};
 	initial_args(&limit, argc, argv);
 	if ((inst = inst_web_server_alloc(&limit)))
-		return NULL;
+	{
+		if (initial_parse())
+			return NULL;
+		refer_free(inst);
+		inst = NULL;
+	}
 	return "web.server.initial";
 }
 
 void finally(void)
 {
 	inst_web_server_s *r;
+	finally_parse();
 	if ((r = inst))
 	{
 		refer_free(r);
