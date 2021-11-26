@@ -234,7 +234,7 @@ int console_main(uintptr_t argc, const char *const argv[])
 			}
 			console_args_cache_clear(&args_cache);
 			label_entry:
-			mlog_printf($mlog, "[console.main] ");
+			mlog_printf($mlog, "\e[34m" "[console.main]" "\e[0m" " ");
 		}
 	}
 	mlog_printf($mlog, "console exited\n");

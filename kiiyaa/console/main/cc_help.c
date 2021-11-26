@@ -8,18 +8,10 @@ extern vattr_s *ccpool;
 static void help_get_name_and_desc(console_command_s *restrict cc, const char **restrict name, const char **restrict desc)
 {
 	static const char s_null[] = "";
-	*name = s_null;
-	*desc = s_null;
-	if (cc->name)
-	{
-		if (!(*name = cc->name(cc)))
-			*name = s_null;
-	}
-	if (cc->desc)
-	{
-		if (!(*desc = cc->desc(cc)))
-			*desc = s_null;
-	}
+	if (!(*name = cc->name))
+		*name = s_null;
+	if (!(*desc = cc->desc))
+		*desc = s_null;
 }
 
 static void help_main(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
@@ -57,16 +49,6 @@ static void help_help(console_command_s *restrict cc, uintptr_t argc, const char
 	mlog_printf($mlog, "%s [command]\n", argv[0]);
 }
 
-static const char* help_name(console_command_s *restrict cc)
-{
-	return "console.main.help";
-}
-
-static const char* help_desc(console_command_s *restrict cc)
-{
-	return "获取 console.main 的帮助";
-}
-
 console_command_s* console_command_alloc_help(void)
 {
 	console_command_s *restrict r;
@@ -75,8 +57,8 @@ console_command_s* console_command_alloc_help(void)
 	{
 		r->main = help_main;
 		r->help = help_help;
-		r->name = help_name;
-		r->desc = help_desc;
+		r->name = "console.main.help";
+		r->desc = "获取 console.main 的帮助";
 	}
 	return r;
 }

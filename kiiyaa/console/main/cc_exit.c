@@ -17,16 +17,6 @@ static void exit_help(console_command_s *restrict cc, uintptr_t argc, const char
 	mlog_printf($mlog, "%s\n", argv[0]);
 }
 
-static const char* exit_name(console_command_s *restrict cc)
-{
-	return "console.main.exit";
-}
-
-static const char* exit_desc(console_command_s *restrict cc)
-{
-	return "退出 console.main";
-}
-
 console_command_s* console_command_alloc_exit(volatile uintptr_t *running)
 {
 	if (running)
@@ -38,8 +28,8 @@ console_command_s* console_command_alloc_exit(volatile uintptr_t *running)
 			r->running = running;
 			r->cc.main = exit_main;
 			r->cc.help = exit_help;
-			r->cc.name = exit_name;
-			r->cc.desc = exit_desc;
+			r->cc.name = "console.main.exit";
+			r->cc.desc = "退出 console.main";
 			return &r->cc;
 		}
 	}

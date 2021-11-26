@@ -10,8 +10,8 @@ typedef const char* (*console_command_info_f)(console_command_s *restrict cc);
 struct console_command_s {
 	console_command_do_f main;
 	console_command_do_f help;
-	console_command_info_f name;
-	console_command_info_f desc;
+	const char *name;
+	const char *desc;
 };
 
 #endif

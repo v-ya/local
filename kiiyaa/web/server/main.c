@@ -92,7 +92,7 @@ const char* initial(uintptr_t argc, const char *const argv[])
 		.wait_req_max_number = 0
 	};
 	initial_args(&limit, argc, argv);
-	if ((inst = inst_web_server_alloc(NULL)))
+	if ((inst = inst_web_server_alloc(&limit)))
 		return NULL;
 	return "web.server.initial";
 }
