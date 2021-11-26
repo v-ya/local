@@ -34,7 +34,7 @@
 			"res.attr.force-close" @null # 本次请求结束后强制关闭传输
 	# ...
 [root.parse "register"]        # 注册 url 映射
-	"#stack" @u32 => (u32) { 64 } # (@u32)[1] 目录嵌套深度，仅预期出现在注册根节点
+	"#stack" @u32 => (u32[1]) { 64 } # @u32[1] 目录嵌套深度，仅预期出现在注册根节点
 	# 递归检测
 	"#register" @"tag"     # "curr/" => "tag"(data)
 	"path" @index          # push curr, curr = "curr/path", do ... done, pop curr
@@ -45,7 +45,7 @@
 	"name-default" @string # 缺省映射方式
 		=> "ip:port"
 	"name-full" @index     # 完整映射方式
-		"address" @string => "ip[:port]" # (必须) @string   ip 地址，如果附带端口将覆盖 port
-		"port" @u32 => (u32) { 0 }       # (可选) (@u32)[1] 绑定端口
-		"nlisten" @u32 => (u32) { 4096 } # (可选) (@u32)[1] 监听队列最大长度
+		"address" @string => "ip[:port]"    # (必须) @string ip 地址，如果附带端口将覆盖 port
+		"port" @u32 => (u32[1]) { 0 }       # (可选) @u32[1] 绑定端口
+		"nlisten" @u32 => (u32[1]) { 4096 } # (可选) @u32[1] 监听队列最大长度
 	# ...
