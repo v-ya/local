@@ -1,3 +1,3 @@
 target	= web.server
-object	= main.o
+object	= main.o server.o
 include ../../build-kiya.in

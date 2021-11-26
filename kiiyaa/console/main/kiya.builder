@@ -29,4 +29,4 @@
 	"finally" @string => "finally"
 
 ["kiya.export"]
-	"console_main"   @string => "main"
+	"console_main" @string => "main"

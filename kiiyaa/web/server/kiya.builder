@@ -17,13 +17,16 @@
 	"import.uhttp" @null
 	"import.yaw" @null
 	"import.web" @null
-	"console.main" @null
 
 [$ "kiya" "dylink"]
 	"web.server" @"dylink" => &"web.server.dy"
 
 [$ "kiya" "parse"]
+	"kiya.export" @null
 
 [$ "kiya"]
 	"initial" @string => "initial"
 	"finally" @string => "finally"
+
+["kiya.export"]
+	"web$server$get_save" @null

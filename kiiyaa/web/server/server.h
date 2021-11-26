@@ -34,4 +34,6 @@ struct inst_web_server_s {
 	hashmap_t flags;       // => (inst_web_server_flags_modify_f)
 };
 
+web_server_s* web$server$get_save(void);
+
 #endif
