@@ -1,7 +1,7 @@
 : verify   = "*>^~64.4"
 : tag      = "kiya"
 : author   = "vya"
-[$] "description" @text => "\t"
+[$] "description" @text => "\t提供获取 web-server 的限制参数和当前状态工具"
 : desc     = "description"
 
 [$ "kiya"] "name" @string => "console.cmd.web-server"

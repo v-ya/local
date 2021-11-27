@@ -1,10 +1,8 @@
 #include "server.h"
 
-extern inst_web_server_s *inst;
-
 const pocket_attr_t* get_u32_1(pocket_s *restrict pocket, const pocket_attr_t *restrict item, uint32_t *restrict value);
 
-static const pocket_attr_t* web_server_parse_bind_item(inst_web_server_s *restrict r, pocket_s *restrict pocket, const pocket_attr_t *restrict item)
+static const pocket_attr_t* web_server_parse_bind_item(pocket_s *restrict pocket, const pocket_attr_t *restrict item, web_server_s *server)
 {
 	const pocket_attr_t *restrict v;
 	const char *restrict ip;
@@ -28,7 +26,7 @@ static const pocket_attr_t* web_server_parse_bind_item(inst_web_server_s *restri
 			if ((v = pocket_find(pocket, item, "nlisten")) && !get_u32_1(pocket, v, &nlisten))
 				goto label_fail;
 			label_add_bind:
-			if (web_server_add_bind(r->server, ip, port, nlisten))
+			if (web_server_add_bind(server, ip, port, nlisten))
 				return item;
 		}
 	}
@@ -36,17 +34,15 @@ static const pocket_attr_t* web_server_parse_bind_item(inst_web_server_s *restri
 	return NULL;
 }
 
-const pocket_attr_t* web_server_parse_bind(pocket_s *restrict pocket, const pocket_attr_t *restrict root, const char *restrict name)
+const pocket_attr_t* web_server_parse_bind(pocket_s *restrict pocket, const pocket_attr_t *restrict root, web_server_s *server)
 {
-	inst_web_server_s *r;
 	uint64_t n;
-	r = inst;
 	n = root->size;
 	root = (const pocket_attr_t *) root->data.ptr;
 	while (n)
 	{
 		--n;
-		if (!web_server_parse_bind_item(r, pocket, root))
+		if (!web_server_parse_bind_item(pocket, root, server))
 			return root;
 		++root;
 	}

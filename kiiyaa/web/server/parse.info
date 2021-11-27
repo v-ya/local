@@ -19,11 +19,12 @@
 	# ...
 [root.parse "tag.local"]       # 本地作用域使用的 tag
 [root.parse "tag.global"]      # 添加当前和之后作用域使用预设 tag
-	"tag-allocer" @string  # 构建器构建函数符号映射 => (inst_web_server_tag_allocer_f)
+	"tag-builder" @string  # 构建器构建函数符号映射 => (inst_web_server_tag_builder_f)
 		=> "symbol"
 	"tag-compose" @index   # 构建器构造
-		"request" @string => "symbol" # (必须) @string 请求处理函数符号 => (web_server_request_f)
-		"allocer" @string => "symbol" # (可选) @string 请求处理私有数据构造函数符号 => (inst_web_server_tag_pri_allocer_f)
+		"builder" @string => "symbol" # (可选) @string 构建器构建函数符号映射 => (inst_web_server_tag_builder_f)
+		"request" @string => "symbol" # (可选) @string 请求处理函数符号 => (web_server_request_f)，但最终一定要有
+		"allocer" @string => "symbol" # (可选) @string 请求处理私有数据构造函数符号 => (inst_web_server_tag_allocer_f)
 		"flags" @index                # (可选) @index  请求处理标志容器 (可选择下列零到多个)
 			"req.body.by-user"     @null # request 负责接收请求 body
 			"req.body.discard"     @null # request 不关心请求 body
@@ -35,6 +36,9 @@
 	# ...
 [root.parse "register"]        # 注册 url 映射
 	"#stack" @u32 => (u32[1]) { 64 } # @u32[1] 目录嵌套深度，仅预期出现在注册根节点
+	"#response" @index               # 根据返回 code 设置响应路由
+		"404" @"tag"   # (code == 404) => "tag"(data)
+		# ...
 	# 递归检测
 	"#register" @"tag"     # "curr/" => "tag"(data)
 	"path" @index          # push curr, curr = "curr/path", do ... done, pop curr
