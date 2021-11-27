@@ -36,11 +36,17 @@
 	# ...
 [root.parse "register"]        # 注册 url 映射
 	"#stack" @u32 => (u32[1]) { 64 } # @u32[1] 目录嵌套深度，仅预期出现在注册根节点
-	"#response" @index               # 根据返回 code 设置响应路由
+	"#" @index             # 根据返回 code 设置响应路由
 		"404" @"tag"   # (code == 404) => "tag"(data)
 		# ...
 	# 递归检测
-	"#register" @"tag"     # "curr/" => "tag"(data)
+	"#啥都行" @index        # 设置接下来的注册 method，进入新一级会保存上一级的设置
+		"=" @null        # 清空现在设置的 method
+		"=method" @null  # 清空并设置 method
+		"+method" @null  # 添加 method
+		"-method" @null  # 取消 method
+		# method: GET HEAD POST PUT DELETE TRACE OPTIONS CONNECT
+	"" @"tag"              # "curr/" => "tag"(data)
 	"path" @index          # push curr, curr = "curr/path", do ... done, pop curr
 		# call 递归检测
 	"part" @"tag"          # "curr/part" => "tag"(data)

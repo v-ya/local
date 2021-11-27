@@ -36,6 +36,8 @@ static void inst_web_server_free_func(inst_web_server_s *restrict r)
 {
 	if (r->server)
 		refer_free(r->server);
+	if (r->method)
+		refer_free(r->method);
 	hashmap_uini(&r->tag);
 	hashmap_uini(&r->flags);
 }
@@ -48,6 +50,7 @@ inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limi
 		refer_set_free(r, (refer_free_f) inst_web_server_free_func);
 		if (hashmap_init(&r->tag) && hashmap_init(&r->flags) &&
 			inst_web_server_initial_flags(&r->flags) &&
+			(r->method = web_method_alloc()) &&
 			(r->server = web_server_alloc(NULL, limit)))
 			return r;
 		refer_free(r);

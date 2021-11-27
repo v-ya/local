@@ -58,7 +58,7 @@ static web_server_request_t* body_data_request(web_server_request_t *restrict re
 	ta.http_transport_timeout_ms = server->limit->transport_send_timeout_ms;
 	ta.http_head_max_length = server->limit->http_max_length;
 	ta.http_body_max_length = ~(uintptr_t) 0;
-	if (uhttp_set_response(request->response_http, 200, NULL) &&
+	if ((uhttp_get_response_code(request->response_http) || uhttp_set_response(request->response_http, 200, NULL)) &&
 		uhttp_refer_header_tail(request->response_http, p->header_context_length))
 	{
 		request->flags |= web_server_request_flag__res_http_by_user | web_server_request_flag__res_body_by_user;

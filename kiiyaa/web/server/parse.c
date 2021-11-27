@@ -13,7 +13,15 @@ const pocket_attr_t* get_u32_1(pocket_s *restrict pocket, const pocket_attr_t *r
 	return NULL;
 }
 
+const char* check_special_and_escape(const char *restrict name)
+{
+	if (name[0] != '#') return name;
+	else if (name[1] == '#') return name + 1;
+	return NULL;
+}
+
 const pocket_attr_t* web_server_parse_tag(pocket_s *restrict pocket, const pocket_attr_t *restrict root, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const inst_web_server_s *restrict inst);
+const pocket_attr_t* web_server_parse_register(pocket_s *restrict pocket, const pocket_attr_t *restrict root, const inst_web_server_s *restrict inst, const hashmap_t *restrict tags_local);
 const pocket_attr_t* web_server_parse_bind(pocket_s *restrict pocket, const pocket_attr_t *restrict root, web_server_s *server);
 
 pocket_s* web_server_parse(pocket_s *restrict pocket, const pocket_attr_t *restrict root, const char *restrict name, const char *restrict *restrict error)
@@ -51,6 +59,14 @@ pocket_s* web_server_parse(pocket_s *restrict pocket, const pocket_attr_t *restr
 				goto label_fail;
 			local_tag = &local_tag_cache;
 			if ((item = web_server_parse_tag(pocket, item, local_tag, pool, r)))
+				goto label_fail;
+		}
+		// register
+		if ((item = pocket_find(pocket, root, "register")))
+		{
+			if (pocket_preset_tag(pocket, item) != pocket_tag$index)
+				goto label_fail;
+			if ((item = web_server_parse_register(pocket, item, r, local_tag)))
 				goto label_fail;
 		}
 		// bind

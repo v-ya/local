@@ -5,6 +5,7 @@
 #include <hashmap.h>
 #include <pocket/pocket.h>
 #include <web/web-server.h>
+#include <web/web-method.h>
 
 typedef struct inst_web_server_s inst_web_server_s;
 typedef struct inst_web_server_tag_s inst_web_server_tag_s;
@@ -30,6 +31,7 @@ struct inst_web_server_tag_s {
 
 struct inst_web_server_s {
 	web_server_s *server;  // only web server inst
+	web_method_s *method;  // parse used
 	hashmap_t tag;         // => (inst_web_server_tag_s *)
 	hashmap_t flags;       // => (inst_web_server_flags_modify_f)
 };
