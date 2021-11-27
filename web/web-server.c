@@ -121,6 +121,8 @@ static void web_server_request_free_func(web_server_request_s *restrict r)
 {
 	if (r->request.tp)
 		refer_free(r->request.tp);
+	if (r->request.pri)
+		refer_free(r->request.pri);
 	if (r->request.request_uri)
 		refer_free(r->request.request_uri);
 	if (r->request.request_http)
