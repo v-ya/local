@@ -1,5 +1,6 @@
 #include "web-server.h"
 #include "web-transport.h"
+#include "web-header.h"
 #include <transport/tcp.h>
 #include <queue/queue.h>
 #include <hashmap.h>
@@ -209,6 +210,8 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	// release server
 	if (r->server.http_inst)
 		refer_free(r->server.http_inst);
+	if (r->server.headers)
+		refer_free(r->server.headers);
 }
 
 static void web_server_limit_fix(web_server_limit_t *restrict dst, const web_server_limit_t *restrict src)
@@ -248,9 +251,12 @@ web_server_s* web_server_alloc(const uhttp_inst_s *restrict http_inst, const web
 		// server
 		r->server.running = 1;
 		r->server.http_inst = http_inst?((const uhttp_inst_s *) refer_save(http_inst)):uhttp_inst_alloc_http11();
+		r->server.headers = web_header_alloc();
 		r->server.limit = &r->limit;
 		r->server.status = &r->status;
 		if (!r->server.http_inst)
+			goto label_fail;
+		if (!r->server.headers)
 			goto label_fail;
 		// hashmap
 		if (!hashmap_init(&r->request_route))
@@ -608,7 +614,7 @@ static void web_server_working_route_do_request(web_server_pri_s *restrict p, tr
 {
 	web_server_request_s *restrict req;
 	const web_server_route_s *restrict route, *restrict pretreat;
-	const web_server_request_t *c;
+	web_server_request_t *c;
 	yaw_s *detach;
 	refer_nstring_t method;
 	refer_nstring_t uri;

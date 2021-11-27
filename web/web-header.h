@@ -1,0 +1,93 @@
+#ifndef _web_header_h_
+#define _web_header_h_
+
+#include <refer.h>
+
+typedef enum web_header_id_t {
+	web_header_id__a_im,
+	web_header_id__accept,
+	web_header_id__accept_ch,
+	web_header_id__accept_charset,
+	web_header_id__accept_datetime,
+	web_header_id__accept_encoding,
+	web_header_id__accept_language,
+	web_header_id__accept_patch,
+	web_header_id__accept_ranges,
+	web_header_id__access_control_allow_credentials,
+	web_header_id__access_control_allow_headers,
+	web_header_id__access_control_allow_methods,
+	web_header_id__access_control_allow_origin,
+	web_header_id__access_control_expose_headers,
+	web_header_id__access_control_max_age,
+	web_header_id__access_control_request_headers,
+	web_header_id__access_control_request_method,
+	web_header_id__age,
+	web_header_id__allow,
+	web_header_id__alt_svc,
+	web_header_id__authorization,
+	web_header_id__cache_control,
+	web_header_id__connection,
+	web_header_id__content_disposition,
+	web_header_id__content_encoding,
+	web_header_id__content_language,
+	web_header_id__content_length,
+	web_header_id__content_location,
+	web_header_id__content_md5,
+	web_header_id__content_range,
+	web_header_id__content_type,
+	web_header_id__cookie,
+	web_header_id__date,
+	web_header_id__delta_base,
+	web_header_id__etag,
+	web_header_id__expect,
+	web_header_id__expires,
+	web_header_id__forwarded,
+	web_header_id__from,
+	web_header_id__host,
+	web_header_id__http2_settings,
+	web_header_id__if_match,
+	web_header_id__if_modified_since,
+	web_header_id__if_none_match,
+	web_header_id__if_range,
+	web_header_id__if_unmodified_since,
+	web_header_id__im,
+	web_header_id__last_modified,
+	web_header_id__link,
+	web_header_id__location,
+	web_header_id__max_forwards,
+	web_header_id__origin,
+	web_header_id__p3p,
+	web_header_id__pragma,
+	web_header_id__prefer,
+	web_header_id__preference_applied,
+	web_header_id__proxy_authenticate,
+	web_header_id__proxy_authorization,
+	web_header_id__public_key_pins,
+	web_header_id__range,
+	web_header_id__referer,
+	web_header_id__retry_after,
+	web_header_id__server,
+	web_header_id__set_cookie,
+	web_header_id__strict_transport_security,
+	web_header_id__te,
+	web_header_id__tk,
+	web_header_id__trailer,
+	web_header_id__transfer_encoding,
+	web_header_id__upgrade,
+	web_header_id__user_agent,
+	web_header_id__vary,
+	web_header_id__via,
+	web_header_id__warning,
+	web_header_id__www_authenticate,
+	web_header_id__x_frame_options,
+	web_header_id_max
+} web_header_id_t;
+
+typedef const struct web_header_s web_header_s;
+
+web_header_s* web_header_alloc(void);
+
+refer_nstring_t web_header_get_name(web_header_s *restrict r, web_header_id_t hid);
+refer_string_t web_header_get_id(web_header_s *restrict r, web_header_id_t hid);
+
+#endif

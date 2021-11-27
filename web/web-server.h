@@ -6,6 +6,8 @@
 #include <exbuffer.h>
 #include <transport/transport.h>
 
+struct web_header_s;
+
 typedef struct web_server_s web_server_s;
 typedef struct web_server_route_s web_server_route_s;
 typedef struct web_server_limit_t web_server_limit_t;
@@ -14,7 +16,7 @@ typedef struct web_server_request_t web_server_request_t;
 
 typedef enum web_server_request_flag_t web_server_request_flag_t;
 
-typedef const web_server_request_t* (*web_server_request_f)(const web_server_request_t *restrict request);
+typedef web_server_request_t* (*web_server_request_f)(web_server_request_t *restrict request);
 
 enum web_server_request_flag_t {
 	// (web_server_s) 负责接收 body => (web_server_request_t).request_body
@@ -86,6 +88,7 @@ struct web_server_request_t {
 struct web_server_s {
 	volatile uintptr_t running;
 	const uhttp_inst_s *http_inst;
+	const struct web_header_s *headers;
 	const web_server_limit_t *limit;
 	const web_server_status_t *status;
 };
