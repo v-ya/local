@@ -16,7 +16,7 @@ typedef refer_t (*inst_web_server_tag_allocer_f)(inst_web_server_tag_s *restrict
 typedef web_server_request_flag_t (*inst_web_server_flags_modify_f)(web_server_request_flag_t flags);
 
 typedef inst_web_server_value_s* (*inst_web_server_value_allocer_f)(const web_server_s *server);
-typedef const char* (*inst_web_server_value_f)(inst_web_server_value_s *restrict r, uintptr_t *restrict length, uhttp_s *restrict req, uhttp_s *restrict res);
+typedef const char* (*inst_web_server_value_f)(inst_web_server_value_s *restrict, uintptr_t *restrict length, web_server_request_t *restrict request);
 
 struct inst_web_server_value_s {
 	inst_web_server_value_f value;
