@@ -47,12 +47,10 @@ static refer_t body_data_allocer(tag_s *restrict tag, pocket_s *restrict pocket,
 	return NULL;
 }
 
-static web_server_request_t* body_data_request(web_server_request_t *restrict request)
+static web_server_request_t* body_data_request(web_server_request_t *restrict request, const body_data_s *restrict p)
 {
-	const body_data_s *restrict p;
 	const web_server_s *restrict server;
 	web_transport_attr_t ta;
-	p = (const body_data_s *) request->pri;
 	server = request->server;
 	ta.running = &server->running;
 	ta.http_transport_timeout_ms = server->limit->transport_send_timeout_ms;
@@ -115,7 +113,7 @@ inst_web_server_tag_s* body_data_builder(const web_server_s *server, pocket_s *r
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) tag_free_func);
-		r->tag.request_func = body_data_request;
+		r->tag.request_func = (web_server_request_f) body_data_request;
 		r->tag.allocer = (inst_web_server_tag_allocer_f) body_data_allocer;
 		r->tag.request_flag = body_data_parse_flags(item->name.string);
 		r->headers = (web_header_s *) refer_save(server->headers);

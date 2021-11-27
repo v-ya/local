@@ -47,7 +47,7 @@ struct web_server_request_s {
 	web_server_request_t request;
 	exbuffer_t request_body;
 	exbuffer_t response_body;
-	web_server_request_f func;
+	const web_server_route_s *route;
 	uint64_t recv_timeout_ms;
 };
 
@@ -121,14 +121,14 @@ static void web_server_request_free_func(web_server_request_s *restrict r)
 {
 	if (r->request.tp)
 		refer_free(r->request.tp);
-	if (r->request.pri)
-		refer_free(r->request.pri);
 	if (r->request.request_uri)
 		refer_free(r->request.request_uri);
 	if (r->request.request_http)
 		refer_free(r->request.request_http);
 	if (r->request.response_http)
 		refer_free(r->request.response_http);
+	if (r->route)
+		refer_free(r->route);
 	exbuffer_uini(&r->request_body);
 	exbuffer_uini(&r->response_body);
 }
@@ -154,14 +154,6 @@ static web_server_request_s* web_server_request_alloc(const web_server_s *server
 		refer_free(r);
 	}
 	return NULL;
-}
-
-static inline void web_server_request_set_route_do(web_server_request_s *restrict r, const web_server_route_s *restrict route)
-{
-	if (r->request.pri)
-		refer_free(r->request.pri);
-	r->request.pri = refer_save(route->pri);
-	r->func = route->func;
 }
 
 static void web_server_pri_free_func(web_server_pri_s *restrict r)
@@ -569,9 +561,8 @@ static void web_server_working_route_do_response(web_server_pri_s *restrict p, w
 		yaw_lock_unlock(p->register_read);
 		if (route)
 		{
-			web_server_request_set_route_do(req, route);
+			route->func(&req->request, route->pri);
 			refer_free(route);
-			req->func(&req->request);
 		}
 	}
 	if (!web_server_inner_get_is_keepalive(req->request.request_http) ||
@@ -644,18 +635,16 @@ static void web_server_working_route_do_request(web_server_pri_s *restrict p, tr
 				req->request.flags = route->flags;
 				if (pretreat)
 				{
-					web_server_request_set_route_do(req, pretreat);
-					c = req->func(&req->request);
+					c = pretreat->func(&req->request, pretreat->pri);
 					refer_free(pretreat);
 				}
-				web_server_request_set_route_do(req, route);
-				refer_free(route);
+				req->route = route;
 				if (!c) goto label_fail_response_500;
 				if ((req->request.flags & web_server_request_flag__attr_mini) &&
 					!uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length))
 				{
 					__sync_fetch_and_add(&p->status.working, 1);
-					c = req->func(&req->request);
+					c = route->func(&req->request, route->pri);
 					__sync_fetch_and_sub(&p->status.working, 1);
 					if (c) goto label_finally;
 					else goto label_fail_response_500;
@@ -759,6 +748,7 @@ static void web_server_thread_detach(yaw_s *restrict yaw)
 {
 	web_server_request_s *restrict req;
 	web_server_pri_s *restrict p;
+	const web_server_route_s *restrict route;
 	req = (web_server_request_s *) yaw->pri;
 	p = (web_server_pri_s *) req->request.server;
 	yaw->pri = NULL;
@@ -781,11 +771,11 @@ static void web_server_thread_detach(yaw_s *restrict yaw)
 					goto label_fail;
 			}
 		}
-		if (!req->func(&req->request))
+		if (!(route = req->route) || !route->func(&req->request, route->pri))
 		{
 			label_fail:
 			uhttp_refer_response(req->request.response_http, 500, NULL);
-			req->request.flags |= web_server_request_flag__res_route;
+			req->request.flags |= web_server_request_flag__req_body_discard | web_server_request_flag__res_route;
 		}
 		web_server_working_route_do_response(p, req);
 		web_server_working_route_do_finally(p, req);

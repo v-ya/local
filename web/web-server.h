@@ -16,7 +16,7 @@ typedef struct web_server_request_t web_server_request_t;
 
 typedef enum web_server_request_flag_t web_server_request_flag_t;
 
-typedef web_server_request_t* (*web_server_request_f)(web_server_request_t *restrict request);
+typedef web_server_request_t* (*web_server_request_f)(web_server_request_t *restrict request, refer_t pri);
 
 enum web_server_request_flag_t {
 	// (web_server_s) 负责接收 body => (web_server_request_t).request_body
@@ -75,7 +75,6 @@ struct web_server_status_t {
 
 struct web_server_request_t {
 	const web_server_s *server;
-	refer_t pri;
 	transport_s *tp;
 	uhttp_uri_s *request_uri;
 	uhttp_s *request_http;
