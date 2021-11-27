@@ -500,11 +500,16 @@ static inline int web_server_inner_get_is_keepalive(const uhttp_s *restrict http
 	return (c && !strcmp(c->value_id, "keep-alive"));
 }
 
-static inline uhttp_s* web_server_inner_set_close(uhttp_s *restrict http)
+static inline int web_server_inner_get_is_close(const uhttp_s *restrict http)
 {
 	uhttp_header_s *restrict c;
 	c = uhttp_find_header_first(http, s_http_header_id_connection);
-	if (c && !strcmp(c->value_id, "close"))
+	return (c && !strcmp(c->value_id, "close"));
+}
+
+static inline uhttp_s* web_server_inner_set_close(uhttp_s *restrict http)
+{
+	if (web_server_inner_get_is_close(http))
 		return http;
 	return uhttp_set_header(http, "Connection", "close");
 }
@@ -570,7 +575,7 @@ static void web_server_working_route_do_response(web_server_pri_s *restrict p, w
 		}
 	}
 	if (!web_server_inner_get_is_keepalive(req->request.request_http) ||
-		!web_server_inner_get_is_keepalive(req->request.response_http))
+		web_server_inner_get_is_close(req->request.response_http))
 		req->request.flags |= web_server_request_flag__attr_force_close;
 	if ((req->request.flags & (web_server_request_flag__res_http_by_user | web_server_request_flag__attr_force_close))
 		== (web_server_request_flag__attr_force_close))
