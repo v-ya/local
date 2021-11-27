@@ -18,8 +18,8 @@
 
 ["web.server.parse" "tag.global"]
 	"body.data"            @string => "body_data_builder"
-	"body.data.mini"       @string => "body_data_builder"
-	"body.data.close"      @string => "body_data_builder"
-	"body.data.mini.close" @string => "body_data_builder"
-	"body.path"            @string => "body_path_builder"
-	"body.path.close"      @string => "body_path_builder"
+	"body.data|mini"       @string => "body_data_builder"
+	"body.data|close"      @string => "body_data_builder"
+	"body.data|mini|close" @string => "body_data_builder"
+	# "body.path"            @string => "body_path_builder"
+	# "body.path|close"      @string => "body_path_builder"

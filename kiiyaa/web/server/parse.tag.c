@@ -7,7 +7,7 @@ static void hashmap_free_refer_func(hashmap_vlist_t *restrict vl)
 		refer_free(vl->value);
 }
 
-static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket, const pocket_attr_t *restrict item, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const hashmap_t *restrict flags)
+static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket, const pocket_attr_t *restrict item, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const inst_web_server_s *restrict inst)
 {
 	inst_web_server_tag_s *restrict t;
 	const pocket_attr_t *restrict v;
@@ -26,7 +26,7 @@ static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket,
 		// builder
 		if (item->data.ptr && ((builder = dylink_pool_get_symbol(pool, (const char *) item->data.ptr, NULL))))
 		{
-			if ((t = builder(pocket, item)))
+			if ((t = builder(inst->server, pocket, item)))
 				goto label_check_and_set;
 		}
 	}
@@ -83,7 +83,7 @@ static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket,
 					goto label_fail;
 				if (pocket_preset_tag(pocket, v) != pocket_tag$null)
 					goto label_fail;
-				if (!(modify = hashmap_get_name(flags, v->name.string)))
+				if (!(modify = hashmap_get_name(&inst->flags, v->name.string)))
 					goto label_fail;
 				request_flags = modify(request_flags);
 				++v;
@@ -91,7 +91,7 @@ static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket,
 		}
 		// build
 		if (builder)
-			t = builder(pocket, item);
+			t = builder(inst->server, pocket, item);
 		else t = (inst_web_server_tag_s *) refer_alloz(sizeof(inst_web_server_tag_s));
 		if (t)
 		{
@@ -110,7 +110,7 @@ static const pocket_attr_t* web_server_parse_tag_item(pocket_s *restrict pocket,
 	return NULL;
 }
 
-const pocket_attr_t* web_server_parse_tag(pocket_s *restrict pocket, const pocket_attr_t *restrict root, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const hashmap_t *restrict flags)
+const pocket_attr_t* web_server_parse_tag(pocket_s *restrict pocket, const pocket_attr_t *restrict root, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const inst_web_server_s *restrict inst)
 {
 	uint64_t n;
 	n = root->size;
@@ -118,7 +118,7 @@ const pocket_attr_t* web_server_parse_tag(pocket_s *restrict pocket, const pocke
 	while (n)
 	{
 		--n;
-		if (!web_server_parse_tag_item(pocket, root, tags, pool, flags))
+		if (!web_server_parse_tag_item(pocket, root, tags, pool, inst))
 			return root;
 		++root;
 	}

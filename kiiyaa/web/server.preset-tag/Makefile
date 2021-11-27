@@ -1,3 +1,3 @@
 target	= web.server.preset-tag
-object	= tag.o
+object	= body.data.o body.path.o
 include ../../build-kiya.in
