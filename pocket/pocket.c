@@ -246,10 +246,9 @@ static void pocket_attr_magic(pocket_attr_t *restrict p, pocket_attr_t *restrict
 static inline uintptr_t pocket_string_hash(register const char *restrict s)
 {
 	register uintptr_t mix = 0;
-	do {
-		// mix = mix*11 + mix/4 + *name
-		mix += (mix << 3) + (mix >> 2) + (mix << 1) + *(uint8_t *) s;
-	} while (*++s);
+	// loop: mix = mix*11 + mix/4 + *name
+	while (*s)
+		mix += (mix << 3) + (mix >> 2) + (mix << 1) + *(uint8_t *) s++;
 	return mix;
 }
 
