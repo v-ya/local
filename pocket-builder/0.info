@@ -1,0 +1,92 @@
+# 本文档简要说明 pocket-builder 脚本语法说明
+# 以 '#' 起始到本行终止为注释，脚本解析时将忽略
+# ' ' '\t' '\r' '\n' 均视为 space (空白符)
+# 除非去掉空白符将导致语义冲突，否则所有的空白符均可以去掉或扩充
+
+# 设置 pocket 属性，只能设置为 string 或 null
+# 例: : attr = "" : attr = null
+: tag     = "" # 设置 标签
+: version = "" # 设置 版本
+: author  = "" # 设置 作者
+: time    = "" # 设置 时间
+: desc    = "" # 设置 说明 (特殊说明见下方)
+: flag    = "" # 设置 标识
+: verify  = "" # 设置 校验 (特殊说明见下方)
+: time    = null
+# desc: 设置 pocket 说明文本名，该名称将从 [$ "desc"] 寻找，该节点必须是 @text
+# verify: 设置 pocket 使用的校验方法，该方法为 pocket_verify_s(libpocket-verify.so) 所支持的
+#         默认有下列:
+#         "xor.1", "xor.2", "xor.4", "xor.8"
+#         "*>^~32.4", "*>^~32.8", "*>^~32.16", "*>^~32.32"
+#         "*>^~64.4", "*>^~64.8", "*>^~64.16", "*>^~64.32"
+
+# 设置当前节点
+[$]           # 设置为系统空间根节点
+[$ "a" "b" ]  # 设置为系统空间 a.b 节点
+[]            # 设置为用户空间根节点
+[ "a" "b" ]   # 设置为用户空间 a.b 节点
+
+# 设置节点
+"path" "name" @null
+"path" "name" @index
+"path" "name" @string => ""
+"path" "name" @text   => @""
+"path" "name" @u8     => (u8) {}
+"path" "name" @s8     => (s8) {}
+"path" "name" @u16    => (u16) {}
+"path" "name" @s16    => (s16) {}
+"path" "name" @u32    => (u32) {}
+"path" "name" @s32    => (s32) {}
+"path" "name" @u64    => (u64) {}
+"path" "name" @s64    => (s64) {}
+"path" "name" @f16    => &""
+"path" "name" @f32    => (f32) {}
+"path" "name" @f64    => (f64) {}
+# "path" "name" @f128   => &""
+# "path" "name" @largeN => &""
+"path" "name" @"tag"
+"path" "name" @"tag"  => &""
+# 其中
+	=> ""                        # 设置字符串，保留末尾的 '\0'
+	=> @"path"                   # 设置路径为 path 的文本文件内容为字符串，会加 '\0' 到末尾
+	=> &"path"                   # 设置路径为 path 的文件内容
+	=> (s32) { 1, 2, -1, 0x10 }  # 将设置为字节流(小端序): [16] 01 00 00 00  02 00 00 00  ff ff ff ff  10 00 00 00
+	=16> (u8) { 1, 2 }           # 设置的值将会在 pocket 文件中起始地址以 16 对齐 (=> 中间的数字一定为十进制，默认 0 按类型对齐)
+	=4> ""                       # @string 将会忽略对齐参数，始终以 1 对齐并储存在 字符串合并区
+	=> ( u8 [ 4 ] ) { 2 , 4 }    # 设置数组长度(默认为自动识别)，不足的默认填充 0: [4] 02 04 00 00
+
+# 调用特殊处理
+# 将会在 kiya 实例中寻找符号 "symbol" 并认为其是 (pocket_builder_kiya_main_f) 类型
+( "symbol" )        # curr = symbol(saver, curr, 1, (const char *const [1]) { "symbol" })
+( "symbol" "arg" )  # curr = symbol(saver, curr, 2, (const char *const [2]) { "symbol", "arg" })
+# saver 为该 pocket 的构建实例
+# curr  为当前节点，一定是 @index 类型
+# 返回值将成为新的当前节点，如果返回 NULL 将终止构建
+
+# 构建脚本结束
+~ # 如果出现 '~' 符号将开始链接脚本
+# 链接脚本开始，此时 pocket 已经生成，各个节点的位置及值的位置已确定
+# 该脚本目的是修饰 pocket ，使不存在值的节点能够链接以存在的块
+
+# 设置当前节点， [] 内的逻辑和上方构建目录的逻辑相同
+< [] # 设置链接源
+> [] # 设置链接目的
+
+# 设置链接
+"src-path" "src-name" -> "dst-path" "dst-name"
+"src-path" "src-name" -8> "dst-path" "dst-name"
+"src-path" "src-name" -+3> "dst-path" "dst-name"
+"src-path" "src-name" -10+4> "dst-path" "dst-name"
+"src-path" "src-name" -0x40+16> "dst-path" "dst-name"
+"src-path" "src-name" -0x20+0x10> "dst-path" "dst-name"
+# -offset+size> 默认均为 0
+# 如果 size 最终为 0 则 size = dst_size - offset
+# 例如 "dst" @u8 => (u8[4]) { 1, 2, 3, 4 }
+"s"   ->    "dst" # (u8[4]) { 1, 2, 3, 4 }
+"s13" -1>   "dst" # (u8[3]) { 2, 3, 4 }
+"s02" -+2>  "dst" # (u8[2]) { 1, 2 }
+"s12" -1+2> "dst" # (u8[2]) { 2, 3 }
+# 其中 链接源 的 data size 必须是 NULL 和 0
+# 链接过程中链接产生的值域不能超出链接目的的值域
+# 链接源 和 链接目的 不能是 @null @index @string
+# 如果 链接源 为 @text 类型，则 链接目的 必须是 @text 类型，并且 size 必须是 0 (确保 链接源 的值也是 text 以 '\0' 结束)

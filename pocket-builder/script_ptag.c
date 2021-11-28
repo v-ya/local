@@ -7,6 +7,20 @@ static inline const exbuffer_t* ptag_buffer_is_string(const exbuffer_t *restrict
 	return NULL;
 }
 
+static inline const void* ptag_buffer_to_ptr(const exbuffer_t *restrict buffer, uintptr_t shr, uint64_t *restrict n)
+{
+	if (buffer)
+	{
+		*n = buffer->used >> shr;
+		return buffer->data;
+	}
+	else
+	{
+		*n = 0;
+		return NULL;
+	}
+}
+
 static pocket_saver_s* ptag_null(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
 {
 	if (buffer) return NULL;
@@ -31,65 +45,27 @@ static pocket_saver_s* ptag_text(pocket_saver_s *restrict saver, pocket_saver_in
 	return pocket_saver_create_text(saver, index, path, (const char *) buffer->data, align);
 }
 
-static pocket_saver_s* ptag_u8(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_u8(saver, index, path, (const uint8_t *) buffer->data, buffer->used, align);
-}
+#define d_ptag_array(_t, _shr)  \
+	static pocket_saver_s* ptag_##_t(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)\
+	{\
+		const void *d;\
+		uint64_t n;\
+		d = ptag_buffer_to_ptr(buffer, _shr, &n);\
+		return pocket_saver_create_##_t(saver, index, path, d, n, align);\
+	}\
 
-static pocket_saver_s* ptag_s8(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_s8(saver, index, path, (const int8_t *) buffer->data, buffer->used, align);
-}
+d_ptag_array(u8, 0)
+d_ptag_array(s8, 0)
+d_ptag_array(u16, 1)
+d_ptag_array(s16, 1)
+d_ptag_array(u32, 2)
+d_ptag_array(s32, 2)
+d_ptag_array(u64, 3)
+d_ptag_array(s64, 3)
+d_ptag_array(f32, 2)
+d_ptag_array(f64, 3)
 
-static pocket_saver_s* ptag_u16(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_u16(saver, index, path, (const uint16_t *) buffer->data, buffer->used >> 1, align);
-}
-
-static pocket_saver_s* ptag_s16(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_s16(saver, index, path, (const int16_t *) buffer->data, buffer->used >> 1, align);
-}
-
-static pocket_saver_s* ptag_u32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_u32(saver, index, path, (const uint32_t *) buffer->data, buffer->used >> 2, align);
-}
-
-static pocket_saver_s* ptag_s32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_s32(saver, index, path, (const int32_t *) buffer->data, buffer->used >> 2, align);
-}
-
-static pocket_saver_s* ptag_u64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_u64(saver, index, path, (const uint64_t *) buffer->data, buffer->used >> 3, align);
-}
-
-static pocket_saver_s* ptag_s64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_s64(saver, index, path, (const int64_t *) buffer->data, buffer->used >> 3, align);
-}
-
-static pocket_saver_s* ptag_f32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_f32(saver, index, path, (const float *) buffer->data, buffer->used >> 2, align);
-}
-
-static pocket_saver_s* ptag_f64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict path, const exbuffer_t *restrict buffer, uintptr_t align)
-{
-	if (!buffer) return NULL;
-	return pocket_saver_create_f64(saver, index, path, (const double *) buffer->data, buffer->used >> 3, align);
-}
+#undef d_ptag_array
 
 hashmap_t* script_ptag_init(hashmap_t *restrict p)
 {
