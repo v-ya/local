@@ -3,7 +3,7 @@
 
 #include <exbuffer.h>
 
-#define skip_space(s)    while (*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n') ++s
+#define skip_space(s)    while (*s == ' ' || *s == '\t') ++s
 #define skip_comment(s)  while (*s && *s != '\n') ++s
 
 int parse_is_key(const char *restrict s);
