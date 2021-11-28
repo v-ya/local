@@ -115,7 +115,7 @@ static int do_script(const args_t *restrict args)
 						pocket = pocket_alloc(data, size, verify);
 						if (pocket)
 						{
-							rpos = script_link(pocket, linker);
+							rpos = script_link(script, pocket, linker);
 							refer_free(pocket);
 							if (!rpos)
 							{

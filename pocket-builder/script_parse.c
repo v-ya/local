@@ -4,27 +4,33 @@
 #include <string.h>
 
 static const uint8_t kmap[256] = {
+	['-'] = 1,
+	['.'] = 1,
 	['0' ... '9'] = 1,
 	['A' ... 'Z'] = 1,
-	['a' ... 'z'] = 1
+	['a' ... 'z'] = 1,
+	['_'] = 1
 };
+
+int parse_is_key(const char *restrict s)
+{
+	return (int) kmap[*(const uint8_t *) s];
+}
 
 const char* parse_key(exbuffer_t *restrict buffer, const char *restrict *restrict p)
 {
 	register const uint8_t *restrict s;
 	register uint8_t *restrict d;
-	uint32_t n = 32;
-	if ((d = exbuffer_need(buffer, n)))
+	uintptr_t n;
+	s = (const uint8_t *) *p;
+	while (kmap[*s]) ++s;
+	n = (uintptr_t) s - (uintptr_t) *p;
+	if ((d = exbuffer_need(buffer, n + 1)))
 	{
-		s = (const uint8_t *) *p;
-		while (--n && kmap[*s])
-			*d++ = *s++;
+		memcpy(d, *p, n);
+		d[n] = 0;
 		*p = (const char *) s;
-		if (!kmap[*s])
-		{
-			*d = 0;
-			return (const char *) buffer->data;
-		}
+		return (const char *) d;
 	}
 	return NULL;
 }

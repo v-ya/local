@@ -16,6 +16,7 @@ script_t* script_alloc(void)
 		if (
 			hashmap_init(&r->header) &&
 			hashmap_init(&r->ptag) &&
+			hashmap_init(&r->pool) &&
 			script_header_init(&r->header) &&
 			script_ptag_init(&r->ptag) &&
 			(r->buffer = exbuffer_alloc(0))
@@ -29,6 +30,7 @@ void script_free(script_t *restrict s)
 {
 	hashmap_uini(&s->header);
 	hashmap_uini(&s->ptag);
+	hashmap_uini(&s->pool);
 	if (s->buffer) exbuffer_free(s->buffer);
 	if (s->kiya && s->kiya_free)
 		s->kiya_free(s->kiya);
@@ -85,9 +87,9 @@ script_t* script_kiya_load(script_t *restrict s, const char *restrict kiya_pocke
 	return NULL;
 }
 
-typedef void* (*script_parse_stream_f)(void *restrict pri, const char *restrict name);
+typedef const void* (*script_parse_stream_f)(const void *restrict inode, const void *restrict inst, const char *restrict name);
 
-static void* script_string_stream(const char *restrict *restrict p, script_parse_stream_f func, void *restrict pri)
+static const void* script_string_stream(const char *restrict *restrict p, script_parse_stream_f func, const void *restrict inst, const void *restrict inode)
 {
 	const char *restrict s;
 	json_inode_t *v;
@@ -97,71 +99,110 @@ static void* script_string_stream(const char *restrict *restrict p, script_parse
 	{
 		if (!(s = json_decode(*p = s, &v)))
 		{
-			pri = NULL;
+			inode = NULL;
 			break;
 		}
-		if (!(pri = func(pri, v->value.string)))
+		if (!(inode = func(inode, inst, v->value.string)))
 			break;
 		skip_space(s);
 	}
 	if (v) json_free(v);
 	*p = s;
-	return pri;
+	return inode;
 }
 
-static void* script_working_switch(const char *restrict *restrict p, script_parse_stream_f func, void *restrict user, void *restrict system)
+typedef struct script_working_switch_t {
+	hashmap_t *pool;
+	exbuffer_t *key;
+	const void *user;
+	const void *system;
+	const void *curr;
+} script_working_switch_t;
+
+static const void* script_working_switch(const char *restrict *restrict p, const script_working_switch_t *context, script_parse_stream_f func, const void *restrict inst)
 {
-	const char *restrict s;
+	const char *restrict s, *restrict key;
+	const void *inode;
 	if (*(s = *p) == '[')
 	{
-		if (*++s == '$')
+		++s;
+		if (*s == '$')
 		{
-			user = system;
+			// system
+			inode = context->system;
 			++s;
 		}
+		else if (*s == '~')
+		{
+			// curr
+			inode = context->curr;
+			++s;
+		}
+		else if (!parse_is_key(s))
+		{
+			// user
+			inode = context->user;
+		}
+		else
+		{
+			// key
+			if (!context->pool || !context->key)
+				goto label_fail;
+			if (!(key = parse_key(context->key, &s)))
+				goto label_fail;
+			if (!(inode = hashmap_get_name(context->pool, key)))
+				goto label_fail;
+		}
 		skip_space(s);
-		if ((user = script_string_stream(&s, func, user)))
+		if ((inode = script_string_stream(&s, func, inst, inode)))
 		{
 			skip_space(s);
+			if (parse_is_key(s))
+			{
+				if (!context->pool || !context->key)
+					goto label_fail;
+				if (!(key = parse_key(context->key, &s)))
+					goto label_fail;
+				if (!hashmap_set_name(context->pool, key, inode, NULL))
+					goto label_fail;
+			}
 			if (*s == ']')
 			{
 				*p = s + 1;
-				return user;
+				return inode;
 			}
 		}
 	}
+	label_fail:
 	*p = s;
 	return NULL;
 }
 
 typedef struct script_saver_cd_pri_t {
 	pocket_saver_s *saver;
-	pocket_saver_index_t *index;
 	const char *path[2];
 } script_saver_cd_pri_t;
 
-static script_saver_cd_pri_t* script_saver_cd_func(script_saver_cd_pri_t *restrict pri, const char *restrict name)
+static pocket_saver_index_t* script_saver_cd_func(pocket_saver_index_t *restrict index, script_saver_cd_pri_t *restrict pri, const char *restrict name)
 {
-	pocket_saver_index_t *restrict index;
 	pri->path[0] = name;
-	if ((index = pri->index) &&
-		pocket_saver_create_index(pri->saver, index, pri->path) &&
-		(pri->index = pocket_saver_cd(index, pri->path)))
-		return pri;
+	if (index && pocket_saver_create_index(pri->saver, index, pri->path))
+		return pocket_saver_cd(index, pri->path);
 	return NULL;
 }
 
-static pocket_saver_index_t* script_working_change(pocket_saver_s *restrict saver, const char *restrict *restrict p)
+static pocket_saver_index_t* script_working_change(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict curr, hashmap_t *restrict pool, exbuffer_t *restrict cache, const char *restrict *restrict p)
 {
-	script_saver_cd_pri_t *r;
-	script_saver_cd_pri_t user, system;
-	user.saver = system.saver = saver;
-	user.path[1] = system.path[1] = NULL;
-	user.index = pocket_saver_root_user(saver);
-	system.index = pocket_saver_root_system(saver);
-	if ((r = (script_saver_cd_pri_t *) script_working_switch(p, (script_parse_stream_f) script_saver_cd_func, &user, &system)))
-		return r->index;
-	return NULL;
+	script_working_switch_t context;
+	script_saver_cd_pri_t inst;
+	inst.saver = saver;
+	inst.path[1] = NULL;
+	context.pool = pool;
+	context.key = cache;
+	context.user = pocket_saver_root_user(saver);
+	context.system = pocket_saver_root_system(saver);
+	context.curr = curr;
+	return (pocket_saver_index_t *) script_working_switch(p, &context, (script_parse_stream_f) script_saver_cd_func, &inst);
 }
 
 static script_t* script_working_create(script_t *restrict script, pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *restrict *restrict p)
@@ -231,7 +272,7 @@ typedef struct script_working_kiya_call_arg_t {
 	const char **argv;
 } script_working_kiya_call_arg_t;
 
-static script_working_kiya_call_arg_t* script_working_kiya_call_get_arg_func(script_working_kiya_call_arg_t *restrict arg, const char *restrict name)
+static script_working_kiya_call_arg_t* script_working_kiya_call_get_arg_func(script_working_kiya_call_arg_t *restrict arg, void *restrict inst, const char *restrict name)
 {
 	uintptr_t size;
 	uintptr_t pos;
@@ -254,7 +295,7 @@ static script_working_kiya_call_arg_t* script_working_kiya_call_get_arg(script_w
 	{
 		++s;
 		skip_space(s);
-		if ((script_string_stream(&s, (script_parse_stream_f) script_working_kiya_call_get_arg_func, arg)))
+		if ((script_string_stream(&s, (script_parse_stream_f) script_working_kiya_call_get_arg_func, NULL, arg)))
 		{
 			skip_space(s);
 			if (*s == ')')
@@ -311,6 +352,7 @@ const char* script_build(script_t *restrict script, pocket_saver_s *restrict sav
 {
 	pocket_saver_index_t *restrict working;
 	*linker = NULL;
+	hashmap_clear(&script->pool);
 	working = pocket_saver_root_user(saver);
 	if (!working) goto label_fail;
 	while (*s)
@@ -331,7 +373,7 @@ const char* script_build(script_t *restrict script, pocket_saver_s *restrict sav
 					goto label_fail;
 				continue;
 			case '[':
-				working = script_working_change(saver, &s);
+				working = script_working_change(saver, working, &script->pool, script->buffer, &s);
 				if (!working) goto label_fail;
 				continue;
 			case '\"':
@@ -349,50 +391,41 @@ const char* script_build(script_t *restrict script, pocket_saver_s *restrict sav
 				goto label_fail;
 		}
 	}
+	hashmap_clear(&script->pool);
 	return NULL;
 	label_fail:
+	hashmap_clear(&script->pool);
 	return s;
 }
 
-typedef struct script_linker_cd_pri_t {
-	pocket_s *pocket;
-	const pocket_attr_t *index;
-} script_linker_cd_pri_t;
-
-static script_linker_cd_pri_t* script_linker_cd_func(script_linker_cd_pri_t *restrict pri, const char *restrict name)
+static const pocket_attr_t* script_linker_cd_func(const pocket_attr_t *restrict inode, pocket_s *restrict inst, const char *restrict name)
 {
-	if (pri->index && (pri->index = pocket_find(pri->pocket, pri->index, name)))
-		return pri;
+	if (inode)
+		return pocket_find(inst, inode, name);
 	return NULL;
 }
 
-static const pocket_attr_t* script_linker_working_change(pocket_s *restrict pocket, const pocket_header_t *restrict header, const char *restrict *restrict p)
+static const pocket_attr_t* script_linker_working_change(pocket_s *restrict pocket, const pocket_attr_t *restrict curr, hashmap_t *restrict pool, exbuffer_t *restrict cache, const char *restrict *restrict p)
 {
-	script_linker_cd_pri_t *r;
-	script_linker_cd_pri_t user, system;
-	user.pocket = system.pocket = pocket;
-	user.index = (const pocket_attr_t *) header->user.ptr;
-	system.index = (const pocket_attr_t *) header->system.ptr;
-	if ((r = (script_linker_cd_pri_t *) script_working_switch(p, (script_parse_stream_f) script_linker_cd_func, &user, &system)))
-		return r->index;
-	return NULL;
+	script_working_switch_t context;
+	context.pool = pool;
+	context.key = cache;
+	context.user = pocket_user(pocket);
+	context.system = pocket_system(pocket);
+	context.curr = curr;
+	return script_working_switch(p, &context, (script_parse_stream_f) script_linker_cd_func, pocket);
 }
 
 static pocket_s* script_link_update(pocket_s *restrict pocket, const pocket_attr_t *restrict from, const pocket_attr_t *restrict to, const char *restrict *restrict p)
 {
 	const char *restrict s;
-	script_linker_cd_pri_t cd;
 	uint64_t offset, size;
 	pocket_tag_t tf, tt;
 	s = *p;
-	cd.pocket = pocket;
 	// get from and check
 	if (*s != '\"')
 		goto label_fail;
-	cd.index = from;
-	if (!script_string_stream(&s, (script_parse_stream_f) script_linker_cd_func, &cd))
-		goto label_fail;
-	if (!(from = cd.index))
+	if (!(from = script_string_stream(&s, (script_parse_stream_f) script_linker_cd_func, pocket, from)))
 		goto label_fail;
 	if ((tf = pocket_preset_tag(pocket, from)) <= pocket_tag$string || from->data.ptr || from->size)
 		goto label_fail;
@@ -417,10 +450,7 @@ static pocket_s* script_link_update(pocket_s *restrict pocket, const pocket_attr
 	// get to and check
 	if (*s != '\"')
 		goto label_fail;
-	cd.index = to;
-	if (!script_string_stream(&s, (script_parse_stream_f) script_linker_cd_func, &cd))
-		goto label_fail;
-	if (!(to = cd.index))
+	if (!(to = script_string_stream(&s, (script_parse_stream_f) script_linker_cd_func, pocket, to)))
 		goto label_fail;
 	if ((tt = pocket_preset_tag(pocket, to)) <= pocket_tag$string || !to->data.ptr || !to->size)
 		goto label_fail;
@@ -442,14 +472,13 @@ static pocket_s* script_link_update(pocket_s *restrict pocket, const pocket_attr
 	return NULL;
 }
 
-const char* script_link(pocket_s *restrict pocket, const char *restrict s)
+const char* script_link(script_t *restrict script, pocket_s *restrict pocket, const char *restrict s)
 {
-	const pocket_header_t *restrict header;
 	const pocket_attr_t *from;
 	const pocket_attr_t *to;
 	const pocket_attr_t **restrict select;
-	header = pocket_header(pocket);
-	from = to = (const pocket_attr_t *) header->user.ptr;
+	hashmap_clear(&script->pool);
+	from = to = pocket_user(pocket);
 	select = &from;
 	while (*s)
 	{
@@ -472,7 +501,7 @@ const char* script_link(pocket_s *restrict pocket, const char *restrict s)
 				select = &to;
 				goto label_skip_char;
 			case '[':
-				if (!(*select = script_linker_working_change(pocket, header, &s)))
+				if (!(*select = script_linker_working_change(pocket, *select, &script->pool, script->buffer, &s)))
 					goto label_fail;
 				continue;
 			case '\"':
@@ -483,7 +512,9 @@ const char* script_link(pocket_s *restrict pocket, const char *restrict s)
 				goto label_fail;
 		}
 	}
+	hashmap_clear(&script->pool);
 	return NULL;
 	label_fail:
+	hashmap_clear(&script->pool);
 	return s;
 }
