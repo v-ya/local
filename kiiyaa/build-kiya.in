@@ -1,8 +1,10 @@
-cc		= gcc
-ld		= ld
-dylink		= dylink
-ccflags		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
-pocket-builder	= pocket-builder
+cc		?= gcc
+ld		?= ld
+dylink		?= dylink
+ccflags		?= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
+pocket-builder	?= pocket-builder
+builder-script	?= kiya.builder
+dylink-depend	?= ${target}.dy
 
 %.o: %.c
 	${cc} ${ccflags} -c '$<' -o '$@'
@@ -10,7 +12,7 @@ pocket-builder	= pocket-builder
 %.o: %.S
 	${cc} ${ccflags} -c '$<' -o '$@'
 
-${target}.kiya: kiya.builder ${target}.dy
+${target}.kiya: ${builder-script} ${dylink-depend}
 	${pocket-builder} '$<' -o '$@'
 
 ${target}.dy: ${target}.r.o
