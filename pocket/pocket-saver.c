@@ -541,7 +541,7 @@ pocket_saver_s* pocket_saver_create_text(pocket_saver_s *restrict saver, pocket_
 
 pocket_saver_s* pocket_saver_create_u8(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const uint8_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$u8, NULL, data, n, align)))
@@ -556,7 +556,7 @@ pocket_saver_s* pocket_saver_create_u8(pocket_saver_s *restrict saver, pocket_sa
 
 pocket_saver_s* pocket_saver_create_s8(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const int8_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$s8, NULL, data, n, align)))
@@ -571,7 +571,7 @@ pocket_saver_s* pocket_saver_create_s8(pocket_saver_s *restrict saver, pocket_sa
 
 pocket_saver_s* pocket_saver_create_u16(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const uint16_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$u16, NULL, data, n << 1, align)))
@@ -586,7 +586,7 @@ pocket_saver_s* pocket_saver_create_u16(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_s16(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const int16_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$s16, NULL, data, n << 1, align)))
@@ -601,7 +601,7 @@ pocket_saver_s* pocket_saver_create_s16(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_u32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const uint32_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$u32, NULL, data, n << 2, align)))
@@ -616,7 +616,7 @@ pocket_saver_s* pocket_saver_create_u32(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_s32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const int32_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$s32, NULL, data, n << 2, align)))
@@ -631,7 +631,7 @@ pocket_saver_s* pocket_saver_create_s32(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_u64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const uint64_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$u64, NULL, data, n << 3, align)))
@@ -646,7 +646,7 @@ pocket_saver_s* pocket_saver_create_u64(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_s64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const int64_t *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$s64, NULL, data, n << 3, align)))
@@ -661,7 +661,7 @@ pocket_saver_s* pocket_saver_create_s64(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_f32(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const float *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$f32, NULL, data, n << 2, align)))
@@ -676,7 +676,7 @@ pocket_saver_s* pocket_saver_create_f32(pocket_saver_s *restrict saver, pocket_s
 
 pocket_saver_s* pocket_saver_create_f64(pocket_saver_s *restrict saver, pocket_saver_index_t *restrict index, const char *const restrict *restrict path, const double *restrict data, uint64_t n, uintptr_t align)
 {
-	if (n && (index = pocket_saver_attr_insert_path(index, &path)))
+	if ((index = pocket_saver_attr_insert_path(index, &path)))
 	{
 		pocket_saver_attr_data_t *v;
 		if ((v = pocket_saver_attr_index_insert_data(index, *path, pocket_tag$f64, NULL, data, n << 3, align)))
