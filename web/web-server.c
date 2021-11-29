@@ -625,21 +625,18 @@ static void web_server_working_route_do_request(web_server_pri_s *restrict p, tr
 		{
 			yaw_lock_lock(p->register_read);
 			route = (const web_server_route_s *) refer_save(web_server_inner_find_request(p, method->string, uri->string));
-			if (route)
-				pretreat = (const web_server_route_s *) refer_save(p->pretreat_route);
-			else pretreat = NULL;
+			pretreat = (const web_server_route_s *) refer_save(p->pretreat_route);
 			yaw_lock_unlock(p->register_read);
+			if (pretreat)
+			{
+				c = pretreat->func(&req->request, pretreat->pri);
+				refer_free(pretreat);
+				if (!c) goto label_fail_response_500;
+			}
 			if (route)
 			{
-				c = &req->request;
 				req->request.flags = route->flags;
-				if (pretreat)
-				{
-					c = pretreat->func(&req->request, pretreat->pri);
-					refer_free(pretreat);
-				}
 				req->route = route;
-				if (!c) goto label_fail_response_500;
 				if ((req->request.flags & web_server_request_flag__attr_mini) &&
 					!uhttp_get_header_integer_first(req->request.request_http, s_http_header_id_content_length))
 				{
