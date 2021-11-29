@@ -1,4 +1,3 @@
 target		= web.server.test
-object		= 
-dylink-depend	= 
+object		= main.o statistics.o trigger.statistics.o command.statistics.o header.connection.o
 include ../../build-kiya.in

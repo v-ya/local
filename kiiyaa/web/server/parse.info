@@ -5,21 +5,24 @@
 
 # 解析器根节点下子节点 (均可选)
 # 如果某个节点下预期可能出现 ‘#’ 起始的名称，则起始 "##name" => "#name"，所有未预期的 "#command" 将忽略
-[root.parse "trigger"]         # 触发器，和 "header" 执行相同逻辑，仅该返回值不会设置在响应 http 头域，并且预计不会检查返回值
+# 所有的 "#command" 将不会按照顺序解析，而是在该解析子项开始时解析
 [root.parse "header"]          # 默认响应 http 头域操作，返回为 null 将会跳过该次设置，请求流程不会中断
+[root.parse "trigger"]         # 触发器，和 "header" 执行相同逻辑，仅该返回值不会设置在响应 http 头域，并且预计不会检查返回值
 	"#clear" @null         # 清除之前所有 header 设置
 	"#clear" @index        # 清除该节点下所有指定名称的 header 设置 (大小写敏感)
 		"Header-Name" @null
 		# ...
-	"Header-Name" @string  # 添加 header 设置 (Header-Name: value)
+	"Header-Name" @text    # 添加 header 设置 (Header-Name: value) 仅在 "header" 中有效
 		=> "value"
+	"Header-Name" @string  # 添加 header 设置 symbol => (inst_web_server_value_allocer_f)
+		=> "symbol"
 	"Header-Name" @index   # 批量添加 header 设置
-		"name-const" @text => "value"    # (Header-Name: value)
+		"name-const" @text => "value"    # (Header-Name: value) 仅在 "header" 中有效
 		"name-build" @string => "symbol" # symbol => (inst_web_server_value_allocer_f)
 		# ...
 	# ...
-[root.parse "tag.local"]       # 本地作用域使用的 tag
 [root.parse "tag.global"]      # 添加当前和之后作用域使用预设 tag
+[root.parse "tag.local"]       # 本地作用域使用的 tag
 	"tag-builder" @string  # 构建器构建函数符号映射 => (inst_web_server_tag_builder_f)
 		=> "symbol"
 	"tag-compose" @index   # 构建器构造

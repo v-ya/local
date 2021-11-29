@@ -38,9 +38,14 @@ static void inst_web_server_free_func(inst_web_server_s *restrict r)
 		refer_free(r->server);
 	if (r->method)
 		refer_free(r->method);
+	if (r->pretreat)
+		refer_free(r->pretreat);
 	hashmap_uini(&r->tag);
 	hashmap_uini(&r->flags);
 }
+
+web_server_request_f pretreat_get_request(void);
+refer_t pretreat_alloc(const struct web_header_s *restrict headers);
 
 inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limit)
 {
@@ -51,7 +56,9 @@ inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limi
 		if (hashmap_init(&r->tag) && hashmap_init(&r->flags) &&
 			inst_web_server_initial_flags(&r->flags) &&
 			(r->method = web_method_alloc()) &&
-			(r->server = web_server_alloc(NULL, limit)))
+			(r->server = web_server_alloc(NULL, limit)) &&
+			(r->pretreat = pretreat_alloc(r->server->headers)) &&
+			web_server_register_pretreat(r->server, pretreat_get_request(), r->pretreat))
 			return r;
 		refer_free(r);
 	}

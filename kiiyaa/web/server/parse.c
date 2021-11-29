@@ -20,6 +20,8 @@ const char* check_special_and_escape(const char *restrict name)
 	return NULL;
 }
 
+const pocket_attr_t* web_server_parse_header(pocket_s *restrict pocket, const pocket_attr_t *restrict root, refer_t pretreat, const web_server_s *server, const dylink_pool_t *restrict pool);
+const pocket_attr_t* web_server_parse_trigger(pocket_s *restrict pocket, const pocket_attr_t *restrict root, refer_t pretreat, const web_server_s *server, const dylink_pool_t *restrict pool);
 const pocket_attr_t* web_server_parse_tag(pocket_s *restrict pocket, const pocket_attr_t *restrict root, hashmap_t *restrict tags, const dylink_pool_t *restrict pool, const inst_web_server_s *restrict inst);
 const pocket_attr_t* web_server_parse_register(pocket_s *restrict pocket, const pocket_attr_t *restrict root, const inst_web_server_s *restrict inst, const hashmap_t *restrict tags_local);
 const pocket_attr_t* web_server_parse_bind(pocket_s *restrict pocket, const pocket_attr_t *restrict root, web_server_s *server);
@@ -38,6 +40,22 @@ pocket_s* web_server_parse(pocket_s *restrict pocket, const pocket_attr_t *restr
 		r = inst;
 		pool = hashmap_get_name($dylink, name);
 		local_tag = NULL;
+		// header
+		if ((item = pocket_find(pocket, root, "header")))
+		{
+			if (pocket_preset_tag(pocket, item) != pocket_tag$index)
+				goto label_fail;
+			if ((item = web_server_parse_header(pocket, item, r->pretreat, r->server, pool)))
+				goto label_fail;
+		}
+		// trigger
+		if ((item = pocket_find(pocket, root, "trigger")))
+		{
+			if (pocket_preset_tag(pocket, item) != pocket_tag$index)
+				goto label_fail;
+			if ((item = web_server_parse_trigger(pocket, item, r->pretreat, r->server, pool)))
+				goto label_fail;
+		}
 		// tag.global
 		if ((item = pocket_find(pocket, root, "tag.global")))
 		{

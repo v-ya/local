@@ -16,9 +16,10 @@ typedef refer_t (*inst_web_server_tag_allocer_f)(inst_web_server_tag_s *restrict
 typedef web_server_request_flag_t (*inst_web_server_flags_modify_f)(web_server_request_flag_t flags);
 
 typedef inst_web_server_value_s* (*inst_web_server_value_allocer_f)(const web_server_s *server);
-typedef const char* (*inst_web_server_value_f)(inst_web_server_value_s *restrict, uintptr_t *restrict length, web_server_request_t *restrict request);
+typedef uhttp_header_s* (*inst_web_server_value_f)(inst_web_server_value_s *restrict r, refer_nstring_t name, web_server_request_t *restrict request);
 
 struct inst_web_server_value_s {
+	// return save(uhttp_header_s *)
 	inst_web_server_value_f value;
 };
 
@@ -34,6 +35,7 @@ struct inst_web_server_s {
 	web_method_s *method;  // parse used
 	hashmap_t tag;         // => (inst_web_server_tag_s *)
 	hashmap_t flags;       // => (inst_web_server_flags_modify_f)
+	refer_t pretreat;
 };
 
 web_server_s* web$server$get_save(void);
