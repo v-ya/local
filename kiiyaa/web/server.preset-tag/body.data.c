@@ -83,23 +83,23 @@ static web_server_request_flag_t body_data_parse_flags(const char *restrict name
 			if (
 				name[0] == 'm' &&
 				name[1] == 'i' &&
-				name[3] == 'n' &&
-				name[4] == 'i' &&
-				(!name[5] || name[5] == '|'))
+				name[2] == 'n' &&
+				name[3] == 'i' &&
+				(!name[4] || name[4] == '|'))
 			{
 				flags |= web_server_request_flag__attr_mini;
-				name += 5;
+				name += 4;
 			}
 			else if (
 				name[0] == 'c' &&
 				name[1] == 'l' &&
-				name[3] == 'o' &&
-				name[4] == 's' &&
-				name[5] == 'e' &&
-				(!name[6] || name[6] == '|'))
+				name[2] == 'o' &&
+				name[3] == 's' &&
+				name[4] == 'e' &&
+				(!name[5] || name[5] == '|'))
 			{
 				flags |= web_server_request_flag__attr_force_close;
-				name += 6;
+				name += 5;
 			}
 		}
 	} while (*name);
