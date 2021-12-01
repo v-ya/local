@@ -469,6 +469,30 @@ zlist_list_t* zlist_remove(zlist_t *restrict r, zlist_list_t *restrict v)
 	return v;
 }
 
+zlist_list_t* zlist_find_a(zlist_t *restrict r)
+{
+	zlist_layer_t *layer;
+	if ((layer = r->layer))
+	{
+		while (layer->level)
+			layer = layer->xa;
+		return (zlist_list_t *) layer->xa;
+	}
+	return NULL;
+}
+
+zlist_list_t* zlist_find_b(zlist_t *restrict r)
+{
+	zlist_layer_t *layer;
+	if ((layer = r->layer))
+	{
+		while (layer->level)
+			layer = layer->xb;
+		return (zlist_list_t *) layer->xb;
+	}
+	return NULL;
+}
+
 zlist_list_t* zlist_find_must(zlist_t *restrict r, int64_t a, int64_t b)
 {
 	zlist_layer_t *layer, *e;
