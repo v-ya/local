@@ -1,4 +1,5 @@
 #include "transport.h"
+#include "inner/transport.h"
 #include "inner/time.h"
 #include "inner/define.h"
 #include <stdlib.h>
@@ -79,6 +80,8 @@ void transport_initial(transport_s *restrict r, const char *type, transport_s *l
 	r->cache.pos = NULL;
 	r->cache.size = 0;
 	r->cache.used = 0;
+	if (!layer) r->p_socket = NULL;
+	else r->p_socket = layer->p_socket;
 }
 
 void transport_final(transport_s *restrict r)
@@ -179,7 +182,7 @@ void transport_discard_cache(transport_s *restrict r)
 	transport_cache_discard(&r->cache);
 }
 
-// other
+// timestamp
 
 uint64_t transport_timestamp_sec(void)
 {
@@ -200,4 +203,87 @@ uint64_t transport_timestamp_us(void)
 	struct timespec t = {.tv_sec = 0, .tv_nsec = 0};
 	transport_inner_timespec_now(&t);
 	return transport_inner_timespec_to_us(&t);
+}
+
+// tpoll
+
+#include "inner/tpoll.h"
+
+struct transport_poll_s {
+	transport_inner_poll_s *restrict tpoll;
+	refer_t *cache;
+	uintptr_t size;
+	uintptr_t number;
+};
+
+static void transport_poll_free_func(transport_poll_s *restrict r)
+{
+	if (r->tpoll) refer_free(r->tpoll);
+	if (r->number) transport_poll_clear_get(r);
+}
+
+transport_poll_s* transport_poll_alloc(uintptr_t size)
+{
+	transport_poll_s *restrict r;
+	r = (transport_poll_s *) refer_alloc(sizeof(transport_poll_s) + sizeof(refer_t) * size);
+	if (r)
+	{
+		r->tpoll = transport_inner_poll_alloc(size);
+		r->cache = (refer_t *) (r + 1);
+		r->size = size;
+		r->number = 0;
+		refer_set_free(r, (refer_free_f) transport_poll_free_func);
+		if (r->tpoll)
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+void transport_poll_clear_get(transport_poll_s *restrict tpoll)
+{
+	refer_t *restrict p;
+	uintptr_t i, n;
+	p = tpoll->cache;
+	n = tpoll->number;
+	for (i = 0; i < n; ++i)
+		if (p[i]) refer_free(p[i]);
+	tpoll->number = 0;
+}
+
+transport_poll_s* transport_poll_insert(transport_poll_s *restrict tpoll, transport_s *restrict tp, transport_poll_do_f func, refer_t pri, uint64_t timestamp_kill, transport_poll_flag_t flags)
+{
+	if (tp && tp->p_socket && func && pri &&
+		(flags & (transport_poll_flag_read | transport_poll_flag_write)))
+	{
+		uint32_t events;
+		events = 0;
+		if (flags & transport_poll_flag_read) events |= EPOLLIN;
+		if (flags & transport_poll_flag_write) events |= EPOLLOUT;
+		if (flags & transport_poll_flag_edge) events |= EPOLLET;
+		if (transport_inner_poll_insert(tpoll->tpoll, tp, func, pri, timestamp_kill, events))
+			return tpoll;
+	}
+	return NULL;
+}
+
+refer_t* transport_poll_get(transport_poll_s *restrict tpoll, uintptr_t *restrict number, uint64_t timeout_ms)
+{
+	if (tpoll->number)
+		transport_poll_clear_get(tpoll);
+	if (number)
+	{
+		uintptr_t n;
+		n = transport_inner_poll_get_okay(tpoll->tpoll, timeout_ms, tpoll->cache, tpoll->size);
+		if (n < tpoll->size)
+			n += transport_inner_poll_get_timeout(tpoll->tpoll, transport_timestamp_ms(), tpoll->cache + n, tpoll->size - n);
+		if ((*number = tpoll->number = n))
+			return tpoll->cache;
+	}
+	return NULL;
+}
+
+uintptr_t transport_poll_number(transport_poll_s *restrict tpoll)
+{
+	return transport_inner_poll_number(tpoll->tpoll);
 }

@@ -1,4 +1,5 @@
 #include "udp.h"
+#include "inner/transport.h"
 #include "inner/socket.h"
 
 typedef struct transport_udp_s {
@@ -75,6 +76,7 @@ static transport_udp_s* transport_udp_alloc_empty(socklen_t addr_length)
 		r->last_remote_ip = r->ip_buffer;
 		refer_set_free(r, (refer_free_f) transport_udp_free_func);
 		transport_initial(&r->tp, t_type, NULL, (transport_send_f) transport_udp_send, (transport_recv_f) transport_udp_recv);
+		r->tp.p_socket = &r->sock;
 	}
 	return r;
 }

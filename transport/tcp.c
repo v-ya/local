@@ -1,4 +1,5 @@
 #include "tcp.h"
+#include "inner/transport.h"
 #include "inner/socket.h"
 
 typedef enum transport_tcp_status_t {
@@ -82,6 +83,7 @@ static transport_tcp_s* transport_tcp_alloc_empty(void)
 		r->status = transport_tcp_status_connect_start;
 		refer_set_free(r, (refer_free_f) transport_tcp_free_func);
 		transport_initial(&r->tp, t_type, NULL, (transport_send_f) transport_tcp_send, (transport_recv_f) transport_tcp_recv);
+		r->tp.p_socket = &r->sock;
 	}
 	return r;
 }
@@ -211,6 +213,8 @@ transport_tcp_server_s* transport_tcp_server_alloc(const char *restrict local_ip
 			r->sock = transport_inner_socket_create_tcp();
 			if (~r->sock)
 			{
+				if (transport_inner_socket_set_nonblock(r->sock))
+					goto label_fail;
 				if (transport_inner_socket_set_reuse_addr(r->sock))
 					goto label_fail;
 				if (transport_inner_socket_bind(r->sock, local_addr, local_len))
@@ -239,6 +243,8 @@ transport_tcp_server_s* transport_tcp_server_accept(transport_tcp_server_s *rest
 		{
 			if (ptp)
 			{
+				if (transport_inner_socket_set_nonblock(rsock))
+					goto label_fail;
 				if (!(tp = transport_tcp_alloc_empty()))
 					goto label_fail;
 				tp->sock = rsock;
