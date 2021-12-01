@@ -29,10 +29,4 @@ transport_s* web_transport_recv_body(transport_s *restrict tp, const uhttp_s *re
 transport_s* web_transport_recv_http_with_body(transport_s *restrict tp, uhttp_s *restrict http, exbuffer_t *cache, exbuffer_t *body, const web_transport_attr_t *restrict attr);
 transport_s* web_transport_request(transport_s *restrict tp, const web_transport_context_t *restrict context, const web_transport_attr_t *restrict attr);
 
-typedef struct web_transport_poll_http_s web_transport_poll_http_s;
-
-web_transport_poll_http_s* web_transport_poll_http_alloc(const uhttp_inst_s *http_inst, uintptr_t http_limit_size);
-web_transport_poll_http_s* web_transport_poll_http_join(web_transport_poll_http_s *restrict tpoll, transport_s *restrict tp, uintptr_t timeout_ms);
-web_transport_poll_http_s* web_transport_poll_http_pop(web_transport_poll_http_s *restrict tpoll, transport_s **restrict ptp, uhttp_s **restrict phttp, uintptr_t *restrict rema_timeout_ms);
-
 #endif
