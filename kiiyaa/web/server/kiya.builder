@@ -18,7 +18,6 @@
 	"import.yaw" @null
 	"import.web" @null
 	"import.fsys" @null
-	"action.$mlog.used-locker" @null
 
 [$ "kiya" "dylink"]
 	"web.server" @"dylink" => &"web.server.dy"

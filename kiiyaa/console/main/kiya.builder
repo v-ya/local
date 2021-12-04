@@ -12,6 +12,7 @@
 	"import.dylink" @null
 	"import.hashmap" @null
 	"import.console" @null
+	"action.$mlog.used-locker" @null
 
 [kiya "dylink"]
 	"console.main" @"dylink" => &"console.main.dy"
