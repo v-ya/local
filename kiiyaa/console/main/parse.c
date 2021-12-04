@@ -1,24 +1,20 @@
-#include "console_command.h"
+#include <console.h>
 #include <pocket/pocket.h>
-#include <hashmap.h>
-#include <vattr.h>
 #include <dylink.h>
+#include <hashmap.h>
 
 static const char parse_name[] = "console.main.parse.command";
 
 static console_command_s* console_parse_command_add(const char *restrict name, console_command_s* (*allocer)(void))
 {
-	extern vattr_s *ccpool;
+	extern console_s *console;
 	console_command_s *r, *cc;
 	r = NULL;
-	if (!vattr_get_vslot(ccpool, name))
+	if ((cc = allocer()))
 	{
-		if ((cc = allocer()))
-		{
-			if (vattr_set(ccpool, name, cc))
-				r = cc;
-			refer_free(cc);
-		}
+		if (console_insert_command(console, name, cc))
+			r = cc;
+		refer_free(cc);
 	}
 	return r;
 }

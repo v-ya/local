@@ -4,6 +4,7 @@
 #include <rbtree.h>
 #include <vattr.h>
 #include <yaw.h>
+#include <mlog.h>
 
 typedef struct statistics_s {
 	vattr_s *st;
@@ -20,6 +21,6 @@ extern statistics_s *statistics;
 
 statistics_s* statistics_alloc(void);
 statistics_s* statistics_touch(statistics_s *restrict r, refer_nstring_t uri);
-void statistics_dump(statistics_s *restrict r);
+void statistics_dump(statistics_s *restrict r, mlog_s *mlog);
 
 #endif

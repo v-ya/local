@@ -60,7 +60,32 @@ static int response_code_get(const char *restrict code)
 	return 0;
 }
 
-static const web_server_route_s* get_route_save(const web_server_parse_register_t *restrict p, const pocket_attr_t *restrict item)
+static const web_server_route_s* get_route_save_by_link(const web_server_parse_register_t *restrict p, const char *restrict s, uintptr_t n)
+{
+	char method[16];
+	if (s && n && s[n - 1] == 0)
+	{
+		if (*s == '#')
+		{
+			// response
+			return web_server_find_response_save(p->server, response_code_get(s + 1));
+		}
+		else
+		{
+			// request
+			for (n = 0; n < sizeof(method) && s[n] && s[n] != ':'; ++n)
+				method[n] = s[n];
+			if (n < sizeof(method) && s[n] == ':' && (s = fsys_rpath_get_full_path(p->rpath, s + n + 1)))
+			{
+				method[n] = 0;
+				return web_server_find_request_save(p->server, method, s);
+			}
+		}
+	}
+	return NULL;
+}
+
+static const web_server_route_s* get_route_save_by_tag(const web_server_parse_register_t *restrict p, const pocket_attr_t *restrict item)
 {
 	inst_web_server_tag_s *tag;
 	const web_server_route_s *route;
@@ -86,6 +111,19 @@ static const web_server_route_s* get_route_save(const web_server_parse_register_
 	return route;
 }
 
+static const web_server_route_s* get_route_save(const web_server_parse_register_t *restrict p, const pocket_attr_t *restrict item)
+{
+	switch (pocket_preset_tag(p->pocket, item))
+	{
+		case pocket_tag$text:
+			return get_route_save_by_link(p, (const char *) item->data.ptr, (uintptr_t) item->size);
+		case pocket_tag$custom:
+			return get_route_save_by_tag(p, item);
+		default:
+			return NULL;
+	}
+}
+
 static const pocket_attr_t* web_server_parse_register_response(const web_server_parse_register_t *restrict p, const pocket_attr_t *restrict item)
 {
 	const web_server_route_s *route;
@@ -97,8 +135,6 @@ static const pocket_attr_t* web_server_parse_register_response(const web_server_
 	{
 		--n;
 		if (!item->name.string)
-			goto label_fail;
-		if (pocket_preset_tag(p->pocket, item) != pocket_tag$custom)
 			goto label_fail;
 		if (!(rcode = response_code_get(item->name.string)))
 			goto label_fail;
@@ -122,10 +158,9 @@ static const pocket_attr_t* web_server_parse_register_request_item(const web_ser
 	const web_server_route_s *route;
 	uint32_t i;
 	ret = NULL;
-	if (p->allow_method && pocket_preset_tag(p->pocket, item) == pocket_tag$custom &&
-		(uri = fsys_rpath_get_full_path(p->rpath, check_special_and_escape(item->name.string))))
+	if (p->allow_method && (route = get_route_save(p, item)))
 	{
-		if ((route = get_route_save(p, item)))
+		if ((uri = fsys_rpath_get_full_path(p->rpath, check_special_and_escape(item->name.string))))
 		{
 			for (i = 0; i < web_method_id_custom; ++i)
 			{
@@ -140,9 +175,9 @@ static const pocket_attr_t* web_server_parse_register_request_item(const web_ser
 				}
 			}
 			ret = item;
-			label_fail_free_route:
-			refer_free(route);
 		}
+		label_fail_free_route:
+		refer_free(route);
 	}
 	return ret;
 }
@@ -225,6 +260,7 @@ static const pocket_attr_t* web_server_parse_register_request(web_server_parse_r
 						goto label_fail;
 				}
 				break;
+			case pocket_tag$text:
 			case pocket_tag$custom:
 				if (!check_special_and_escape(item->name.string))
 					goto label_fail;

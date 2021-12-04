@@ -35,13 +35,15 @@
 			"res.http.by-user"     @null # request 负责发送响应 http
 			"res.body.by-user"     @null # request 负责发送响应 body
 			"res.route"            @null # request 只负责更改响应状态，响应报文将根据 code 路由生成
-			"res.attr.mini"        @null # 认为该请求是迷你请求，请求使用工作线程处理而不单独新建线程(但该请求必须不带 body)
+			"res.attr.mini"        @null # 认为该请求是迷你请求，请求使用工作线程处理而不单独新建线程
 			"res.attr.force-close" @null # 本次请求结束后强制关闭传输
 	# ...
 [root.parse "register"]        # 注册 url 映射
 	"#stack" @u32 => (u32[1]) { 64 } # @u32[1] 目录嵌套深度，仅预期出现在注册根节点
 	"#" @index             # 根据返回 code 设置响应路由
 		"404" @"tag"   # (code == 404) => "tag"(data)
+		"400" @text    # (code == 400) => (404)
+			=> "#404"
 		# ...
 	# 递归检测
 	"#啥都行" @index        # 设置接下来的注册 method，进入新一级会保存上一级的设置
@@ -54,6 +56,8 @@
 	"path" @index          # push curr, curr = "curr/path", do ... done, pop curr
 		# call 递归检测
 	"part" @"tag"          # "curr/part" => "tag"(data)
+	"part" @text           # "curr/part" => (method) "curr/part.dst"
+		=> "method:part.dst"
 	# ...
 [root.parse "bind"]            # 添加服务绑定 ip 地址和端口
 	"name-default" @string # 缺省映射方式

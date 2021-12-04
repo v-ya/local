@@ -132,9 +132,8 @@ static void statistics_dump_func(rbtree_t *restrict inode, mlog_s *ml)
 	}
 }
 
-void statistics_dump(statistics_s *restrict r)
+void statistics_dump(statistics_s *restrict r, mlog_s *mlog)
 {
-	extern mlog_s *$mlog;
 	rbtree_t *restrict rbt;
 	vattr_vlist_t *restrict vl;
 	statistics_item_s *restrict item;
@@ -146,6 +145,6 @@ void statistics_dump(statistics_s *restrict r)
 			statistics_rbt_push(&rbt, item);
 	}
 	yaw_lock_unlock(r->r);
-	rbtree_call(&rbt, (rbtree_func_call_f) statistics_dump_func, $mlog);
+	rbtree_call(&rbt, (rbtree_func_call_f) statistics_dump_func, mlog);
 	rbtree_clear(&rbt);
 }

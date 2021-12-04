@@ -4,27 +4,22 @@
 [$] "description" @text => @"desc.txt"
 : desc     = "description"
 
-[$ "kiya"] "name" @string => "console.main"
-[$ "kiya" "like"]
+[$ "kiya" kiya] "name" @string => "console.main"
+[kiya "like"]
 	"import.refer" @null
 	"import.mlog" @null
 	"import.pocket" @null
 	"import.dylink" @null
-	"import.exbuffer" @null
 	"import.hashmap" @null
-	"import.vattr" @null
+	"import.console" @null
 
-[$ "kiya" "dylink" "libc.so.6"]
-	"read" @null
-	"poll" @null
-	"signal" @null
-[$ "kiya" "dylink"]
+[kiya "dylink"]
 	"console.main" @"dylink" => &"console.main.dy"
 
-[$ "kiya" "parse"]
+[kiya "parse"]
 	"kiya.export" @null
 
-[$ "kiya"]
+[kiya]
 	"initial" @string => "initial"
 	"finally" @string => "finally"
 

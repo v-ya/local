@@ -1,17 +1,15 @@
-#include "../main/console_command.h"
 #include "../../web/server/server.h"
+#include <console.h>
 #include <mlog.h>
 
-extern mlog_s *$mlog;
-
-static void limit_main(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static console_s* limit_main(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
 	web_server_s *server;
 	const web_server_limit_t *restrict limit;
 	if ((server = web$server$get_save()))
 	{
 		limit = server->limit;
-		mlog_printf($mlog,
+		mlog_printf(mlog,
 			"http_max_length:           %zu\n"
 			"body_max_length:           %zu\n"
 			"transport_recv_timeout_ms: %zu\n"
@@ -30,11 +28,12 @@ static void limit_main(console_command_s *restrict cc, uintptr_t argc, const cha
 			, limit->wait_req_max_number);
 		refer_free(server);
 	}
+	return NULL;
 }
 
-static void limit_limit(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static void limit_limit(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
-	mlog_printf($mlog, "%s\n", argv[0]);
+	mlog_printf(mlog, "%s\n", argv[0]);
 }
 
 console_command_s* command_alloc_limit(void)

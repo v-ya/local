@@ -1,17 +1,15 @@
-#include "../main/console_command.h"
 #include "../../web/server/server.h"
+#include <console.h>
 #include <mlog.h>
 
-extern mlog_s *$mlog;
-
-static void status_main(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static console_s* status_main(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
 	web_server_s *server;
 	const web_server_status_t *restrict status;
 	if ((server = web$server$get_save()))
 	{
 		status = server->status;
-		mlog_printf($mlog,
+		mlog_printf(mlog,
 			"transport: %zu\n"
 			"wait_req:  %zu\n"
 			"working:   %zu\n"
@@ -22,11 +20,12 @@ static void status_main(console_command_s *restrict cc, uintptr_t argc, const ch
 			, status->detach);
 		refer_free(server);
 	}
+	return NULL;
 }
 
-static void status_status(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static void status_status(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
-	mlog_printf($mlog, "%s\n", argv[0]);
+	mlog_printf(mlog, "%s\n", argv[0]);
 }
 
 console_command_s* command_alloc_status(void)

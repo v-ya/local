@@ -35,7 +35,7 @@
 [parse "register" register]
 [register "#"]
 	# 注册响应返回路由
-	"404" @"body.data" => &"domain/404.html"
+	"404" @"body.data|mini" => &"domain/404.html"
 [register "#method"]
 	# 设置注册方法
 	"+GET" @null
@@ -45,23 +45,19 @@
 	"favicon.ico" @"body.data|mini" => &"domain/favicon.ico"
 	"index.html" @"body.data|mini" => &"domain/index.html"
 	# 之后链接到 /index.html
-	"" @"body.data|mini"
-	"index" @"body.data|mini"
+	"" @text => "GET:index.html"
+	"index" @text => "GET:index.html"
+	"404" @text => "#404"
 
 # /favicon.ico => domain/favicon.ico
 # /index.html  => domain/index.html
 # /            => domain/index.html
 # /index       => domain/index.html
+# /404         => domain/404.html
+# #404         => domain/404.html
 
 [parse "bind"]
 	"localhost:8080" @string => "127.0.0.1:8080"
 
 ["console.main.parse.command"]
 	"stat" @string => "command_alloc_statistics"
-
-~
-# 链接 / => /index.html
-# 构建脚本和链接脚本的节点标签不通用需要重新设置
-< ["web.server.parse" "register" register] > [register]
-	"" -> "index.html"
-	"index" -> "index.html"

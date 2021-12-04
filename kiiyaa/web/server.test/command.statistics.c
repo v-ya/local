@@ -1,5 +1,5 @@
 #include "statistics.h"
-#include "../../console/main/console_command.h"
+#include <console.h>
 #include <mlog.h>
 
 typedef struct console_command_statistics_s {
@@ -13,15 +13,15 @@ static void console_command_statistics_free_func(console_command_statistics_s *r
 		refer_free(r->statistics);
 }
 
-static void statistics_main(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static console_s* statistics_main(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
-	statistics_dump(((console_command_statistics_s *) cc)->statistics);
+	statistics_dump(((console_command_statistics_s *) cc)->statistics, mlog);
+	return NULL;
 }
 
-static void statistics_help(console_command_s *restrict cc, uintptr_t argc, const char *const argv[])
+static void statistics_help(console_command_s *restrict cc, mlog_s *mlog, uintptr_t argc, const char *const argv[])
 {
-	extern mlog_s *$mlog;
-	mlog_printf($mlog, "%s\n", argv[0]);
+	mlog_printf(mlog, "%s\n", argv[0]);
 }
 
 console_command_s* command_alloc_statistics(void)
