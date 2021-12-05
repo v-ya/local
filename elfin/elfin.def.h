@@ -259,6 +259,21 @@ enum elfin_version_t {
 	elfin_version_number   = 2
 };
 
+enum elfin_section_res_index_t {
+	elfin_section_res_index__undef          = 0x0000, // Undefined section
+	elfin_section_res_index__reserve_low    = 0xff00, // Start of reserved indices
+	elfin_section_res_index__processor_low  = 0xff00, // Start of processor-specific
+	elfin_section_res_index__before         = 0xff00, // Order section before all others (Solaris)
+	elfin_section_res_index__after          = 0xff01, // Order section after all others (Solaris)
+	elfin_section_res_index__processor_high = 0xff1f, // End of processor-specific
+	elfin_section_res_index__os_low         = 0xff20, // Start of OS-specific
+	elfin_section_res_index__os_high        = 0xff3f, // End of OS-specific
+	elfin_section_res_index__abs            = 0xfff1, // Associated symbol is absolute
+	elfin_section_res_index__common         = 0xfff2, // Associated symbol is common
+	elfin_section_res_index__xindex         = 0xffff, // Index is in extra table
+	elfin_section_res_index__reserve_high   = 0xffff, // End of reserved indices
+};
+
 enum elfin_section_type_t {
 	elfin_section_type__null               =  0,         // Section header table entry unused
 	elfin_section_type__program_bits       =  1,         // Program data
@@ -343,6 +358,13 @@ enum elfin_symbol_type_t {
 	elfin_symbol_type__os_high        = 12, // End of OS-specific
 	elfin_symbol_type__processor_low  = 13, // Start of processor-specific
 	elfin_symbol_type__processor_high = 15, // End of processor-specific
+};
+
+enum elfin_symbol_visibility_t {
+	elfin_symbol_type__default   =  0, // Default symbol visibility rules
+	elfin_symbol_type__internal  =  1, // Processor specific hidden class
+	elfin_symbol_type__hidden    =  2, // Sym unavailable in other modules
+	elfin_symbol_type__protected =  3, // Not preemptible, not exported
 };
 
 #endif

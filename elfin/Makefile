@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lexbuffer -lrbtree -lvattr -lfsys -soname ${TARGET}
 
-OBJECT		= 
+OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

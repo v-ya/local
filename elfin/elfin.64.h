@@ -14,9 +14,9 @@ struct elfin_64_header_t {
 	uint32_t flags;                        // Processor-specific flags
 	uint16_t elf_header_size;              // ELF header size in bytes
 	uint16_t program_header_entry_size;    // Program header table entry size
-	uint16_t program_header_entry_size;    // Program header table entry count
+	uint16_t program_header_entry_count;   // Program header table entry count
 	uint16_t section_header_entry_size;    // Section header table entry size
-	uint16_t section_header_entry_size;    // Section header table entry count
+	uint16_t section_header_entry_count;   // Section header table entry count
 	uint16_t section_header_string_index;  // Section header string table index
 };
 
@@ -30,14 +30,14 @@ struct elfin_64_section_header_t {
 	uint32_t link;       // Link to another section
 	uint32_t info;       // Additional section information
 	uint64_t addr_align; // Section alignment
-	uint64_t ebtry_size; // Entry size if section holds table
+	uint64_t entry_size; // Entry size if section holds table
 };
 
 // type == elfin_section_type__symbol_table
 struct elfin_64_symbol_entry_t {
 	uint32_t name;          // Symbol name (string tbl index)
-	uint8_t info;           // Symbol type and binding         (enum elfin_symbol_bind_t) (enum elfin_symbol_type_t)
-	uint8_t other;          // Symbol visibility
+	uint8_t info;           // Symbol type and binding         (enum elfin_symbol_type_t) (enum elfin_symbol_bind_t)
+	uint8_t other;          // Symbol visibility               (enum elfin_symbol_visibility_t)
 	uint16_t section_index; // Section index
 	uint64_t addr;          // Symbol value
 	uint64_t size;          // Symbol size
@@ -59,6 +59,9 @@ static inline uint8_t elfin_64_symbol_entry__get_type(const struct elfin_64_symb
 static inline uint8_t elfin_64_symbol_entry__get_bind(const struct elfin_64_symbol_entry_t *restrict e) { return e->info >> 4; }
 static inline void elfin_64_symbol_entry__set_type(struct elfin_64_symbol_entry_t *restrict e, uint8_t type) { e->info = (e->info & 0xf0) | (type & 0x0f); }
 static inline void elfin_64_symbol_entry__set_bind(struct elfin_64_symbol_entry_t *restrict e, uint8_t bind) { e->info = (e->info & 0x0f) | (uint8_t) (bind << 4); }
+
+static inline uint8_t elfin_64_symbol_entry__get_visibility(const struct elfin_64_symbol_entry_t *restrict e) { return e->other & 0x03; }
+static inline void elfin_64_symbol_entry__set_visibility(struct elfin_64_symbol_entry_t *restrict e, uint8_t type) { e->other = (e->other & 0xfc) | (type & 0x03); }
 
 static inline uint32_t elfin_64_rel_entry__get_symbol(const struct elfin_64_rel_entry_t *restrict e) { return (uint32_t) (e->info >> 32); }
 static inline uint32_t elfin_64_rel_entry__get_type(const struct elfin_64_rel_entry_t *restrict e) { return (uint32_t) (e->info & 0xffffffff); }
