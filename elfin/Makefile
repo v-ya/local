@@ -1,12 +1,12 @@
 TARGET		= libelfin.so
-HEADER		= elfin.h elfin.def.h elfin.64.h elfin.r.x86_64.h
+HEADER		= elfin.h elfin.item.h elfin.def.h elfin.64.h elfin.r.x86_64.h
 
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lexbuffer -lrbtree -lvattr -lfsys -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -soname ${TARGET}
 
-OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c)) elfin.item.build.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
@@ -16,8 +16,14 @@ OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 ${TARGET}: ${OBJECT}
 	${LD} ${LDFLAGS} -o $@ $^
 
+elfin.item.h, elfin.item.build.c: build.proxy-call.tool inner.item.func.inc
+	./$<
+
+build.proxy-call.tool: tool/build.proxy-call.o
+	${CC} -lrefer -lexbuffer -lvattr -ltparse -lcparse -lfsys -o $@ $^
+
 clear:
-	rm -f ${TARGET} *.o
+	rm -f ${TARGET} *.o tool/*.o *.tool *.build.c elfin.item.h
 install: ${TARGET} ${HEADER}
 	sudo cp ${TARGET} /usr/local/lib/
 	sudo mkdir -p /usr/local/include/elfin/
