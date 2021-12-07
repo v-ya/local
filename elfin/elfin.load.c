@@ -5,15 +5,19 @@
 
 elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, const uint8_t *restrict data, uintptr_t size)
 {
-	const struct elfin_indent_t *restrict indent;
-	if (size >= sizeof(struct elfin_indent_t))
+	const struct elfin_ident_t *restrict ident;
+	if (size >= sizeof(struct elfin_ident_t))
 	{
-		indent = (const struct elfin_indent_t *) data;
-		if (indent->version == elfin_version__current)
+		ident = (const struct elfin_ident_t *) data;
+		if (ident->magic[0] == 0x7f &&
+			ident->magic[1] == 'E' &&
+			ident->magic[2] == 'L' &&
+			ident->magic[3] == 'F' &&
+			ident->version == elfin_version__current)
 		{
-			if (indent->class == elfin_indent_class__64)
+			if (ident->class == elfin_ident_class__64)
 			{
-				if (indent->data == elfin_indent_data__2c_le)
+				if (ident->data == elfin_ident_data__2c_le)
 					return elfin_inner_load_2c_le_64(inst, data, size);
 			}
 		}

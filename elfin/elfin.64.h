@@ -4,7 +4,7 @@
 #include "elfin.def.h"
 
 struct elfin_64_header_t {
-	struct elfin_indent_t indent;
+	struct elfin_ident_t ident;
 	uint16_t type;                         // Object file type                  (enum elfin_type_t)
 	uint16_t machine;                      // Architecture                      (enum elfin_machine_t)
 	uint32_t version;                      // Object file version               (enum elfin_version_t)

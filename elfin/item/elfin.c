@@ -4,7 +4,7 @@
 
 struct elfin_item__elfin_s {
 	struct elfin_item_s item;
-	struct elfin_indent_t indent;
+	struct elfin_ident_t ident;
 	vattr_s *section;
 	uintptr_t section_count;
 	exbuffer_t section_array;
@@ -18,69 +18,69 @@ struct elfin_item__elfin_s {
 
 #define r  ((struct elfin_item__elfin_s *) item)
 
-static struct elfin_item_s* get_indent(struct elfin_item_s *restrict item, struct elfin_indent_t *restrict indent)
+static struct elfin_item_s* get_ident(struct elfin_item_s *restrict item, struct elfin_ident_t *restrict ident)
 {
-	*indent = r->indent;
+	*ident = r->ident;
 	return item;
 }
-static struct elfin_item_s* set_indent(struct elfin_item_s *restrict item, const struct elfin_indent_t *restrict indent)
+static struct elfin_item_s* set_ident(struct elfin_item_s *restrict item, const struct elfin_ident_t *restrict ident)
 {
-	r->indent = *indent;
-	return item;
-}
-
-static struct elfin_item_s* get_indent_class(struct elfin_item_s *restrict item, uint32_t *restrict class)
-{
-	*class = (uint32_t) r->indent.class;
-	return item;
-}
-static struct elfin_item_s* set_indent_class(struct elfin_item_s *restrict item, uint32_t class)
-{
-	r->indent.class = (uint8_t) class;
+	r->ident = *ident;
 	return item;
 }
 
-static struct elfin_item_s* get_indent_data(struct elfin_item_s *restrict item, uint32_t *restrict data)
+static struct elfin_item_s* get_ident_class(struct elfin_item_s *restrict item, uint32_t *restrict class)
 {
-	*data = (uint32_t) r->indent.data;
+	*class = (uint32_t) r->ident.class;
 	return item;
 }
-static struct elfin_item_s* set_indent_data(struct elfin_item_s *restrict item, uint32_t data)
+static struct elfin_item_s* set_ident_class(struct elfin_item_s *restrict item, uint32_t class)
 {
-	r->indent.data = (uint8_t) data;
-	return item;
-}
-
-static struct elfin_item_s* get_indent_version(struct elfin_item_s *restrict item, uint32_t *restrict version)
-{
-	*version = (uint32_t) r->indent.version;
-	return item;
-}
-static struct elfin_item_s* set_indent_version(struct elfin_item_s *restrict item, uint32_t version)
-{
-	r->indent.version = (uint8_t) version;
+	r->ident.class = (uint8_t) class;
 	return item;
 }
 
-static struct elfin_item_s* get_indent_osabi(struct elfin_item_s *restrict item, uint32_t *restrict osabi)
+static struct elfin_item_s* get_ident_data(struct elfin_item_s *restrict item, uint32_t *restrict data)
 {
-	*osabi = (uint32_t) r->indent.osabi;
+	*data = (uint32_t) r->ident.data;
 	return item;
 }
-static struct elfin_item_s* set_indent_osabi(struct elfin_item_s *restrict item, uint32_t osabi)
+static struct elfin_item_s* set_ident_data(struct elfin_item_s *restrict item, uint32_t data)
 {
-	r->indent.osabi = (uint8_t) osabi;
+	r->ident.data = (uint8_t) data;
 	return item;
 }
 
-static struct elfin_item_s* get_indent_abiversion(struct elfin_item_s *restrict item, uint32_t *restrict abiversion)
+static struct elfin_item_s* get_ident_version(struct elfin_item_s *restrict item, uint32_t *restrict version)
 {
-	*abiversion = (uint32_t) r->indent.abiversion;
+	*version = (uint32_t) r->ident.version;
 	return item;
 }
-static struct elfin_item_s* set_indent_abiversion(struct elfin_item_s *restrict item, uint32_t abiversion)
+static struct elfin_item_s* set_ident_version(struct elfin_item_s *restrict item, uint32_t version)
 {
-	r->indent.abiversion = (uint8_t) abiversion;
+	r->ident.version = (uint8_t) version;
+	return item;
+}
+
+static struct elfin_item_s* get_ident_osabi(struct elfin_item_s *restrict item, uint32_t *restrict osabi)
+{
+	*osabi = (uint32_t) r->ident.osabi;
+	return item;
+}
+static struct elfin_item_s* set_ident_osabi(struct elfin_item_s *restrict item, uint32_t osabi)
+{
+	r->ident.osabi = (uint8_t) osabi;
+	return item;
+}
+
+static struct elfin_item_s* get_ident_abiversion(struct elfin_item_s *restrict item, uint32_t *restrict abiversion)
+{
+	*abiversion = (uint32_t) r->ident.abiversion;
+	return item;
+}
+static struct elfin_item_s* set_ident_abiversion(struct elfin_item_s *restrict item, uint32_t abiversion)
+{
+	r->ident.abiversion = (uint8_t) abiversion;
 	return item;
 }
 
@@ -221,7 +221,7 @@ static struct elfin_item_s* elfin_item__elfin_alloc(const struct elfin_item_inst
 
 #include "../elfin.h"
 
-const struct elfin_item_inst_s* elfin_inner_alloc_item_inst__elfin(void)
+struct elfin_item_inst_s* elfin_inner_alloc_item_inst__elfin(void)
 {
 	struct elfin_item_inst_s *restrict r;
 	if ((r = (struct elfin_item_inst_s *) refer_alloz(sizeof(struct elfin_item_inst_s))))
@@ -230,18 +230,18 @@ const struct elfin_item_inst_s* elfin_inner_alloc_item_inst__elfin(void)
 		r->type = elfin_type_elfin;
 		r->alloc = elfin_item__elfin_alloc;
 		#define d_func(_id) r->func._id = _id
-		d_func(get_indent);
-		d_func(set_indent);
-		d_func(get_indent_class);
-		d_func(set_indent_class);
-		d_func(get_indent_data);
-		d_func(set_indent_data);
-		d_func(get_indent_version);
-		d_func(set_indent_version);
-		d_func(get_indent_osabi);
-		d_func(set_indent_osabi);
-		d_func(get_indent_abiversion);
-		d_func(set_indent_abiversion);
+		d_func(get_ident);
+		d_func(set_ident);
+		d_func(get_ident_class);
+		d_func(set_ident_class);
+		d_func(get_ident_data);
+		d_func(set_ident_data);
+		d_func(get_ident_version);
+		d_func(set_ident_version);
+		d_func(get_ident_osabi);
+		d_func(set_ident_osabi);
+		d_func(get_ident_abiversion);
+		d_func(set_ident_abiversion);
 		d_func(get_header_type);
 		d_func(set_header_type);
 		d_func(get_header_machine);

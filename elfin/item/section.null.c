@@ -26,7 +26,7 @@ static struct elfin_item_s* elfin_item__section_null_alloc(const struct elfin_it
 
 #include "../elfin.h"
 
-const struct elfin_item_inst_s* elfin_inner_alloc_item_inst__section_null(void)
+struct elfin_item_inst_s* elfin_inner_alloc_item_inst__section_null(void)
 {
 	struct elfin_item_inst_s *restrict r;
 	if ((r = (struct elfin_item_inst_s *) refer_alloz(sizeof(struct elfin_item_inst_s))))

@@ -4,7 +4,7 @@ HEADER		= elfin.h elfin.item.h elfin.def.h elfin.64.h elfin.r.x86_64.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -lmlog -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c) $(wildcard item/*.c) $(wildcard arch/*.c)) elfin.item.build.o
 

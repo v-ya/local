@@ -3,46 +3,46 @@
 
 #include <stdint.h>
 
-struct elfin_indent_t {
+struct elfin_ident_t {
 	uint8_t magic[4];     // 0x7f, 'E', 'L', 'F'
-	uint8_t class;        // (enum elfin_indent_class_t)
-	uint8_t data;         // (enum elfin_indent_data_t)
+	uint8_t class;        // (enum elfin_ident_class_t)
+	uint8_t data;         // (enum elfin_ident_data_t)
 	uint8_t version;      // (enum elfin_version_t) must => elfin_version__current
-	uint8_t osabi;        // (enum elfin_indent_osabi_t)
+	uint8_t osabi;        // (enum elfin_ident_osabi_t)
 	uint8_t abiversion;   // abi version
 	uint8_t pad[7];
 };
 
-enum elfin_indent_class_t {
-	elfin_indent_class__none  = 0, // invalid
-	elfin_indent_class__32    = 1, // 32 bits
-	elfin_indent_class__64    = 2, // 64 bits
-	elfin_indent_class_number = 3
+enum elfin_ident_class_t {
+	elfin_ident_class__none  = 0, // invalid
+	elfin_ident_class__32    = 1, // 32 bits
+	elfin_ident_class__64    = 2, // 64 bits
+	elfin_ident_class_number = 3
 };
 
-enum elfin_indent_data_t {
-	elfin_indent_data__none  = 0, // invalid
-	elfin_indent_data__2c_le = 1, // 负数补码 小端序
-	elfin_indent_data__2c_be = 2, // 负数补码 大端序
-	elfin_indent_data_number = 3
+enum elfin_ident_data_t {
+	elfin_ident_data__none  = 0, // invalid
+	elfin_ident_data__2c_le = 1, // 负数补码 小端序
+	elfin_ident_data__2c_be = 2, // 负数补码 大端序
+	elfin_ident_data_number = 3
 };
 
-enum elfin_indent_osabi_t {
-	elfin_indent_osabi__sysv       =   0, // UNIX System V ABI
-	elfin_indent_osabi__hpux       =   1, // HP-UX
-	elfin_indent_osabi__netbsd     =   2, // NetBSD
-	elfin_indent_osabi__gnu        =   3, // Object uses GNU ELF extensions
-	elfin_indent_osabi__linux      = elfin_indent_osabi__gnu,
-	elfin_indent_osabi__solaris    =   6, // Sun Solaris
-	elfin_indent_osabi__aix        =   7, // IBM AIX
-	elfin_indent_osabi__irix       =   8, // SGI Irix
-	elfin_indent_osabi__freebsd    =   9, // FreeBSD
-	elfin_indent_osabi__tru64      =  10, // Compaq TRU64 UNIX
-	elfin_indent_osabi__modesto    =  11, // Novell Modesto
-	elfin_indent_osabi__openbsd    =  12, // OpenBSD
-	elfin_indent_osabi__arm_aeabi  =  64, // ARM EABI
-	elfin_indent_osabi__arm        =  97, // ARM
-	elfin_indent_osabi__standalone = 255, // Standalone (embedded) application
+enum elfin_ident_osabi_t {
+	elfin_ident_osabi__sysv       =   0, // UNIX System V ABI
+	elfin_ident_osabi__hpux       =   1, // HP-UX
+	elfin_ident_osabi__netbsd     =   2, // NetBSD
+	elfin_ident_osabi__gnu        =   3, // Object uses GNU ELF extensions
+	elfin_ident_osabi__linux      = elfin_ident_osabi__gnu,
+	elfin_ident_osabi__solaris    =   6, // Sun Solaris
+	elfin_ident_osabi__aix        =   7, // IBM AIX
+	elfin_ident_osabi__irix       =   8, // SGI Irix
+	elfin_ident_osabi__freebsd    =   9, // FreeBSD
+	elfin_ident_osabi__tru64      =  10, // Compaq TRU64 UNIX
+	elfin_ident_osabi__modesto    =  11, // Novell Modesto
+	elfin_ident_osabi__openbsd    =  12, // OpenBSD
+	elfin_ident_osabi__arm_aeabi  =  64, // ARM EABI
+	elfin_ident_osabi__arm        =  97, // ARM
+	elfin_ident_osabi__standalone = 255, // Standalone (embedded) application
 };
 
 enum elfin_type_t {
@@ -361,10 +361,11 @@ enum elfin_symbol_type_t {
 };
 
 enum elfin_symbol_visibility_t {
-	elfin_symbol_type__default   =  0, // Default symbol visibility rules
-	elfin_symbol_type__internal  =  1, // Processor specific hidden class
-	elfin_symbol_type__hidden    =  2, // Sym unavailable in other modules
-	elfin_symbol_type__protected =  3, // Not preemptible, not exported
+	elfin_symbol_visibility__default   = 0, // Default symbol visibility rules
+	elfin_symbol_visibility__internal  = 1, // Processor specific hidden class
+	elfin_symbol_visibility__hidden    = 2, // Sym unavailable in other modules
+	elfin_symbol_visibility__protected = 3, // Not preemptible, not exported
+	elfin_symbol_visibility_number     = 4
 };
 
 #endif

@@ -20,4 +20,6 @@ void elfin_inner_clear_item_section(struct elfin_item_section_s *restrict sectio
 struct elfin_item_s* elfin_inner_link_item_section(struct elfin_item_section_s *restrict section, const struct elfin_item_inst_s *restrict inst);
 void elfin_inner_init_item_section_inst(struct elfin_item_inst_s *restrict inst);
 
+struct elfin_item_inst_s* elfin_inner_alloc_item_inst_section_entry_array(const char *restrict name, uintptr_t allow_item_id, uint32_t default_type, uint64_t default_flags, uint64_t default_alignment, uint64_t default_entry_size);
+
 #endif

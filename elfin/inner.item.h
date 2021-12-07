@@ -12,7 +12,7 @@ struct elfin_item_inst_s {
 	const char *name;
 	const char *type;
 	elfin_item_alloc_f alloc;
-	uintptr_t reserved;
+	uintptr_t item_id;
 	struct elfin_item_func_t func;
 };
 

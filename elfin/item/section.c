@@ -89,6 +89,12 @@ static struct elfin_item_s* set_section_alignment(struct elfin_item_s *restrict 
 
 void elfin_inner_clear_item_section(struct elfin_item_section_s *restrict section)
 {
+	if (section->name)
+		refer_free(section->name);
+	if (section->link)
+		refer_free(section->link);
+	if (section->info)
+		refer_free(section->info);
 	elfin_inner_clear_item(&section->item);
 }
 

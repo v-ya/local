@@ -36,7 +36,7 @@ static exbuffer_t* build_header_begin(exbuffer_t *restrict header)
 		"#define _elfin_item_h_\n"
 		"\n"
 		"#include \"elfin.h\"\n"
-		"#include \"elfin.def.h\""
+		"#include \"elfin.def.h\"\n"
 		"\n"
 	};
 	if (exbuffer_append(header, code, sizeof(code) - 1))
