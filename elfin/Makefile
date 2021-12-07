@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -soname ${TARGET}
 
-OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c)) elfin.item.build.o
+OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c) $(wildcard item/*.c) $(wildcard arch/*.c)) elfin.item.build.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<
@@ -23,7 +23,7 @@ build.proxy-call.tool: tool/build.proxy-call.o
 	${CC} -lrefer -lexbuffer -lvattr -ltparse -lcparse -lfsys -o $@ $^
 
 clear:
-	rm -f ${TARGET} *.o tool/*.o *.tool *.build.c elfin.item.h
+	rm -f ${TARGET} *.o item/*.o arch/*.o tool/*.o *.tool *.build.c elfin.item.h
 install: ${TARGET} ${HEADER}
 	sudo cp ${TARGET} /usr/local/lib/
 	sudo mkdir -p /usr/local/include/elfin/
