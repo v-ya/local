@@ -1,8 +1,10 @@
 #include "dylink.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <hashmap.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 size_t dylink_check(const uint8_t *restrict r, size_t size, const char *restrict machine)
 {
@@ -52,11 +54,28 @@ int dylink_link(uint8_t *restrict d, const uint8_t *restrict r, dylink_set_f dyl
 	uint32_t n, b;
 	h = (const dylink_header_t *) r;
 	memcpy(d, r + h->img_offset, h->img_size);
-	ih = (const dylink_isym_t *) (r + h->isym_offset);
-	n = h->isym_number;
-	if (n)
+	// export
+	if ((n = h->esym_number))
 	{
-		if (!dylink_set || !import_func) goto Err;
+		if (!export_func)
+			goto label_fail;
+		eh = (const dylink_esym_t *) (r + h->esym_offset);
+		plt = (void **) (d + h->img_takeup);
+		while (n)
+		{
+			if (export_func(pri, (char *) r + eh->name_offset, *(void **) plt = d + eh->offset, plt))
+				goto label_fail;
+			++plt;
+			--n;
+			++eh;
+		}
+	}
+	// import
+	if ((n = h->isym_number))
+	{
+		if (!dylink_set || !import_func)
+			goto label_fail;
+		ih = (const dylink_isym_t *) (r + h->isym_offset);
 		b = 0;
 		ptr = plt = NULL;
 		while (n)
@@ -65,30 +84,16 @@ int dylink_link(uint8_t *restrict d, const uint8_t *restrict r, dylink_set_f dyl
 			{
 				b = ih->name_offset;
 				if (!(ptr = import_func(pri, (char *) r + ih->name_offset, &plt)))
-					goto Err;
+					goto label_fail;
 			}
 			if (dylink_set(ih->type, d + ih->offset, ih->addend, ptr, plt))
-				goto Err;
+				goto label_fail;
 			--n;
 			++ih;
 		}
 	}
-	if (export_func)
-	{
-		eh = (const dylink_esym_t *) (r + h->esym_offset);
-		n = h->esym_number;
-		plt = (void **) (d + h->img_takeup);
-		while (n)
-		{
-			if (export_func(pri, (char *) r + eh->name_offset, *(void **) plt = d + eh->offset, plt))
-				goto Err;
-			++plt;
-			--n;
-			++eh;
-		}
-	}
 	return 0;
-	Err:
+	label_fail:
 	return -1;
 }
 
@@ -342,13 +347,14 @@ static void dylink_pool_load_clear_export(dylink_pool_t *restrict dp, const uint
 int dylink_pool_load(dylink_pool_t *restrict dp, const uint8_t *restrict dylink_data, size_t dylink_size)
 {
 	dylink_pool_t *save;
-	size_t dylink_takeup;
+	size_t dylink_takeup, esym_number;
 	if (dylink_data)
 	{
 		save = dp;
 		dp = dp->entry;
 		dylink_takeup = dylink_check(dylink_data, dylink_size, dp->machine);
-		if (dylink_takeup && dylink_takeup + dp->plt_size <= dp->xmem_size)
+		esym_number = ((const dylink_header_t *) dylink_data)->esym_number;
+		if (dylink_takeup && dylink_takeup + esym_number * dp->plt_size <= dp->xmem_size)
 		{
 			dp->export_number = 0;
 			if (!dylink_link(
@@ -376,33 +382,21 @@ int dylink_pool_load(dylink_pool_t *restrict dp, const uint8_t *restrict dylink_
 
 int dylink_pool_load_file(dylink_pool_t *restrict dp, const char *restrict path)
 {
-	FILE *fp;
+	struct stat st;
+	int fd, r;
 	uint8_t *data;
 	size_t size;
-	int r;
 	r = -1;
-	if (path)
+	if (path && ~(fd = open(path, O_RDONLY)))
 	{
-		fp = fopen(path, "rb");
-		if (fp)
+		if (!fstat(fd, &st) && (size = (size_t) st.st_size) &&
+			(data = (uint8_t *) malloc(size)))
 		{
-			fseek(fp, 0, SEEK_END);
-			size = ftell(fp);
-			if (size)
-			{
-				data = malloc(size);
-				if (data)
-				{
-					fseek(fp, 0, SEEK_SET);
-					if (fread(data, 1, size, fp) == size)
-					{
-						r = dylink_pool_load(dp, data, size);
-					}
-					free(data);
-				}
-			}
-			fclose(fp);
+			if ((size_t) read(fd, data, size) == size)
+				r = dylink_pool_load(dp, data, size);
+			free(data);
 		}
+		close(fd);
 	}
 	return r;
 }
