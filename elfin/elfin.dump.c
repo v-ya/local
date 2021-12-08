@@ -15,21 +15,6 @@ void elfin_dump(elfin_item_s *restrict item, mlog_s *mlog)
 
 static const char *const s_empty = "";
 
-static void elfin_inner_dump_section_nobits(elfin_item_s *restrict r, mlog_s *mlog, uint32_t indent)
-{
-	uint64_t size;
-	if (r->inst->func.get_section_size(r, &size))
-		elfin_println("size: %lu", size);
-}
-
-static void elfin_inner_dump_section_program(elfin_item_s *restrict r, mlog_s *mlog, uint32_t indent)
-{
-	void *data;
-	uint64_t size;
-	if (r->inst->func.get_section_data(r, &data, &size))
-		elfin_println("size: %lu", size);
-}
-
 static void elfin_inner_dump_entry_symbol(elfin_item_s *restrict r, mlog_s *mlog, uint32_t indent, uintptr_t index)
 {
 	const char* elfin_inner_get__section_res_index(uint32_t v);
@@ -169,20 +154,22 @@ static void elfin_inner_dump_section(elfin_item_s *restrict r, mlog_s *mlog, uin
 		elfin_println("flags:         %08lx (%s)", u64, elfin_inner_get__section_flags(u64, buffer));
 	if (p->func.get_section_exec_addr(r, &u64))
 		elfin_println("entry-address: 0x%lx", u64);
+	if (p->func.get_section_size && p->func.get_section_size(r, &u64))
+		elfin_println("size:          %lu", u64);
 	if (p->func.get_section_link(r, &str))
 		elfin_println("link:          %s", str?str->string:s_empty);
 	if (p->func.get_section_info(r, &str))
 		elfin_println("info:          %s", str?str->string:s_empty);
 	if (p->func.get_section_alignment(r, &u64))
 		elfin_println("alignment:     %lu", u64);
+	if (p->func.get_section_entry_size(r, &u64))
+		elfin_println("entry-size:    %lu", u64);
 	indent += elfin_dump_indent;
 	switch (p->item_id)
 	{
-		case elfin_item_id__section_null: break;
-		case elfin_item_id__section_nobits: elfin_inner_dump_section_nobits(r, mlog, indent); break;
-		case elfin_item_id__section_program: elfin_inner_dump_section_program(r, mlog, indent);break;
-		case elfin_item_id__section_symbol: elfin_inner_dump_entry(r, mlog, indent, elfin_inner_dump_entry_symbol); break;
-		case elfin_item_id__section_string: break;
+		case elfin_item_id__section_symbol:
+			elfin_inner_dump_entry(r, mlog, indent, elfin_inner_dump_entry_symbol);
+			break;
 		case elfin_item_id__section_rela:
 		case elfin_item_id__section_rel:
 			elfin_inner_dump_entry_with_link(r, mlog, indent, elfin, elfin_inner_dump_entry_relo);

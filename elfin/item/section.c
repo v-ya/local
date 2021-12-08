@@ -85,6 +85,17 @@ static struct elfin_item_s* set_section_alignment(struct elfin_item_s *restrict 
 	return item;
 }
 
+static struct elfin_item_s* get_section_entry_size(struct elfin_item_s *restrict item, uint64_t *restrict entry_size)
+{
+	*entry_size = r->entry_size;
+	return item;
+}
+static struct elfin_item_s* set_section_entry_size(struct elfin_item_s *restrict item, uint64_t entry_size)
+{
+	r->entry_size = entry_size;
+	return item;
+}
+
 #undef r
 
 void elfin_inner_clear_item_section(struct elfin_item_section_s *restrict section)
@@ -126,5 +137,7 @@ void elfin_inner_init_item_section_inst(struct elfin_item_inst_s *restrict inst)
 	d_func(set_section_info);
 	d_func(get_section_alignment);
 	d_func(set_section_alignment);
+	d_func(get_section_entry_size);
+	d_func(set_section_entry_size);
 	#undef d_func
 }

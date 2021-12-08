@@ -81,7 +81,8 @@ static struct elfin_item_s* get_entry_symbol_program(struct elfin_item_s *restri
 }
 static struct elfin_item_s* set_entry_symbol_program(struct elfin_item_s *restrict item, struct elfin_item_s *section_program)
 {
-	if (!section_program || section_program->inst->item_id == elfin_item_id__section_program)
+	if (!section_program || section_program->inst->item_id == elfin_item_id__section_program ||
+		section_program->inst->item_id == elfin_item_id__section_nobits)
 	{
 		if (r->section_program)
 			refer_free(r->section_program);
@@ -118,7 +119,8 @@ static struct elfin_item_s* get_entry_symbol(struct elfin_item_s *restrict item,
 }
 static struct elfin_item_s* set_entry_symbol(struct elfin_item_s *restrict item, refer_nstring_t name, uint32_t type, uint32_t bind, uint32_t visibility, uint32_t section_res_index, struct elfin_item_s *section_program, uint64_t addr, uint64_t size)
 {
-	if (!section_program || section_program->inst->item_id == elfin_item_id__section_program)
+	if (!section_program || section_program->inst->item_id == elfin_item_id__section_program ||
+		section_program->inst->item_id == elfin_item_id__section_nobits)
 	{
 		if (r->symbol_name)
 			refer_free(r->symbol_name);

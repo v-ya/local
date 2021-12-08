@@ -85,6 +85,10 @@ static struct elfin_item_s* load_section_empty(struct elfin_item_s *restrict r, 
 				id = elfin_item_id__section_null;
 				break;
 			case elfin_section_type__program_bits:
+			case elfin_section_type__note:
+			case elfin_section_type__dynamic:
+			case elfin_section_type__init_array:
+			case elfin_section_type__fini_array:
 				id = elfin_item_id__section_program;
 				break;
 			case elfin_section_type__symbol_table:
@@ -116,6 +120,7 @@ static struct elfin_item_s* load_section_empty(struct elfin_item_s *restrict r, 
 			if (!q->func.set_section_flags(s, sh[i].flags)) goto label_fail;
 			if (!q->func.set_section_exec_addr(s, sh[i].addr)) goto label_fail;
 			if (!q->func.set_section_alignment(s, sh[i].addr_align)) goto label_fail;
+			if (!q->func.set_section_entry_size(s, sh[i].entry_size)) goto label_fail;
 			if (!p->func.append_child_section(r, s)) goto label_fail;
 			refer_free(s);
 			refer_free(name);
@@ -341,25 +346,26 @@ static struct elfin_item_s* load_section_data(struct elfin_item_s *restrict r, c
 		if (p->func.find_child_section(r, name, &s))
 		{
 			q = s->inst;
-			switch (sh[i].type)
+			switch (q->item_id)
 			{
-				case elfin_section_type__program_bits:
-					if (!q->func.append_section_data(s, data + sh[i].offset, sh[i].size, 0, NULL))
-						goto label_fail;
-					break;
-				case elfin_section_type__symbol_table:
-					if (!load_section_data_symbol(s, r, inst, data, sh, count, i, string_index))
-						goto label_fail;
-					break;
-				case elfin_section_type__rela:
-					if (!load_section_data_rela(s, inst, data, sh + i))
-						goto label_fail;
-					break;
-				case elfin_section_type__no_bits:
+				case elfin_item_id__section_null:
 					if (sh[i].size && !q->func.set_section_size(s, sh[i].size))
 						goto label_fail;
 					break;
-				case elfin_section_type__rel:
+				case elfin_item_id__section_program:
+				case elfin_item_id__section_string:
+					if (!q->func.append_section_data(s, data + sh[i].offset, sh[i].size, 0, NULL))
+						goto label_fail;
+					break;
+				case elfin_item_id__section_symbol:
+					if (!load_section_data_symbol(s, r, inst, data, sh, count, i, string_index))
+						goto label_fail;
+					break;
+				case elfin_item_id__section_rela:
+					if (!load_section_data_rela(s, inst, data, sh + i))
+						goto label_fail;
+					break;
+				case elfin_item_id__section_rel:
 					if (!load_section_data_rel(s, inst, data, sh + i))
 						goto label_fail;
 					break;
