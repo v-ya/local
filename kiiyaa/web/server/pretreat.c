@@ -20,7 +20,7 @@ typedef struct pretreat_s {
 
 #define me(_r)  ((pretreat_s *) _r)
 
-static web_server_request_t* web_server_pretreat(web_server_request_t *restrict request, pretreat_s *restrict p)
+web_server_request_t* web_server_pretreat(web_server_request_t *restrict request, pretreat_s *restrict p)
 {
 	if (p->used)
 	{
@@ -174,7 +174,7 @@ static inline void pretreat_used_update(pretreat_s *restrict r)
 	r->used = (r->header->vattr || r->trigger->vattr);
 }
 
-static void pretreat_delete_header(refer_t pretreat, const char *restrict name)
+void pretreat_delete_header(refer_t pretreat, const char *restrict name)
 {
 	yaw_lock_s *restrict lk;
 	lk = me(pretreat)->write;
@@ -184,7 +184,7 @@ static void pretreat_delete_header(refer_t pretreat, const char *restrict name)
 	yaw_lock_unlock(lk);
 }
 
-static void pretreat_delete_trigger(refer_t pretreat, const char *restrict name)
+void pretreat_delete_trigger(refer_t pretreat, const char *restrict name)
 {
 	yaw_lock_s *restrict lk;
 	lk = me(pretreat)->write;
@@ -194,7 +194,7 @@ static void pretreat_delete_trigger(refer_t pretreat, const char *restrict name)
 	yaw_lock_unlock(lk);
 }
 
-static void pretreat_clear_header(refer_t pretreat)
+void pretreat_clear_header(refer_t pretreat)
 {
 	yaw_lock_s *restrict lk;
 	lk = me(pretreat)->write;
@@ -204,7 +204,7 @@ static void pretreat_clear_header(refer_t pretreat)
 	yaw_lock_unlock(lk);
 }
 
-static void pretreat_clear_trigger(refer_t pretreat)
+void pretreat_clear_trigger(refer_t pretreat)
 {
 	yaw_lock_s *restrict lk;
 	lk = me(pretreat)->write;
@@ -212,31 +212,4 @@ static void pretreat_clear_trigger(refer_t pretreat)
 	vattr_clear(me(pretreat)->trigger);
 	pretreat_used_update(me(pretreat));
 	yaw_lock_unlock(lk);
-}
-
-// 见 TODO dylink bug
-
-web_server_request_f pretreat_get_request(void)
-{
-	return (web_server_request_f) web_server_pretreat;
-}
-
-void (*pretreat_header_get_delete(void))(refer_t pretreat, const char *restrict name)
-{
-	return pretreat_delete_header;
-}
-
-void (*pretreat_header_get_clear(void))(refer_t pretreat)
-{
-	return pretreat_clear_header;
-}
-
-void (*pretreat_trigger_get_delete(void))(refer_t pretreat, const char *restrict name)
-{
-	return pretreat_delete_trigger;
-}
-
-void (*pretreat_trigger_get_clear(void))(refer_t pretreat)
-{
-	return pretreat_clear_trigger;
 }

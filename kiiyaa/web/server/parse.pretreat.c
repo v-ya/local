@@ -6,10 +6,10 @@ const char* check_special_and_escape(const char *restrict name);;
 refer_t pretreat_insert_header_by_const(refer_t pretreat, const char *restrict name, const char *restrict value);
 refer_t pretreat_insert_header_by_value(refer_t pretreat, const char *restrict name, inst_web_server_value_s *restrict value);
 refer_t pretreat_insert_trigger(refer_t pretreat, const char *restrict name, inst_web_server_value_s *restrict value);
-void (*pretreat_header_get_delete(void))(refer_t pretreat, const char *restrict name);
-void (*pretreat_header_get_clear(void))(refer_t pretreat);
-void (*pretreat_trigger_get_delete(void))(refer_t pretreat, const char *restrict name);
-void (*pretreat_trigger_get_clear(void))(refer_t pretreat);
+void pretreat_delete_header(refer_t pretreat, const char *restrict name);
+void pretreat_delete_trigger(refer_t pretreat, const char *restrict name);
+void pretreat_clear_header(refer_t pretreat);
+void pretreat_clear_trigger(refer_t pretreat);
 
 static refer_t web_server_parse_header_item_insert_string(const pocket_attr_t *restrict item, const char *restrict name, refer_t pretreat, const web_server_s *server, const dylink_pool_t *restrict pool)
 {
@@ -175,7 +175,7 @@ const pocket_attr_t* web_server_parse_header(pocket_s *restrict pocket, const po
 {
 	const pocket_attr_t *restrict error;
 	uint64_t n;
-	if ((error = web_server_parse_pretreat_clear(pocket, root, pretreat, pretreat_header_get_delete(), pretreat_header_get_clear())))
+	if ((error = web_server_parse_pretreat_clear(pocket, root, pretreat, pretreat_delete_header, pretreat_clear_header)))
 		goto label_fail;
 	n = root->size;
 	root = (const pocket_attr_t *) root->data.ptr;
@@ -195,7 +195,7 @@ const pocket_attr_t* web_server_parse_trigger(pocket_s *restrict pocket, const p
 {
 	const pocket_attr_t *restrict error;
 	uint64_t n;
-	if ((error = web_server_parse_pretreat_clear(pocket, root, pretreat, pretreat_trigger_get_delete(), pretreat_trigger_get_clear())))
+	if ((error = web_server_parse_pretreat_clear(pocket, root, pretreat, pretreat_delete_trigger, pretreat_clear_trigger)))
 		goto label_fail;
 	n = root->size;
 	root = (const pocket_attr_t *) root->data.ptr;

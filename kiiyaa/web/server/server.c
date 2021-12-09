@@ -44,7 +44,7 @@ static void inst_web_server_free_func(inst_web_server_s *restrict r)
 	hashmap_uini(&r->flags);
 }
 
-web_server_request_f pretreat_get_request(void);
+web_server_request_t* web_server_pretreat(web_server_request_t *restrict request, refer_t pri);
 refer_t pretreat_alloc(const struct web_header_s *restrict headers);
 
 inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limit)
@@ -58,7 +58,7 @@ inst_web_server_s* inst_web_server_alloc(const web_server_limit_t *restrict limi
 			(r->method = web_method_alloc()) &&
 			(r->server = web_server_alloc(NULL, limit)) &&
 			(r->pretreat = pretreat_alloc(r->server->headers)) &&
-			web_server_register_pretreat(r->server, pretreat_get_request(), r->pretreat))
+			web_server_register_pretreat(r->server, web_server_pretreat, r->pretreat))
 			return r;
 		refer_free(r);
 	}
