@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stddef.h>
 
 #define json_char_type_undef	0
 #define json_char_type_space	1
@@ -63,7 +64,7 @@ static const char* json_decode_number(const char *restrict s, json_inode_t **res
 	if (*t == '.' || *t == 'e' || *t == 'E')
 	{
 		// floating
-		ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(double));
+		ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(double));
 		if (!ji) return NULL;
 		ji->type = json_inode_floating;
 		ji->value.floating = strtod(s, (char **) &s);
@@ -73,7 +74,7 @@ static const char* json_decode_number(const char *restrict s, json_inode_t **res
 	else
 	{
 		// integer
-		ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(int64_t));
+		ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(int64_t));
 		if (!ji) return NULL;
 		ji->type = json_inode_integer;
 		ji->value.integer = strtol(s, (char **) &s, 0);
@@ -91,7 +92,7 @@ static const char* json_decode_alpha(register const char *restrict s, json_inode
 		case 'n':
 			if (!memcmp(s, s_null, 4) && json_char_type[((uint8_t*)s)[4]] != json_char_type_alpha)
 			{
-				ji = (json_inode_t*) malloc(sizeof(json_inode_type_t));
+				ji = (json_inode_t *) malloc(offsetof(json_inode_t, value));
 				if (!ji) return NULL;
 				ji->type = json_inode_null;
 				*pji = ji;
@@ -101,7 +102,7 @@ static const char* json_decode_alpha(register const char *restrict s, json_inode
 		case 't':
 			if (!memcmp(s, s_true, 4) && json_char_type[((uint8_t*)s)[4]] != json_char_type_alpha)
 			{
-				ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(uint64_t));
+				ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(uint64_t));
 				if (!ji) return NULL;
 				ji->type = json_inode_boolean;
 				ji->value.boolean = 1;
@@ -112,7 +113,7 @@ static const char* json_decode_alpha(register const char *restrict s, json_inode
 		case 'f':
 			if (!memcmp(s, s_false, 5) && json_char_type[((uint8_t*)s)[5]] != json_char_type_alpha)
 			{
-				ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(uint64_t));
+				ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(uint64_t));
 				if (!ji) return NULL;
 				ji->type = json_inode_boolean;
 				ji->value.boolean = 0;
@@ -176,7 +177,7 @@ static const char* json_decode_string(register const char *restrict s, json_inod
 		}
 		CalcLengthEnd:
 		s = t;
-		ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + size);
+		ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + size);
 		if (!ji) return NULL;
 		ji->type = json_inode_string;
 		t = ji->value.string;
@@ -240,7 +241,7 @@ static const char* json_decode_string(register const char *restrict s, json_inod
 
 static void json_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
-	if (vl->value) json_free((json_inode_t*)vl->value);
+	if (vl->value) json_free((json_inode_t *)vl->value);
 }
 
 static const char* json_decode_array(register const char *restrict s, json_inode_t **restrict pji)
@@ -253,7 +254,7 @@ static const char* json_decode_array(register const char *restrict s, json_inode
 		index = 0;
 		jic = NULL;
 		s++;
-		ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(hashmap_t));
+		ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(hashmap_t));
 		if (!ji) goto Err;
 		ji->type = json_inode_array;
 		hm = &ji->value.array;
@@ -293,7 +294,7 @@ static const char* json_decode_object(register const char *restrict s, json_inod
 	{
 		jik = jic = NULL;
 		s++;
-		ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(hashmap_t));
+		ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(hashmap_t));
 		if (!ji) goto Err;
 		ji->type = json_inode_object;
 		hm = &ji->value.object;
@@ -415,7 +416,7 @@ static uint64_t json_length_string(register json_inode_t *restrict ji)
 
 static void json_length_array_hashmap_call_func(register hashmap_vlist_t *restrict vl, register uint64_t *restrict length)
 {
-	if (vl->value) *length += json_length((json_inode_t*)vl->value);
+	if (vl->value) *length += json_length((json_inode_t *)vl->value);
 }
 
 static uint64_t json_length_array(register json_inode_t *restrict ji)
@@ -434,7 +435,7 @@ static uint64_t json_length_array(register json_inode_t *restrict ji)
 
 static void json_length_object_hashmap_call_func(register hashmap_vlist_t *restrict vl, register uint64_t *restrict length)
 {
-	if (vl->value) *length += json_length_string((json_inode_t*)(vl->name - sizeof(json_inode_type_t))) + json_length((json_inode_t*)vl->value) + 1;
+	if (vl->value) *length += json_length_string((json_inode_t *) (vl->name - offsetof(json_inode_t, value))) + json_length((json_inode_t *) vl->value) + 1;
 }
 
 static uint64_t json_length_object(register json_inode_t *restrict ji)
@@ -568,7 +569,7 @@ static char* json_encode_array(register json_inode_t *restrict ji, register char
 		n = 1;
 		while (n)
 		{
-			ji = (json_inode_t*) hashmap_get_head(hm, i);
+			ji = (json_inode_t *) hashmap_get_head(hm, i);
 			if (ji)
 			{
 				s = json_encode_intext(ji, s);
@@ -579,7 +580,7 @@ static char* json_encode_array(register json_inode_t *restrict ji, register char
 		n = hm->number - 1;
 		while (n)
 		{
-			ji = (json_inode_t*) hashmap_get_head(hm, i);
+			ji = (json_inode_t *) hashmap_get_head(hm, i);
 			if (ji)
 			{
 				*s++ = ',';
@@ -599,9 +600,9 @@ static void json_encode_object_hashmap_call_func(register hashmap_vlist_t *restr
 	{
 		if (ps[1]) ps[1] = NULL;
 		else *(*ps)++ = ',';
-		*ps = json_encode_string((json_inode_t*)(vl->name - sizeof(json_inode_type_t)), *ps);
+		*ps = json_encode_string((json_inode_t *) (vl->name - offsetof(json_inode_t, value)), *ps);
 		*(*ps)++ = ':';
-		*ps = json_encode_intext((json_inode_t*)vl->value, *ps);
+		*ps = json_encode_intext((json_inode_t *) vl->value, *ps);
 	}
 }
 
@@ -671,7 +672,7 @@ char* json_encode(register json_inode_t *restrict ji, register char *restrict s)
 json_inode_t* json_create_null(void)
 {
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value));
 	if (ji) ji->type = json_inode_null;
 	return ji;
 }
@@ -679,7 +680,7 @@ json_inode_t* json_create_null(void)
 json_inode_t* json_create_boolean(register uint64_t boolean)
 {
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(uint64_t));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(uint64_t));
 	if (ji)
 	{
 		ji->type = json_inode_boolean;
@@ -691,7 +692,7 @@ json_inode_t* json_create_boolean(register uint64_t boolean)
 json_inode_t* json_create_integer(register int64_t integer)
 {
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(int64_t));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(int64_t));
 	if (ji)
 	{
 		ji->type = json_inode_integer;
@@ -703,7 +704,7 @@ json_inode_t* json_create_integer(register int64_t integer)
 json_inode_t* json_create_floating(register double floating)
 {
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(double));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(double));
 	if (ji)
 	{
 		ji->type = json_inode_floating;
@@ -717,7 +718,7 @@ json_inode_t* json_create_string(register const char *restrict string)
 	register json_inode_t *ji;
 	register uint64_t size;
 	size = strlen(string) + 1;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + size);
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + size);
 	if (ji)
 	{
 		ji->type = json_inode_string;
@@ -730,7 +731,7 @@ json_inode_t* json_create_array(void)
 {
 
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(hashmap_t));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(hashmap_t));
 	if (ji)
 	{
 		ji->type = json_inode_array;
@@ -747,7 +748,7 @@ json_inode_t* json_create_object(void)
 {
 
 	register json_inode_t *ji;
-	ji = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(hashmap_t));
+	ji = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(hashmap_t));
 	if (ji)
 	{
 		ji->type = json_inode_object;
@@ -762,13 +763,13 @@ json_inode_t* json_create_object(void)
 
 json_inode_t* json_array_find(register json_inode_t *restrict ji, register uint64_t index)
 {
-	if (ji && ji->type == json_inode_array) return (json_inode_t*) hashmap_get_head(&ji->value.array, index);
+	if (ji && ji->type == json_inode_array) return (json_inode_t *) hashmap_get_head(&ji->value.array, index);
 	return NULL;
 }
 
 json_inode_t* json_object_find(register json_inode_t *restrict ji, register const char *restrict key)
 {
-	if (ji && ji->type == json_inode_object) return (json_inode_t*) hashmap_get_name(&ji->value.object, key);
+	if (ji && ji->type == json_inode_object) return (json_inode_t *) hashmap_get_name(&ji->value.object, key);
 	return NULL;
 }
 
@@ -781,7 +782,7 @@ json_inode_t* json_array_get(register json_inode_t *restrict ji, register uint64
 		vl = hashmap_find_head(&ji->value.array, index);
 		if (vl)
 		{
-			r = (json_inode_t*) vl->value;
+			r = (json_inode_t *) vl->value;
 			vl->value = NULL;
 			hashmap_delete_head(&ji->value.array, index);
 		}
@@ -798,7 +799,7 @@ json_inode_t* json_object_get(register json_inode_t *restrict ji, register const
 		vl = hashmap_find_name(&ji->value.object, key);
 		if (vl)
 		{
-			r = (json_inode_t*) vl->value;
+			r = (json_inode_t *) vl->value;
 			vl->value = NULL;
 			hashmap_delete_name(&ji->value.object, key);
 		}
@@ -1097,13 +1098,13 @@ static void json_copy_hashmap_func(register hashmap_vlist_t *restrict vl, regist
 	if (vl->name)
 	{
 		// object
-		v = json_copy((json_inode_t*) vl->value);
+		v = json_copy((json_inode_t *) vl->value);
 		if (v && !hashmap_set_name(hm, vl->name, v, json_hashmap_free_func)) json_free(v);
 	}
 	else
 	{
 		// array
-		v = json_copy((json_inode_t*) vl->value);
+		v = json_copy((json_inode_t *) vl->value);
 		if (v && !hashmap_set_head(hm, vl->head, v, json_hashmap_free_func)) json_free(v);
 	}
 }
@@ -1115,7 +1116,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 	if (ji) switch (ji->type)
 	{
 		case json_inode_null:
-			r = (json_inode_t*) malloc(sizeof(json_inode_type_t));
+			r = (json_inode_t *) malloc(offsetof(json_inode_t, value));
 			if (r)
 			{
 				r->type = json_inode_null;
@@ -1123,7 +1124,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 			}
 			return NULL;
 		case json_inode_boolean:
-			r = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(uint64_t));
+			r = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(uint64_t));
 			if (r)
 			{
 				r->type = json_inode_boolean;
@@ -1132,7 +1133,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 			}
 			return NULL;
 		case json_inode_integer:
-			r = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(int64_t));
+			r = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(int64_t));
 			if (r)
 			{
 				r->type = json_inode_integer;
@@ -1141,7 +1142,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 			}
 			return NULL;
 		case json_inode_floating:
-			r = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(double));
+			r = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(double));
 			if (r)
 			{
 				r->type = json_inode_floating;
@@ -1150,8 +1151,8 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 			}
 			return NULL;
 		case json_inode_string:
-			size = sizeof(json_inode_type_t) + strlen(ji->value.string) + 1;
-			r = (json_inode_t*) malloc(size);
+			size = offsetof(json_inode_t, value) + strlen(ji->value.string) + 1;
+			r = (json_inode_t *) malloc(size);
 			if (r)
 			{
 				memcpy(r, ji, size);
@@ -1160,7 +1161,7 @@ json_inode_t* json_copy(register json_inode_t *restrict ji)
 			return NULL;
 		case json_inode_array:
 		case json_inode_object:
-			r = (json_inode_t*) malloc(sizeof(json_inode_type_t) + sizeof(hashmap_t));
+			r = (json_inode_t *) malloc(offsetof(json_inode_t, value) + sizeof(hashmap_t));
 			if (r)
 			{
 				r->type = ji->type;
