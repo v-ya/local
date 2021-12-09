@@ -1,12 +1,7 @@
 问题
 	1. dylink 局部非 rip 偏移预链接会出问题
-	2. dylink 非 static 函数取函数指针过程需要 plt，预链接过程中不提供 plt
-	3. dylink 静态数组 (static type name[] = {}) 取非 0 子项有问题，怀疑是 plt 有问题，待验证
 
 短期规划
-	* dylink 重新实现
-		- elf 解析构建器
-		- dylink 构建器
 	* chord 音素合成器
 		- Fourier 展开音
 			- a q 离散
