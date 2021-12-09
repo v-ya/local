@@ -5,12 +5,12 @@ HEADER		= dylink.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
+CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
 LDFLAGS-LIB	= -shared -lhashmap -soname ${TARGET-LIB}
-LDFLAGS-BIN	= -lhashmap -lrbtree -L. -ldylink
+LDFLAGS-BIN	= -lrefer -lhashmap -lexbuffer -lvattr -lfsys -lelfin -L. -ldylink
 
 OBJECT-LIB	= dylink.o xmem.o
-OBJECT-BIN	= dylink-entry.o elfobj.o
+OBJECT-BIN	= dylink-entry.o elf2dylink.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

@@ -1,10 +1,11 @@
 #include "dylink.h"
-#include "elfobj.h"
+#include "elf2dylink.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fsys.h>
 
-static uint64_t argv_s2u(const char *s)
+static uint64_t argv_s2u(const char *restrict s)
 {
 	uint64_t u;
 	unsigned int i;
@@ -19,57 +20,54 @@ static uint64_t argv_s2u(const char *s)
 	return u;
 }
 
-static uint8_t* file_load(const char *path, size_t *psize)
+static uint8_t* file_load(const char *restrict path, uintptr_t *restrict rsize)
 {
-	uint8_t *r;
-	size_t size;
-	FILE *fp;
+	fsys_file_s *restrict fp;
+	uint64_t size;
+	uint8_t *restrict r;
+	uintptr_t n;
 	r = NULL;
-	size = 0;
-	fp = fopen(path, "rb");
-	if (fp)
+	n = 0;
+	if ((fp = fsys_file_alloc(path, fsys_file_flag_read)))
 	{
-		fseek(fp, 0, SEEK_END);
-		size = ftell(fp);
-		if (size)
+		if (fsys_file_attr_size(fp, &size) && size)
 		{
-			r = (uint8_t *) malloc(size);
-			if (r)
+			if ((r = (uint8_t *) malloc((uintptr_t) size)))
 			{
-				fseek(fp, 0, SEEK_SET);
-				if (fread(r, 1, size, fp) != size)
+				if (!fsys_file_read(fp, r, (uintptr_t) size, &n) ||
+					n != (uintptr_t) size)
 				{
 					free(r);
 					r = NULL;
 				}
 			}
 		}
-		fclose(fp);
+		refer_free(fp);
 	}
-	if (psize) *psize = size;
+	if (rsize) *rsize = n;
 	return r;
 }
 
-static int file_save(const char *path, uint8_t *data, size_t size)
+static int file_save(const char *path, const uint8_t *restrict data, uintptr_t size)
 {
-	FILE *fp;
+	fsys_file_s *restrict fp;
+	uintptr_t rn;
 	int r;
 	r = -1;
-	fp = fopen(path, "wb");
-	if (fp)
+	if ((fp = fsys_file_alloc(path, fsys_file_flag_write | fsys_file_flag_create | fsys_file_flag_truncate)))
 	{
-		if (fwrite(data, 1, size, fp) == size)
+		if (fsys_file_write(fp, data, size, &rn) && rn == size)
 			r = 0;
-		fclose(fp);
+		refer_free(fp);
 	}
 	return r;
 }
 
 int main(int argc, const char *argv[])
 {
-	const char *output, *input;
-	elf64obj_t *e;
-	uint8_t *data;
+	const char *restrict output, *restrict input;
+	elf2dylink_s *restrict e2d;
+	uint8_t *restrict data;
 	size_t size;
 	int i;
 	if (argc > 1)
@@ -106,20 +104,17 @@ int main(int argc, const char *argv[])
 		if (output)
 		{
 			// elf => dylink
-			e = elf64obj_load(input);
-			if (!e) printf("load elf64[%s] fail\n", input);
-			else
+			if ((e2d = elf2dylink_load_by_path(input)))
 			{
-				data = elf64obj_build_dylink(e, &size);
-				if (!data) printf("build elf64[%s] to dylink fail\n", input);
-				else
+				if ((data = elf2dylink_build_dylink(e2d, &size)))
 				{
 					if (!file_save(output, data, size)) i = 0;
 					else printf("save dylink[%s](size = %lu) fail\n", output, size);
-					free(data);
 				}
-				elf64obj_free(e);
+				else printf("build elf64[%s] to dylink fail\n", input);
+				refer_free(e2d);
 			}
+			else printf("load elf64[%s] fail\n", input);
 		}
 		else
 		{
@@ -130,16 +125,13 @@ int main(int argc, const char *argv[])
 				if (size > 4 && data[0] == 0x7f && data[1] == 'E' && data[2] == 'L' && data[3] == 'F')
 				{
 					// elf
-					e = elf64obj_load(input);
-					if (!e) printf("load elf64[%s] fail\n", input);
-					else
+					elf2dylink_s *restrict e2d;
+					if ((e2d = elf2dylink_load_by_memory(data, size)))
 					{
-						elf64obj_dump_session(e);
-						elf64obj_dump_symtab(e);
-						elf64obj_dump_rela(e);
-						elf64obj_free(e);
-						i = 0;
+						elf2dylink_dump_elf(e2d);
+						refer_free(e2d);
 					}
+					else printf("load elf64[%s] fail\n", input);
 				}
 				else if (size > sizeof(dylink_header_t) && data[0] == 'd' && data[1] == 'y' && data[2] == 'l' && data[3] == '.')
 				{
