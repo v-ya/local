@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <fsys.h>
 
-elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, const uint8_t *restrict data, uintptr_t size)
+elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, const void *restrict data, uintptr_t size)
 {
 	const struct elfin_ident_t *restrict ident;
 	if (size >= sizeof(struct elfin_ident_t))
@@ -18,7 +18,7 @@ elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, cons
 			if (ident->class == elfin_ident_class__64)
 			{
 				if (ident->data == elfin_ident_data__2c_le)
-					return elfin_inner_load_2c_le_64(inst, data, size);
+					return elfin_inner_load_2c_le_64(inst, (const uint8_t *) data, size);
 			}
 		}
 	}

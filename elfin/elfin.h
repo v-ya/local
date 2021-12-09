@@ -38,7 +38,7 @@ elfin_item_s* elfin_create_entry_rel(const elfin_inst_s *restrict inst);
 const char* elfin_item_name(const elfin_item_s *restrict item);
 const char* elfin_item_type(const elfin_item_s *restrict item);
 
-elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, const uint8_t *restrict data, uintptr_t size);
+elfin_item_s* elfin_load_elfin_by_memory(const elfin_inst_s *restrict inst, const void *restrict data, uintptr_t size);
 elfin_item_s* elfin_load_elfin_by_path(const elfin_inst_s *restrict inst, const char *restrict path);
 
 void elfin_dump(elfin_item_s *restrict item, mlog_s *mlog);

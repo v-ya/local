@@ -8,6 +8,7 @@ struct elfin_item__elfin_s {
 	vattr_s *section;
 	uintptr_t section_count;
 	exbuffer_t section_array;
+	uintptr_t section_array_updated;
 	refer_nstring_t string_section_name;
 	uint32_t type;
 	uint32_t machine;
@@ -144,6 +145,7 @@ static struct elfin_item_s* append_child_section(struct elfin_item_s *restrict i
 	elfin_item_func__get_section_name_f get_name;
 	refer_nstring_t name;
 	const char *restrict key;
+	r->section_array_updated = 0;
 	if ((get_name = section->inst->func.get_section_name) && get_name(section, &name))
 	{
 		if (name) key = name->string;
@@ -171,10 +173,17 @@ static struct elfin_item_s* get_child_section_array(struct elfin_item_s *restric
 	struct elfin_item_s **p;
 	vattr_vlist_t *restrict vl;
 	*section_count = r->section_count;
-	if ((*p_section_array = p = (struct elfin_item_s **) exbuffer_need(&r->section_array, r->section_count * sizeof(struct elfin_item_s *))))
+	if (r->section_array_updated)
+	{
+		*p_section_array = (struct elfin_item_s **) r->section_array.data;
+		goto label_okay;
+	}
+	else if ((*p_section_array = p = (struct elfin_item_s **) exbuffer_need(&r->section_array, r->section_count * sizeof(struct elfin_item_s *))))
 	{
 		for (vl = r->section->vattr; vl; vl = vl->vattr_next)
 			*p++ = (struct elfin_item_s *) vl->value;
+		r->section_array_updated = 1;
+		label_okay:
 		return item;
 	}
 	return NULL;

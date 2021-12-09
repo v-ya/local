@@ -348,7 +348,7 @@ static struct elfin_item_s* load_section_data(struct elfin_item_s *restrict r, c
 			q = s->inst;
 			switch (q->item_id)
 			{
-				case elfin_item_id__section_null:
+				case elfin_item_id__section_nobits:
 					if (sh[i].size && !q->func.set_section_size(s, sh[i].size))
 						goto label_fail;
 					break;

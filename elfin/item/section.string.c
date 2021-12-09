@@ -77,12 +77,12 @@ static struct elfin_item__section_string_s* inner_insert_string_by_block(struct 
 static void inner_build_string_map_func_func(hashmap_vlist_t *restrict vl, struct elfin_item__section_string_s *restrict *restrict pr)
 {
 	struct elfin_item__section_string_s *restrict r;
-	const char *restrict string;
+	uintptr_t pos;
 	if ((r = *pr) && !hashmap_find_name(&r->string2index, vl->name))
 	{
-		string = (const char *) r->string_map.data + r->string_map.used;
+		pos = r->string_map.used;
 		if (!exbuffer_append(&r->string_map, vl->name, (uintptr_t) vl->value + 1) ||
-			!inner_insert_string_index(r, string, (uintptr_t) vl->value))
+			!inner_insert_string_index(r, (const char *) r->string_map.data + pos, (uintptr_t) vl->value))
 			*pr = NULL;
 	}
 }
