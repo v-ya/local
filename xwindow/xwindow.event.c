@@ -157,7 +157,7 @@ xwindow_s* xwindow_do_event(register xwindow_s *restrict r)
 				}
 				break;
 			case XCB_CLIENT_MESSAGE:
-				if (((xcb_client_message_event_t *) e)->data.data32[0] == r->atom_close)
+				if (((xcb_client_message_event_t *) e)->data.data32[0] == r->atom.list[xwindow_atom_id__wm_delete_window])
 				{
 					if ((func = r->report.do_close))
 						((xwindow_event_close_f) func)(r->report.data, r);

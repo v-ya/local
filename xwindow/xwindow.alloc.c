@@ -33,6 +33,8 @@ xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t 
 		r->connection = xcb_connect(NULL, NULL);
 		if (!r->connection)
 			goto label_fail;
+		if (!xwindow_inner_get_atom(r->connection, &r->atom))
+			goto label_fail;
 		r->screen = xwindow_inner_get_screen(r->connection, depth, &r->visual);
 		if (!r->screen)
 			goto label_fail;
@@ -49,7 +51,7 @@ xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t 
 				XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_COLORMAP,
 				(uint32_t []) {0, 0, r->colormap}))))
 			goto label_fail;
-		if (!xwindow_inner_allow_close_event(r->connection, r->window, &r->atom_close))
+		if (!xwindow_inner_allow_close_event(r->connection, &r->atom, r->window))
 			goto label_fail;
 		r->gcontext = xcb_generate_id(r->connection);
 		if ((error = xcb_request_check(r->connection, xcb_create_gc_checked(

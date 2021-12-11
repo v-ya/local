@@ -89,6 +89,8 @@ const xwindow_s* xwindow_get_screen_size(const xwindow_s *restrict r, uint32_t *
 const xwindow_s* xwindow_get_geometry(const xwindow_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
 xwindow_s* xwindow_set_position(xwindow_s *restrict r, int32_t x, int32_t y);
 xwindow_s* xwindow_set_size(xwindow_s *restrict r, uint32_t width, uint32_t height);
+xwindow_s* xwindow_set_title(xwindow_s *restrict r, const char *restrict utf8_string);
+xwindow_s* xwindow_set_icon(xwindow_s *restrict r, uint32_t width, uint32_t height, const uint32_t *restrict data_bgra);
 xwindow_s* xwindow_set_hint_decorations(xwindow_s *restrict r, uint32_t enable);
 xwindow_s* xwindow_set_fullscreen(xwindow_s *restrict r, uint32_t enable);
 

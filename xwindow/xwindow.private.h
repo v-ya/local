@@ -25,6 +25,22 @@ typedef struct xwindow_shm_s {
 	uint32_t remove;
 } xwindow_shm_s;
 
+typedef enum xwindow_atom_id_t {
+	xwindow_atom_id__utf8_string,
+	xwindow_atom_id__wm_protocols,
+	xwindow_atom_id__wm_delete_window,
+	xwindow_atom_id___motif_wm_hints,
+	xwindow_atom_id___net_wm_icon,
+	xwindow_atom_id___net_wm_name,
+	xwindow_atom_id___net_wm_state,
+	xwindow_atom_id___net_wm_state_fullscreen,
+	xwindow_atom_id_number
+} xwindow_atom_id_t;
+
+typedef struct xwindow_atom_t {
+	xcb_atom_t list[xwindow_atom_id_number];
+} xwindow_atom_t;
+
 struct xwindow_s {
 	xcb_connection_t *connection;
 	const xcb_screen_t *screen;
@@ -37,17 +53,14 @@ struct xwindow_s {
 	xwindow_event_report_t report;
 	uint32_t depth;
 	uint32_t max_request_length;
-	xcb_atom_t atom_close;
-	xcb_atom_t atom_hint;
-	xcb_atom_t atom_state;
-	xcb_atom_t atom_state_fullscreen;
+	xwindow_atom_t atom;
 };
 
 // inner
 
-xcb_connection_t* xwindow_inner_get_atom(xcb_connection_t *restrict c, const char *restrict name, xcb_atom_t *restrict atom);
+xcb_connection_t* xwindow_inner_get_atom(xcb_connection_t *restrict c, xwindow_atom_t *restrict atom);
 const xcb_screen_t* xwindow_inner_get_screen(xcb_connection_t *restrict c, uint32_t depth, xcb_visualid_t *restrict visual);
-xcb_connection_t* xwindow_inner_allow_close_event(xcb_connection_t *restrict c, xcb_window_t window, xcb_atom_t *restrict atom_close);
+xcb_connection_t* xwindow_inner_allow_close_event(xcb_connection_t *restrict c, const xwindow_atom_t *restrict atom, xcb_window_t window);
 
 xwindow_shm_s* xwindow_shm_alloc(uintptr_t size);
 
