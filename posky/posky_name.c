@@ -14,12 +14,12 @@ hashmap_t* posky_create_name(hashmap_t *restrict name_pool, const char *restrict
 	return NULL;
 }
 
-void posky_delete_name(hashmap_t *restrict group_name, uint64_t address)
+void posky_delete_name(hashmap_t *restrict name_pool, uint64_t address)
 {
 	const char *restrict name;
-	if ((name = (const char *) hashmap_get_head(group_name, address)))
+	if ((name = (const char *) hashmap_get_head(name_pool, address)))
 	{
-		hashmap_delete_head(group_name, address);
-		hashmap_delete_name(group_name, name);
+		hashmap_delete_head(name_pool, address);
+		hashmap_delete_name(name_pool, name);
 	}
 }

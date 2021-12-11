@@ -190,6 +190,12 @@ void posky_clear_gift(posky_s *restrict posky)
 	}
 }
 
+static inline void posky_delete_adorable_by_slot(posky_s *restrict posky, posky_slot_t *restrict slot)
+{
+	posky_delete_name(&posky->adorable_name, slot->address);
+	posky_slot_delete(posky->slot, posky->map, posky->size, slot->index);
+}
+
 void posky_clear_lonely_adorable(posky_s *restrict posky)
 {
 	posky_slot_t *restrict slot;
@@ -203,7 +209,7 @@ void posky_clear_lonely_adorable(posky_s *restrict posky)
 			--k;
 			if (refer_save_number(slot->adorable) <= 1)
 			{
-				posky_slot_delete(posky->slot, posky->map, posky->size, slot->index);
+				posky_delete_adorable_by_slot(posky, slot);
 				--posky->number;
 			}
 		}
@@ -286,7 +292,7 @@ posky_adorable_s* posky_create_adorable(posky_s *restrict posky, const char *res
 				++posky->number;
 				return (posky_adorable_s *) refer_save(r);
 			}
-			posky_slot_delete(posky->slot, posky->map, posky->size, slot->index);
+			posky_delete_adorable_by_slot(posky, slot);
 		}
 	}
 	return NULL;
@@ -311,7 +317,7 @@ void posky_delete_adorable(posky_s *restrict posky, const char *restrict name, u
 	posky_slot_t *restrict slot;
 	if ((slot = posky_find_slot(posky, name, address)))
 	{
-		posky_slot_delete(posky->slot, posky->map, posky->size, slot->index);
+		posky_delete_adorable_by_slot(posky, slot);
 		--posky->number;
 	}
 }
