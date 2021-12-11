@@ -26,9 +26,11 @@ xwindow_shm_s* xwindow_shm_alloc(uintptr_t size)
 			{
 				r->shmid = (uint32_t) shmid;
 				r->remove = 1;
-				shmctl(shmid, IPC_RMID, NULL);
 				if (~(uintptr_t) (r->addr = shmat(shmid, NULL, 0)))
+				{
+					shmctl(shmid, IPC_RMID, NULL);
 					return r;
+				}
 			}
 			return r;
 			refer_free(r);
