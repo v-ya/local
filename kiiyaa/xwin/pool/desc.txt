@@ -1,0 +1,2 @@
+	窗口注册池
+	(parse) "xwin.pool.parse" => 注册新窗口

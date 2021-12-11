@@ -1,0 +1,4 @@
+# 预定义解析器
+@"parse"
+	"xwin.pool.parse"                # 解析器名称
+		[root "xwin.pool.parse"] # 解析器使用根节点 (必须)
