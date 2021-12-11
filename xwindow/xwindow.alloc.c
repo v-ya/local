@@ -21,6 +21,12 @@ static void xwindow_free_func(xwindow_s *restrict r)
 		refer_free(r->report.data);
 }
 
+static inline void xwindow_fix_xywh(const xcb_screen_t *restrict screen, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict w, uint32_t *restrict h)
+{
+	if (!w) *x = (*w = (uint32_t) screen->width_in_pixels / 2) / 2;
+	if (!h) *y = (*h = (uint32_t) screen->height_in_pixels / 2) / 2;
+}
+
 xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t depth)
 {
 	xwindow_s *restrict r;
@@ -43,6 +49,7 @@ xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t 
 				r->connection, XCB_COLORMAP_ALLOC_NONE,
 				r->colormap, r->screen->root, r->visual))))
 			goto label_fail;
+		xwindow_fix_xywh(r->screen, &x, &y, &w, &h);
 		r->window = xcb_generate_id(r->connection);
 		if ((error = xcb_request_check(r->connection, xcb_create_window_checked(
 				r->connection, (uint8_t) depth, r->window, r->screen->root,

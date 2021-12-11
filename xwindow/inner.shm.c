@@ -28,7 +28,8 @@ xwindow_shm_s* xwindow_shm_alloc(uintptr_t size)
 				r->remove = 1;
 				if (~(uintptr_t) (r->addr = shmat(shmid, NULL, 0)))
 				{
-					shmctl(shmid, IPC_RMID, NULL);
+					if (!shmctl(shmid, IPC_RMID, NULL))
+						r->remove = 0;
 					return r;
 				}
 			}

@@ -6,6 +6,8 @@ xwindow_s* xwindow_enable_shm(xwindow_s *restrict r, uintptr_t shm_size)
 	xwindow_shm_s *restrict shm;
 	xcb_shm_seg_t shmseg;
 	shm = NULL;
+	if (!shm_size)
+		shm_size = ((uintptr_t) r->screen->width_in_pixels * (uintptr_t) r->screen->height_in_pixels) << 2;
 	if (r->shm)
 		goto label_fail;
 	if (!(shm = xwindow_shm_alloc(shm_size)))
