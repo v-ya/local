@@ -240,6 +240,19 @@ static void inst_free_func(inst_s *restrict r)
 		refer_free(r->image);
 }
 
+static void inst_set_title_and_icon(inst_s *restrict r, const char *restrict path)
+{
+	// title
+	xwindow_set_title(r->window, path);
+	// icon
+	image_resample_set_dst(r->resample, 64, 64);
+	image_resample_m_reset(r->resample);
+	if (image_resample_get_dst(r->resample))
+		xwindow_set_icon(r->window, r->resample->d_width, r->resample->d_height, r->resample->dst);
+	image_resample_set_dst(r->resample, r->resample->s_width, r->resample->s_height);
+	image_resample_m_reset(r->resample);
+}
+
 inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor)
 {
 	inst_s *restrict r;
@@ -257,6 +270,7 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 				if (r->window)
 				{
 					r->hint_decorations = 1;
+					inst_set_title_and_icon(r, path);
 					xwindow_register_event_data(r->window, r);
 					xwindow_register_event_close(r->window, (xwindow_event_close_f) inst_event_close_func);
 					xwindow_register_event_expose(r->window, (xwindow_event_expose_f) inst_event_expose_func);
