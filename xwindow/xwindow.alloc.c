@@ -23,8 +23,8 @@ static void xwindow_free_func(xwindow_s *restrict r)
 
 static inline void xwindow_fix_xywh(const xcb_screen_t *restrict screen, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict w, uint32_t *restrict h)
 {
-	if (!w) *x = (*w = (uint32_t) screen->width_in_pixels / 2) / 2;
-	if (!h) *y = (*h = (uint32_t) screen->height_in_pixels / 2) / 2;
+	if (!*w) *x = (*w = (uint32_t) screen->width_in_pixels / 2) / 2;
+	if (!*h) *y = (*h = (uint32_t) screen->height_in_pixels / 2) / 2;
 }
 
 xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t depth)
