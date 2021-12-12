@@ -1,4 +1,24 @@
 # 预定义解析器
 @"parse"
-	"xwin.pool.parse"                # 解析器名称
-		[root "xwin.pool.parse"] # 解析器使用根节点 (必须)
+	"xwin.pool.parse"                      # 解析器名称
+		[root "xwin.pool.parse" parse] # 解析器使用根节点 (必须)
+			"name" @index          # 窗口名称
+			# ...
+
+[parse "name"]
+	"size"           @u32    => (s32[1]) { 0, 0, 0, 0 } # (可选) 窗口默认大小 { x, y, w, h }
+	"depth"          @u32    => (u32[1]) { 24 }         # (可选) 窗口像素色深 (有效值: 24, 32)
+	"event.time.gap" @u32    => (u32[1]) { 15 }         # (可选) 窗口事件休眠时间间隔 (ms)
+	"title"          @string => ""                      # (可选) 窗口标题 (utf8)
+	"icon" "size"    @u32    => (u32[2]) { 0, 0 }       # (可选) 窗口图标大小 { width, height } (xwindow 要求均 <= 256 且 > 0)
+	"icon" "data"    @u32    => (u32) {}                # (可选) 窗口图标像素数据 (bgra, length = width * height)
+	"data.allocer"   @string => "symbol"                # (可选) 窗口私有数据构造函数 (xwin_pool_data_allocer_f)
+	"events.done"    @string => "symbol"                # (可选) 窗口事件执行完毕后调用 (xwin_pool_events_done_f) 依据返回值判断是否继续接收事件
+	"event.close"    @string => "symbol"                # (可选) 窗口事件 (xwindow_event_close_f)   窗口关闭通知
+	"event.expose"   @string => "symbol"                # (可选) 窗口事件 (xwindow_event_expose_f)  窗口展示通知
+	"event.key"      @string => "symbol"                # (可选) 窗口事件 (xwindow_event_key_f)     按键触发通知
+	"event.button"   @string => "symbol"                # (可选) 窗口事件 (xwindow_event_button_f)  鼠标按键通知
+	"event.pointer"  @string => "symbol"                # (可选) 窗口事件 (xwindow_event_pointer_f) 鼠标移动通知
+	"event.area"     @string => "symbol"                # (可选) 窗口事件 (xwindow_event_area_f)    鼠标进出窗口通知
+	"event.focus"    @string => "symbol"                # (可选) 窗口事件 (xwindow_event_focus_f)   焦点得失通知
+	"event.config"   @string => "symbol"                # (可选) 窗口事件 (xwindow_event_config_f)  窗口位置大小变更通知

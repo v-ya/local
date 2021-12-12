@@ -1,7 +1,7 @@
 # 预定义解析器
 @"parse"
-	"web.server.parse"                # 解析器名称
-		[root "web.server.parse"] # 解析器使用根节点 (必须)
+	"web.server.parse"                           # 解析器名称
+		[root "web.server.parse" root.parse] # 解析器使用根节点 (必须)
 
 # 解析器根节点下子节点 (均可选)
 # 如果某个节点下预期可能出现 ‘#’ 起始的名称，则起始 "##name" => "#name"，所有未预期的 "#command" 将忽略

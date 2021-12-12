@@ -23,4 +23,4 @@ ${target}.r.o: ${object}
 
 .PHONY: clear
 clear:
-	rm -f *.o *.dy *.kiya
+	rm -f *.o *.dy *.kiya *.clear

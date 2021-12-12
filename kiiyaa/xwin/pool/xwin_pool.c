@@ -65,7 +65,7 @@ static xwindow_s* xwin_pool_create_xwindow(const xwin_pool_param_t *restrict par
 	uintptr_t en;
 	xwindow_event_t ea[xwindow_event$number + 1];
 	*data = NULL;
-	if ((r = xwindow_alloc(param->x, param->y, param->w, param->h, param->depth)))
+	if ((r = xwindow_alloc(param->x, param->y, (uint32_t) param->w, (uint32_t) param->h, param->depth)))
 	{
 		if (param->enable_shm)
 			xwindow_enable_shm(r, param->shm_size);

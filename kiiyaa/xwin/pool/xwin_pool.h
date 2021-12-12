@@ -11,8 +11,8 @@ typedef xwindow_s* (*xwin_pool_events_done_f)(xwindow_s *restrict xw, refer_t da
 typedef struct xwin_pool_param_t {
 	int32_t x;
 	int32_t y;
-	uint32_t w;
-	uint32_t h;
+	int32_t w;
+	int32_t h;
 	uint32_t depth;
 	uint32_t enable_shm;
 	uintptr_t shm_size;
