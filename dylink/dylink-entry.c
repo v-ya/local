@@ -133,7 +133,7 @@ int main(int argc, const char *argv[])
 					}
 					else printf("load elf64[%s] fail\n", input);
 				}
-				else if (size > sizeof(dylink_header_t) && data[0] == 'd' && data[1] == 'y' && data[2] == 'l' && data[3] == '.')
+				else if (size >= sizeof(dylink_header_t) && data[0] == 'd' && data[1] == 'y' && data[2] == 'l' && data[3] == '.')
 				{
 					// dylink
 					dylink_dump(data, size);
