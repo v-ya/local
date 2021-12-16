@@ -439,6 +439,29 @@ graph_bool_t graph_device_queue_surface_support(register const graph_device_queu
 	return b;
 }
 
+void graph_device_properties_header_dump(const graph_device_t *restrict gd)
+{
+	register mlog_s *ml;
+	register const VkPhysicalDeviceProperties *restrict p;
+	register uint32_t v;
+	ml = gd->ml;
+	p = &gd->properties;
+	v = p->apiVersion;
+	mlog_printf(ml, "\t" "api version                                           = %u.%u.%u\n", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+	v = p->driverVersion;
+	mlog_printf(ml, "\t" "driver version                                        = %u.%u.%u\n", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
+	mlog_printf(ml, "\t" "vendor ID                                             = 0x%x\n", p->vendorID);
+	mlog_printf(ml, "\t" "device ID                                             = 0x%x\n", p->deviceID);
+	mlog_printf(ml, "\t" "device type                                           = %d (%s)\n",
+		p->deviceType, graph_physical_device_type$string((graph_physical_device_type_t) p->deviceType));
+	mlog_printf(ml, "\t" "device name                                           = %s\n", p->deviceName);
+	mlog_printf(ml, "\t" "pipeline cache UUID                                   = %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
+		p->pipelineCacheUUID[0], p->pipelineCacheUUID[1], p->pipelineCacheUUID[2], p->pipelineCacheUUID[3],
+		p->pipelineCacheUUID[4], p->pipelineCacheUUID[5], p->pipelineCacheUUID[6], p->pipelineCacheUUID[7],
+		p->pipelineCacheUUID[8], p->pipelineCacheUUID[9], p->pipelineCacheUUID[10], p->pipelineCacheUUID[11],
+		p->pipelineCacheUUID[12], p->pipelineCacheUUID[13], p->pipelineCacheUUID[14], p->pipelineCacheUUID[15]);
+}
+
 void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
 {
 	register mlog_s *ml;
@@ -568,25 +591,7 @@ void graph_device_properties_sparse_dump(const graph_device_t *restrict gd)
 
 void graph_device_properties_dump(const graph_device_t *restrict gd)
 {
-	mlog_s *ml;
-	register const VkPhysicalDeviceProperties *restrict p;
-	register uint32_t v;
-	ml = gd->ml;
-	p = &gd->properties;
-	v = p->apiVersion;
-	mlog_printf(ml, "\t" "api version                                           = %u.%u.%u\n", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
-	v = p->driverVersion;
-	mlog_printf(ml, "\t" "driver version                                        = %u.%u.%u\n", VK_VERSION_MAJOR(v), VK_VERSION_MINOR(v), VK_VERSION_PATCH(v));
-	mlog_printf(ml, "\t" "vendor ID                                             = 0x%x\n", p->vendorID);
-	mlog_printf(ml, "\t" "device ID                                             = 0x%x\n", p->deviceID);
-	mlog_printf(ml, "\t" "device type                                           = %d (%s)\n",
-		p->deviceType, graph_physical_device_type$string((graph_physical_device_type_t) p->deviceType));
-	mlog_printf(ml, "\t" "device name                                           = %s\n", p->deviceName);
-	mlog_printf(ml, "\t" "pipeline cache UUID                                   = %02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
-		p->pipelineCacheUUID[0], p->pipelineCacheUUID[1], p->pipelineCacheUUID[2], p->pipelineCacheUUID[3],
-		p->pipelineCacheUUID[4], p->pipelineCacheUUID[5], p->pipelineCacheUUID[6], p->pipelineCacheUUID[7],
-		p->pipelineCacheUUID[8], p->pipelineCacheUUID[9], p->pipelineCacheUUID[10], p->pipelineCacheUUID[11],
-		p->pipelineCacheUUID[12], p->pipelineCacheUUID[13], p->pipelineCacheUUID[14], p->pipelineCacheUUID[15]);
+	graph_device_properties_header_dump(gd);
 	graph_device_properties_limits_dump(gd);
 	graph_device_properties_sparse_dump(gd);
 }

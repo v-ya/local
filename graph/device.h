@@ -47,6 +47,7 @@ void graph_device_queue_min_image_transfer_granularity(const graph_device_queue_
 graph_bool_t graph_device_features_test(const graph_device_t *restrict gd, graph_device_feature_t feature);
 graph_bool_t graph_device_queue_surface_support(const graph_device_queue_t *restrict q, const struct graph_surface_s *restrict sf);
 
+void graph_device_properties_header_dump(const graph_device_t *restrict gd);
 void graph_device_properties_limits_dump(const graph_device_t *restrict gd);
 void graph_device_properties_sparse_dump(const graph_device_t *restrict gd);
 void graph_device_properties_dump(const graph_device_t *restrict gd);
