@@ -26,7 +26,7 @@ typedef enum graph_extension_e {
 } graph_extension_t;
 
 typedef enum graph_debug_message_level_e {
-	graph_debug_message_level_version = 0x0001,
+	graph_debug_message_level_verbose = 0x0001,
 	graph_debug_message_level_info    = 0x0010,
 	graph_debug_message_level_warning = 0x0100,
 	graph_debug_message_level_error   = 0x1000

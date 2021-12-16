@@ -36,6 +36,9 @@ graph_dev_s* graph_dev_alloc(const graph_dev_param_s *restrict param, const stru
 graph_queue_t* graph_dev_queue(graph_dev_s *restrict dev, const graph_device_queue_t *restrict queue, uint32_t qi);
 graph_dev_s* graph_dev_wait_idle(graph_dev_s *restrict dev);
 
+graph_physical_device_type_t graph_device_type(const graph_device_t *restrict gd);
+const char* graph_device_name(const graph_device_t *restrict gd);
+
 graph_queue_flags_t graph_device_queue_flags(const graph_device_queue_t *restrict q);
 uint32_t graph_device_queue_count(const graph_device_queue_t *restrict q);
 uint32_t graph_device_queue_timestamp_valid_bits(const graph_device_queue_t *restrict q);

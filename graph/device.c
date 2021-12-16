@@ -385,6 +385,16 @@ graph_dev_s* graph_dev_wait_idle(register graph_dev_s *restrict dev)
 	return NULL;
 }
 
+graph_physical_device_type_t graph_device_type(register const graph_device_t *restrict gd)
+{
+	return (graph_physical_device_type_t) gd->properties.deviceType;
+}
+
+const char* graph_device_name(register const graph_device_t *restrict gd)
+{
+	return gd->properties.deviceName;
+}
+
 graph_queue_flags_t graph_device_queue_flags(register const graph_device_queue_t *restrict q)
 {
 	return (graph_queue_flags_t) q->properties->queueFlags;
