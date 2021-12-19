@@ -763,7 +763,8 @@ graph_gpipe_param_s* graph_gpipe_param_ok(register graph_gpipe_param_s *restrict
 {
 	static char empty[] = {0};
 	r->pi = NULL;
-	if (r->info.stageCount && r->info.pVertexInputState && r->info.pInputAssemblyState && r->info.pViewportState &&
+	// pViewportState allow null, while used dynamic viewport. maybe.
+	if (r->info.stageCount && r->info.pVertexInputState && r->info.pInputAssemblyState &&
 		r->info.pColorBlendState && r->info.pDynamicState && r->info.layout && r->info.renderPass)
 	{
 		r->pi = &r->info;
@@ -773,7 +774,6 @@ graph_gpipe_param_s* graph_gpipe_param_ok(register graph_gpipe_param_s *restrict
 		r->info.stageCount?empty:" shader",
 		r->info.pVertexInputState?empty:" vertex",
 		r->info.pInputAssemblyState?empty:" assembly",
-		r->info.pViewportState?empty:" viewport",
 		r->info.pColorBlendState?empty:" color_blend",
 		r->info.pDynamicState?empty:" dynamic",
 		r->info.layout?empty:" layout",
