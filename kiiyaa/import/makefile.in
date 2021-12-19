@@ -3,13 +3,14 @@ ld		= ld
 dylink		= dylink
 ccflags		= -O2 -Wall -Wextra -Wno-unused-parameter -fno-stack-protector
 pocket-builder	= pocket-builder
+build-script	?= kiya.builder
 
 ${target}.kiya: kiya.builder
 	${pocket-builder} --kiya ../../pocket-builder-kiya/kiiyaa $< -o $@
 
-kiya.builder:
+${build-script}:
 	@sh ../builder.sh ${target} ${header} >$@
 
 .PHONY: clear
 clear:
-	rm -f *.kiya *.builder
+	rm -f *.kiya ${build-script}
