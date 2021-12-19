@@ -171,7 +171,7 @@ static const char* console_do_loop_hint_multi_same(vattr_vlist_t *restrict vlist
 	return NULL;
 }
 
-static exbuffer_t* console_do_loop_hint(exbuffer_t *restrict hint, const console_do_hint_t *restrict p, uintptr_t argc, const char *const *argv)
+static exbuffer_t* console_do_loop_hint(exbuffer_t *restrict hint, const console_do_hint_t *restrict p, uintptr_t argc, const char *const *argv, uintptr_t last_argv_is_finish)
 {
 	vattr_vslot_t *restrict vslot;
 	vattr_vlist_t *restrict vlist;
@@ -182,7 +182,7 @@ static exbuffer_t* console_do_loop_hint(exbuffer_t *restrict hint, const console
 	{
 		vlist = vslot->vslot;
 		n = strlen(vslot->key);
-		if (vlist->vslot_next)
+		if (vlist->vslot_next && argc == 1 && !last_argv_is_finish)
 		{
 			const char *restrict s;
 			// compare multi

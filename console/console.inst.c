@@ -246,7 +246,8 @@ const char *const * console_inst_get(console_inst_s *restrict inst, uintptr_t *r
 						line->raw.data[line->raw.used] = 0;
 						hint_argv = console_inst_get_args(line, &hint_argc);
 						inst->line_raw_cache.used = 0;
-						if (hint_func(&inst->line_raw_cache, hint_pri, hint_argc, hint_argv))
+						if (hint_func(&inst->line_raw_cache, hint_pri, hint_argc, hint_argv,
+							line->raw.used && !line->raw.data[line->raw.used - 1]))
 						{
 							if (inst->line_raw_cache.used)
 							{

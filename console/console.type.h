@@ -31,7 +31,7 @@ struct console_s {
 	vattr_s *hint; // => (refer_nstring_t)
 };
 
-typedef exbuffer_t* (*console_inst_hint_f)(exbuffer_t *restrict hint, const void *pri, uintptr_t argc, const char *const *argv);
+typedef exbuffer_t* (*console_inst_hint_f)(exbuffer_t *restrict hint, const void *pri, uintptr_t argc, const char *const *argv, uintptr_t last_argv_is_finish);
 
 const char *const * console_inst_get(console_inst_s *restrict inst, uintptr_t *restrict argc, const exbuffer_t *restrict cname, console_inst_hint_f hint_func, const void *hint_pri);
 
