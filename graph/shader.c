@@ -770,7 +770,7 @@ graph_gpipe_param_s* graph_gpipe_param_ok(register graph_gpipe_param_s *restrict
 		r->pi = &r->info;
 		return r;
 	}
-	mlog_printf(r->ml, "[graph_gpipe_param_ok] (%s%s%s%s%s%s%s%s ) not set\n",
+	mlog_printf(r->ml, "[graph_gpipe_param_ok] (%s%s%s%s%s%s%s ) not set\n",
 		r->info.stageCount?empty:" shader",
 		r->info.pVertexInputState?empty:" vertex",
 		r->info.pInputAssemblyState?empty:" assembly",
