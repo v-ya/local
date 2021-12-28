@@ -67,7 +67,7 @@ graph_vertex_input_description_s* graph_vertex_input_description_alloc(uint32_t 
 	return r;
 }
 
-void graph_vertex_input_description_set_bind(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate)
+graph_vertex_input_description_s* graph_vertex_input_description_set_bind(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate)
 {
 	if (index < desc->bind_size)
 	{
@@ -78,10 +78,12 @@ void graph_vertex_input_description_set_bind(register graph_vertex_input_descrip
 		p->inputRate = graph_vertex_input_rate2vk(irate);
 		if (index >= desc->bind_number)
 			desc->bind_number = index + 1;
+		return desc;
 	}
+	return NULL;
 }
 
-void graph_vertex_input_description_set_attr(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format)
+graph_vertex_input_description_s* graph_vertex_input_description_set_attr(register graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format)
 {
 	if (index < desc->attr_size)
 	{
@@ -93,28 +95,27 @@ void graph_vertex_input_description_set_attr(register graph_vertex_input_descrip
 		p->offset = offset;
 		if (index >= desc->attr_number)
 			desc->attr_number = index + 1;
+		return desc;
 	}
+	return NULL;
 }
 
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number)
 {
 	register graph_viewports_scissors_s *restrict r;
-	if (viewport_number && scissor_number)
+	r = (graph_viewports_scissors_s *) refer_alloc(
+		sizeof(graph_viewports_scissors_s) +
+		sizeof(VkViewport) * viewport_number +
+		sizeof(VkRect2D) * scissor_number);
+	if (r)
 	{
-		r = (graph_viewports_scissors_s *) refer_alloc(
-			sizeof(graph_viewports_scissors_s) +
-			sizeof(VkViewport) * viewport_number +
-			sizeof(VkRect2D) * scissor_number);
-		if (r)
-		{
-			r->viewport_size = viewport_number;
-			r->scissor_size = scissor_number;
-			r->viewport_number = 0;
-			r->scissor_number = 0;
-			r->viewports = (VkViewport *) (r + 1);
-			r->scissors = (VkRect2D *) (r->viewports + viewport_number);
-			return r;
-		}
+		r->viewport_size = viewport_number;
+		r->scissor_size = scissor_number;
+		r->viewport_number = 0;
+		r->scissor_number = 0;
+		r->viewports = (VkViewport *) (r + 1);
+		r->scissors = (VkRect2D *) (r->viewports + viewport_number);
+		return r;
 	}
 	return NULL;
 }
@@ -207,7 +208,7 @@ void graph_pipe_color_blend_set_logic(register graph_pipe_color_blend_s *restric
 	r->info.logicOp = graph_logic_op2vk(op);
 }
 
-void graph_pipe_color_blend_set_constants(register graph_pipe_color_blend_s *restrict r, float constants[4])
+void graph_pipe_color_blend_set_constants(register graph_pipe_color_blend_s *restrict r, const float constants[4])
 {
 	r->info.blendConstants[0] = constants[0];
 	r->info.blendConstants[1] = constants[1];
@@ -574,7 +575,7 @@ graph_gpipe_param_s* graph_gpipe_param_set_viewport(register graph_gpipe_param_s
 		refer_free(r->viewports_scissors);
 		r->viewports_scissors = NULL;
 	}
-	if (gvs && gvs->viewport_number && gvs->scissor_number)
+	if (gvs)
 	{
 		r->viewports_scissors = (graph_viewports_scissors_s *) refer_save(gvs);
 		r->viewport.flags = 0;
@@ -763,17 +764,17 @@ graph_gpipe_param_s* graph_gpipe_param_ok(register graph_gpipe_param_s *restrict
 {
 	static char empty[] = {0};
 	r->pi = NULL;
-	// pViewportState allow null, while used dynamic viewport. maybe.
-	if (r->info.stageCount && r->info.pVertexInputState && r->info.pInputAssemblyState &&
+	if (r->info.stageCount && r->info.pVertexInputState && r->info.pInputAssemblyState && r->info.pViewportState &&
 		r->info.pColorBlendState && r->info.pDynamicState && r->info.layout && r->info.renderPass)
 	{
 		r->pi = &r->info;
 		return r;
 	}
-	mlog_printf(r->ml, "[graph_gpipe_param_ok] (%s%s%s%s%s%s%s ) not set\n",
+	mlog_printf(r->ml, "[graph_gpipe_param_ok] (%s%s%s%s%s%s%s%s ) not set\n",
 		r->info.stageCount?empty:" shader",
 		r->info.pVertexInputState?empty:" vertex",
 		r->info.pInputAssemblyState?empty:" assembly",
+		r->info.pViewportState?empty:" viewport",
 		r->info.pColorBlendState?empty:" color_blend",
 		r->info.pDynamicState?empty:" dynamic",
 		r->info.layout?empty:" layout",

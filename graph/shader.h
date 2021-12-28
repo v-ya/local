@@ -22,8 +22,8 @@ struct graph_pipe_layout_s;
 graph_shader_s* graph_shader_alloc(struct graph_dev_s *restrict dev, const void *restrict code, size_t size);
 
 graph_vertex_input_description_s* graph_vertex_input_description_alloc(uint32_t bind_number, uint32_t attr_number);
-void graph_vertex_input_description_set_bind(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate);
-void graph_vertex_input_description_set_attr(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format);
+graph_vertex_input_description_s* graph_vertex_input_description_set_bind(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t binding, uint32_t stride, graph_vertex_input_rate_t irate);
+graph_vertex_input_description_s* graph_vertex_input_description_set_attr(graph_vertex_input_description_s *restrict desc, uint32_t index, uint32_t location, uint32_t binding, uint32_t offset, graph_format_t format);
 
 graph_viewports_scissors_s* graph_viewports_scissors_alloc(uint32_t viewport_number, uint32_t scissor_number);
 graph_viewports_scissors_s* graph_viewports_scissors_append_viewport(graph_viewports_scissors_s *restrict r, float x, float y, float w, float h, float dmin, float dmax);
@@ -33,7 +33,7 @@ graph_viewports_scissors_s* graph_viewports_scissors_update_scissor(graph_viewpo
 
 graph_pipe_color_blend_s* graph_pipe_color_blend_alloc(uint32_t attachment_number);
 void graph_pipe_color_blend_set_logic(graph_pipe_color_blend_s *restrict r, graph_bool_t logic_op, graph_logic_op_t op);
-void graph_pipe_color_blend_set_constants(graph_pipe_color_blend_s *restrict r, float constants[4]);
+void graph_pipe_color_blend_set_constants(graph_pipe_color_blend_s *restrict r, const float constants[4]);
 graph_pipe_color_blend_s* graph_pipe_color_blend_append_attachment(graph_pipe_color_blend_s *restrict r, graph_bool_t enable, graph_color_component_mask_t mask, graph_blend_factor_t s_color, graph_blend_factor_t d_color, graph_blend_op_t op_color, graph_blend_factor_t s_alpha, graph_blend_factor_t d_alpha, graph_blend_op_t op_alpha);
 
 graph_render_pass_param_s* graph_render_pass_param_alloc(uint32_t attachment_number, uint32_t subpass_number, uint32_t dependency_number, uint32_t aref_number);
