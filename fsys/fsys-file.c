@@ -168,6 +168,16 @@ fsys_file_s* fsys_file_attr_size(fsys_file_s *restrict file, uint64_t *restrict 
 	return NULL;
 }
 
+fsys_file_s* fsys_file_attr_rdev(fsys_file_s *restrict file, uint64_t *restrict rdev)
+{
+	if (rdev && attr_getdaze(file))
+	{
+		*rdev = (uint64_t) file->attr_file.st_rdev;
+		return file;
+	}
+	return NULL;
+}
+
 fsys_file_s* fsys_file_attr_time_access(fsys_file_s *restrict file, uint64_t *restrict posixtimestamp_secend, uint64_t *restrict posixtimestamp_nanosecend)
 {
 	if ((posixtimestamp_secend || posixtimestamp_nanosecend) && attr_getdaze(file))

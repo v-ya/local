@@ -15,6 +15,8 @@ static inline fsys_type_t fsys_dt2type(fsys_dt_type_t type)
 {
 	switch (type)
 	{
+		case DT_CHR: return fsys_type_cdev;
+		case DT_BLK: return fsys_type_bdev;
 		case DT_DIR: return fsys_type_dirent;
 		case DT_REG: return fsys_type_file;
 		case DT_LNK: return fsys_type_link;

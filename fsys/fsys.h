@@ -12,6 +12,8 @@ typedef enum fsys_type_t {
 	fsys_type_dirent = 0x01,
 	fsys_type_file   = 0x02,
 	fsys_type_link   = 0x04,
+	fsys_type_bdev   = 0x08,
+	fsys_type_cdev   = 0x10,
 	fsys_type_unknow = 0x80,
 	fsys_type_all    = 0xff
 } fsys_type_t;
