@@ -4,7 +4,7 @@ HEADER		= rbtree.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lhashmap -soname ${TARGET}
+LDFLAGS		= -shared -soname ${TARGET}
 
 OBJECT		= rbtree.o
 
