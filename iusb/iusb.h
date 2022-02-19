@@ -46,6 +46,33 @@ typedef enum iusb_config_flags_t {
 	iusb_config_flags_battery    = 0x10, // 电池供电
 } iusb_config_flags_t;
 
+typedef enum iusb_endpoint_address_t {
+	iusb_endpoint_address_mask_number = 0x0f, // 地址号
+
+	iusb_endpoint_address_mask_dir    = 0x80, // 数据方向
+	iusb_endpoint_address_dir_out     = 0x00, // => device
+	iusb_endpoint_address_dir_in      = 0x80, // => host
+} iusb_endpoint_address_t;
+
+typedef enum iusb_endpoint_xfer_t {
+	iusb_endpoint_xfer_control      = 0x00,
+	iusb_endpoint_xfer_isoc         = 0x01,
+	iusb_endpoint_xfer_bulk         = 0x02,
+	iusb_endpoint_xfer_interrupt    = 0x03,
+} iusb_endpoint_xfer_t;
+
+typedef enum iusb_endpoint_sync_t {
+	iusb_endpoint_sync_none         = 0x00,
+	iusb_endpoint_sync_async        = 0x01,
+	iusb_endpoint_sync_adaptive     = 0x02,
+	iusb_endpoint_sync_sync         = 0x03,
+} iusb_endpoint_sync_t;
+
+typedef enum iusb_endpoint_intr_t {
+	iusb_endpoint_intr_periodic     = 0x00,
+	iusb_endpoint_intr_notification = 0x01,
+} iusb_endpoint_intr_t;
+
 typedef struct iusb_attr_device_t {
 	uint32_t usb_major;
 	uint32_t usb_minor;
@@ -81,6 +108,18 @@ typedef struct iusb_attr_interface_t {
 	uint32_t desc_interface;
 } iusb_attr_interface_t;
 
+typedef struct iusb_attr_endpoint_t {
+	iusb_endpoint_address_t endpoint_address;
+	iusb_endpoint_xfer_t xfer;
+	iusb_endpoint_sync_t sync;
+	iusb_endpoint_intr_t intr;
+	uint32_t max_packet_size;
+	uint32_t max_packet_size_mult;
+	uint32_t interval;
+	uint32_t refresh;
+	uint32_t synch_address;
+} iusb_attr_endpoint_t;
+
 iusb_inst_s* iusb_inst_alloc(void);
 iusb_pool_t iusb_inst_pool(iusb_inst_s *restrict inst);
 uintptr_t iusb_inst_update(iusb_inst_s *restrict inst);
@@ -103,5 +142,6 @@ const iusb_attr_interface_t* iusb_attr_interface_data(const iusb_device_attr_int
 iusb_attr_t iusb_attr_interface_attr(const iusb_device_attr_interface_s *restrict interface);
 
 const vattr_vslot_t* iusb_attr_find_endpoint(iusb_attr_t attr);
+const iusb_attr_endpoint_t* iusb_attr_endpoint_data(const iusb_device_attr_endpoint_s *restrict endpoint);
 
 #endif

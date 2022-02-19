@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -soname ${TARGET}
 
-OBJECT		= iusb.o iusb.bus.o iusb.device.o
+OBJECT		= iusb.o iusb.bus.o iusb.device.o iusb.io.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

@@ -78,17 +78,42 @@ static iusb_device_attr_interface_s* iusb_inner_device_attr_alloc_interface(cons
 	return NULL;
 }
 
+static iusb_device_attr_endpoint_s* iusb_inner_device_attr_alloc_endpoint(const struct usb_endpoint_descriptor *restrict d)
+{
+	iusb_device_attr_endpoint_s *restrict r;
+	if ((d->bLength == USB_DT_ENDPOINT_SIZE || d->bLength == USB_DT_ENDPOINT_AUDIO_SIZE) &&
+		(r = (iusb_device_attr_endpoint_s *) refer_alloz(sizeof(iusb_device_attr_endpoint_s))))
+	{
+		r->endpoint.endpoint_address     = iusb_enum_from_u8(d->bEndpointAddress, iusb_endpoint_address_t);
+		r->endpoint.xfer                 = (iusb_endpoint_xfer_t) (iusb_type_from_u8(d->bmAttributes) & USB_ENDPOINT_XFERTYPE_MASK);
+		r->endpoint.sync                 = (iusb_endpoint_sync_t) ((iusb_type_from_u8(d->bmAttributes) & USB_ENDPOINT_SYNCTYPE) >> 2);
+		r->endpoint.intr                 = (iusb_endpoint_intr_t) ((iusb_type_from_u8(d->bmAttributes) & USB_ENDPOINT_INTRTYPE) >> 4);
+		r->endpoint.max_packet_size      = iusb_type_from_le16(d->wMaxPacketSize) & USB_ENDPOINT_MAXP_MASK;
+		r->endpoint.max_packet_size_mult = USB_EP_MAXP_MULT(iusb_type_from_le16(d->wMaxPacketSize)) + 1;
+		r->endpoint.interval             = iusb_type_from_u8(d->bInterval);
+		if (d->bLength == USB_DT_ENDPOINT_AUDIO_SIZE)
+		{
+			r->endpoint.refresh       = iusb_type_from_u8(d->bRefresh);
+			r->endpoint.synch_address = iusb_type_from_u8(d->bSynchAddress);
+		}
+		return r;
+	}
+	return NULL;
+}
+
 static iusb_device_s* iusb_inner_device_alloc_parse(iusb_device_s *restrict r, const uint8_t *restrict desc, uintptr_t size)
 {
 	const struct usb_descriptor_header *restrict h;
 	iusb_device_attr_device_s *restrict device;
 	iusb_device_attr_config_s *restrict config;
 	iusb_device_attr_interface_s *restrict interface;
+	iusb_device_attr_endpoint_s *restrict endpoint;
 	refer_t attr;
 	uintptr_t n;
 	device = NULL;
 	config = NULL;
 	interface = NULL;
+	endpoint = NULL;
 	attr = NULL;
 	while (size)
 	{
@@ -130,6 +155,19 @@ static iusb_device_s* iusb_inner_device_alloc_parse(iusb_device_s *restrict r, c
 				attr = NULL;
 				break;
 			case USB_DT_ENDPOINT:
+				if (!(attr = endpoint = iusb_inner_device_attr_alloc_endpoint((const struct usb_endpoint_descriptor *) h)))
+					goto label_fail;
+				if (!vattr_insert_tail(r->attr, iusb_key_endpoint, attr))
+					goto label_fail;
+				if (device && !vattr_insert_tail(device->container.attr, iusb_key_endpoint, attr))
+					goto label_fail;
+				if (config && !vattr_insert_tail(config->container.attr, iusb_key_endpoint, attr))
+					goto label_fail;
+				if (interface && !vattr_insert_tail(interface->container.attr, iusb_key_endpoint, attr))
+					goto label_fail;
+				refer_free(attr);
+				attr = NULL;
+				break;
 			default:
 				break;
 		}

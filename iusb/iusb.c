@@ -96,3 +96,8 @@ const vattr_vslot_t* iusb_attr_find_endpoint(iusb_attr_t attr)
 {
 	return vattr_get_vslot(attr, iusb_key_endpoint);
 }
+
+const iusb_attr_endpoint_t* iusb_attr_endpoint_data(const iusb_device_attr_endpoint_s *restrict endpoint)
+{
+	return &endpoint->endpoint;
+}

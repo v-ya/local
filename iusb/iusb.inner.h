@@ -5,7 +5,6 @@
 #include <exbuffer.h>
 #include <fsys.h>
 #include <sys/ioctl.h>
-#include <linux/usbdevice_fs.h>
 
 typedef struct iusb_device_attr_container_s iusb_device_attr_container_s;
 
@@ -42,7 +41,7 @@ struct iusb_device_attr_interface_s {
 };
 
 struct iusb_device_attr_endpoint_s {
-	;
+	iusb_attr_endpoint_t endpoint;
 };
 
 #define iusb_path_usbfs    "/dev/bus/usb/"
@@ -52,15 +51,16 @@ struct iusb_device_attr_endpoint_s {
 #define iusb_key_interface "interface"
 #define iusb_key_endpoint  "endpoint"
 
-#define iusb_type_to_u8(_v)       ((uint8_t) _v)
-#define iusb_type_from_u8(_v)     ((uint32_t) _v)
-#define iusb_enum_from_u8(_v, _t) ((_t) _v)
+#define iusb_type_to_u8(_v)         ((uint8_t) (_v))
+#define iusb_type_from_u8(_v)       ((uint32_t) (_v))
+#define iusb_enum_from_u8(_v, _t)   ((_t) (_v))
 
-#define iusb_type_to_le16(_v)     ((uint16_t) _v)
-#define iusb_type_from_le16(_v)   ((uint32_t) _v)
+#define iusb_type_to_le16(_v)       ((uint16_t) (_v))
+#define iusb_type_from_le16(_v)     ((uint32_t) (_v))
+#define iusb_enum_from_le16(_v, _t) ((_t) (_v))
 
-#define iusb_major_from_bcd(_v)   iusb_number_from_bcd2(iusb_type_from_le16(_v) >> 8)
-#define iusb_minor_from_bcd(_v)   iusb_number_from_bcd2(iusb_type_from_le16(_v) & 0xff)
+#define iusb_major_from_bcd(_v)     iusb_number_from_bcd2(iusb_type_from_le16(_v) >> 8)
+#define iusb_minor_from_bcd(_v)     iusb_number_from_bcd2(iusb_type_from_le16(_v) & 0xff)
 
 // inline
 
