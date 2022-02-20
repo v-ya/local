@@ -1,4 +1,6 @@
 #include "iusb.inner.h"
+#include <yaw.h>
+#include <alloca.h>
 
 // inst
 
@@ -101,3 +103,110 @@ const iusb_attr_endpoint_t* iusb_attr_endpoint_data(const iusb_device_attr_endpo
 {
 	return &endpoint->endpoint;
 }
+
+// dev
+
+iusb_dev_s* iusb_dev_alloc(const iusb_device_s *restrict device)
+{
+	if (device->path)
+		return iusb_inner_dev_alloc(device->path);
+	return NULL;
+}
+
+uintptr_t iusb_dev_do_events(iusb_dev_s *restrict dev)
+{
+	uintptr_t n;
+	iusb_urb_s *restrict urb;
+	n = 0;
+	while ((urb = iusb_inner_dev_reap_urb(dev)))
+	{
+		iusb_inner_urb_reap(urb);
+		n += 1;
+	}
+	return n;
+}
+
+static uintptr_t iusb_dev_wait_complete_check(iusb_urb_s *urb_array[], uintptr_t *restrict p, uintptr_t urb_number, uintptr_t *restrict pi)
+{
+	uintptr_t i, n;
+	n = 0;
+	while ((i = *pi) < urb_number)
+	{
+		if (iusb_inner_urb_need_wait(urb_array[i]))
+		{
+			pi = p + i;
+			n += 1;
+		}
+		else *pi = p[i];
+	}
+	return n;
+}
+
+uintptr_t iusb_dev_wait_complete(iusb_dev_s *restrict dev, iusb_urb_s *urb_array[], uintptr_t urb_number, uintptr_t timeout_msec)
+{
+	uint64_t kill_msec;
+	uintptr_t *restrict p;
+	uintptr_t n, i;
+	n = urb_number;
+	if ((p = (uintptr_t *) alloca(sizeof(uintptr_t) * n)))
+	{
+		for (i = 0; i < n; ++i)
+			p[i] = i + 1;
+		i = 0;
+		kill_msec = yaw_timestamp_msec() + timeout_msec;
+		goto label_try;
+		while (n && yaw_timestamp_msec() < kill_msec)
+		{
+			yaw_msleep(dev->wait_msec_gap);
+			label_try:
+			iusb_dev_do_events(dev);
+			n = iusb_dev_wait_complete_check(urb_array, p, urb_number, &i);
+		}
+	}
+	return n;
+}
+
+// urb
+
+iusb_urb_s* iusb_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size)
+{
+	return iusb_inner_urb_alloc(dev, urb_size);
+}
+
+iusb_urb_s* iusb_urb_need_wait(iusb_urb_s *restrict urb)
+{
+	return iusb_inner_urb_need_wait(urb);
+}
+
+iusb_urb_s* iusb_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint)
+{
+	return iusb_inner_urb_set_param(urb, xfer, endpoint);
+}
+
+iusb_urb_s* iusb_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size)
+{
+	return iusb_inner_urb_fill_data_control(urb, request_type, request, value, index, data, size);
+}
+
+const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
+{
+	return iusb_inner_urb_get_data_control(urb, rsize);
+}
+
+iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb)
+{
+	return iusb_inner_urb_submit(urb);
+}
+
+iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb)
+{
+	return iusb_inner_urb_discard(urb);
+}
+
+// preset
+
+iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev)
+{
+	return iusb_inner_dev_get_speed(dev);
+}
+

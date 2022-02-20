@@ -4,9 +4,9 @@ HEADER		= iusb.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lexbuffer -lvattr -lfsys -lyaw -soname ${TARGET}
 
-OBJECT		= iusb.o iusb.bus.o iusb.device.o iusb.io.o
+OBJECT		= iusb.o iusb.bus.o iusb.device.o iusb.dev.o iusb.urb.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

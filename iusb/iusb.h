@@ -12,6 +12,8 @@ typedef struct iusb_device_attr_device_s iusb_device_attr_device_s;
 typedef struct iusb_device_attr_config_s iusb_device_attr_config_s;
 typedef struct iusb_device_attr_interface_s iusb_device_attr_interface_s;
 typedef struct iusb_device_attr_endpoint_s iusb_device_attr_endpoint_s;
+typedef struct iusb_dev_s iusb_dev_s;
+typedef struct iusb_urb_s iusb_urb_s;
 
 typedef enum iusb_class_t {
 	iusb_class_undefined           = 0x00, // device    由 interface 定义
@@ -72,6 +74,16 @@ typedef enum iusb_endpoint_intr_t {
 	iusb_endpoint_intr_periodic     = 0x00,
 	iusb_endpoint_intr_notification = 0x01,
 } iusb_endpoint_intr_t;
+
+typedef enum iusb_dev_speed_t {
+	iusb_dev_speed_unknow,      // enumerating
+	iusb_dev_speed_low,         // usb 1.1
+	iusb_dev_speed_full,        // usb 1.1
+	iusb_dev_speed_high,        // usb 2.0
+	iusb_dev_speed_wireless,    // usb 2.5 (wireless)
+	iusb_dev_speed_super,       // usb 3.0
+	iusb_dev_speed_super_plus,  // usb 3.1
+} iusb_dev_speed_t;
 
 typedef struct iusb_attr_device_t {
 	uint32_t usb_major;
@@ -143,5 +155,19 @@ iusb_attr_t iusb_attr_interface_attr(const iusb_device_attr_interface_s *restric
 
 const vattr_vslot_t* iusb_attr_find_endpoint(iusb_attr_t attr);
 const iusb_attr_endpoint_t* iusb_attr_endpoint_data(const iusb_device_attr_endpoint_s *restrict endpoint);
+
+iusb_dev_s* iusb_dev_alloc(const iusb_device_s *restrict device);
+uintptr_t iusb_dev_do_events(iusb_dev_s *restrict dev);
+uintptr_t iusb_dev_wait_complete(iusb_dev_s *restrict dev, iusb_urb_s *urb_array[], uintptr_t urb_number, uintptr_t timeout_msec);
+
+iusb_urb_s* iusb_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size);
+iusb_urb_s* iusb_urb_need_wait(iusb_urb_s *restrict urb);
+iusb_urb_s* iusb_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint);
+iusb_urb_s* iusb_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size);
+const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
+iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb);
+iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb);
+
+iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev);
 
 #endif

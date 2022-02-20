@@ -4,7 +4,7 @@
 #include "iusb.h"
 #include <exbuffer.h>
 #include <fsys.h>
-#include <sys/ioctl.h>
+#include <linux/usbdevice_fs.h>
 
 typedef struct iusb_device_attr_container_s iusb_device_attr_container_s;
 
@@ -44,6 +44,21 @@ struct iusb_device_attr_endpoint_s {
 	iusb_attr_endpoint_t endpoint;
 };
 
+struct iusb_dev_s {
+	int fd;
+	uintptr_t wait_msec_gap;
+};
+
+struct iusb_urb_s {
+	iusb_dev_s *dev;
+	struct usbdevfs_urb *volatile urb;
+	exbuffer_t data;
+	struct {
+		struct usbdevfs_urb urb;
+		struct usbdevfs_iso_packet_desc iso_frame_desc;
+	} urb_header;
+};
+
 #define iusb_path_usbfs    "/dev/bus/usb/"
 
 #define iusb_key_device    "device"
@@ -78,5 +93,24 @@ iusb_device_s* iusb_inner_bus_alloc_device(exbuffer_t *restrict usb_descriptor, 
 // device
 
 iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t size, const char *restrict path, const char *restrict id);
+
+// dev
+
+iusb_dev_s* iusb_inner_dev_alloc(const char *restrict dev_path);
+iusb_dev_speed_t iusb_inner_dev_get_speed(iusb_dev_s *restrict dev);
+iusb_dev_s* iusb_inner_dev_submit_urb(iusb_dev_s *restrict dev, struct usbdevfs_urb *restrict urb);
+iusb_dev_s* iusb_inner_dev_discard_urb(iusb_dev_s *restrict dev, struct usbdevfs_urb *restrict urb);
+iusb_urb_s* iusb_inner_dev_reap_urb(iusb_dev_s *restrict dev);
+
+// urb
+
+iusb_urb_s* iusb_inner_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size);
+iusb_urb_s* iusb_inner_urb_need_wait(iusb_urb_s *restrict urb);
+void iusb_inner_urb_reap(iusb_urb_s *restrict urb);
+iusb_urb_s* iusb_inner_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint);
+iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size);
+const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
+iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb);
+iusb_urb_s* iusb_inner_urb_discard(iusb_urb_s *restrict urb);
 
 #endif
