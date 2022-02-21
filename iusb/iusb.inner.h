@@ -11,7 +11,8 @@ typedef struct iusb_device_attr_container_s iusb_device_attr_container_s;
 
 struct iusb_inst_s {
 	vattr_s *device;
-	exbuffer_t usb_desc_cache;
+	fsys_rpath_s *rpath;
+	exbuffer_t cache;
 };
 
 struct iusb_device_s {
@@ -20,6 +21,8 @@ struct iusb_device_s {
 	vattr_s *attr;
 	const uint8_t *usb_descriptor_data;
 	uintptr_t usb_descriptor_size;
+	uint32_t bus_id;
+	uint32_t dev_id;
 };
 
 struct iusb_device_attr_container_s {
@@ -61,6 +64,7 @@ struct iusb_urb_s {
 };
 
 #define iusb_path_usbfs    "/dev/bus/usb/"
+#define iusb_path_usbsys   "/sys/bus/usb/devices/"
 
 #define iusb_key_device    "device"
 #define iusb_key_config    "config"
@@ -87,13 +91,13 @@ static inline uint32_t iusb_number_from_bcd2(uint32_t bcd2)
 
 // bus
 
-iusb_inst_s* iusb_inner_inst_alloc(uintptr_t usb_desc_cache_size);
-uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, exbuffer_t *restrict usb_descriptor);
-iusb_device_s* iusb_inner_bus_alloc_device(exbuffer_t *restrict usb_descriptor, uint32_t bus_id, uint32_t device_id);
+iusb_inst_s* iusb_inner_inst_alloc(uintptr_t cache_size);
+uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpath, exbuffer_t *restrict cache);
+iusb_device_s* iusb_inner_bus_alloc_device(exbuffer_t *restrict cache, uint32_t bus_id, uint32_t dev_id);
 
 // device
 
-iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t size, const char *restrict path, const char *restrict id);
+iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t size, const char *restrict path, const char *restrict id, uint32_t bus_id, uint32_t dev_id);
 
 // dev
 

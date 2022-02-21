@@ -6,7 +6,7 @@
 
 iusb_inst_s* iusb_inst_alloc(void)
 {
-	return iusb_inner_inst_alloc(16384);
+	return iusb_inner_inst_alloc(64 << 10);
 }
 
 iusb_pool_t iusb_inst_pool(iusb_inst_s *restrict inst)
@@ -16,12 +16,12 @@ iusb_pool_t iusb_inst_pool(iusb_inst_s *restrict inst)
 
 uintptr_t iusb_inst_update(iusb_inst_s *restrict inst)
 {
-	return iusb_inner_bus_scan(inst->device, &inst->usb_desc_cache);
+	return iusb_inner_bus_scan(inst->device, inst->rpath, &inst->cache);
 }
 
 iusb_device_s* iusb_inst_alloc_device(iusb_inst_s *restrict inst, uint32_t bus_id, uint32_t device_id)
 {
-	return iusb_inner_bus_alloc_device(&inst->usb_desc_cache, bus_id, device_id);
+	return iusb_inner_bus_alloc_device(&inst->cache, bus_id, device_id);
 }
 
 // device

@@ -187,7 +187,7 @@ static void iusb_inner_device_free_func(iusb_device_s *restrict r)
 	if (r->attr) refer_free(r->attr);
 }
 
-iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t size, const char *restrict path, const char *restrict id)
+iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t size, const char *restrict path, const char *restrict id, uint32_t bus_id, uint32_t dev_id)
 {
 	iusb_device_s *restrict r;
 	if ((r = (iusb_device_s *) refer_alloc(sizeof(iusb_device_s) + size)))
@@ -199,6 +199,8 @@ iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t s
 		r->attr = vattr_alloc();
 		r->usb_descriptor_data = (const uint8_t *) memcpy(r + 1, desc, size);
 		r->usb_descriptor_size = size;
+		r->bus_id = bus_id;
+		r->dev_id = dev_id;
 		if (r->path && r->id && r->attr && iusb_inner_device_alloc_parse(r, desc, size))
 			return r;
 		refer_free(r);
