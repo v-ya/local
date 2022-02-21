@@ -4,6 +4,7 @@
 #include "iusb.h"
 #include <exbuffer.h>
 #include <fsys.h>
+#include <rbtree.h>
 #include <linux/usbdevice_fs.h>
 
 typedef struct iusb_device_attr_container_s iusb_device_attr_container_s;
@@ -112,5 +113,13 @@ iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t 
 const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
 iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb);
 iusb_urb_s* iusb_inner_urb_discard(iusb_urb_s *restrict urb);
+
+// desc_string
+
+iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec);
+const uint32_t* iusb_inner_desc_string_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number);
+void iusb_inner_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid);
+iusb_desc_string_s* iusb_inner_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index);
+refer_string_t iusb_inner_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
 
 #endif

@@ -14,6 +14,7 @@ typedef struct iusb_device_attr_interface_s iusb_device_attr_interface_s;
 typedef struct iusb_device_attr_endpoint_s iusb_device_attr_endpoint_s;
 typedef struct iusb_dev_s iusb_dev_s;
 typedef struct iusb_urb_s iusb_urb_s;
+typedef struct iusb_desc_string_s iusb_desc_string_s;
 
 typedef enum iusb_class_t {
 	iusb_class_undefined           = 0x00, // device    由 interface 定义
@@ -167,6 +168,14 @@ iusb_urb_s* iusb_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t reques
 const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
 iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb);
 iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb);
+
+iusb_desc_string_s* iusb_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec);
+const uint32_t* iusb_desc_string_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number);
+uint32_t iusb_desc_string_get_default_langid(iusb_desc_string_s *restrict ds);
+void iusb_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid);
+iusb_desc_string_s* iusb_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index);
+refer_string_t iusb_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
+refer_string_t iusb_desc_string_submit_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
 
 iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev);
 
