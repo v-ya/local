@@ -152,8 +152,7 @@ const char* fsys_rpath_pop(fsys_rpath_s *restrict rp)
 	if ((si = rp->stack_index))
 	{
 		p = (char *) rp->path.data;
-		p[rp->p_end = rp->stack[si]] = 0;
-		rp->stack_index = si - 1;
+		p[rp->p_end = rp->stack[rp->stack_index = si - 1]] = 0;
 		return p;
 	}
 	return NULL;
