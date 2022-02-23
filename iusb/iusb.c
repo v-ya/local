@@ -150,10 +150,15 @@ uintptr_t iusb_dev_wait_complete(iusb_dev_s *restrict dev, iusb_urb_s *urb_array
 	n = urb_number;
 	if ((p = (uintptr_t *) alloca(sizeof(uintptr_t) * n)))
 	{
+		kill_msec = 0;
 		for (i = 0; i < n; ++i)
+		{
 			p[i] = i + 1;
+			if (urb_array[i]->last_submit_timestamp > kill_msec)
+				kill_msec = urb_array[i]->last_submit_timestamp;
+		}
 		i = 0;
-		kill_msec = yaw_timestamp_msec() + timeout_msec;
+		kill_msec += timeout_msec;
 		goto label_try;
 		while (n && yaw_timestamp_msec() < kill_msec)
 		{
@@ -193,8 +198,19 @@ const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restr
 	return iusb_inner_urb_get_data_control(urb, rsize);
 }
 
+iusb_urb_s* iusb_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size)
+{
+	return iusb_inner_urb_fill_data_bulk(urb, stream_id, data, size);
+}
+
+const void* iusb_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
+{
+	return iusb_inner_urb_get_data_bulk(urb, rsize);
+}
+
 iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb)
 {
+	urb->last_submit_timestamp = yaw_timestamp_msec();
 	return iusb_inner_urb_submit(urb);
 }
 
@@ -210,16 +226,21 @@ iusb_desc_string_s* iusb_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t u
 	return iusb_inner_desc_string_alloc(dev, urb_number, timeout_msec);
 }
 
+iusb_desc_string_s* iusb_desc_string_submit_langid(iusb_desc_string_s *restrict ds)
+{
+	return iusb_inner_desc_string_submit_langid(ds);
+}
+
 const uint32_t* iusb_desc_string_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number)
 {
-	return iusb_inner_desc_string_get_langid(ds, number);
+	return iusb_inner_desc_string_submit_and_get_langid(ds, number);
 }
 
 uint32_t iusb_desc_string_get_default_langid(iusb_desc_string_s *restrict ds)
 {
 	const uint32_t *restrict p;
 	uintptr_t n;
-	if ((p = iusb_inner_desc_string_get_langid(ds, &n)) && n)
+	if ((p = iusb_inner_desc_string_submit_and_get_langid(ds, &n)) && n)
 		return *p;
 	return 0;
 }

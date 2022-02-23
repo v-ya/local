@@ -257,7 +257,12 @@ iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintp
 	return NULL;
 }
 
-const uint32_t* iusb_inner_desc_string_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number)
+iusb_desc_string_s* iusb_inner_desc_string_submit_langid(iusb_desc_string_s *restrict ds)
+{
+	return iusb_inner_desc_string_submit_inner(ds, 0, 0);
+}
+
+const uint32_t* iusb_inner_desc_string_submit_and_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number)
 {
 	const uint32_t *restrict p;
 	if (iusb_inner_desc_string_submit_inner(ds, 0, 0) &&

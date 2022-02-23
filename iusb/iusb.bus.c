@@ -96,7 +96,7 @@ uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpa
 	{
 		while (fsys_dir_read(dir, &item) && item.type)
 		{
-			if (strchr(item.name, '-') && !strchr(item.name, ':'))
+			if (!strchr(item.name, ':'))
 			{
 				if (fsys_rpath_push(rpath, item.name))
 				{

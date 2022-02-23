@@ -24,7 +24,6 @@ iusb_urb_s* iusb_inner_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size)
 		{
 			r->data.used = urb_size;
 			r->urb_header.urb.buffer = r->data.data;
-			r->urb_header.urb.buffer_length = (int) urb_size;
 			r->urb_header.urb.usercontext = r;
 			return r;
 		}
@@ -84,6 +83,7 @@ iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t 
 		rq->wValue = iusb_type_to_le16(value);
 		rq->wIndex = iusb_type_to_le16(index);
 		rq->wLength = iusb_type_to_le16(size);
+		urb->urb_header.urb.buffer_length = (int) (sizeof(struct usb_ctrlrequest) + size);
 		if (data) memcpy(rq + 1, data, size);
 		return urb;
 	}
@@ -99,6 +99,33 @@ const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t 
 		{
 			if (rsize) *rsize = (uintptr_t) p->actual_length;
 			return (uint8_t *) p->buffer + sizeof(struct usb_ctrlrequest);
+		}
+	}
+	if (rsize) *rsize = 0;
+	return NULL;
+}
+
+iusb_urb_s* iusb_inner_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size)
+{
+	if (!urb->urb && size <= urb->data.used)
+	{
+		urb->urb_header.urb.stream_id = stream_id;
+		urb->urb_header.urb.buffer_length = (int) (sizeof(struct usb_ctrlrequest) + size);
+		if (data) memcpy(urb->data.data, data, size);
+		return urb;
+	}
+	return NULL;
+}
+
+const void* iusb_inner_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
+{
+	struct usbdevfs_urb *restrict p;
+	if (!urb->urb && !(p = &urb->urb_header.urb)->status)
+	{
+		if (p->actual_length >= 0 && (int) p->actual_length <= p->buffer_length)
+		{
+			if (rsize) *rsize = (uintptr_t) p->actual_length;
+			return (uint8_t *) p->buffer;
 		}
 	}
 	if (rsize) *rsize = 0;

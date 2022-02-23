@@ -166,10 +166,13 @@ iusb_urb_s* iusb_urb_need_wait(iusb_urb_s *restrict urb);
 iusb_urb_s* iusb_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint);
 iusb_urb_s* iusb_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size);
 const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
+iusb_urb_s* iusb_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size);
+const void* iusb_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
 iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb);
 iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb);
 
 iusb_desc_string_s* iusb_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec);
+iusb_desc_string_s* iusb_desc_string_submit_langid(iusb_desc_string_s *restrict ds);
 const uint32_t* iusb_desc_string_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number);
 uint32_t iusb_desc_string_get_default_langid(iusb_desc_string_s *restrict ds);
 void iusb_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid);
