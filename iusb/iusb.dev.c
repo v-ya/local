@@ -24,7 +24,7 @@ iusb_dev_s* iusb_inner_dev_alloc(const char *restrict dev_path)
 	return NULL;
 }
 
-iusb_dev_speed_t iusb_inner_dev_get_speed(iusb_dev_s *restrict dev)
+iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev)
 {
 	int r;
 	switch ((r = ioctl(dev->fd, USBDEVFS_GET_SPEED, NULL)))
@@ -40,6 +40,30 @@ iusb_dev_speed_t iusb_inner_dev_get_speed(iusb_dev_s *restrict dev)
 		default:
 			return iusb_dev_speed_unknow;
 	}
+}
+
+iusb_dev_s* iusb_dev_interface_claim(iusb_dev_s *restrict dev, uint32_t interface)
+{
+	
+	if (!ioctl(dev->fd, USBDEVFS_CLAIMINTERFACE, &interface))
+		return dev;
+	return NULL;
+}
+
+iusb_dev_s* iusb_dev_interface_release(iusb_dev_s *restrict dev, uint32_t interface)
+{
+	
+	if (!ioctl(dev->fd, USBDEVFS_RELEASEINTERFACE, &interface))
+		return dev;
+	return NULL;
+}
+
+iusb_dev_s* iusb_dev_clear_halt(iusb_dev_s *restrict dev, uint32_t endpoint)
+{
+	
+	if (!ioctl(dev->fd, USBDEVFS_CLEAR_HALT, &endpoint))
+		return dev;
+	return NULL;
 }
 
 iusb_dev_s* iusb_inner_dev_submit_urb(iusb_dev_s *restrict dev, struct usbdevfs_urb *restrict urb)

@@ -13,7 +13,7 @@ static void iusb_inner_urb_free_func(iusb_urb_s *restrict r)
 	exbuffer_uini(&r->data);
 }
 
-iusb_urb_s* iusb_inner_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size)
+iusb_urb_s* iusb_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size)
 {
 	iusb_urb_s *restrict r;
 	if ((r = (iusb_urb_s *) refer_alloz(sizeof(iusb_urb_s))))
@@ -32,7 +32,7 @@ iusb_urb_s* iusb_inner_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size)
 	return NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_need_wait(iusb_urb_s *restrict urb)
+iusb_urb_s* iusb_urb_need_wait(iusb_urb_s *restrict urb)
 {
 	return (urb->urb)?urb:NULL;
 }
@@ -42,7 +42,7 @@ void iusb_inner_urb_reap(iusb_urb_s *restrict urb)
 	urb->urb = NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint)
+iusb_urb_s* iusb_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint)
 {
 	if (!urb->urb)
 	{
@@ -72,7 +72,7 @@ iusb_urb_s* iusb_inner_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfe
 	return NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size)
+iusb_urb_s* iusb_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size)
 {
 	struct usb_ctrlrequest *restrict rq;
 	if (!urb->urb && size + sizeof(*rq) <= urb->data.used)
@@ -90,7 +90,7 @@ iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t 
 	return NULL;
 }
 
-const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
+const void* iusb_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
 {
 	struct usbdevfs_urb *restrict p;
 	if (!urb->urb && !(p = &urb->urb_header.urb)->status)
@@ -105,19 +105,19 @@ const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t 
 	return NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size)
+iusb_urb_s* iusb_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size)
 {
 	if (!urb->urb && size <= urb->data.used)
 	{
 		urb->urb_header.urb.stream_id = stream_id;
-		urb->urb_header.urb.buffer_length = (int) (sizeof(struct usb_ctrlrequest) + size);
+		urb->urb_header.urb.buffer_length = (int) size;
 		if (data) memcpy(urb->data.data, data, size);
 		return urb;
 	}
 	return NULL;
 }
 
-const void* iusb_inner_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
+const void* iusb_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize)
 {
 	struct usbdevfs_urb *restrict p;
 	if (!urb->urb && !(p = &urb->urb_header.urb)->status)
@@ -132,7 +132,7 @@ const void* iusb_inner_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *re
 	return NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb)
+iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb)
 {
 	if (!urb->urb)
 	{
@@ -142,6 +142,7 @@ iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb)
 		p->actual_length = 0;
 		p->error_count = 0;
 		urb->urb = p;
+		urb->last_submit_timestamp = yaw_timestamp_msec();
 		if (iusb_inner_dev_submit_urb(urb->dev, p))
 			return urb;
 		urb->urb = NULL;
@@ -149,7 +150,7 @@ iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb)
 	return NULL;
 }
 
-iusb_urb_s* iusb_inner_urb_discard(iusb_urb_s *restrict urb)
+iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb)
 {
 	struct usbdevfs_urb *restrict u;
 	if ((u = urb->urb))

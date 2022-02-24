@@ -3,8 +3,9 @@
 
 #include "iusb.h"
 #include <exbuffer.h>
-#include <fsys.h>
 #include <rbtree.h>
+#include <fsys.h>
+#include <yaw.h>
 #include <linux/usbdevice_fs.h>
 
 typedef struct iusb_device_attr_container_s iusb_device_attr_container_s;
@@ -103,31 +104,12 @@ iusb_device_s* iusb_inner_device_alloc(const uint8_t *restrict desc, uintptr_t s
 // dev
 
 iusb_dev_s* iusb_inner_dev_alloc(const char *restrict dev_path);
-iusb_dev_speed_t iusb_inner_dev_get_speed(iusb_dev_s *restrict dev);
 iusb_dev_s* iusb_inner_dev_submit_urb(iusb_dev_s *restrict dev, struct usbdevfs_urb *restrict urb);
 iusb_dev_s* iusb_inner_dev_discard_urb(iusb_dev_s *restrict dev, struct usbdevfs_urb *restrict urb);
 iusb_urb_s* iusb_inner_dev_reap_urb(iusb_dev_s *restrict dev);
 
 // urb
 
-iusb_urb_s* iusb_inner_urb_alloc(iusb_dev_s *restrict dev, uintptr_t urb_size);
-iusb_urb_s* iusb_inner_urb_need_wait(iusb_urb_s *restrict urb);
 void iusb_inner_urb_reap(iusb_urb_s *restrict urb);
-iusb_urb_s* iusb_inner_urb_set_param(iusb_urb_s *restrict urb, iusb_endpoint_xfer_t xfer, uint32_t endpoint);
-iusb_urb_s* iusb_inner_urb_fill_data_control(iusb_urb_s *restrict urb, uint32_t request_type, uint32_t request, uint32_t value, uint32_t index, const void *data, uintptr_t size);
-const void* iusb_inner_urb_get_data_control(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
-iusb_urb_s* iusb_inner_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id, const void *data, uintptr_t size);
-const void* iusb_inner_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
-iusb_urb_s* iusb_inner_urb_submit(iusb_urb_s *restrict urb);
-iusb_urb_s* iusb_inner_urb_discard(iusb_urb_s *restrict urb);
-
-// desc_string
-
-iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec);
-iusb_desc_string_s* iusb_inner_desc_string_submit_langid(iusb_desc_string_s *restrict ds);
-const uint32_t* iusb_inner_desc_string_submit_and_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number);
-void iusb_inner_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid);
-iusb_desc_string_s* iusb_inner_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index);
-refer_string_t iusb_inner_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
 
 #endif

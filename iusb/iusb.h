@@ -158,6 +158,10 @@ const vattr_vslot_t* iusb_attr_find_endpoint(iusb_attr_t attr);
 const iusb_attr_endpoint_t* iusb_attr_endpoint_data(const iusb_device_attr_endpoint_s *restrict endpoint);
 
 iusb_dev_s* iusb_dev_alloc(const iusb_device_s *restrict device);
+iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev);
+iusb_dev_s* iusb_dev_interface_claim(iusb_dev_s *restrict dev, uint32_t interface);
+iusb_dev_s* iusb_dev_interface_release(iusb_dev_s *restrict dev, uint32_t interface);
+iusb_dev_s* iusb_dev_clear_halt(iusb_dev_s *restrict dev, uint32_t endpoint);
 uintptr_t iusb_dev_do_events(iusb_dev_s *restrict dev);
 uintptr_t iusb_dev_wait_complete(iusb_dev_s *restrict dev, iusb_urb_s *urb_array[], uintptr_t urb_number, uintptr_t timeout_msec);
 
@@ -179,7 +183,5 @@ void iusb_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langi
 iusb_desc_string_s* iusb_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index);
 refer_string_t iusb_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
 refer_string_t iusb_desc_string_submit_get(iusb_desc_string_s *restrict ds, uint32_t desc_index);
-
-iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev);
 
 #endif

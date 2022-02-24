@@ -68,7 +68,7 @@ static void* iusb_inner_desc_string_get_by_urb(iusb_desc_string_urb_t *restrict 
 {
 	const struct usb_string_descriptor *restrict usd;
 	uintptr_t n;
-	if ((usd = iusb_inner_urb_get_data_control(urb->urb, &n)))
+	if ((usd = iusb_urb_get_data_control(urb->urb, &n)))
 	{
 		const uint16_t *restrict p;
 		if (iusb_enum_from_u8(usd->bLength, uintptr_t) < n)
@@ -126,7 +126,7 @@ static uintptr_t iusb_inner_desc_string_check_used(iusb_desc_string_s *restrict 
 	p = &r->used;
 	while ((urb = *p))
 	{
-		if (iusb_inner_urb_need_wait(urb->urb))
+		if (iusb_urb_need_wait(urb->urb))
 			p = &urb->next;
 		else
 		{
@@ -178,14 +178,14 @@ static iusb_desc_string_s* iusb_inner_desc_string_submit_inner(iusb_desc_string_
 	if ((urb = iusb_inner_desc_string_find_free_urb(r)))
 	{
 		urb->key = key;
-		if (iusb_inner_urb_fill_data_control(
+		if (iusb_urb_fill_data_control(
 			urb->urb,
 			iusb_endpoint_address_dir_in | 0, USB_REQ_GET_DESCRIPTOR,
 			(USB_DT_STRING << 8) | (desc_index & 0xff),
 			langid,
 			NULL,
 			iusb_inner_desc_string_max_size) &&
-			iusb_inner_urb_submit(urb->urb))
+			iusb_urb_submit(urb->urb))
 		{
 			urb->next = r->used;
 			r->used = urb;
@@ -194,7 +194,7 @@ static iusb_desc_string_s* iusb_inner_desc_string_submit_inner(iusb_desc_string_
 				label_okay:
 				return r;
 			}
-			iusb_inner_urb_discard(urb->urb);
+			iusb_urb_discard(urb->urb);
 		}
 		else
 		{
@@ -219,7 +219,7 @@ static refer_t iusb_inner_desc_string_get_inner(iusb_desc_string_s *restrict r, 
 			iusb_inner_desc_string_check_used(r);
 			if (((volatile rbtree_t *) v)->value != urb)
 				return ((volatile rbtree_t *) v)->value;
-			iusb_inner_urb_discard(urb->urb);
+			iusb_urb_discard(urb->urb);
 			if (v->free) v->free(v);
 			v->value = NULL;
 		}
@@ -228,7 +228,7 @@ static refer_t iusb_inner_desc_string_get_inner(iusb_desc_string_s *restrict r, 
 	return NULL;
 }
 
-iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec)
+iusb_desc_string_s* iusb_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec)
 {
 	iusb_desc_string_s *restrict r;
 	uintptr_t i;
@@ -242,9 +242,9 @@ iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintp
 			r->urb_number = urb_number;
 			for (i = 0; i < urb_number; ++i)
 			{
-				if (!(r->urb[i].urb = iusb_inner_urb_alloc(dev, sizeof(struct usb_ctrlrequest) + iusb_inner_desc_string_max_size)))
+				if (!(r->urb[i].urb = iusb_urb_alloc(dev, sizeof(struct usb_ctrlrequest) + iusb_inner_desc_string_max_size)))
 					goto label_fail;
-				if (!iusb_inner_urb_set_param(r->urb[i].urb, iusb_endpoint_xfer_control, 0))
+				if (!iusb_urb_set_param(r->urb[i].urb, iusb_endpoint_xfer_control, 0))
 					goto label_fail;
 				r->urb[i].next = r->free;
 				r->free = r->urb + i;
@@ -257,12 +257,12 @@ iusb_desc_string_s* iusb_inner_desc_string_alloc(iusb_dev_s *restrict dev, uintp
 	return NULL;
 }
 
-iusb_desc_string_s* iusb_inner_desc_string_submit_langid(iusb_desc_string_s *restrict ds)
+iusb_desc_string_s* iusb_desc_string_submit_langid(iusb_desc_string_s *restrict ds)
 {
 	return iusb_inner_desc_string_submit_inner(ds, 0, 0);
 }
 
-const uint32_t* iusb_inner_desc_string_submit_and_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number)
+const uint32_t* iusb_desc_string_submit_and_get_langid(iusb_desc_string_s *restrict ds, uintptr_t *restrict number)
 {
 	const uint32_t *restrict p;
 	if (iusb_inner_desc_string_submit_inner(ds, 0, 0) &&
@@ -275,21 +275,37 @@ const uint32_t* iusb_inner_desc_string_submit_and_get_langid(iusb_desc_string_s 
 	return NULL;
 }
 
-void iusb_inner_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid)
+uint32_t iusb_desc_string_get_default_langid(iusb_desc_string_s *restrict ds)
+{
+	const uint32_t *restrict p;
+	uintptr_t n;
+	if ((p = iusb_desc_string_submit_and_get_langid(ds, &n)) && n)
+		return *p;
+	return 0;
+}
+
+void iusb_desc_string_set_langid(iusb_desc_string_s *restrict ds, uint32_t langid)
 {
 	ds->langid = langid;
 }
 
-iusb_desc_string_s* iusb_inner_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index)
+iusb_desc_string_s* iusb_desc_string_submit(iusb_desc_string_s *restrict ds, uint32_t desc_index)
 {
 	if (ds->langid && desc_index)
 		return iusb_inner_desc_string_submit_inner(ds, ds->langid, desc_index);
 	return NULL;
 }
 
-refer_string_t iusb_inner_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index)
+refer_string_t iusb_desc_string_get(iusb_desc_string_s *restrict ds, uint32_t desc_index)
 {
 	if (ds->langid && desc_index)
+		return iusb_inner_desc_string_get_inner(ds, ds->langid, desc_index);
+	return NULL;
+}
+
+refer_string_t iusb_desc_string_submit_get(iusb_desc_string_s *restrict ds, uint32_t desc_index)
+{
+	if (ds->langid && desc_index && iusb_inner_desc_string_submit_inner(ds, ds->langid, desc_index))
 		return iusb_inner_desc_string_get_inner(ds, ds->langid, desc_index);
 	return NULL;
 }
