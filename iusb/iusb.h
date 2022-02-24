@@ -3,6 +3,7 @@
 
 #include <refer.h>
 #include <vattr.h>
+#include <exbuffer.h>
 
 typedef struct iusb_inst_s iusb_inst_s;
 typedef struct iusb_device_s iusb_device_s;
@@ -14,7 +15,9 @@ typedef struct iusb_device_attr_interface_s iusb_device_attr_interface_s;
 typedef struct iusb_device_attr_endpoint_s iusb_device_attr_endpoint_s;
 typedef struct iusb_dev_s iusb_dev_s;
 typedef struct iusb_urb_s iusb_urb_s;
+typedef struct iusb_pipe_s iusb_pipe_s;
 typedef struct iusb_desc_string_s iusb_desc_string_s;
+typedef uintptr_t (*iusb_pipe_calc_package_size_f)(const void *data, uintptr_t size);
 
 typedef enum iusb_class_t {
 	iusb_class_undefined           = 0x00, // device    由 interface 定义
@@ -174,6 +177,12 @@ iusb_urb_s* iusb_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id
 const void* iusb_urb_get_data_bulk(iusb_urb_s *restrict urb, uintptr_t *restrict rsize);
 iusb_urb_s* iusb_urb_submit(iusb_urb_s *restrict urb);
 iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb);
+
+iusb_pipe_s* iusb_pipe_alloc(iusb_dev_s *restrict dev, uint32_t endpoint, uintptr_t package_size, uintptr_t want_buffer_size);
+void iusb_pipe_set_calc_size(iusb_pipe_s *restrict pipe, iusb_pipe_calc_package_size_f calc_size);
+iusb_pipe_s* iusb_pipe_send_full(iusb_pipe_s *restrict pipe, uint32_t stream_id, const void *data, uintptr_t size, uintptr_t timeout_msec);
+iusb_pipe_s* iusb_pipe_recv_full(iusb_pipe_s *restrict pipe, uint32_t stream_id, void *data, uintptr_t size, uintptr_t timeout_msec);
+iusb_pipe_s* iusb_pipe_recv_package(iusb_pipe_s *restrict pipe, uint32_t stream_id, exbuffer_t *restrict package, uintptr_t timeout_msec);
 
 iusb_desc_string_s* iusb_desc_string_alloc(iusb_dev_s *restrict dev, uintptr_t urb_number, uintptr_t timeout_msec);
 iusb_desc_string_s* iusb_desc_string_submit_langid(iusb_desc_string_s *restrict ds);

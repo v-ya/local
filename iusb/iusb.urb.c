@@ -155,11 +155,9 @@ iusb_urb_s* iusb_urb_discard(iusb_urb_s *restrict urb)
 	struct usbdevfs_urb *restrict u;
 	if ((u = urb->urb))
 	{
+		urb->urb = NULL;
 		if (iusb_inner_dev_discard_urb(urb->dev, u))
-		{
-			urb->urb = NULL;
 			return urb;
-		}
 	}
 	return NULL;
 }

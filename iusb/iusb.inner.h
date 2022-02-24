@@ -2,7 +2,6 @@
 #define _iusb_inner_h_
 
 #include "iusb.h"
-#include <exbuffer.h>
 #include <rbtree.h>
 #include <fsys.h>
 #include <yaw.h>
@@ -63,6 +62,16 @@ struct iusb_urb_s {
 		struct usbdevfs_iso_packet_desc iso_frame_desc;
 	} urb_header;
 	uint64_t last_submit_timestamp;
+};
+
+struct iusb_pipe_s {
+	iusb_dev_s *dev;
+	uintptr_t package_size;
+	uintptr_t iusb_endpoint_dir;
+	iusb_pipe_calc_package_size_f calc_size;
+	uintptr_t urb_half_number;
+	uintptr_t urb_number;
+	iusb_urb_s *urb_array[];
 };
 
 #define iusb_path_usbfs    "/dev/bus/usb/"
