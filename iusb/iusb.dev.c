@@ -24,6 +24,14 @@ iusb_dev_s* iusb_inner_dev_alloc(const char *restrict dev_path)
 	return NULL;
 }
 
+iusb_dev_s* iusb_dev_reset(iusb_dev_s *restrict dev)
+{
+	
+	if (!ioctl(dev->fd, USBDEVFS_RESET, NULL))
+		return dev;
+	return NULL;
+}
+
 iusb_dev_speed_t iusb_dev_get_speed(iusb_dev_s *restrict dev)
 {
 	int r;
@@ -54,6 +62,14 @@ iusb_dev_s* iusb_dev_interface_release(iusb_dev_s *restrict dev, uint32_t interf
 {
 	
 	if (!ioctl(dev->fd, USBDEVFS_RELEASEINTERFACE, &interface))
+		return dev;
+	return NULL;
+}
+
+iusb_dev_s* iusb_dev_endpoint_reset(iusb_dev_s *restrict dev, uint32_t endpoint)
+{
+	
+	if (!ioctl(dev->fd, USBDEVFS_RESETEP, &endpoint))
 		return dev;
 	return NULL;
 }

@@ -109,6 +109,7 @@ static iusb_pipe_s* iusb_inner_pipe_submit_new_and_wait_last(iusb_pipe_s *restri
 			if (!iusb_urb_submit(p[i]))
 				goto label_fail;
 			if (c->send_data) c->send_data += n;
+			c->submit_size += n;
 			c->size -= n;
 		}
 		c->submit_number = i;
