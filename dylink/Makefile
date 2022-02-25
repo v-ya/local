@@ -5,7 +5,7 @@ HEADER		= dylink.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
 LDFLAGS-LIB	= -shared -lhashmap -soname ${TARGET-LIB}
 LDFLAGS-BIN	= -lrefer -lhashmap -lexbuffer -lvattr -lfsys -lelfin -L. -ldylink
 

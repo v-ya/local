@@ -3,7 +3,7 @@ HEADER		= yaw.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lpthread -soname ${TARGET}
 
 OBJECT		= yaw.o mutex.o spin.o rwlock.o signal.o

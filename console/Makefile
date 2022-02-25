@@ -3,7 +3,7 @@ HEADER		= console.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lmlog -lexbuffer -lvattr -soname ${TARGET}
 
 OBJECT		= console.inst.o console.o command.exit.o command.help.o

@@ -3,7 +3,7 @@ HEADER		= otfont.h
 
 CC		= gcc
 LD		= ld
-CCFLAGS		= -g -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lfsys -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
