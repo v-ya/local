@@ -43,7 +43,7 @@ static transport_s* transport_tcp_send(transport_tcp_s *restrict r, const void *
 	if (r->status == transport_tcp_status_okay)
 	{
 		ssize_t ret;
-		if ((ret = send(r->sock, data, n, MSG_DONTWAIT)) >= 0)
+		if ((ret = send(r->sock, data, n, MSG_DONTWAIT | MSG_NOSIGNAL)) >= 0)
 		{
 			*rn = (uintptr_t) ret;
 			label_return:
@@ -61,7 +61,7 @@ static transport_s* transport_tcp_recv(transport_tcp_s *restrict r, void *data, 
 	if (r->status == transport_tcp_status_okay)
 	{
 		ssize_t ret;
-		if ((ret = recv(r->sock, data, n, MSG_DONTWAIT)) >= 0)
+		if ((ret = recv(r->sock, data, n, MSG_DONTWAIT | MSG_NOSIGNAL)) >= 0)
 		{
 			*rn = (uintptr_t) ret;
 			label_return:
