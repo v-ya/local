@@ -7,7 +7,7 @@
 #include <yaw.h>
 #include <string.h>
 
-#define web_server_time_gap_msec  50
+#define web_server_time_gap_msec  10
 
 typedef enum web_server_request_status_t web_server_request_status_t;
 typedef struct web_server_bind_s web_server_bind_s;
@@ -635,7 +635,6 @@ static void web_server_thread_bind(yaw_s *restrict yaw)
 				refer_free(tp);
 			}
 		}
-		else yaw_msleep(web_server_time_gap_msec);
 	}
 }
 
