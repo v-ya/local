@@ -17,7 +17,7 @@ static inline transport_cache_t* transport_cache_resize(transport_cache_t *restr
 		size <<= 1;
 	if (n <= size && (data = (uint8_t *) malloc(size)))
 	{
-		pos = data + n - r->used;
+		pos = data + size - r->used;
 		if (r->used)
 			memcpy(pos, r->pos, r->used);
 		if (r->data)
