@@ -67,13 +67,15 @@ typedef struct iusb_pipe_context_t {
 	uintptr_t wait_size;
 	uintptr_t submit_number;
 	uintptr_t wait_number;
+	uintptr_t submit_remain_number;
+	uintptr_t submit_block_size;
 	const uint8_t *send_data;
 	uint8_t *recv_data;
 	uintptr_t size;
 	uintptr_t timeout_msec;
 } iusb_pipe_context_t;
 
-static inline void iusb_inner_pipe_context_initial(iusb_pipe_context_t *restrict c, const void *send_data, void *recv_data, uintptr_t size, uintptr_t timeout_msec)
+static inline void iusb_inner_pipe_context_initial(iusb_pipe_context_t *restrict c, uintptr_t package_size, const void *send_data, void *recv_data, uintptr_t size, uintptr_t timeout_msec)
 {
 	c->urb_submit = NULL;
 	c->urb_wait = NULL;
@@ -81,6 +83,8 @@ static inline void iusb_inner_pipe_context_initial(iusb_pipe_context_t *restrict
 	c->wait_size = 0;
 	c->submit_number = 0;
 	c->wait_number = 0;
+	c->submit_remain_number = package_size?(size / package_size + 1):0;
+	c->submit_block_size = package_size;
 	c->send_data = send_data;
 	c->recv_data = recv_data;
 	c->size = size;
@@ -89,7 +93,7 @@ static inline void iusb_inner_pipe_context_initial(iusb_pipe_context_t *restrict
 
 static inline const iusb_pipe_context_t* iusb_inner_pipe_context_need_continue(const iusb_pipe_context_t *restrict c)
 {
-	return (c->size || c->urb_wait)?c:NULL;
+	return (c->submit_remain_number || c->urb_wait)?c:NULL;
 }
 
 static iusb_pipe_s* iusb_inner_pipe_submit_new_and_wait_last(iusb_pipe_s *restrict pipe, uint32_t stream_id, iusb_pipe_context_t *restrict c)
@@ -100,9 +104,9 @@ static iusb_pipe_s* iusb_inner_pipe_submit_new_and_wait_last(iusb_pipe_s *restri
 	if ((p = c->urb_submit) || (c->urb_submit = p = pipe->urb_array))
 	{
 		c->submit_size = 0;
-		for (i = 0; c->size && i < pipe->urb_half_number; ++i)
+		n = c->submit_block_size;
+		for (i = 0; c->submit_remain_number && i < pipe->urb_half_number; ++i)
 		{
-			n = pipe->package_size;
 			if (n > c->size) n = c->size;
 			if (!iusb_urb_fill_data_bulk(p[i], stream_id, c->send_data, n))
 				goto label_fail;
@@ -111,17 +115,18 @@ static iusb_pipe_s* iusb_inner_pipe_submit_new_and_wait_last(iusb_pipe_s *restri
 			if (c->send_data) c->send_data += n;
 			c->submit_size += n;
 			c->size -= n;
+			c->submit_remain_number -= 1;
 		}
 		c->submit_number = i;
 	}
 	if ((p = c->urb_wait))
 	{
 		iusb_dev_wait_complete(pipe->dev, p, c->wait_number, c->timeout_msec);
-		for (i = 0; c->wait_size && i < c->wait_number; ++i)
+		for (i = 0; i < c->wait_number; ++i)
 		{
 			if (!(d = iusb_urb_get_data_bulk(p[i], &n)))
 				goto label_fail;
-			if (c->recv_data)
+			if (c->recv_data && n)
 			{
 				memcpy(c->recv_data, d, n);
 				c->recv_data += n;
@@ -132,7 +137,7 @@ static iusb_pipe_s* iusb_inner_pipe_submit_new_and_wait_last(iusb_pipe_s *restri
 		c->urb_wait = NULL;
 		c->wait_number = 0;
 	}
-	if (c->submit_size)
+	if (c->submit_number)
 	{
 		c->urb_wait = c->urb_submit;
 		c->wait_size = c->submit_size;
@@ -155,7 +160,7 @@ iusb_pipe_s* iusb_pipe_send_full(iusb_pipe_s *restrict pipe, uint32_t stream_id,
 	if (pipe->iusb_endpoint_dir == iusb_endpoint_address_dir_out)
 	{
 		iusb_pipe_context_t c;
-		iusb_inner_pipe_context_initial(&c, data, NULL, size, timeout_msec);
+		iusb_inner_pipe_context_initial(&c, pipe->package_size, data, NULL, size, timeout_msec);
 		while (iusb_inner_pipe_context_need_continue(&c))
 		{
 			if (!iusb_inner_pipe_submit_new_and_wait_last(pipe, stream_id, &c))
@@ -175,7 +180,7 @@ iusb_pipe_s* iusb_pipe_recv_full(iusb_pipe_s *restrict pipe, uint32_t stream_id,
 	if (pipe->iusb_endpoint_dir == iusb_endpoint_address_dir_in)
 	{
 		iusb_pipe_context_t c;
-		iusb_inner_pipe_context_initial(&c, NULL, data, size, timeout_msec);
+		iusb_inner_pipe_context_initial(&c, pipe->package_size, NULL, data, size, timeout_msec);
 		while (iusb_inner_pipe_context_need_continue(&c))
 		{
 			if (!iusb_inner_pipe_submit_new_and_wait_last(pipe, stream_id, &c))
@@ -195,7 +200,7 @@ iusb_pipe_s* iusb_pipe_recv_package(iusb_pipe_s *restrict pipe, uint32_t stream_
 	{
 		iusb_urb_s *urb;
 		const void *d;
-		uintptr_t n, size;
+		uintptr_t n, m, size;
 		urb = *pipe->urb_array;
 		if (!iusb_urb_fill_data_bulk(urb, stream_id, NULL, pipe->package_size))
 			goto label_fail;
@@ -204,7 +209,7 @@ iusb_pipe_s* iusb_pipe_recv_package(iusb_pipe_s *restrict pipe, uint32_t stream_
 		iusb_dev_wait_complete(pipe->dev, &urb, 1, timeout_msec);
 		if (!(d = iusb_urb_get_data_bulk(urb, &n)))
 			goto label_fail;
-		if (!(size = pipe->calc_size(d, n)))
+		if (!(size = pipe->calc_size(d, m = n)))
 			goto label_fail;
 		if (!exbuffer_need(package, size))
 			goto label_fail;
@@ -212,8 +217,9 @@ iusb_pipe_s* iusb_pipe_recv_package(iusb_pipe_s *restrict pipe, uint32_t stream_
 		if (n > size) n = size;
 		if (n) memcpy(package->data, d, n);
 		size -= n;
-		if (size) return iusb_pipe_recv_full(pipe, stream_id, package->data + n, size, timeout_msec);
-		return pipe;
+		if (!size && m < pipe->package_size)
+			return pipe;
+		return iusb_pipe_recv_full(pipe, stream_id, package->data + n, size, timeout_msec);
 		label_fail:
 		iusb_urb_discard(urb);
 	}

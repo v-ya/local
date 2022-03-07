@@ -111,7 +111,8 @@ iusb_urb_s* iusb_urb_fill_data_bulk(iusb_urb_s *restrict urb, uint32_t stream_id
 	{
 		urb->urb_header.urb.stream_id = stream_id;
 		urb->urb_header.urb.buffer_length = (int) size;
-		if (data) memcpy(urb->data.data, data, size);
+		if (data && size)
+			memcpy(urb->data.data, data, size);
 		return urb;
 	}
 	return NULL;
