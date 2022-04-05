@@ -22,7 +22,7 @@ fsys_type_t fsys_ctrl_exist(const char *restrict path, uint64_t *restrict rsize)
 int fsys_ctrl_remove(const char *restrict path)
 {
 	int ret;
-	if (path && (!(ret = unlink(path)) || ret == ENOENT))
+	if (path && (!(ret = unlink(path)) || ret == -ENOENT))
 		return !!ret;
 	return -1;
 }
@@ -30,7 +30,7 @@ int fsys_ctrl_remove(const char *restrict path)
 int fsys_ctrl_rmdir(const char *restrict path)
 {
 	int ret;
-	if (path && (!(ret = rmdir(path)) || ret == ENOENT))
+	if (path && (!(ret = rmdir(path)) || ret == -ENOENT))
 		return !!ret;
 	return -1;
 }
@@ -38,7 +38,7 @@ int fsys_ctrl_rmdir(const char *restrict path)
 int fsys_ctrl_mkdir(const char *restrict path)
 {
 	int ret;
-	if (path && (!(ret = rmdir(path)) || ret == EEXIST))
+	if (path && (!(ret = mkdir(path, fsys_default_dir_mode)) || fsys_ctrl_exist(path, NULL) == fsys_type_dirent))
 		return !!ret;
 	return -1;
 }

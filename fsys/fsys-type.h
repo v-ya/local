@@ -8,6 +8,7 @@
 #include <dirent.h>
 
 #define fsys_default_open_mode  0644
+#define fsys_default_dir_mode   0755
 
 typedef typeof(((struct dirent *) 0)->d_type) fsys_dt_type_t;
 
