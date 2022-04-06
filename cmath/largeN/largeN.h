@@ -11,10 +11,12 @@ typedef uintptr_t unit_t;
 	typedef __uint128_t full_t;
 	#define bits2unit_shift 6
 	#define unit_bswap __builtin_bswap64
+	#define unit_clz __builtin_clzll
 #elif (__INTPTR_WIDTH__ == 32)
 	typedef uint64_t full_t;
 	#define bits2unit_shift 5
 	#define unit_bswap __builtin_bswap32
+	#define unit_clz __builtin_clz
 #endif
 
 #if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -29,11 +31,14 @@ typedef uintptr_t unit_t;
 
 struct largeN_s {
 	unit_t n;
+	unit_t e;
 	unit_t le[];
 };
 
 struct largeN_cache_s {
 	exbuffer_t c;
 };
+
+largeN_s* largeN_measure_effective(largeN_s *restrict n);
 
 #endif

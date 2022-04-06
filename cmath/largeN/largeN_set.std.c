@@ -10,5 +10,8 @@ largeN_s* largeN_set(largeN_s *restrict dst, const largeN_s *restrict src)
 		memset(dst->le + n, 0, (dst->n - n) * sizeof(unit_t));
 	}
 	memcpy(dst->le, src->le, n * sizeof(unit_t));
+	if (src->e > dst->n)
+		return largeN_measure_effective(dst);
+	dst->e = src->e;
 	return dst;
 }

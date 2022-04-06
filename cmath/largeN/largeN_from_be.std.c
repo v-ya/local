@@ -12,5 +12,5 @@ largeN_s* largeN_from_be(largeN_s *restrict dst, const largeN_store_s *restrict 
 	m -= 1;
 	for (i = 0; i < n; ++i)
 		dst->le[i] = order_n2be(src->le[m - i]);
-	return dst;
+	return largeN_measure_effective(dst);
 }

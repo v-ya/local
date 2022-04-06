@@ -7,6 +7,7 @@ largeN_s* largeN_alloc(uintptr_t bits)
 		(r = (largeN_s *) refer_alloc(sizeof(largeN_s) + sizeof(unit_t) * bits)))
 	{
 		r->n = bits;
+		r->e = 0;
 		return r;
 	}
 	return NULL;
