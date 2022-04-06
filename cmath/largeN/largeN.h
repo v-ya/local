@@ -40,5 +40,6 @@ struct largeN_cache_s {
 };
 
 largeN_s* largeN_measure_effective(largeN_s *restrict n);
+largeN_s* largeN_measure_effective_sink(largeN_s *restrict n, unit_t last_e);
 
 #endif

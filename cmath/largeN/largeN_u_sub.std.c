@@ -11,7 +11,8 @@ uintptr_t largeN_u_sub(largeN_s *restrict dst, uintptr_t u)
 		dst->le[i] = (unit_t) z;
 		u = -(unit_t) (z >> unit_bits);
 	}
-	if (u || (i && i == dst->e && !dst->le[i - 1]))
-		largeN_measure_effective(dst);
+	if (u) largeN_measure_effective(dst);
+	else if (i && i == dst->e && !dst->le[i - 1])
+		largeN_measure_effective_sink(dst, dst->e);
 	return u;
 }

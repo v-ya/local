@@ -51,6 +51,16 @@ largeN_u_sub:
 		movq	largeN_offset_le-8(%rdi, %rax, 8), %rax
 		testq	%rax, %rax
 		jne	.L_return
+	.L_m_e_sink:
+		// largeN_measure_effective_sink(dst, dst->e);
+		pushq	%rsi
+		movq	largeN_offset_e(%rdi), %rsi
+		callq	largeN_measure_effective_sink
+		// return u;
+		popq	%rax
+		retq
+	.p2align 4,,10
+	.p2align 4
 	.L_m_e:
 		// largeN_measure_effective(dst);
 		pushq	%rsi
