@@ -20,7 +20,11 @@ uint8_t* largeN_store_data(const largeN_store_s *restrict src, uintptr_t *restri
 
 uintptr_t largeN_bits_allow(const largeN_s *restrict src);
 uintptr_t largeN_bits_effective(const largeN_s *restrict src);
+
 largeN_s* largeN_zero(largeN_s *restrict dst);
 largeN_s* largeN_set(largeN_s *restrict dst, const largeN_s *restrict src);
+
+uintptr_t largeN_u_add(largeN_s *restrict dst, uintptr_t u);
+uintptr_t largeN_u_sub(largeN_s *restrict dst, uintptr_t u);
 
 #endif
