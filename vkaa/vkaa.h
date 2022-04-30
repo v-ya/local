@@ -3,6 +3,8 @@
 
 #include <refer.h>
 
+typedef struct vkaa_syntaxor_s vkaa_syntaxor_s;
+typedef struct vkaa_syntax_s vkaa_syntax_s;
 typedef struct vkaa_oplevel_s vkaa_oplevel_s;
 typedef struct vkaa_level_s vkaa_level_s;
 typedef struct vkaa_parse_s vkaa_parse_s;
