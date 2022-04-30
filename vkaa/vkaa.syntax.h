@@ -21,9 +21,9 @@ typedef union vkaa_syntax_data_t {
 	refer_t data;
 	refer_nstring_t keyword;
 	refer_nstring_t operator;
-	vkaa_syntax_s  *scope;
-	vkaa_syntax_s  *brackets;
-	vkaa_syntax_s  *square;
+	const vkaa_syntax_s *scope;
+	const vkaa_syntax_s *brackets;
+	const vkaa_syntax_s *square;
 	refer_nstring_t string;
 	refer_nstring_t multichar;
 	refer_nstring_t number;
@@ -38,12 +38,15 @@ struct vkaa_syntax_s {
 	exbuffer_t buffer;
 	const vkaa_syntax_t *syntax_array;
 	uintptr_t syntax_number;
-	refer_nstring_t source;
-	uintptr_t source_offset;
-	uintptr_t source_length;
 };
 
 vkaa_syntaxor_s* vkaa_syntaxor_alloc(void);
-vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, refer_nstring_t source);
+
+vkaa_syntax_s* vkaa_syntax_alloc_empty(void);
+vkaa_syntax_s* vkaa_syntax_push_none(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type);
+refer_nstring_t vkaa_syntax_push_nstring(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type, const char *restrict data, uintptr_t length);
+vkaa_syntax_s* vkaa_syntax_push_syntax(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type);
+
+const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const char *restrict source_data, uintptr_t source_length);
 
 #endif

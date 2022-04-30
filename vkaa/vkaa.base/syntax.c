@@ -6,6 +6,7 @@
 
 typedef struct vkaa_syntaxor_context_t vkaa_syntaxor_context_t;
 typedef struct vkaa_syntaxor_parse_s vkaa_syntaxor_parse_s;
+typedef struct vkaa_syntaxor_stack_t vkaa_syntaxor_stack_t;
 
 typedef vkaa_syntaxor_parse_s* (*vkaa_syntaxor_parse_f)(vkaa_syntaxor_parse_s *restrict p, vkaa_syntaxor_context_t *restrict context);
 
@@ -15,6 +16,7 @@ struct vkaa_syntaxor_s {
 };
 
 struct vkaa_syntaxor_context_t {
+	tparse_tstack_s *stack;
 	vkaa_syntax_s *syntax;
 	const char *data;
 	uintptr_t size;
@@ -23,6 +25,11 @@ struct vkaa_syntaxor_context_t {
 
 struct vkaa_syntaxor_parse_s {
 	vkaa_syntaxor_parse_f parse;
+};
+
+struct vkaa_syntaxor_stack_t {
+	vkaa_syntax_s *syntax;
+	char end_char;
 };
 
 // syntax
@@ -40,21 +47,17 @@ static void vkaa_syntax_free_func(vkaa_syntax_s *restrict r)
 				refer_free(s[i].data.data);
 		}
 	}
-	if (r->source) refer_free(r->source);
 	exbuffer_uini(&r->buffer);
 }
 
-static vkaa_syntax_s* vkaa_syntax_alloc_empty(refer_nstring_t source, uintptr_t offset, uintptr_t length)
+vkaa_syntax_s* vkaa_syntax_alloc_empty(void)
 {
 	vkaa_syntax_s *restrict r;
-	if (source && (r = (vkaa_syntax_s *) refer_alloz(sizeof(vkaa_syntax_s))))
+	if ((r = (vkaa_syntax_s *) refer_alloz(sizeof(vkaa_syntax_s))))
 	{
 		if (exbuffer_init(&r->buffer, 0))
 		{
 			refer_set_free(r, (refer_free_f) vkaa_syntax_free_func);
-			r->source = (refer_nstring_t) refer_save(source);
-			r->source_offset = offset;
-			r->source_length = length;
 			return r;
 		}
 		refer_free(r);
@@ -72,30 +75,61 @@ static vkaa_syntax_s* vkaa_syntax_push(vkaa_syntax_s *restrict r, vkaa_syntax_ty
 		s[index].data.data = data;
 		r->syntax_array = s;
 		r->syntax_number = index + 1;
+		return r;
 	}
 	return NULL;
 }
 
-static vkaa_syntax_s* vkaa_syntax_push_nstring(vkaa_syntax_s *restrict r, vkaa_syntax_type_t type, const char *restrict data, uintptr_t length)
+vkaa_syntax_s* vkaa_syntax_push_none(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type)
+{
+	switch (type)
+	{
+		case vkaa_syntax_type_comma:
+		case vkaa_syntax_type_semicolon:
+			return vkaa_syntax_push(syntax, type, NULL);
+		default: break;
+	}
+	return NULL;
+}
+
+refer_nstring_t vkaa_syntax_push_nstring(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type, const char *restrict data, uintptr_t length)
 {
 	refer_nstring_t ns;
-	if ((ns = refer_dump_nstring_with_length(data, length)))
+	switch (type)
 	{
-		if (vkaa_syntax_push(r, type, ns))
-			return r;
-		refer_free(ns);
+		case vkaa_syntax_type_keyword:
+		case vkaa_syntax_type_operator:
+		case vkaa_syntax_type_string:
+		case vkaa_syntax_type_multichar:
+		case vkaa_syntax_type_number:
+			if ((ns = refer_dump_nstring_with_length(data, length)))
+			{
+				if (vkaa_syntax_push(syntax, type, ns))
+					return ns;
+				refer_free(ns);
+			}
+			// fall through
+		default: break;
 	}
 	return NULL;
 }
 
-static vkaa_syntax_s* vkaa_syntax_push_syntax(vkaa_syntax_s *restrict r, vkaa_syntax_type_t type, refer_nstring_t source, uintptr_t offset, uintptr_t length)
+vkaa_syntax_s* vkaa_syntax_push_syntax(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type)
 {
-	vkaa_syntax_s *restrict syntax;
-	if ((syntax = vkaa_syntax_alloc_empty(source, offset, length)))
+	vkaa_syntax_s *restrict s;
+	switch (type)
 	{
-		if (vkaa_syntax_push(r, type, syntax))
-			return r;
-		refer_free(syntax);
+		case vkaa_syntax_type_scope:
+		case vkaa_syntax_type_brackets:
+		case vkaa_syntax_type_square:
+			if ((s = vkaa_syntax_alloc_empty()))
+			{
+				if (vkaa_syntax_push(syntax, type, s))
+					return s;
+				refer_free(s);
+			}
+			// fall through
+		default: break;
 	}
 	return NULL;
 }
@@ -219,7 +253,7 @@ static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_single_parse_func(vkaa_syntaxo
 	return NULL;
 }
 
-static vkaa_syntaxor_parse_single_s* vkaa_syntaxor_parse_single_alloc_empty(vkaa_syntax_type_t type)
+static vkaa_syntaxor_parse_single_s* vkaa_syntaxor_parse_single_alloc(vkaa_syntax_type_t type)
 {
 	vkaa_syntaxor_parse_single_s *restrict r;
 	if ((r = (vkaa_syntaxor_parse_single_s *) refer_alloz(sizeof(vkaa_syntaxor_parse_single_s))))
@@ -233,12 +267,12 @@ static vkaa_syntaxor_parse_single_s* vkaa_syntaxor_parse_single_alloc_empty(vkaa
 
 static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_comma(void)
 {
-	return &vkaa_syntaxor_parse_single_alloc_empty(vkaa_syntax_type_comma)->p;
+	return &vkaa_syntaxor_parse_single_alloc(vkaa_syntax_type_comma)->p;
 }
 
 static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_semicolon(void)
 {
-	return &vkaa_syntaxor_parse_single_alloc_empty(vkaa_syntax_type_semicolon)->p;
+	return &vkaa_syntaxor_parse_single_alloc(vkaa_syntax_type_semicolon)->p;
 }
 
 // parse (string multichar)
@@ -271,7 +305,7 @@ static void vkaa_syntaxor_parse_string_free_func(vkaa_syntaxor_parse_string_s *r
 	if (r->ts) refer_free(r->ts);
 }
 
-static vkaa_syntaxor_parse_string_s* vkaa_syntaxor_parse_string_alloc_empty(vkaa_syntax_type_t type, tparse_tstring_s* (*ts_alloc_func)(void))
+static vkaa_syntaxor_parse_string_s* vkaa_syntaxor_parse_string_alloc(vkaa_syntax_type_t type, tparse_tstring_s* (*ts_alloc_func)(void))
 {
 	vkaa_syntaxor_parse_string_s *restrict r;
 	if ((r = (vkaa_syntaxor_parse_string_s *) refer_alloz(sizeof(vkaa_syntaxor_parse_string_s))))
@@ -290,25 +324,85 @@ static vkaa_syntaxor_parse_string_s* vkaa_syntaxor_parse_string_alloc_empty(vkaa
 
 static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_string(void)
 {
-	return &vkaa_syntaxor_parse_string_alloc_empty(vkaa_syntax_type_string, tparse_tstring_alloc_c_parse_multi_quotes)->p;
+	return &vkaa_syntaxor_parse_string_alloc(vkaa_syntax_type_string, tparse_tstring_alloc_c_parse_multi_quotes)->p;
 }
 
 static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_multichar(void)
 {
-	return &vkaa_syntaxor_parse_string_alloc_empty(vkaa_syntax_type_multichar, tparse_tstring_alloc_c_parse_single_quotes)->p;
+	return &vkaa_syntaxor_parse_string_alloc(vkaa_syntax_type_multichar, tparse_tstring_alloc_c_parse_single_quotes)->p;
 }
 
 // parse (scope brackets square)
 
-typedef struct vkaa_syntaxor_parse_inside_s {
-	vkaa_syntaxor_parse_s p;
-	tparse_tstack_s *stack;
-} vkaa_syntaxor_parse_inside_s;
+static void vkaa_syntaxor_stack_free_func(vkaa_syntaxor_stack_t *restrict r)
+{
+	if (r->syntax) refer_free(r->syntax);
+}
 
-typedef struct vkaa_syntaxor_parse_outside_s {
-	vkaa_syntaxor_parse_s p;
-	tparse_tstack_s *stack;
-} vkaa_syntaxor_parse_outside_s;
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_inside_parse_func(vkaa_syntaxor_parse_s *restrict p, vkaa_syntaxor_context_t *restrict context)
+{
+	vkaa_syntaxor_stack_t *restrict stack;
+	vkaa_syntax_s *restrict syntax;
+	vkaa_syntax_type_t type;
+	char end_char;
+	switch (context->data[context->pos])
+	{
+		case '(': type = vkaa_syntax_type_brackets; end_char = ')'; break;
+		case '[': type = vkaa_syntax_type_square; end_char = ']'; break;
+		case '{': type = vkaa_syntax_type_scope; end_char = '}'; break;
+		default: goto label_fail;
+	}
+	if ((stack = tparse_tstack_push(context->stack, sizeof(vkaa_syntaxor_stack_t), (tparse_tstack_free_f) vkaa_syntaxor_stack_free_func)))
+	{
+		if ((syntax = vkaa_syntax_push_syntax(context->syntax, type)))
+		{
+			stack->syntax = (vkaa_syntax_s *) refer_save(context->syntax);
+			stack->end_char = end_char;
+			context->syntax = syntax;
+			context->pos += 1;
+			return p;
+		}
+		tparse_tstack_pop(context->stack);
+	}
+	label_fail:
+	return NULL;
+}
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_inside_outside_func(vkaa_syntaxor_parse_s *restrict p, vkaa_syntaxor_context_t *restrict context)
+{
+	vkaa_syntaxor_stack_t *restrict stack;
+	vkaa_syntax_s *restrict syntax;
+	if ((stack = tparse_tstack_layer(context->stack, 0, NULL)))
+	{
+		if (context->data[context->pos] == stack->end_char)
+		{
+			syntax = stack->syntax;
+			context->syntax = syntax;
+			context->pos += 1;
+			tparse_tstack_pop(context->stack);
+			return p;
+		}
+	}
+	return NULL;
+}
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_onlyparse_alloc(vkaa_syntaxor_parse_f parse)
+{
+	vkaa_syntaxor_parse_s *restrict r;
+	if ((r = (vkaa_syntaxor_parse_s *) refer_alloz(sizeof(vkaa_syntaxor_parse_s))))
+		r->parse = parse;
+	return r;
+}
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_inside(void)
+{
+	return vkaa_syntaxor_parse_onlyparse_alloc(vkaa_syntaxor_parse_inside_parse_func);
+}
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_outside(void)
+{
+	return vkaa_syntaxor_parse_onlyparse_alloc(vkaa_syntaxor_parse_inside_outside_func);
+}
 
 // initial
 
@@ -328,6 +422,7 @@ static tparse_tmapping_s* vkaa_syntaxor_initial_parse_keys(tparse_tmapping_s *re
 	{
 		if (!mapping->add(mapping, c2, p))
 			goto label_fail;
+		++keys;
 	}
 	return mapping;
 	label_fail:
@@ -385,6 +480,12 @@ static vkaa_syntaxor_s* vkaa_syntaxor_initial(vkaa_syntaxor_s *restrict r)
 	if (!vkaa_syntaxor_initial_parse_once(r->mapping, '\'', p)) goto label_fail;
 	refer_free(p);
 	// scope brackets square
+	if (!(p = vkaa_syntaxor_parse_create_inside())) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_keys(r->mapping, "([{", p)) goto label_fail;
+	refer_free(p);
+	if (!(p = vkaa_syntaxor_parse_create_outside())) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_keys(r->mapping, ")]}", p)) goto label_fail;
+	refer_free(p);
 	return r;
 	label_fail:
 	if (p) refer_free(p);
@@ -414,34 +515,35 @@ vkaa_syntaxor_s* vkaa_syntaxor_alloc(void)
 
 // create syntax
 
-vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, refer_nstring_t source)
+const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const char *restrict source_data, uintptr_t source_length)
 {
 	vkaa_syntaxor_context_t c;
+	vkaa_syntax_s *restrict syntax;
 	tparse_tmapping_s *restrict mapping;
 	vkaa_syntaxor_parse_s *restrict p;
-	const char *restrict data;
-	uintptr_t size;
+	c.stack = syntaxor->stack;
 	syntaxor->mapping->clear(syntaxor->mapping);
-	tparse_tstack_clear(syntaxor->stack);
-	if ((c.syntax = vkaa_syntax_alloc_empty(source, 0, source->length)))
+	tparse_tstack_clear(c.stack);
+	if ((c.syntax = syntax = vkaa_syntax_alloc_empty()))
 	{
-		c.data = data = source->string;
-		c.size = size = source->length;
+		c.data = source_data;
+		c.size = source_length;
 		c.pos = 0;
 		mapping = syntaxor->mapping;
-		while (c.pos < size)
+		while (c.pos < source_length)
 		{
-			if ((p = (vkaa_syntaxor_parse_s *) mapping->test(mapping, data[c.pos])))
+			if ((p = (vkaa_syntaxor_parse_s *) mapping->test(mapping, source_data[c.pos])))
 			{
 				if (!p->parse(p, &c))
 					goto label_fail;
 			}
 			else ++c.pos;
 		}
-		if (c.syntax)
-			return c.syntax;
+		if (!tparse_tstack_layer_number(c.stack))
+			return syntax;
+		label_fail:
+		tparse_tstack_clear(c.stack);
+		refer_free(syntax);
 	}
-	label_fail:
-	tparse_tstack_clear(syntaxor->stack);
 	return NULL;
 }

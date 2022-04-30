@@ -21,6 +21,7 @@ typedef struct vkaa_std_typeid_t {
 } vkaa_std_typeid_t;
 
 typedef struct vkaa_std_s {
+	vkaa_syntaxor_s *syntaxor;
 	vkaa_oplevel_s *oplevel;
 	vkaa_tpool_s *tpool;
 	vkaa_parse_s *parse;
