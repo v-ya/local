@@ -14,6 +14,7 @@ typedef struct vkaa_var_s vkaa_var_s;
 typedef struct vkaa_scope_s vkaa_scope_s;
 typedef struct vkaa_selector_s vkaa_selector_s;
 typedef struct vkaa_function_s vkaa_function_s;
+typedef struct vkaa_execute_s vkaa_execute_s;
 
 typedef vkaa_var_s* (*vkaa_function_f)(const vkaa_function_s *restrict r);
 
