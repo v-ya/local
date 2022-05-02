@@ -29,10 +29,10 @@ typedef union vkaa_syntax_data_t {
 	refer_nstring_t number;
 } vkaa_syntax_data_t;
 
-typedef struct vkaa_syntax_t {
+struct vkaa_syntax_t {
 	vkaa_syntax_type_t type;
 	vkaa_syntax_data_t data;
-} vkaa_syntax_t;
+};
 
 struct vkaa_syntax_s {
 	exbuffer_t buffer;

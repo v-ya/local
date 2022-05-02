@@ -29,15 +29,15 @@ vkaa_tpool_s* vkaa_tpool_alloc(void)
 
 uintptr_t vkaa_tpool_genid(vkaa_tpool_s *restrict tpool)
 {
-	return tpool->id_next++;
+	return ++tpool->id_last;
 }
 
-const vkaa_type_s* vkaa_tpool_find_name(vkaa_tpool_s *restrict tpool, const char *restrict name)
+const vkaa_type_s* vkaa_tpool_find_name(const vkaa_tpool_s *restrict tpool, const char *restrict name)
 {
 	return (const vkaa_type_s *) vattr_get_first(tpool->n2t, name);
 }
 
-const vkaa_type_s* vkaa_tpool_find_id(vkaa_tpool_s *restrict tpool, uintptr_t id)
+const vkaa_type_s* vkaa_tpool_find_id(const vkaa_tpool_s *restrict tpool, uintptr_t id)
 {
 	rbtree_t *restrict v;
 	if ((v = rbtree_find(&tpool->i2t, NULL, (uint64_t) id)))
@@ -87,7 +87,7 @@ void vkaa_tpool_clear(vkaa_tpool_s *restrict tpool)
 {
 	vattr_clear(tpool->n2t);
 	rbtree_clear(&tpool->i2t);
-	tpool->id_next = 0;
+	tpool->id_last = 0;
 }
 
 vkaa_var_s* vkaa_tpool_var_const_enable(vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type)
@@ -131,7 +131,7 @@ void vkaa_tpool_var_const_disable_by_id(vkaa_tpool_s *restrict tpool, uintptr_t 
 	rbtree_delete(&tpool->i2v, NULL, id);
 }
 
-vkaa_var_s* vkaa_tpool_var_create(vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type)
+vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type)
 {
 	rbtree_t *restrict rbv;
 	if ((rbv = rbtree_find(&tpool->i2v, NULL, type->id)))
@@ -139,7 +139,7 @@ vkaa_var_s* vkaa_tpool_var_create(vkaa_tpool_s *restrict tpool, const vkaa_type_
 	return type->create(type);
 }
 
-vkaa_var_s* vkaa_tpool_var_create_by_name(vkaa_tpool_s *restrict tpool, const char *restrict name)
+vkaa_var_s* vkaa_tpool_var_create_by_name(const vkaa_tpool_s *restrict tpool, const char *restrict name)
 {
 	const vkaa_type_s *restrict type;
 	if ((type = vkaa_tpool_find_name(tpool, name)))
@@ -147,7 +147,7 @@ vkaa_var_s* vkaa_tpool_var_create_by_name(vkaa_tpool_s *restrict tpool, const ch
 	return NULL;
 }
 
-vkaa_var_s* vkaa_tpool_var_create_by_id(vkaa_tpool_s *restrict tpool, uintptr_t id)
+vkaa_var_s* vkaa_tpool_var_create_by_id(const vkaa_tpool_s *restrict tpool, uintptr_t id)
 {
 	const vkaa_type_s *restrict type;
 	if ((type = vkaa_tpool_find_id(tpool, id)))

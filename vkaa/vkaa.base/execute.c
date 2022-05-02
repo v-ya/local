@@ -1,5 +1,4 @@
 #include "../vkaa.execute.h"
-#include "../vkaa.execute.h"
 #include "../vkaa.function.h"
 
 static void vkaa_execute_free_func(vkaa_execute_s *restrict r)
