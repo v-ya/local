@@ -16,6 +16,7 @@ typedef struct vkaa_function_s vkaa_function_s;
 typedef struct vkaa_execute_s vkaa_execute_s;
 typedef struct vkaa_parse_s vkaa_parse_s;
 
+typedef enum vkaa_syntax_type_t vkaa_syntax_type_t;
 typedef struct vkaa_syntax_t vkaa_syntax_t;
 typedef struct vkaa_selector_param_t vkaa_selector_param_t;
 typedef struct vkaa_selector_rdata_t vkaa_selector_rdata_t;

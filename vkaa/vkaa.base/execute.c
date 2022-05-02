@@ -3,8 +3,9 @@
 
 static void vkaa_execute_free_func(vkaa_execute_s *restrict r)
 {
-	const vkaa_function_s *const *restrict array;
+	vkaa_function_s *const *restrict array;
 	uintptr_t i, n;
+	if (r->last_var) refer_free(r->last_var);
 	array = r->execute_array;
 	n = r->execute_number;
 	for (i = 0; i < n; ++i)
@@ -27,7 +28,7 @@ vkaa_execute_s* vkaa_execute_alloc(void)
 
 vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, const vkaa_function_s *restrict func)
 {
-	const vkaa_function_s *const *restrict array;
+	vkaa_function_s *const *restrict array;
 	if ((array = exbuffer_append(&exec->buffer, (const void *) &func, sizeof(func))))
 	{
 		exec->execute_array = array;
@@ -37,9 +38,15 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, const vkaa_func
 	return NULL;
 }
 
-vkaa_var_s* vkaa_execute_do(vkaa_execute_s *restrict exec)
+vkaa_var_s* vkaa_execute_set_last(vkaa_execute_s *restrict exec, vkaa_var_s *restrict var)
 {
-	const vkaa_function_s *const *restrict array;
+	if (exec->last_var) refer_free(exec->last_var);
+	return (exec->last_var = (vkaa_var_s *) refer_save(var));
+}
+
+vkaa_var_s* vkaa_execute_do(const vkaa_execute_s *restrict exec)
+{
+	vkaa_function_s *const *restrict array;
 	uintptr_t i, n;
 	vkaa_var_s *restrict var;
 	array = exec->execute_array;
@@ -48,7 +55,9 @@ vkaa_var_s* vkaa_execute_do(vkaa_execute_s *restrict exec)
 	for (i = 0; i < n; ++i)
 	{
 		if (!(var = array[i]->function(array[i])))
-			break;
+			goto label_fail;
 	}
-	return var;
+	return exec->last_var;
+	label_fail:
+	return NULL;
 }

@@ -3,6 +3,7 @@
 
 #include "vkaa.h"
 #include <hashmap.h>
+#include <tparse/tstack.h>
 
 typedef struct vkaa_parse_keyword_s vkaa_parse_keyword_s;
 typedef struct vkaa_parse_operator_s vkaa_parse_operator_s;
@@ -42,6 +43,8 @@ typedef struct vkaa_parse_result_t {
 } vkaa_parse_result_t;
 
 typedef struct vkaa_parse_context_t {
+	vkaa_parse_s *parse;
+	tparse_tstack_s *stack;
 	vkaa_execute_s *execute;
 	vkaa_tpool_s *tpool;
 	vkaa_scope_s *scope;
@@ -54,7 +57,7 @@ typedef struct vkaa_parse_syntax_t {
 } vkaa_parse_syntax_t;
 
 typedef vkaa_parse_result_t* (*vkaa_parse_keyword_f)(const vkaa_parse_keyword_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax);
-typedef vkaa_parse_result_t* (*vkaa_parse_operator_f)(const vkaa_parse_operator_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_parse_result_t *const param_list);
+typedef vkaa_parse_result_t* (*vkaa_parse_operator_f)(const vkaa_parse_operator_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, const vkaa_parse_result_t *const param_list);
 typedef vkaa_parse_result_t* (*vkaa_parse_type2var_f)(const vkaa_parse_type2var_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax);
 
 struct vkaa_parse_s {
@@ -71,12 +74,25 @@ struct vkaa_parse_keyword_s {
 struct vkaa_parse_operator_s {
 	vkaa_parse_operator_f parse;
 	vkaa_parse_optype_t optype;
-	const vkaa_oplevel_s *oplevel;
+	const vkaa_level_s *oplevel;
 	const char *ternary_second_operator;
 };
 
 struct vkaa_parse_type2var_s {
 	vkaa_parse_type2var_f parse;
 };
+
+vkaa_parse_s* vkaa_parse_alloc(void);
+vkaa_parse_keyword_s* vkaa_parse_keyword_get(const vkaa_parse_s *restrict parse, const char *restrict keyword);
+vkaa_parse_keyword_s* vkaa_parse_keyword_set(vkaa_parse_s *restrict parse, const char *restrict keyword, vkaa_parse_keyword_s *restrict kw);
+void vkaa_parse_keyword_unset(vkaa_parse_s *restrict parse, const char *restrict keyword);
+vkaa_parse_operator_s* vkaa_parse_operator_get(const vkaa_parse_s *restrict parse, const char *restrict operator);
+vkaa_parse_operator_s* vkaa_parse_operator_set(vkaa_parse_s *restrict parse, const char *restrict operator, vkaa_parse_operator_s *restrict op);
+void vkaa_parse_operator_unset(vkaa_parse_s *restrict parse, const char *restrict operator);
+vkaa_parse_type2var_s* vkaa_parse_type2var_get(const vkaa_parse_s *restrict parse, vkaa_syntax_type_t type);
+vkaa_parse_type2var_s* vkaa_parse_type2var_set(vkaa_parse_s *restrict parse, vkaa_syntax_type_t type, vkaa_parse_type2var_s *restrict t2v);
+void vkaa_parse_type2var_unset(vkaa_parse_s *restrict parse, vkaa_syntax_type_t type);
+
+vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number);
 
 #endif

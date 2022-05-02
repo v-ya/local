@@ -4,7 +4,7 @@
 #include "vkaa.h"
 #include <exbuffer.h>
 
-typedef enum vkaa_syntax_type_t {
+enum vkaa_syntax_type_t {
 	vkaa_syntax_type_keyword,   // [A-Za-z_][A-Za-z_0-9]*
 	vkaa_syntax_type_operator,  // !#$%^&*+-./:<=>?@\^`|~
 	vkaa_syntax_type_comma,     // ,
@@ -15,7 +15,7 @@ typedef enum vkaa_syntax_type_t {
 	vkaa_syntax_type_string,    // ""
 	vkaa_syntax_type_multichar, // ''
 	vkaa_syntax_type_number,    // [0-9][0-9.BbEeXx_]*
-} vkaa_syntax_type_t;
+};
 
 typedef union vkaa_syntax_data_t {
 	refer_t data;
