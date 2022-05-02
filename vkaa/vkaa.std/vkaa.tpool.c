@@ -22,7 +22,8 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 	{
 		#define d_type(_name)  vkaa_std_create_tpool_do(r, typeid, &typeid->id_##_name, vkaa_std_type_create_##_name)
 		if (
-			d_type(void)
+			d_type(void) &&
+			vkaa_tpool_var_const_enable_by_id(r, typeid->id_void)
 		) return r;
 		#undef d_type
 		refer_free(r);

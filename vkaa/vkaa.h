@@ -15,6 +15,8 @@ typedef struct vkaa_scope_s vkaa_scope_s;
 typedef struct vkaa_selector_s vkaa_selector_s;
 typedef struct vkaa_function_s vkaa_function_s;
 
+typedef vkaa_var_s* (*vkaa_function_f)(const vkaa_function_s *restrict r);
+
 // type =create> var
 // scope =find> var
 // {var, type} =find> selector =select-by-param-create> function
