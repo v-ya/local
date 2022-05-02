@@ -2,8 +2,8 @@
 #define _vkaa_std_extern_h_
 
 #include "vkaa.h"
+#include "vkaa.std.h"
 
-#define vkaa_std_oplevel_comma     "comma"
 #define vkaa_std_oplevel_assign    "assign"
 #define vkaa_std_oplevel_condition "condition"
 #define vkaa_std_oplevel_relation  "relation"

@@ -36,7 +36,11 @@ static void vkaa_oplevel_list_link(vkaa_oplevel_list_s **restrict p_next, vkaa_o
 static void vkaa_oplevel_list_free_func(vkaa_oplevel_list_s *restrict r)
 {
 	vkaa_oplevel_list_drop(r);
-	if (r->level) refer_free(r->level);
+	if (r->level)
+	{
+		r->level = 0;
+		refer_free(r->level);
+	}
 }
 
 static vkaa_oplevel_list_s* vkaa_oplevel_list_alloc(vkaa_oplevel_list_s ***pp_tail)

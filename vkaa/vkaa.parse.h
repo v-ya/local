@@ -15,6 +15,11 @@ typedef enum vkaa_parse_rtype_t {
 	vkaa_parse_rtype_function,
 } vkaa_parse_rtype_t;
 
+typedef enum vkaa_parse_keytype_t {
+	vkaa_parse_keytype_complete,
+	vkaa_parse_keytype_inner,
+} vkaa_parse_keytype_t;
+
 typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_none,
 	vkaa_parse_optype_unary_left,     // var[] var()
@@ -60,6 +65,7 @@ struct vkaa_parse_s {
 
 struct vkaa_parse_keyword_s {
 	vkaa_parse_keyword_f parse;
+	vkaa_parse_keytype_t keytype;
 };
 
 struct vkaa_parse_operator_s {

@@ -7,7 +7,6 @@ vkaa_oplevel_s* vkaa_std_create_oplevel(void)
 	if ((r = vkaa_oplevel_alloc()))
 	{
 		if (
-			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_comma)     && // ,
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_assign)    && // = += -= *= /= %= **= &= |= ^= <<= >>=
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_condition) && // ?:
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_relation)  && // == != > < >= <=
