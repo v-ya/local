@@ -5,6 +5,7 @@
 
 struct vkaa_selector_param_t {
 	const char *name;
+	vkaa_execute_s *exec;
 	vkaa_var_s *this;
 	vkaa_var_s *const *input_list;
 	uintptr_t input_number;

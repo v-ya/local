@@ -63,6 +63,13 @@ refer_nstring_t load_file(const char *restrict path)
 	return r;
 }
 
+/*
+	(vkaa_selector_f) maybe `type_cast` to (vkaa_selector_param_t).exec;
+	inner keyword:
+		(type_cast<type> var)  // call '=' function to temp var;
+		(type_check<type> var) // force check var's type, maybe used by return var's typeid is 0;
+*/
+
 int main(void)
 {
 	vkaa_std_s *restrict std;

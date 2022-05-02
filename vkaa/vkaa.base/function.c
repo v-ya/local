@@ -40,9 +40,10 @@ vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, c
 	return NULL;
 }
 
-vkaa_function_s* vkaa_function_okay(vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool)
+vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool)
 {
-	if (func->output || (func->output = vkaa_tpool_var_create_by_id(tpool, func->output_typeid)))
-		return func;
+	vkaa_var_s *restrict var;
+	if ((var = func->output) || (func->output = var = vkaa_tpool_var_create_by_id(tpool, func->output_typeid)))
+		return var;
 	return NULL;
 }

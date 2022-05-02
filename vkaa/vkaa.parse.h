@@ -17,10 +17,11 @@ typedef enum vkaa_parse_rtype_t {
 
 typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_none,
-	vkaa_parse_optype_unary_left,  // var[] var()
-	vkaa_parse_optype_unary_right, // !var ~var
-	vkaa_parse_optype_binary,      // var+var var.var
-	vkaa_parse_optype_ternary,     // var?var:var
+	vkaa_parse_optype_unary_left,     // var[] var()
+	vkaa_parse_optype_unary_right,    // !var ~var
+	vkaa_parse_optype_binary,         // var+var var.var
+	vkaa_parse_optype_ternary_first,  // var?var:var
+	vkaa_parse_optype_ternary_second, // var?var:var
 } vkaa_parse_optype_t;
 
 typedef union vkaa_parse_rdata_t {
@@ -71,6 +72,5 @@ struct vkaa_parse_operator_s {
 struct vkaa_parse_type2var_s {
 	vkaa_parse_type2var_f parse;
 };
-
 
 #endif
