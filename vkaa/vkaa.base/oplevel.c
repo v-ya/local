@@ -38,7 +38,7 @@ static void vkaa_oplevel_list_free_func(vkaa_oplevel_list_s *restrict r)
 	vkaa_oplevel_list_drop(r);
 	if (r->level)
 	{
-		r->level = 0;
+		r->level->level = 0;
 		refer_free(r->level);
 	}
 }

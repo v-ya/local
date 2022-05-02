@@ -7,11 +7,10 @@
 struct vkaa_var_s {
 	uintptr_t type_id;
 	const vkaa_type_s *type;
-	hashmap_t *selector;
 	void *value;
 };
 
-vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type, hashmap_t *restrict selector, void *value);
+vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type, void *value);
 void vkaa_var_finally(vkaa_var_s *restrict var);
 
 #endif
