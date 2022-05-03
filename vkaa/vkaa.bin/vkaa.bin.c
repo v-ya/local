@@ -88,7 +88,7 @@ int main(void)
 			{
 				if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
 				{
-					dump_syntax(syntax, 0);
+					// dump_syntax(syntax, 0);
 					if (vkaa_std_context_append_syntax(c, syntax))
 					{
 						printf("vkaa_std_context_append_syntax ... okay\n");

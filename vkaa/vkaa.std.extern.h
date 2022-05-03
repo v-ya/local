@@ -38,9 +38,16 @@ typedef struct vkaa_std_type2var_with_id_s {
 	uintptr_t id;
 } vkaa_std_type2var_with_id_s;
 
+typedef struct vkaa_std_type2var_with_id2_s {
+	vkaa_parse_type2var_s type2var;
+	uintptr_t id1;
+	uintptr_t id2;
+} vkaa_std_type2var_with_id2_s;
+
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword(vkaa_parse_s *restrict p, const char *restrict keyword, vkaa_parse_keyword_f parse, vkaa_parse_keytype_t keytype);
 vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, const vkaa_oplevel_s *restrict opl, const char *restrict operator, vkaa_parse_operator_f parse, vkaa_parse_optype_t optype, const char *restrict oplevel, const char *restrict ternary_second_operator);
-vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse);
-vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_with_id(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse, uintptr_t id);
+vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse, vkaa_parse_type2var_type_t type2var_type);
+vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_with_id(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse, vkaa_parse_type2var_type_t type2var_type, uintptr_t id);
+vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_with_id2(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse, vkaa_parse_type2var_type_t type2var_type, uintptr_t id1, uintptr_t id2);
 
 #endif

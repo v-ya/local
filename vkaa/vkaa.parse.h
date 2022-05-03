@@ -31,6 +31,11 @@ typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_ternary_second,        // var?var:var
 } vkaa_parse_optype_t;
 
+typedef enum vkaa_parse_type2var_type_t {
+	vkaa_parse_keytype_normal,
+	vkaa_parse_keytype_first_allow_ignore,
+} vkaa_parse_type2var_type_t;
+
 typedef union vkaa_parse_rdata_t {
 	refer_t none;
 	vkaa_var_s *var;
@@ -83,6 +88,7 @@ struct vkaa_parse_operator_s {
 
 struct vkaa_parse_type2var_s {
 	vkaa_parse_type2var_f parse;
+	vkaa_parse_type2var_type_t type;
 };
 
 vkaa_parse_s* vkaa_parse_alloc(void);
