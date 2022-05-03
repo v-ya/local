@@ -40,6 +40,7 @@ typedef union vkaa_parse_rdata_t {
 typedef struct vkaa_parse_result_t {
 	vkaa_parse_rtype_t type;
 	vkaa_parse_rdata_t data;
+	vkaa_var_s *this;
 } vkaa_parse_result_t;
 
 typedef struct vkaa_parse_context_t {
@@ -48,6 +49,7 @@ typedef struct vkaa_parse_context_t {
 	vkaa_execute_s *execute;
 	vkaa_tpool_s *tpool;
 	vkaa_scope_s *scope;
+	vkaa_var_s *this;
 } vkaa_parse_context_t;
 
 typedef struct vkaa_parse_syntax_t {
