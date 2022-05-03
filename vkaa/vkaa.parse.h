@@ -23,11 +23,12 @@ typedef enum vkaa_parse_keytype_t {
 
 typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_none,
-	vkaa_parse_optype_unary_left,     // var[] var()
-	vkaa_parse_optype_unary_right,    // !var ~var
-	vkaa_parse_optype_binary,         // var+var var.var
-	vkaa_parse_optype_ternary_first,  // var?var:var
-	vkaa_parse_optype_ternary_second, // var?var:var
+	vkaa_parse_optype_unary_left,            // var[] var()
+	vkaa_parse_optype_unary_right,           // !var ~var
+	vkaa_parse_optype_binary,                // var+var var.var
+	vkaa_parse_optype_binary_or_unary_right, // var-var -var
+	vkaa_parse_optype_ternary_first,         // var?var:var
+	vkaa_parse_optype_ternary_second,        // var?var:var
 } vkaa_parse_optype_t;
 
 typedef union vkaa_parse_rdata_t {

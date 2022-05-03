@@ -31,6 +31,16 @@ typedef struct vkaa_std_var_scope_s {
 
 vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create);
 
+// parse
+
+typedef struct vkaa_std_type2var_with_id_s {
+	vkaa_parse_type2var_s type2var;
+	uintptr_t id;
+} vkaa_std_type2var_with_id_s;
+
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword(vkaa_parse_s *restrict p, const char *restrict keyword, vkaa_parse_keyword_f parse, vkaa_parse_keytype_t keytype);
+vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, const vkaa_oplevel_s *restrict opl, const char *restrict operator, vkaa_parse_operator_f parse, vkaa_parse_optype_t optype, const char *restrict oplevel, const char *restrict ternary_second_operator);
+vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse);
+vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_with_id(vkaa_parse_s *restrict p, vkaa_syntax_type_t type, vkaa_parse_type2var_f parse, uintptr_t id);
 
 #endif

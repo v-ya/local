@@ -118,7 +118,7 @@ static vkaa_level_s* vkaa_oplevel_insert(vkaa_oplevel_s *restrict r, vkaa_opleve
 	return NULL;
 }
 
-const vkaa_level_s* vkaa_oplevel_get(vkaa_oplevel_s *restrict oplevel, const char *restrict name)
+const vkaa_level_s* vkaa_oplevel_get(const vkaa_oplevel_s *restrict oplevel, const char *restrict name)
 {
 	vkaa_oplevel_list_s *restrict t;
 	if ((t = (vkaa_oplevel_list_s *) hashmap_get_name(&oplevel->finder, name)))

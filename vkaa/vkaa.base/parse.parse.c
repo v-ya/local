@@ -107,59 +107,72 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_var(const vkaa_parse_co
 	}
 }
 
+static void vkaa_parse_parse_stack_repush_fill_param(vkaa_parse_result_t *restrict param, vkaa_parse_stack_t *restrict var[], uintptr_t nparam)
+{
+	uintptr_t i;
+	for (i = 0; i < nparam; ++i)
+	{
+		param[i].type = var[i]->var_type;
+		param[i].data = var[i]->var_data;
+		param[i].this = var[i]->this;
+	}
+	param[i].type = vkaa_parse_rtype_none;
+	param[i].data.none = NULL;
+	param[i].this = NULL;
+}
+
 static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, vkaa_parse_optype_t optype)
 {
+	const vkaa_parse_operator_s *restrict op;
 	vkaa_parse_stack_t *restrict op1;
 	vkaa_parse_stack_t *restrict op2;
-	vkaa_parse_stack_t *restrict var1;
-	vkaa_parse_stack_t *restrict var2;
-	vkaa_parse_stack_t *restrict var3;
-	const vkaa_parse_operator_s *restrict op;
-	uintptr_t rpos;
-	vkaa_parse_result_t param[3];
+	vkaa_parse_stack_t *restrict var[3];
+	vkaa_parse_result_t param[4];
 	vkaa_parse_result_t rvar;
+	uintptr_t rpos;
 	rpos = 0;
 	switch (optype)
 	{
 		case vkaa_parse_optype_unary_left:
 			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			var1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
-			if (!op1 || !var1) goto label_fail;
-			param[0].type = var1->var_type;
-			param[0].data.none = var1->var_data.none;
+			var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			if (!op1 || !var[0]) goto label_fail;
+			vkaa_parse_parse_stack_repush_fill_param(param, var, 1);
 			break;
 		case vkaa_parse_optype_unary_right:
-			var1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
 			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			if (!op1 || !var1) goto label_fail;
-			param[0].type = var1->var_type;
-			param[0].data.none = var1->var_data.none;
+			if (!op1 || !var[0]) goto label_fail;
+			vkaa_parse_parse_stack_repush_fill_param(param, var, 1);
 			break;
 		case vkaa_parse_optype_binary:
-			var2 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			var[1] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
 			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			var1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
-			if (!op1 || !var1 || !var2) goto label_fail;
-			param[0].type = var1->var_type;
-			param[0].data.none = var1->var_data.none;
-			param[1].type = var2->var_type;
-			param[1].data.none = var2->var_data.none;
+			var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			if (!op1 || !var[0] || !var[1]) goto label_fail;
+			vkaa_parse_parse_stack_repush_fill_param(param, var, 2);
+			break;
+		case vkaa_parse_optype_binary_or_unary_right:
+			var[1] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
+			if (!op1 || !var[1]) goto label_fail;
+			if ((var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos, vkaa_parse_stack_type_var)))
+			{
+				++rpos;
+				vkaa_parse_parse_stack_repush_fill_param(param, var, 2);
+			}
+			else vkaa_parse_parse_stack_repush_fill_param(param, var + 1, 1);
 			break;
 		case vkaa_parse_optype_ternary_second:
 			optype = vkaa_parse_optype_ternary_first;
-			var3 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			var[2] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
 			op2 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			var2 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			var[1] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
 			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			var1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
-			if (!op1 || !op2 || !var1 || !var2 || !var3) goto label_fail;
+			var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
+			if (!op1 || !op2 || !var[0] || !var[1] || !var[2]) goto label_fail;
 			if (!vkaa_parse_parse_check_op_ternary(context, op1->op, op2->op)) goto label_fail;
-			param[0].type = var1->var_type;
-			param[0].data.none = var1->var_data.none;
-			param[1].type = var2->var_type;
-			param[1].data.none = var2->var_data.none;
-			param[2].type = var3->var_type;
-			param[2].data.none = var3->var_data.none;
+			vkaa_parse_parse_stack_repush_fill_param(param, var, 3);
 			break;
 		default: goto label_fail;
 	}
@@ -292,6 +305,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 	ppos.pos = 0;
 	var.type = vkaa_parse_rtype_none;
 	var.data.none = NULL;
+	var.this = NULL;
 	layer_number = tparse_tstack_layer_number(context->stack);
 	while (ppos.pos < number)
 	{
