@@ -18,6 +18,18 @@ typedef struct vkaa_std_s {
 	vkaa_std_typeid_t typeid;
 } vkaa_std_s;
 
-vkaa_std_s* vkaa_std_alloc(void);
+typedef struct vkaa_std_context_s {
+	const vkaa_std_s *std;
+	vkaa_execute_s *exec;
+	vkaa_scope_s *scope;
+	vkaa_var_s *var;
+} vkaa_std_context_s;
+
+const vkaa_std_s* vkaa_std_alloc(void);
+
+vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std);
+vkaa_std_context_s* vkaa_std_context_append_syntax(vkaa_std_context_s *restrict context, const vkaa_syntax_s *restrict syntax);
+vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict context, const char *restrict source_data, uintptr_t source_length);
+vkaa_std_context_s* vkaa_std_context_exec(vkaa_std_context_s *restrict context, vkaa_var_s **restrict prvar);
 
 #endif

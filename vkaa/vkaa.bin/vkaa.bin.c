@@ -76,19 +76,29 @@ refer_nstring_t load_file(const char *restrict path)
 
 int main(void)
 {
-	vkaa_std_s *restrict std;
+	const vkaa_std_s *restrict std;
+	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
 	const vkaa_syntax_s *restrict syntax;
 	if ((std = vkaa_std_alloc()))
 	{
-		if ((code = load_file("../test.vkaa")))
+		if ((c = vkaa_std_context_alloc(std)))
 		{
-			if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
+			if ((code = load_file("../test.vkaa")))
 			{
-				dump_syntax(syntax, 0);
-				refer_free(syntax);
+				if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
+				{
+					dump_syntax(syntax, 0);
+					if (vkaa_std_context_append_syntax(c, syntax))
+					{
+						printf("vkaa_std_context_append_syntax ... okay\n");
+						printf("vkaa_std_context_exec ... %p\n", vkaa_std_context_exec(c, NULL));
+					}
+					refer_free(syntax);
+				}
+				refer_free(code);
 			}
-			refer_free(code);
+			refer_free(c);
 		}
 		refer_free(std);
 	}

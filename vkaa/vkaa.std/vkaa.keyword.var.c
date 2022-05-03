@@ -9,7 +9,7 @@ static vkaa_parse_result_t* vkaa_std_keyword_var(const vkaa_parse_keyword_s *res
 	var = NULL;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, "<"))
 		goto label_fail;
-	if (!(k = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_keyword)
+	if (!(k = vkaa_parse_syntax_fetch_and_next(syntax)) || k->type != vkaa_syntax_type_keyword)
 		goto label_fail;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, ">"))
 		goto label_fail;

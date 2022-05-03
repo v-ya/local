@@ -140,7 +140,7 @@ vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa
 {
 	rbtree_t *restrict rbv;
 	if ((rbv = rbtree_find(&tpool->i2v, NULL, type->id)))
-		return (vkaa_var_s *) rbv->value;
+		return (vkaa_var_s *) refer_save(rbv->value);
 	return type->create(type, scope);
 }
 
