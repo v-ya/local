@@ -14,6 +14,6 @@ struct vkaa_function_s {
 };
 
 vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_selector_rdata_t *restrict rdata);
-vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool);
+vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope);
 
 #endif

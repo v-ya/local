@@ -1,8 +1,7 @@
 #ifndef _vkaa_std_std_tpool_h_
 #define _vkaa_std_std_tpool_h_
 
-#include "../vkaa.h"
-#include "../vkaa.std.h"
+#include "std.h"
 #include "../vkaa.tpool.h"
 #include "../vkaa.type.h"
 #include "../vkaa.var.h"

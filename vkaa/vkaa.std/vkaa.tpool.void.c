@@ -6,7 +6,7 @@ typedef struct vkaa_type_void_s {
 	vkaa_type_s type;
 } vkaa_type_void_s;
 
-static vkaa_var_s* vkaa_type_void_create_func(const vkaa_type_void_s *restrict type)
+static vkaa_var_s* vkaa_type_void_create_func(const vkaa_type_void_s *restrict type, vkaa_scope_s *restrict scope)
 {
 	vkaa_var_s *restrict r;
 	if ((r = (vkaa_var_s *) refer_alloz(sizeof(vkaa_var_s))))

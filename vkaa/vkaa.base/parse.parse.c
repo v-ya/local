@@ -236,7 +236,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_pop_clear(const vkaa_parse_c
 			{
 				func = context->execute->execute_array[context->execute->execute_number - 1];
 				label_set_last_var_by_func:
-				if (!(last_var = vkaa_function_okay(func, context->tpool)))
+				if (!(last_var = vkaa_function_okay(func, context->tpool, context->scope)))
 					goto label_fail;
 				label_set_last_var:
 				vkaa_execute_set_last(context->execute, last_var);
@@ -303,7 +303,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 				{
 					if (k->keytype == vkaa_parse_keytype_complete)
 					{
-						if (!vkaa_parse_parse_pop_clear(context, layer_number))
+						if (tparse_tstack_layer_number(context->stack) != layer_number)
 							goto label_fail;
 					}
 					else if (k->keytype != vkaa_parse_keytype_inner)

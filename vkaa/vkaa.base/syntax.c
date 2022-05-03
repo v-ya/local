@@ -3,6 +3,7 @@
 #include <tparse/tstack.h>
 #include <tparse/tstring.h>
 #include <tparse/tword.h>
+#include <string.h>
 
 typedef struct vkaa_syntaxor_context_t vkaa_syntaxor_context_t;
 typedef struct vkaa_syntaxor_parse_s vkaa_syntaxor_parse_s;
@@ -130,6 +131,26 @@ vkaa_syntax_s* vkaa_syntax_push_syntax(vkaa_syntax_s *restrict syntax, vkaa_synt
 			}
 			// fall through
 		default: break;
+	}
+	return NULL;
+}
+
+const vkaa_syntax_t* vkaa_syntax_test(const vkaa_syntax_t *restrict syntax, vkaa_syntax_type_t type, const char *restrict string)
+{
+	if (syntax->type == type)
+	{
+		switch (type)
+		{
+			case vkaa_syntax_type_keyword:
+			case vkaa_syntax_type_operator:
+			case vkaa_syntax_type_string:
+			case vkaa_syntax_type_multichar:
+			case vkaa_syntax_type_number:
+				if (!string || !strcmp(syntax->data.string->string, string))
+					return syntax;
+				// fall through
+			default: break;
+		}
 	}
 	return NULL;
 }

@@ -17,7 +17,8 @@ vkaa_std_s* vkaa_std_alloc(void)
 		refer_set_free(r, (refer_free_f) vkaa_std_free_func);
 		if ((r->syntaxor = vkaa_syntaxor_alloc()) &&
 			(r->oplevel = vkaa_std_create_oplevel()) &&
-			(r->tpool = vkaa_std_create_tpool(&r->typeid)))
+			(r->tpool = vkaa_std_create_tpool(&r->typeid)) &&
+			(r->parse = vkaa_std_create_parse(r->oplevel, &r->typeid)))
 			return r;
 		refer_free(r);
 	}

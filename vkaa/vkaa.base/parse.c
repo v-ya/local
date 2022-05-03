@@ -76,3 +76,10 @@ void vkaa_parse_type2var_unset(vkaa_parse_s *restrict parse, vkaa_syntax_type_t 
 {
 	hashmap_delete_head(&parse->type2var, (uint64_t) type);
 }
+
+const vkaa_syntax_t* vkaa_parse_syntax_fetch_and_next(vkaa_parse_syntax_t *restrict syntax)
+{
+	if (syntax->pos < syntax->number)
+		return &syntax->syntax[syntax->pos++];
+	return NULL;
+}
