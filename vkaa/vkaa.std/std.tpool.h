@@ -8,6 +8,7 @@
 #include "../vkaa.selector.h"
 #include "../vkaa.function.h"
 
-vkaa_type_s* vkaa_std_type_create_void(const vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid);
+vkaa_type_s* vkaa_std_tpool_set_void(vkaa_tpool_s *restrict tpool, uintptr_t id);
+vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, uintptr_t id);
 
 #endif

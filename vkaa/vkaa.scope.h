@@ -5,12 +5,12 @@
 #include <hashmap.h>
 
 struct vkaa_scope_s {
-	vkaa_scope_s *parent;
-	uintptr_t level;
 	hashmap_t var;
+	vkaa_scope_s *parent;
 };
 
 vkaa_scope_s* vkaa_scope_alloc(vkaa_scope_s *restrict parent);
+vkaa_scope_s* vkaa_scope_set_parent(vkaa_scope_s *restrict scope, vkaa_scope_s *restrict parent);
 vkaa_var_s* vkaa_scope_find(const vkaa_scope_s *restrict scope, const char *restrict name);
 vkaa_var_s* vkaa_scope_put(vkaa_scope_s *restrict scope, const char *restrict name, vkaa_var_s *var);
 vkaa_var_s* vkaa_scope_set(vkaa_scope_s *restrict scope, const char *restrict name, vkaa_var_s *var);

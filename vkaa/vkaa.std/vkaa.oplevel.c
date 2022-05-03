@@ -16,8 +16,7 @@ vkaa_oplevel_s* vkaa_std_create_oplevel(void)
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_arith_2)   && // * / %
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_arith_3)   && // **
 			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_unary)     && // ! ~ ++ -- -
-			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_inquiry)   && // . [] ()
-			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_brackets)     // ()
+			vkaa_oplevel_insert_tail(r, vkaa_std_oplevel_inquiry)      // . [] ()
 		) return r;
 		refer_free(r);
 	}

@@ -12,11 +12,32 @@ vkaa_scope_s* vkaa_scope_alloc(vkaa_scope_s *restrict parent)
 	if ((r = (vkaa_scope_s *) refer_alloz(sizeof(vkaa_scope_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_scope_free_func);
-		if ((r->parent = (vkaa_scope_s *) refer_save(parent)))
-			r->level = parent->level + 1;
+		r->parent = (vkaa_scope_s *) refer_save(parent);
 		if (hashmap_init(&r->var))
 			return r;
 		refer_free(r);
+	}
+	return NULL;
+}
+
+static vkaa_scope_s* vkaa_scope_rpath_exist(vkaa_scope_s *restrict r, vkaa_scope_s *restrict e)
+{
+	while (r)
+	{
+		if (r == e)
+			return e;
+		r = r->parent;
+	}
+	return NULL;
+}
+
+vkaa_scope_s* vkaa_scope_set_parent(vkaa_scope_s *restrict scope, vkaa_scope_s *restrict parent)
+{
+	if (!vkaa_scope_rpath_exist(parent, scope))
+	{
+		if (scope->parent) refer_free(scope->parent);
+		scope->parent = (vkaa_scope_s *) refer_save(parent);
+		return scope;
 	}
 	return NULL;
 }

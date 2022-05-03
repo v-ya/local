@@ -3,6 +3,7 @@
 
 static void vkaa_std_free_func(vkaa_std_s *restrict r)
 {
+	if (r->stack) refer_free(r->stack);
 	if (r->parse) refer_free(r->parse);
 	if (r->tpool) refer_free(r->tpool);
 	if (r->oplevel) refer_free(r->oplevel);
@@ -18,7 +19,8 @@ vkaa_std_s* vkaa_std_alloc(void)
 		if ((r->syntaxor = vkaa_syntaxor_alloc()) &&
 			(r->oplevel = vkaa_std_create_oplevel()) &&
 			(r->tpool = vkaa_std_create_tpool(&r->typeid)) &&
-			(r->parse = vkaa_std_create_parse(r->oplevel, &r->typeid)))
+			(r->parse = vkaa_std_create_parse(r->oplevel, &r->typeid)) &&
+			(r->stack = tparse_tstack_alloc()))
 			return r;
 		refer_free(r);
 	}

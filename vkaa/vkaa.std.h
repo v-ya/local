@@ -2,9 +2,11 @@
 #define _vkaa_std_h_
 
 #include "vkaa.h"
+#include <tparse/tstack.h>
 
 typedef struct vkaa_std_typeid_t {
 	uintptr_t id_void;
+	uintptr_t id_scope;
 } vkaa_std_typeid_t;
 
 typedef struct vkaa_std_s {
@@ -12,6 +14,7 @@ typedef struct vkaa_std_s {
 	vkaa_oplevel_s *oplevel;
 	vkaa_tpool_s *tpool;
 	vkaa_parse_s *parse;
+	tparse_tstack_s *stack;
 	vkaa_std_typeid_t typeid;
 } vkaa_std_s;
 
