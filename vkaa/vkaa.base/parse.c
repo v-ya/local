@@ -113,12 +113,12 @@ void vkaa_parse_result_clear(vkaa_parse_result_t *restrict result)
 	result->this = NULL;
 }
 
-vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result)
 {
 	switch (result->type)
 	{
 		case vkaa_parse_rtype_var: return result->data.var;
-		case vkaa_parse_rtype_function: return vkaa_function_okay(result->data.function, tpool, scope);
+		case vkaa_parse_rtype_function: return vkaa_function_okay(result->data.function);
 		default: return NULL;
 	}
 }

@@ -223,8 +223,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 				tparse_tstack_pop(context->stack);
 				--rpos;
 			}
-			if (rvar.type != vkaa_parse_rtype_function || (rvar.data.function &&
-				vkaa_execute_push(context->execute, rvar.data.function, context->tpool, context->scope)))
+			if (rvar.type != vkaa_parse_rtype_function || (rvar.data.function && vkaa_execute_push(context->execute, rvar.data.function)))
 			{
 				context = vkaa_parse_parse_push_var(context, layer_number, &rvar, vkaa_parse_keytype_normal);
 				vkaa_parse_result_clear(&rvar);

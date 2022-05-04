@@ -19,7 +19,7 @@ static vkaa_parse_result_t* vkaa_std_keyword_var(const vkaa_parse_keyword_s *res
 	{
 		if (s->type != vkaa_syntax_type_keyword)
 			goto label_fail;
-		if (!(var = vkaa_tpool_var_create(context->tpool, type, context->scope)))
+		if (!(var = vkaa_tpool_var_create(context->tpool, type)))
 			goto label_fail;
 		if (!vkaa_scope_put(context->scope, s->data.keyword->string, var))
 			goto label_fail;

@@ -12,9 +12,9 @@ struct vkaa_execute_s {
 
 vkaa_execute_s* vkaa_execute_alloc(void);
 vkaa_function_s* vkaa_execute_get_last_function(const vkaa_execute_s *restrict exec);
-vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope);
-vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope);
-vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope);
+vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec);
+vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func);
+vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec);
 vkaa_var_s* vkaa_execute_do(const vkaa_execute_s *restrict exec);
 void vkaa_execute_clear(vkaa_execute_s *restrict exec);
 

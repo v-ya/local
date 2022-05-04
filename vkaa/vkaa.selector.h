@@ -12,7 +12,7 @@ struct vkaa_selector_param_t {
 
 struct vkaa_selector_rdata_t {
 	vkaa_function_f function;
-	uintptr_t output_typeid;
+	const vkaa_type_s *output_type;
 	vkaa_var_s *output_must;
 };
 

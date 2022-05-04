@@ -40,6 +40,8 @@ typedef struct vkaa_std_var_scope_s {
 	vkaa_scope_s *scope;
 } vkaa_std_var_scope_s;
 
+vkaa_std_var_scope_s* vkaa_std_type_scope_create_by_parent(const vkaa_type_s *restrict type, vkaa_scope_s *restrict scope);
+
 // var<syntax>
 
 typedef struct vkaa_std_var_syntax_s {

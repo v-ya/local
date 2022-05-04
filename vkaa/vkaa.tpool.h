@@ -27,8 +27,8 @@ vkaa_var_s* vkaa_tpool_var_const_enable_by_id(vkaa_tpool_s *restrict tpool, uint
 void vkaa_tpool_var_const_disable_by_name(vkaa_tpool_s *restrict tpool, const char *restrict name);
 void vkaa_tpool_var_const_disable_by_id(vkaa_tpool_s *restrict tpool, uintptr_t id);
 
-vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type, vkaa_scope_s *restrict scope);
-vkaa_var_s* vkaa_tpool_var_create_by_name(const vkaa_tpool_s *restrict tpool, const char *restrict name, vkaa_scope_s *restrict scope);
-vkaa_var_s* vkaa_tpool_var_create_by_id(const vkaa_tpool_s *restrict tpool, uintptr_t id, vkaa_scope_s *restrict scope);
+vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type);
+vkaa_var_s* vkaa_tpool_var_create_by_name(const vkaa_tpool_s *restrict tpool, const char *restrict name);
+vkaa_var_s* vkaa_tpool_var_create_by_id(const vkaa_tpool_s *restrict tpool, uintptr_t id);
 
 #endif

@@ -41,10 +41,12 @@ static vkaa_function_s* vkaa_std_operator_selector_do(const vkaa_selector_s *res
 	param.input_list = input_list;
 	param.input_number = input_number;
 	rdata.function = NULL;
-	rdata.output_typeid = 0;
+	rdata.output_type = NULL;
 	rdata.output_must = NULL;
 	if (selector->selector(selector, &param, &rdata))
 		r = vkaa_function_alloc(selector, &param, &rdata);
+	if (rdata.output_type)
+		refer_free(rdata.output_type);
 	if (rdata.output_must)
 		refer_free(rdata.output_must);
 	return r;
@@ -56,7 +58,7 @@ static vkaa_parse_result_t* vkaa_std_operator_unary_brackets(const vkaa_parse_op
 	vkaa_var_s *restrict this;
 	vkaa_std_param_t p;
 	if ((s = vkaa_std_operator_get_selector_by_result(param, &this)) ||
-		((this = vkaa_parse_result_get_var(param, context->tpool, context->scope)) &&
+		((this = vkaa_parse_result_get_var(param)) &&
 			(s = vkaa_var_find_selector(this, vkaa_parse_operator_brackets))))
 	{
 		if (vkaa_std_param_initial(&p))
@@ -81,13 +83,13 @@ static vkaa_parse_result_t* vkaa_std_operator_unary_square(const vkaa_parse_oper
 	const vkaa_syntax_s *restrict square;
 	vkaa_var_s *input_list[1];
 	vkaa_parse_result_t last_var;
-	if ((this = vkaa_parse_result_get_var(param, context->tpool, context->scope)) &&
+	if ((this = vkaa_parse_result_get_var(param)) &&
 		(s = vkaa_var_find_selector(this, vkaa_parse_operator_square)))
 	{
 		square = syntax->data.square;
 		if (vkaa_parse_parse(context, square->syntax_array, square->syntax_number, &last_var))
 		{
-			input_list[0] = (vkaa_var_s *) refer_save(vkaa_parse_result_get_var(&last_var, context->tpool, context->scope));
+			input_list[0] = (vkaa_var_s *) refer_save(vkaa_parse_result_get_var(&last_var));
 			vkaa_parse_result_clear(&last_var);
 			if (input_list[0] && (result->data.function = vkaa_std_operator_selector_do(s, context, this, input_list, 1)))
 			{
@@ -111,7 +113,7 @@ static vkaa_parse_result_t* vkaa_std_operator_proxy(const vkaa_parse_operator_s 
 	for (input_number = 0; param_list[input_number].type; ++input_number)
 	{
 		if (input_number >= 3) goto label_fail;
-		if (!(input_list[input_number] = vkaa_parse_result_get_var(&param_list[input_number], context->tpool, context->scope)))
+		if (!(input_list[input_number] = vkaa_parse_result_get_var(&param_list[input_number])))
 			goto label_fail;
 	}
 	if (!(s = vkaa_var_find_selector(input_list[0], op)))
@@ -130,8 +132,8 @@ static vkaa_parse_result_t* vkaa_std_operator_assign_proxy(const vkaa_parse_oper
 	vkaa_var_s *restrict v;
 	if (param_list[1].type == vkaa_parse_rtype_function &&
 		!param_list[1].data.function->output &&
-		(v = vkaa_parse_result_get_var(&param_list[0], context->tpool, context->scope)) &&
-		v->type_id == param_list[1].data.function->output_typeid)
+		(v = vkaa_parse_result_get_var(&param_list[0])) &&
+		v->type == param_list[1].data.function->output_type)
 	{
 		result->type = vkaa_parse_rtype_var;
 		result->data.var = (vkaa_var_s *) refer_save(v);

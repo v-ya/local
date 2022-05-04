@@ -5,7 +5,7 @@ static vkaa_parse_result_t* vkaa_std_keyword_null(const vkaa_parse_keyword_s *re
 	const vkaa_syntax_t *restrict name;
 	if ((name = vkaa_parse_syntax_get_last(syntax)) && name->type == vkaa_syntax_type_keyword)
 	{
-		if ((result->data.var = vkaa_tpool_var_create_by_name(context->tpool, name->data.keyword->string, context->scope)))
+		if ((result->data.var = vkaa_tpool_var_create_by_name(context->tpool, name->data.keyword->string)))
 		{
 			result->type = vkaa_parse_rtype_var;
 			return result;

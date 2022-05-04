@@ -1,12 +1,13 @@
 #include "../vkaa.function.h"
 #include "../vkaa.selector.h"
-#include "../vkaa.tpool.h"
+#include "../vkaa.type.h"
 
 static void vkaa_function_free_func(vkaa_function_s *restrict r)
 {
 	uintptr_t i;
 	if (r->selector) refer_free(r->selector);
 	if (r->this) refer_free(r->this);
+	if (r->output_type) refer_free(r->output_type);
 	if (r->output) refer_free(r->output);
 	for (i = 0; i < r->input_number; ++i)
 	{
@@ -25,8 +26,9 @@ vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, c
 		if (!(r->function = rdata->function)) goto label_fail;
 		r->selector = (const vkaa_selector_s *) refer_save(selector);
 		r->this = (vkaa_var_s *) refer_save(param->this);
+		if (!(r->output_type = (const vkaa_type_s *) refer_save(rdata->output_type)))
+			goto label_fail;
 		r->output = (vkaa_var_s *) refer_save(rdata->output_must);
-		r->output_typeid = rdata->output_typeid;
 		r->input_number = param->input_number;
 		for (i = 0; i < r->input_number; ++i)
 		{
@@ -40,10 +42,10 @@ vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, c
 	return NULL;
 }
 
-vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func)
 {
 	vkaa_var_s *restrict var;
-	if ((var = func->output) || (func->output = var = vkaa_tpool_var_create_by_id(tpool, func->output_typeid, scope)))
+	if ((var = func->output) || (func->output = var = func->output_type->create(func->output_type)))
 		return var;
 	return NULL;
 }

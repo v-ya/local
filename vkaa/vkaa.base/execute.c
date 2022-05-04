@@ -32,18 +32,18 @@ vkaa_function_s* vkaa_execute_get_last_function(const vkaa_execute_s *restrict e
 	return NULL;
 }
 
-vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec)
 {
 	vkaa_function_s *restrict func;
 	if ((func = vkaa_execute_get_last_function(exec)))
-		return vkaa_function_okay(func, tpool, scope);
+		return vkaa_function_okay(func);
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func)
 {
 	vkaa_function_s *const *restrict array;
-	if (vkaa_execute_okay(exec, tpool, scope) &&
+	if (vkaa_execute_okay(exec) &&
 		(array = (vkaa_function_s *const *) exbuffer_append(&exec->buffer, (const void *) &func, sizeof(func))))
 	{
 		exec->execute_array = array;
@@ -54,11 +54,10 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec)
 {
 	vkaa_function_s *restrict last;
-	if (!(last = vkaa_execute_get_last_function(exec)) ||
-		vkaa_function_okay(last, tpool, scope))
+	if (!(last = vkaa_execute_get_last_function(exec)) || vkaa_function_okay(last))
 		return exec;
 	return NULL;
 }

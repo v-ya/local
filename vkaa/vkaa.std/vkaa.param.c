@@ -52,7 +52,7 @@ vkaa_std_param_t* vkaa_std_param_push_syntax(vkaa_std_param_t *restrict param, c
 		}
 		if (!vkaa_parse_parse(context, s, i, &result))
 			goto label_fail;
-		if (!vkaa_std_param_push_var(param, vkaa_parse_result_get_var(&result, context->tpool, context->scope)))
+		if (!vkaa_std_param_push_var(param, vkaa_parse_result_get_var(&result)))
 			goto label_fail;
 		vkaa_parse_result_clear(&result);
 		if (i < n) ++i;

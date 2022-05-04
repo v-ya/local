@@ -13,7 +13,7 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_orginal_scope(const vkaa_std_
 			{
 				if (result->type)
 					goto label_okay;
-				else if (r->id_number && (result->data.var = vkaa_tpool_var_create_by_id(context->tpool, r->id[0], context->scope)))
+				else if (r->id_number && (result->data.var = vkaa_tpool_var_create_by_id(context->tpool, r->id[0])))
 				{
 					result->type = vkaa_parse_rtype_var;
 					label_okay:
@@ -28,12 +28,12 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_orginal_scope(const vkaa_std_
 static vkaa_parse_result_t* vkaa_std_type2var_exec_new_scope(const vkaa_std_type2var_with_id_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax)
 {
 	vkaa_parse_context_t c;
+	const vkaa_type_s *restrict type;
 	vkaa_std_var_scope_s *restrict v;
 	vkaa_parse_result_t *rr;
-	uintptr_t id_scope;
 	rr = NULL;
-	id_scope = r->id[1];
-	if ((v = (vkaa_std_var_scope_s *) vkaa_tpool_var_create_by_id(context->tpool, id_scope, context->scope)))
+	if ((type = vkaa_tpool_find_id(context->tpool, r->id[1])) &&
+		(v = vkaa_std_type_scope_create_by_parent(type, context->scope)))
 	{
 		c = *context;
 		c.scope = v->scope;

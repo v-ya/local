@@ -119,7 +119,7 @@ void vkaa_parse_operator_finally(vkaa_parse_operator_s *restrict operator);
 
 void vkaa_parse_result_initial(vkaa_parse_result_t *restrict result);
 void vkaa_parse_result_clear(vkaa_parse_result_t *restrict result);
-vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope);
+vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result);
 
 vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result);
 

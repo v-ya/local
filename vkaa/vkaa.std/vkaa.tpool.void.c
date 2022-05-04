@@ -1,6 +1,6 @@
 #include "std.tpool.h"
 
-static vkaa_var_s* vkaa_std_type_void_create(const vkaa_type_s *restrict type, vkaa_scope_s *restrict scope)
+static vkaa_var_s* vkaa_std_type_void_create(const vkaa_type_s *restrict type)
 {
 	vkaa_var_s *restrict r;
 	if ((r = (vkaa_var_s *) refer_alloz(sizeof(vkaa_var_s))))
