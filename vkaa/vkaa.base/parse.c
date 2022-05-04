@@ -90,3 +90,8 @@ const vkaa_syntax_t* vkaa_parse_syntax_get_last(vkaa_parse_syntax_t *restrict sy
 		return &syntax->syntax[syntax->pos - 1];
 	return NULL;
 }
+
+void vkaa_parse_operator_finally(vkaa_parse_operator_s *restrict operator)
+{
+	if (operator->oplevel) refer_free(operator->oplevel);
+}

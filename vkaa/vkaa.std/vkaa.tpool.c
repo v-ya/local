@@ -35,6 +35,7 @@ static void vkaa_std_create_tpool_initial_id(vkaa_std_typeid_t *restrict typeid,
 	typeid->id_scope = vkaa_tpool_genid(tpool);
 	typeid->id_syntax = vkaa_tpool_genid(tpool);
 	typeid->id_function = vkaa_tpool_genid(tpool);
+	typeid->id_bool = vkaa_tpool_genid(tpool);
 	typeid->id_string = vkaa_tpool_genid(tpool);
 	typeid->id_uint = vkaa_tpool_genid(tpool);
 	typeid->id_int = vkaa_tpool_genid(tpool);
@@ -53,6 +54,7 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 			vkaa_std_tpool_set_scope(r, typeid) &&
 			vkaa_std_tpool_set_syntax(r, typeid) &&
 			vkaa_std_tpool_set_function(r, typeid) &&
+			vkaa_std_tpool_set_bool(r, typeid) &&
 			vkaa_std_tpool_set_string(r, typeid) &&
 			vkaa_std_tpool_set_uint(r, typeid) &&
 			vkaa_std_tpool_set_int(r, typeid) &&

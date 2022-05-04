@@ -13,4 +13,6 @@ struct vkaa_var_s {
 vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type, void *value);
 void vkaa_var_finally(vkaa_var_s *restrict var);
 
+vkaa_selector_s* vkaa_var_find_selector(const vkaa_var_s *restrict var, const char *restrict name);
+
 #endif

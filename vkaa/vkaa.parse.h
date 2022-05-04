@@ -5,6 +5,9 @@
 #include <hashmap.h>
 #include <tparse/tstack.h>
 
+#define vkaa_parse_operator_brackets  "()"
+#define vkaa_parse_operator_square    "[]"
+
 typedef struct vkaa_parse_keyword_s vkaa_parse_keyword_s;
 typedef struct vkaa_parse_operator_s vkaa_parse_operator_s;
 typedef struct vkaa_parse_type2var_s vkaa_parse_type2var_s;
@@ -23,13 +26,19 @@ typedef enum vkaa_parse_keytype_t {
 
 typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_none,
-	vkaa_parse_optype_unary_left,            // var[] var()
-	vkaa_parse_optype_unary_right,           // !var ~var
-	vkaa_parse_optype_binary,                // var+var var.var
-	vkaa_parse_optype_binary_or_unary_right, // var-var -var
-	vkaa_parse_optype_ternary_first,         // var?var:var
-	vkaa_parse_optype_ternary_second,        // var?var:var
+	vkaa_parse_optype_unary_left,             // var[] var()
+	vkaa_parse_optype_unary_right,            // !var ~var
+	vkaa_parse_optype_binary,                 // var+var var*var
+	vkaa_parse_optype_binary_second_type2var, // var.name => var["name"]
+	vkaa_parse_optype_binary_or_unary_right,  // var-var -var
+	vkaa_parse_optype_ternary_first,          // var?var:var
+	vkaa_parse_optype_ternary_second,         // var?var:var
 } vkaa_parse_optype_t;
+
+typedef enum vkaa_parse_optowards_t {
+	vkaa_parse_optowards_left2right,
+	vkaa_parse_optowards_right2left,
+} vkaa_parse_optowards_t;
 
 typedef enum vkaa_parse_type2var_type_t {
 	vkaa_parse_keytype_normal,
@@ -82,6 +91,7 @@ struct vkaa_parse_keyword_s {
 struct vkaa_parse_operator_s {
 	vkaa_parse_operator_f parse;
 	vkaa_parse_optype_t optype;
+	vkaa_parse_optowards_t towards;
 	const vkaa_level_s *oplevel;
 	const char *ternary_second_operator;
 };
@@ -104,6 +114,8 @@ void vkaa_parse_type2var_unset(vkaa_parse_s *restrict parse, vkaa_syntax_type_t 
 
 const vkaa_syntax_t* vkaa_parse_syntax_fetch_and_next(vkaa_parse_syntax_t *restrict syntax);
 const vkaa_syntax_t* vkaa_parse_syntax_get_last(vkaa_parse_syntax_t *restrict syntax);
+
+void vkaa_parse_operator_finally(vkaa_parse_operator_s *restrict operator);
 
 vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number);
 

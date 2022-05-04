@@ -20,3 +20,8 @@ void vkaa_type_finally(vkaa_type_s *restrict type)
 		type->selector = NULL;
 	}
 }
+
+vkaa_selector_s* vkaa_type_find_selector(const vkaa_type_s *restrict type, const char *restrict name)
+{
+	return (vkaa_selector_s *) vattr_get_first(type->selector, name);
+}

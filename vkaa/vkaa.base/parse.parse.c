@@ -193,6 +193,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 			vkaa_parse_parse_stack_repush_fill_param(param, var, 1);
 			break;
 		case vkaa_parse_optype_binary:
+		case vkaa_parse_optype_binary_second_type2var:
 			var[1] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
 			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
 			var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
@@ -256,7 +257,9 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op(const vkaa_parse_con
 	for (;;)
 	{
 		if (!(op_last = vkaa_parse_parse_stack_get_last_op(context, layer_number)) ||
-			op_last->oplevel->level < op->oplevel->level)
+			op_last->oplevel->level < op->oplevel->level ||
+			(op_last->oplevel->level == op->oplevel->level &&
+				op->towards == vkaa_parse_optowards_right2left))
 		{
 			label_push_op:
 			if (!(stack = (vkaa_parse_stack_t *) tparse_tstack_push(context->stack, sizeof(vkaa_parse_stack_t), (tparse_tstack_free_f) vkaa_parse_stack_free_func)))
@@ -333,9 +336,8 @@ static vkaa_parse_operator_s* vkaa_parse_parse_get_operator(const vkaa_parse_con
 	switch (syntax->type)
 	{
 		case vkaa_syntax_type_operator: op = syntax->data.operator->string; break;
-		case vkaa_syntax_type_scope: op = "{}"; break;
-		case vkaa_syntax_type_brackets: op = "()"; break;
-		case vkaa_syntax_type_square: op = "[]"; break;
+		case vkaa_syntax_type_brackets: op = vkaa_parse_operator_brackets; break;
+		case vkaa_syntax_type_square: op = vkaa_parse_operator_square; break;
 		default: goto label_fail;
 	}
 	return vkaa_parse_operator_get(context->parse, op);
@@ -352,6 +354,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 	vkaa_parse_syntax_t ppos;
 	vkaa_parse_result_t var;
 	uintptr_t layer_number;
+	op = NULL;
 	ppos.syntax = syntax;
 	ppos.number = number;
 	ppos.pos = 0;
@@ -362,6 +365,9 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 	while (ppos.pos < number)
 	{
 		s = syntax + ppos.pos++;
+		if (op && op->optype == vkaa_parse_optype_binary_second_type2var)
+			goto label_force_type2var;
+		op = NULL;
 		switch (s->type)
 		{
 			case vkaa_syntax_type_keyword:
@@ -413,6 +419,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 			case vkaa_syntax_type_string:
 			case vkaa_syntax_type_multichar:
 			case vkaa_syntax_type_number:
+				label_force_type2var:
 				if (!(t2v = vkaa_parse_type2var_get(context->parse, s->type)))
 					goto label_fail;
 				if (!(t2v->parse(t2v, &var, context, s)))
