@@ -2,14 +2,6 @@
 #define _vkaa_std_std_parse_h_
 
 #include "std.h"
-#include "../vkaa.parse.h"
-#include "../vkaa.syntax.h"
-#include "../vkaa.oplevel.h"
-#include "../vkaa.tpool.h"
-#include "../vkaa.scope.h"
-#include "../vkaa.selector.h"
-#include "../vkaa.function.h"
-#include "../vkaa.execute.h"
 
 // keyword
 

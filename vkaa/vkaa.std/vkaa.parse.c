@@ -1,4 +1,3 @@
-#include "std.h"
 #include "std.parse.h"
 
 vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, const vkaa_std_typeid_t *restrict typeid)

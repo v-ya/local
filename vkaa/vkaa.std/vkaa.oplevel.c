@@ -1,5 +1,4 @@
 #include "std.h"
-#include "../vkaa.oplevel.h"
 
 vkaa_oplevel_s* vkaa_std_create_oplevel(void)
 {

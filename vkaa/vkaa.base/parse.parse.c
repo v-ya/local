@@ -77,6 +77,18 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_last_is_var(const vkaa
 	return NULL;
 }
 
+static const vkaa_parse_context_t* vkaa_parse_parse_stack_maybe_empty(const vkaa_parse_context_t *restrict context, uintptr_t layer_number)
+{
+	vkaa_parse_stack_t *restrict stack;
+	uintptr_t curr_layer_number;
+	curr_layer_number = tparse_tstack_layer_number(context->stack);
+	if (curr_layer_number == layer_number || (curr_layer_number == layer_number + 1 &&
+		(stack = (vkaa_parse_stack_t *) tparse_tstack_layer(context->stack, 0, NULL)) &&
+		(stack->type & vkaa_parse_stack_type_flag_allow_ignore)))
+		return context;
+	return NULL;
+}
+
 static vkaa_parse_stack_t* vkaa_parse_parse_stack_get(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, uintptr_t rpos, vkaa_parse_stack_type_t type)
 {
 	vkaa_parse_stack_t *restrict stack;
@@ -222,9 +234,14 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 				tparse_tstack_pop(context->stack);
 				--rpos;
 			}
-			context = vkaa_parse_parse_push_var(context, layer_number, &rvar, vkaa_parse_keytype_normal);
+			if (rvar.type != vkaa_parse_rtype_function || (rvar.data.function &&
+				vkaa_execute_push(context->execute, rvar.data.function)))
+			{
+				context = vkaa_parse_parse_push_var(context, layer_number, &rvar, vkaa_parse_keytype_normal);
+				vkaa_parse_parse_var_reset(&rvar);
+				return context;
+			}
 			vkaa_parse_parse_var_reset(&rvar);
-			return context;
 		}
 	}
 	label_fail:
@@ -352,7 +369,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 				{
 					if (k->keytype == vkaa_parse_keytype_complete)
 					{
-						if (tparse_tstack_layer_number(context->stack) != layer_number)
+						if (!vkaa_parse_parse_stack_maybe_empty(context, layer_number))
 							goto label_fail;
 					}
 					else if (k->keytype != vkaa_parse_keytype_inner)

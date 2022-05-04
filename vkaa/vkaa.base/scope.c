@@ -142,3 +142,8 @@ void vkaa_scope_unset(vkaa_scope_s *restrict scope, const char *restrict name)
 {
 	hashmap_delete_name(&scope->var, name);
 }
+
+void vkaa_scope_clear(vkaa_scope_s *restrict scope)
+{
+	hashmap_clear(&scope->var);
+}

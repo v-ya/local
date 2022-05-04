@@ -7,6 +7,12 @@
 typedef struct vkaa_std_typeid_t {
 	uintptr_t id_void;
 	uintptr_t id_scope;
+	uintptr_t id_syntax;
+	uintptr_t id_function;
+	uintptr_t id_string;
+	uintptr_t id_uint;
+	uintptr_t id_int;
+	uintptr_t id_float;
 } vkaa_std_typeid_t;
 
 typedef struct vkaa_std_s {

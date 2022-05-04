@@ -1,9 +1,4 @@
 #include "std.h"
-#include "../vkaa.syntax.h"
-#include "../vkaa.tpool.h"
-#include "../vkaa.scope.h"
-#include "../vkaa.execute.h"
-#include "../vkaa.parse.h"
 
 static void vkaa_std_free_func(vkaa_std_s *restrict r)
 {

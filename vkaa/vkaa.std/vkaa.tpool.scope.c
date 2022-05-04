@@ -1,5 +1,4 @@
 #include "std.tpool.h"
-#include "../vkaa.scope.h"
 
 static void vkaa_std_var_scope_free_func(vkaa_std_var_scope_s *restrict r)
 {
@@ -21,7 +20,7 @@ static vkaa_var_s* vkaa_std_type_scope_create(const vkaa_type_s *restrict type, 
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, uintptr_t id)
+vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "scope", id, vkaa_std_type_scope_create);
+	return vkaa_std_tpool_set(tpool, "scope", typeid->id_scope, vkaa_std_type_scope_create);
 }
