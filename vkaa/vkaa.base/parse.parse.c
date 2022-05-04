@@ -30,15 +30,6 @@ static void vkaa_parse_stack_free_func(vkaa_parse_stack_t *restrict stack)
 	if (stack->this) refer_free(stack->this);
 }
 
-static void vkaa_parse_parse_var_reset(vkaa_parse_result_t *restrict var)
-{
-	if (var->data.none) refer_free(var->data.none);
-	if (var->this) refer_free(var->this);
-	var->type = vkaa_parse_rtype_none;
-	var->data.none = NULL;
-	var->this = NULL;
-}
-
 static const vkaa_parse_context_t* vkaa_parse_parse_stack_allow_push_var(const vkaa_parse_context_t *restrict context, uintptr_t layer_number)
 {
 	vkaa_parse_stack_t *restrict stack;
@@ -163,9 +154,7 @@ static void vkaa_parse_parse_stack_repush_fill_param(vkaa_parse_result_t *restri
 		param[i].data = var[i]->var_data;
 		param[i].this = var[i]->this;
 	}
-	param[i].type = vkaa_parse_rtype_none;
-	param[i].data.none = NULL;
-	param[i].this = NULL;
+	vkaa_parse_result_initial(param + i);
 }
 
 static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, vkaa_parse_optype_t optype)
@@ -226,8 +215,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 	}
 	if ((op = op1->op)->optype == optype && op->parse)
 	{
-		rvar.type = vkaa_parse_rtype_none;
-		rvar.data.none = NULL;
+		vkaa_parse_result_initial(&rvar);
 		if (op->parse(op, &rvar, context, op1->syntax, param))
 		{
 			while (rpos)
@@ -236,13 +224,13 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 				--rpos;
 			}
 			if (rvar.type != vkaa_parse_rtype_function || (rvar.data.function &&
-				vkaa_execute_push(context->execute, rvar.data.function)))
+				vkaa_execute_push(context->execute, rvar.data.function, context->tpool, context->scope)))
 			{
 				context = vkaa_parse_parse_push_var(context, layer_number, &rvar, vkaa_parse_keytype_normal);
-				vkaa_parse_parse_var_reset(&rvar);
+				vkaa_parse_result_clear(&rvar);
 				return context;
 			}
-			vkaa_parse_parse_var_reset(&rvar);
+			vkaa_parse_result_clear(&rvar);
 		}
 	}
 	label_fail:
@@ -285,45 +273,29 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op(const vkaa_parse_con
 	return NULL;
 }
 
-static const vkaa_parse_context_t* vkaa_parse_parse_pop_clear(const vkaa_parse_context_t *restrict context, uintptr_t layer_number)
+static const vkaa_parse_context_t* vkaa_parse_parse_pop_clear(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, vkaa_parse_result_t *restrict result)
 {
 	const vkaa_parse_operator_s *restrict op;
 	vkaa_parse_stack_t *restrict stack;
-	vkaa_function_s *restrict func;
-	vkaa_var_s *restrict last_var;
-	uintptr_t need_pop;
 	while ((op = vkaa_parse_parse_stack_get_last_op(context, layer_number)))
 	{
 		if (!vkaa_parse_parse_stack_repush(context, layer_number, op->optype))
 			goto label_fail;
 	}
-	switch ((need_pop = tparse_tstack_layer_number(context->stack) - layer_number))
+	switch (tparse_tstack_layer_number(context->stack) - layer_number)
 	{
-		case 0:
-			if (context->execute->execute_number)
-			{
-				func = context->execute->execute_array[context->execute->execute_number - 1];
-				label_set_last_var_by_func:
-				if (!(last_var = vkaa_function_okay(func, context->tpool, context->scope)))
-					goto label_fail;
-				label_set_last_var:
-				vkaa_execute_set_last(context->execute, last_var);
-			}
-			if (need_pop) tparse_tstack_pop(context->stack);
-			return context;
 		case 1:
 			if (!(stack = vkaa_parse_parse_stack_get(context, layer_number, 0, vkaa_parse_stack_type_var)))
 				goto label_fail;
-			switch (stack->var_type)
+			if (result)
 			{
-				case vkaa_parse_rtype_var:
-					last_var = stack->var_data.var;
-					goto label_set_last_var;
-				case vkaa_parse_rtype_function:
-					func = stack->var_data.function;
-					goto label_set_last_var_by_func;
-				default: break;
+				result->type = stack->var_type;
+				result->data.none = refer_save(stack->var_data.none);
+				result->this = (vkaa_var_s *) refer_save(stack->this);
 			}
+			tparse_tstack_pop(context->stack);
+			// fall through
+		case 0: return context;
 		default: break;
 	}
 	label_fail:
@@ -345,7 +317,7 @@ static vkaa_parse_operator_s* vkaa_parse_parse_get_operator(const vkaa_parse_con
 	return NULL;
 }
 
-vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number)
+vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result)
 {
 	const vkaa_syntax_t *restrict s;
 	vkaa_parse_keyword_s *restrict k;
@@ -358,9 +330,8 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 	ppos.syntax = syntax;
 	ppos.number = number;
 	ppos.pos = 0;
-	var.type = vkaa_parse_rtype_none;
-	var.data.none = NULL;
-	var.this = NULL;
+	vkaa_parse_result_initial(&var);
+	if (result) vkaa_parse_result_initial(result);
 	layer_number = tparse_tstack_layer_number(context->stack);
 	while (ppos.pos < number)
 	{
@@ -394,13 +365,13 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 						goto label_fail;
 				}
 				else goto label_fail;
-				vkaa_parse_parse_var_reset(&var);
+				vkaa_parse_result_clear(&var);
 				break;
 			case vkaa_syntax_type_operator:
 				goto label_operator;
 			case vkaa_syntax_type_comma:
 			case vkaa_syntax_type_semicolon:
-				if (!vkaa_parse_parse_pop_clear(context, layer_number))
+				if (!vkaa_parse_parse_pop_clear(context, layer_number, NULL))
 					goto label_fail;
 				break;
 			case vkaa_syntax_type_brackets:
@@ -426,15 +397,15 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 					goto label_fail;
 				if (!vkaa_parse_parse_push_var(context, layer_number, &var, t2v->type))
 					goto label_fail;
-				vkaa_parse_parse_var_reset(&var);
+				vkaa_parse_result_clear(&var);
 				break;
 			default: goto label_fail;
 		}
 	}
-	if (vkaa_parse_parse_pop_clear(context, layer_number))
+	if (vkaa_parse_parse_pop_clear(context, layer_number, result))
 		return context->parse;
 	label_fail:
-	vkaa_parse_parse_var_reset(&var);
+	vkaa_parse_result_clear(&var);
 	while (tparse_tstack_layer_number(context->stack) > layer_number)
 		tparse_tstack_pop(context->stack);
 	return NULL;

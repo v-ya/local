@@ -1,5 +1,6 @@
 #include "../vkaa.parse.h"
 #include "../vkaa.syntax.h"
+#include "../vkaa.function.h"
 
 static void vkaa_parse_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
@@ -94,4 +95,30 @@ const vkaa_syntax_t* vkaa_parse_syntax_get_last(vkaa_parse_syntax_t *restrict sy
 void vkaa_parse_operator_finally(vkaa_parse_operator_s *restrict operator)
 {
 	if (operator->oplevel) refer_free(operator->oplevel);
+}
+
+void vkaa_parse_result_initial(vkaa_parse_result_t *restrict result)
+{
+	result->type = vkaa_parse_rtype_none;
+	result->data.none = NULL;
+	result->this = NULL;
+}
+
+void vkaa_parse_result_clear(vkaa_parse_result_t *restrict result)
+{
+	if (result->data.none) refer_free(result->data.none);
+	if (result->this) refer_free(result->this);
+	result->type = vkaa_parse_rtype_none;
+	result->data.none = NULL;
+	result->this = NULL;
+}
+
+vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope)
+{
+	switch (result->type)
+	{
+		case vkaa_parse_rtype_var: return result->data.var;
+		case vkaa_parse_rtype_function: return vkaa_function_okay(result->data.function, tpool, scope);
+		default: return NULL;
+	}
 }

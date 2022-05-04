@@ -29,7 +29,7 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 		vkaa_std_parse_set_operator_binary(r, opl, ">=", vkaa_std_oplevel_relation, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "<=", vkaa_std_oplevel_relation, vkaa_parse_optowards_left2right) &&
 		// vkaa_std_parse_set_operator_ternary(r, opl, "?", ":", vkaa_std_oplevel_condition, vkaa_parse_optowards_right2left, NULL) &&
-		vkaa_std_parse_set_operator_binary(r, opl, "=", vkaa_std_oplevel_assign, vkaa_parse_optowards_right2left) &&
+		vkaa_std_parse_set_operator_binary_assign(r, opl, "=", vkaa_std_oplevel_assign, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "+=", vkaa_std_oplevel_assign, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "-=", vkaa_std_oplevel_assign, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "*=", vkaa_std_oplevel_assign, vkaa_parse_optowards_right2left) &&

@@ -24,9 +24,9 @@ vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, c
 		refer_set_free(r, (refer_free_f) vkaa_function_free_func);
 		if (!(r->function = rdata->function)) goto label_fail;
 		r->selector = (const vkaa_selector_s *) refer_save(selector);
-		if (!(r->this = (vkaa_var_s *) refer_save(param->this))) goto label_fail;
+		r->this = (vkaa_var_s *) refer_save(param->this);
 		r->output = (vkaa_var_s *) refer_save(rdata->output_must);
-		if (!(r->output_typeid = rdata->output_typeid)) goto label_fail;
+		r->output_typeid = rdata->output_typeid;
 		r->input_number = param->input_number;
 		for (i = 0; i < r->input_number; ++i)
 		{

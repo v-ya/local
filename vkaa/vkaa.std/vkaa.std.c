@@ -64,7 +64,8 @@ vkaa_std_context_s* vkaa_std_context_append_syntax(vkaa_std_context_s *restrict 
 	c.scope = context->scope;
 	c.this = context->var;
 	tparse_tstack_clear(c.stack);
-	if (vkaa_parse_parse(&c, syntax->syntax_array, syntax->syntax_number))
+	if (vkaa_parse_parse(&c, syntax->syntax_array, syntax->syntax_number, NULL) &&
+		vkaa_execute_okay(c.execute, c.tpool, c.scope))
 		rr = context;
 	tparse_tstack_clear(c.stack);
 	return rr;
