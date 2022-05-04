@@ -18,7 +18,6 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_orginal_scope(const vkaa_pars
 				{
 					result->type = vkaa_parse_rtype_var;
 					result->data.var = var;
-					result->this = (vkaa_var_s *) refer_save(context->this);
 					return result;
 				}
 			}

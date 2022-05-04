@@ -31,6 +31,7 @@ vkaa_type_s* vkaa_std_tpool_set_with_data(vkaa_tpool_s *restrict tpool, const ch
 static void vkaa_std_create_tpool_initial_id(vkaa_std_typeid_t *restrict typeid, vkaa_tpool_s *restrict tpool)
 {
 	typeid->id_void = vkaa_tpool_genid(tpool);
+	typeid->id_null = vkaa_tpool_genid(tpool);
 	typeid->id_scope = vkaa_tpool_genid(tpool);
 	typeid->id_syntax = vkaa_tpool_genid(tpool);
 	typeid->id_function = vkaa_tpool_genid(tpool);
@@ -48,6 +49,7 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 		vkaa_std_create_tpool_initial_id(typeid, r);
 		if (
 			vkaa_std_tpool_set_void(r, typeid) &&
+			vkaa_std_tpool_set_null(r, typeid) &&
 			vkaa_std_tpool_set_scope(r, typeid) &&
 			vkaa_std_tpool_set_syntax(r, typeid) &&
 			vkaa_std_tpool_set_function(r, typeid) &&
@@ -55,7 +57,8 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 			vkaa_std_tpool_set_uint(r, typeid) &&
 			vkaa_std_tpool_set_int(r, typeid) &&
 			vkaa_std_tpool_set_float(r, typeid) &&
-			vkaa_tpool_var_const_enable_by_id(r, typeid->id_void)
+			vkaa_tpool_var_const_enable_by_id(r, typeid->id_void) &&
+			vkaa_tpool_var_const_enable_by_id(r, typeid->id_null)
 		) return r;
 		refer_free(r);
 	}

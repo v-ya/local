@@ -83,3 +83,10 @@ const vkaa_syntax_t* vkaa_parse_syntax_fetch_and_next(vkaa_parse_syntax_t *restr
 		return &syntax->syntax[syntax->pos++];
 	return NULL;
 }
+
+const vkaa_syntax_t* vkaa_parse_syntax_get_last(vkaa_parse_syntax_t *restrict syntax)
+{
+	if (syntax->pos)
+		return &syntax->syntax[syntax->pos - 1];
+	return NULL;
+}

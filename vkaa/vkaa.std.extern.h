@@ -29,6 +29,10 @@
 
 typedef struct vkaa_var_s vkaa_std_var_void_s;
 
+// var<null>
+
+typedef struct vkaa_var_s vkaa_std_var_null_s;
+
 // var<scope>
 
 typedef struct vkaa_std_var_scope_s {
