@@ -1,27 +1,15 @@
 #include "std.tpool.h"
 
-vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create)
+vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, const vkaa_std_typeid_t *restrict typeid)
 {
 	vkaa_type_s *restrict r, *rr;
 	rr = NULL;
 	if ((r = (vkaa_type_s *) refer_alloz(sizeof(vkaa_type_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_type_finally);
-		if (vkaa_type_initial(r, id, name, create) && vkaa_tpool_insert(tpool, r))
-			rr = r;
-		refer_free(r);
-	}
-	return rr;
-}
-
-vkaa_type_s* vkaa_std_tpool_set_with_data(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, uintptr_t size)
-{
-	vkaa_type_s *restrict r, *rr;
-	rr = NULL;
-	if (size >= sizeof(vkaa_type_s) && (r = (vkaa_type_s *) refer_alloz(size)))
-	{
-		refer_set_free(r, (refer_free_f) vkaa_type_finally);
-		if (vkaa_type_initial(r, id, name, create) && vkaa_tpool_insert(tpool, r))
+		if (vkaa_type_initial(r, id, name, create) &&
+			(!initial || initial(r, typeid)) &&
+			vkaa_tpool_insert(tpool, r))
 			rr = r;
 		refer_free(r);
 	}

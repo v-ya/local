@@ -15,5 +15,5 @@ static vkaa_var_s* vkaa_std_type_void_create(const vkaa_type_s *restrict type)
 
 vkaa_type_s* vkaa_std_tpool_set_void(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "void", typeid->id_void, vkaa_std_type_void_create);
+	return vkaa_std_tpool_set(tpool, "void", typeid->id_void, vkaa_std_type_void_create, NULL, typeid);
 }

@@ -21,5 +21,5 @@ static vkaa_var_s* vkaa_std_type_string_create(const vkaa_type_s *restrict type)
 
 vkaa_type_s* vkaa_std_tpool_set_string(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "string", typeid->id_string, vkaa_std_type_string_create);
+	return vkaa_std_tpool_set(tpool, "string", typeid->id_string, vkaa_std_type_string_create, NULL, typeid);
 }

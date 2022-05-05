@@ -1,6 +1,7 @@
 #include "../vkaa.parse.h"
 #include "../vkaa.syntax.h"
 #include "../vkaa.function.h"
+#include "../vkaa.var.h"
 
 static void vkaa_parse_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
@@ -119,6 +120,16 @@ vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result
 	{
 		case vkaa_parse_rtype_var: return result->data.var;
 		case vkaa_parse_rtype_function: return vkaa_function_okay(result->data.function);
+		default: return NULL;
+	}
+}
+
+const vkaa_type_s* vkaa_parse_result_get_type(const vkaa_parse_result_t *restrict result)
+{
+	switch (result->type)
+	{
+		case vkaa_parse_rtype_var: return result->data.var->type;
+		case vkaa_parse_rtype_function: return result->data.function->output_type;
 		default: return NULL;
 	}
 }

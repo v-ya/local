@@ -18,8 +18,6 @@ typedef struct vkaa_parse_s vkaa_parse_s;
 
 typedef enum vkaa_syntax_type_t vkaa_syntax_type_t;
 typedef struct vkaa_syntax_t vkaa_syntax_t;
-typedef struct vkaa_selector_param_t vkaa_selector_param_t;
-typedef struct vkaa_selector_rdata_t vkaa_selector_rdata_t;
 
 typedef vkaa_var_s* (*vkaa_function_f)(const vkaa_function_s *restrict r);
 

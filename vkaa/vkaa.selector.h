@@ -3,20 +3,15 @@
 
 #include "vkaa.h"
 
-struct vkaa_selector_param_t {
+typedef struct vkaa_selector_param_t {
+	const vkaa_tpool_s *tpool;
 	vkaa_execute_s *exec;
 	vkaa_var_s *this;
 	vkaa_var_s *const *input_list;
 	uintptr_t input_number;
-};
+} vkaa_selector_param_t;
 
-struct vkaa_selector_rdata_t {
-	vkaa_function_f function;
-	const vkaa_type_s *output_type;
-	vkaa_var_s *output_must;
-};
-
-typedef vkaa_selector_rdata_t* (*vkaa_selector_f)(const vkaa_selector_s *restrict r, const vkaa_selector_param_t *restrict param, vkaa_selector_rdata_t *restrict rdata);
+typedef vkaa_function_s* (*vkaa_selector_f)(const vkaa_selector_s *restrict r, const vkaa_selector_param_t *restrict param);
 
 struct vkaa_selector_s {
 	vkaa_selector_f selector;

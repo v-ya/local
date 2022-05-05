@@ -33,23 +33,12 @@ static vkaa_selector_s* vkaa_std_operator_get_selector_by_result(const vkaa_pars
 static vkaa_function_s* vkaa_std_operator_selector_do(const vkaa_selector_s *restrict selector, const vkaa_parse_context_t *restrict context, vkaa_var_s *restrict this, vkaa_var_s **input_list, uintptr_t input_number)
 {
 	vkaa_selector_param_t param;
-	vkaa_selector_rdata_t rdata;
-	vkaa_function_s *restrict r;
-	r = NULL;
+	param.tpool = context->tpool;
 	param.exec = context->execute;
-	param.this = this?this:context->this;
+	param.this = this?context->this:this;
 	param.input_list = input_list;
 	param.input_number = input_number;
-	rdata.function = NULL;
-	rdata.output_type = NULL;
-	rdata.output_must = NULL;
-	if (selector->selector(selector, &param, &rdata))
-		r = vkaa_function_alloc(selector, &param, &rdata);
-	if (rdata.output_type)
-		refer_free(rdata.output_type);
-	if (rdata.output_must)
-		refer_free(rdata.output_must);
-	return r;
+	return selector->selector(selector, &param);
 }
 
 static vkaa_parse_result_t* vkaa_std_operator_unary_brackets(const vkaa_parse_operator_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, const vkaa_parse_result_t *restrict param)
@@ -127,13 +116,25 @@ static vkaa_parse_result_t* vkaa_std_operator_proxy(const vkaa_parse_operator_s 
 	return NULL;
 }
 
+static vkaa_var_s* vkaa_std_operator_assign_try(const vkaa_parse_result_t *restrict r0, const vkaa_parse_result_t *restrict r1)
+{
+	const vkaa_type_s *restrict type;
+	vkaa_function_s *restrict func;
+	vkaa_var_s *restrict v;
+	if ((type = vkaa_parse_result_get_type(r0)) &&
+		r1->type == vkaa_parse_rtype_function &&
+		type == vkaa_parse_result_get_type(r1) &&
+		!(func = r1->data.function)->output &&
+		(v = vkaa_parse_result_get_var(r0)) &&
+		vkaa_function_set_output(func, v))
+		return v;
+	return NULL;
+}
+
 static vkaa_parse_result_t* vkaa_std_operator_assign_proxy(const vkaa_parse_operator_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, const vkaa_parse_result_t *const param_list)
 {
 	vkaa_var_s *restrict v;
-	if (param_list[1].type == vkaa_parse_rtype_function &&
-		!param_list[1].data.function->output &&
-		(v = vkaa_parse_result_get_var(&param_list[0])) &&
-		v->type == param_list[1].data.function->output_type)
+	if ((v = vkaa_std_operator_assign_try(&param_list[0], &param_list[1])))
 	{
 		result->type = vkaa_parse_rtype_var;
 		result->data.var = (vkaa_var_s *) refer_save(v);

@@ -101,8 +101,48 @@ typedef struct vkaa_std_var_float_s {
 
 // tpool
 
-vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create);
-vkaa_type_s* vkaa_std_tpool_set_with_data(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, uintptr_t size);
+typedef vkaa_type_s* (*vkaa_std_type_initial_f)(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid);
+
+vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, const vkaa_std_typeid_t *restrict typeid);
+
+// convert
+
+const vkaa_selector_s* vkaa_std_convert_test_by_type(const vkaa_type_s *restrict src, const vkaa_type_s *restrict dst);
+const vkaa_selector_s* vkaa_std_convert_test_by_name(const vkaa_type_s *restrict src, const char *restrict dst);
+const vkaa_selector_s* vkaa_std_convert_test_by_typeid(const vkaa_type_s *restrict src, uintptr_t dst, const vkaa_tpool_s *restrict tpool);
+vkaa_var_s* vkaa_std_convert_by_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, vkaa_var_s *restrict dst);
+vkaa_function_s* vkaa_std_convert_by_typeid(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, uintptr_t dst);
+
+// selector
+
+typedef enum vkaa_std_selector_output_t {
+	vkaa_std_selector_output_any,
+	vkaa_std_selector_output_this,
+	vkaa_std_selector_output_input_first,
+	vkaa_std_selector_output_new,
+} vkaa_std_selector_output_t;
+
+typedef struct vkaa_std_selector_desc_t {
+	vkaa_function_f function;
+	vkaa_std_selector_output_t output;
+	uintptr_t output_typeid;
+	uintptr_t input_number;
+	uintptr_t input_typeid[];
+} vkaa_std_selector_desc_t;
+
+typedef struct vkaa_std_selector_s {
+	vkaa_selector_s selector;
+	vattr_s *std_desc;
+} vkaa_std_selector_s;
+
+vkaa_std_selector_s* vkaa_std_selector_initial(vkaa_std_selector_s *restrict selector);
+void vkaa_std_selector_finally(vkaa_std_selector_s *restrict selector);
+vkaa_std_selector_s* vkaa_std_selector_alloc(void);
+vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict selector, const char *restrict name, const vkaa_std_selector_desc_t *restrict desc, const uintptr_t *restrict input_typeid);
+
+const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param);
+vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc);
+vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param);
 
 // parse
 
