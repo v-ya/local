@@ -25,3 +25,10 @@ vkaa_selector_s* vkaa_type_find_selector(const vkaa_type_s *restrict type, const
 {
 	return (vkaa_selector_s *) vattr_get_first(type->selector, name);
 }
+
+vkaa_selector_s* vkaa_type_insert_selector(const vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_s *restrict selector)
+{
+	if (selector && vattr_insert_first(type->selector, name, selector))
+		return selector;
+	return NULL;
+}

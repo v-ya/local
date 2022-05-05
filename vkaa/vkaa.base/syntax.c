@@ -238,6 +238,32 @@ static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_operator(void)
 	return NULL;
 }
 
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_number_parse_func(vkaa_syntaxor_parse_match_s *restrict p, vkaa_syntaxor_context_t *restrict context)
+{
+	uintptr_t p0, p1, p2;
+	p1 = tparse_tword_skip(p->edge, context->data, context->size, p0 = context->pos);
+	if (p1 > p0)
+	{
+		if (context->data[p1 - 1] == 'e' || context->data[p1 - 1] == 'E')
+		{
+			if (p1 < context->size)
+			{
+				if (context->data[p1] == '+' || context->data[p1] == '-')
+				{
+					p2 = tparse_tword_skip(p->edge, context->data, context->size, p1 + 1);
+					if (p2 > p1 + 1) p1 = p2;
+				}
+			}
+		}
+		if (vkaa_syntax_push_nstring(context->syntax, p->type, context->data + p0, p1 - p0))
+		{
+			context->pos = p1;
+			return &p->p;
+		}
+	}
+	return NULL;
+}
+
 static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_number(void)
 {
 	static const uint8_t s_edge[] = ".BbEeXx";
@@ -246,6 +272,7 @@ static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_number(void)
 	{
 		tparse_tword_edge_s *restrict e;
 		uintptr_t i, n;
+		r->p.parse = (vkaa_syntaxor_parse_f) vkaa_syntaxor_parse_number_parse_func;
 		e = r->edge;
 		for (i = '0', n = '9'; i <= n; ++i)
 			e->edge[i] = tparse_tword_edge_head | tparse_tword_edge_inner | tparse_tword_edge_tail;

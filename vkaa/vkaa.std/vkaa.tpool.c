@@ -16,6 +16,19 @@ vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restri
 	return rr;
 }
 
+vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid)
+{
+	vkaa_std_selector_s *s, *snew;
+	if (!vkaa_type_find_selector(type, name) && (snew = vkaa_std_selector_alloc()))
+	{
+		s = (vkaa_std_selector_s *) vkaa_type_insert_selector(type, name, &snew->selector);
+		refer_free(snew);
+		if (s && vkaa_std_selector_append(s, name, function, output, this_typeid, output_typeid, input_number, input_typeid))
+			return s;
+	}
+	return NULL;
+}
+
 static void vkaa_std_create_tpool_initial_id(vkaa_std_typeid_t *restrict typeid, vkaa_tpool_s *restrict tpool)
 {
 	typeid->id_void = vkaa_tpool_genid(tpool);

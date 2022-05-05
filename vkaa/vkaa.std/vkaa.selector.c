@@ -85,7 +85,7 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 		for (i = 0; i < n; ++i)
 		{
 			if (input_list[i]->type_id != input_typeid[i] &&
-				vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool))
+				!vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool))
 				goto label_fail;
 		}
 		return desc;

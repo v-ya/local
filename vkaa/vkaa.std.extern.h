@@ -66,9 +66,11 @@ typedef struct vkaa_std_var_function_s {
 
 // var<bool>
 
+typedef uintptr_t vkaa_std_bool_t;
+
 typedef struct vkaa_std_var_bool_s {
 	vkaa_var_s var;
-	uintptr_t value;
+	vkaa_std_bool_t value;
 } vkaa_std_var_bool_s;
 
 // var<string>
@@ -80,23 +82,29 @@ typedef struct vkaa_std_var_string_s {
 
 // var<uint>
 
+typedef uintptr_t vkaa_std_uint_t;
+
 typedef struct vkaa_std_var_uint_s {
 	vkaa_var_s var;
-	uintptr_t value;
+	vkaa_std_uint_t value;
 } vkaa_std_var_uint_s;
 
 // var<int>
 
+typedef intptr_t vkaa_std_int_t;
+
 typedef struct vkaa_std_var_int_s {
 	vkaa_var_s var;
-	intptr_t value;
+	vkaa_std_int_t value;
 } vkaa_std_var_int_s;
 
 // var<float>
 
+typedef double vkaa_std_float_t;
+
 typedef struct vkaa_std_var_float_s {
 	vkaa_var_s var;
-	double value;
+	vkaa_std_float_t value;
 } vkaa_std_var_float_s;
 
 // tpool

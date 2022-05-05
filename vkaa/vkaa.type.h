@@ -17,5 +17,6 @@ vkaa_type_s* vkaa_type_initial(vkaa_type_s *restrict type, uintptr_t id, const c
 void vkaa_type_finally(vkaa_type_s *restrict type);
 
 vkaa_selector_s* vkaa_type_find_selector(const vkaa_type_s *restrict type, const char *restrict name);
+vkaa_selector_s* vkaa_type_insert_selector(const vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_s *restrict selector);
 
 #endif
