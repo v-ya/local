@@ -1,6 +1,6 @@
 #include "std.parse.h"
 
-static vkaa_parse_result_t* vkaa_std_keyword_var(const vkaa_std_keyword_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax)
+static vkaa_std_keyword_define(var)
 {
 	const vkaa_syntax_t *restrict s;
 	const vkaa_syntax_t *restrict k;
@@ -39,5 +39,5 @@ static vkaa_parse_result_t* vkaa_std_keyword_var(const vkaa_std_keyword_s *restr
 
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_var(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_parse_set_keyword(parse, typeid, "var", vkaa_std_keyword_var, vkaa_parse_keytype_complete);
+	return vkaa_std_parse_set_keyword(parse, typeid, "var", vkaa_std_keyword_label(var), vkaa_parse_keytype_complete);
 }

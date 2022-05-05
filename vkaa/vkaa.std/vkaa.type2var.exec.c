@@ -1,6 +1,6 @@
 #include "std.parse.h"
 
-static vkaa_parse_result_t* vkaa_std_type2var_exec_orginal_scope(const vkaa_std_type2var_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax)
+static vkaa_std_type2var_define(exec_orginal_scope)
 {
 	const vkaa_syntax_s *restrict s;
 	switch (syntax->type)
@@ -26,7 +26,7 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_orginal_scope(const vkaa_std_
 	}
 }
 
-static vkaa_parse_result_t* vkaa_std_type2var_exec_new_scope(const vkaa_std_type2var_s *restrict r, vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax)
+static vkaa_std_type2var_define(exec_new_scope)
 {
 	vkaa_parse_context_t c;
 	const vkaa_type_s *restrict type;
@@ -39,7 +39,7 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_new_scope(const vkaa_std_type
 		c = *context;
 		c.scope = v->scope;
 		c.this = &v->var;
-		rr = vkaa_std_type2var_exec_orginal_scope(r, result, &c, syntax);
+		rr = vkaa_std_type2var_label(exec_orginal_scope)(r, result, &c, syntax);
 		refer_free(v);
 	}
 	return rr;
@@ -47,15 +47,15 @@ static vkaa_parse_result_t* vkaa_std_type2var_exec_new_scope(const vkaa_std_type
 
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_scope(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_scope, vkaa_std_type2var_exec_new_scope, vkaa_parse_keytype_first_allow_ignore);
+	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_scope, vkaa_std_type2var_label(exec_new_scope), vkaa_parse_keytype_first_allow_ignore);
 }
 
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_brackets(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_brackets, vkaa_std_type2var_exec_orginal_scope, vkaa_parse_keytype_normal);
+	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_brackets, vkaa_std_type2var_label(exec_orginal_scope), vkaa_parse_keytype_normal);
 }
 
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var_square(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_square, vkaa_std_type2var_exec_orginal_scope, vkaa_parse_keytype_normal);
+	return vkaa_std_parse_set_type2var(parse, typeid, vkaa_syntax_type_square, vkaa_std_type2var_label(exec_orginal_scope), vkaa_parse_keytype_normal);
 }
