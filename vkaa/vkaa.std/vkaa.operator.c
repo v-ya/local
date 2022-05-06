@@ -14,7 +14,9 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, con
 		r->towards = towards;
 		r->oplevel = (const vkaa_level_s *) refer_save(level);
 		r->ternary_second_operator = ternary_second_operator;
-		rr = vkaa_parse_operator_set(p, operator, r);
+		if (optype != vkaa_parse_optype_unary_right)
+			rr = vkaa_parse_operator_set(p, operator, r);
+		else rr = vkaa_parse_op1unary_set(p, operator, r);
 		refer_free(r);
 	}
 	return rr;
@@ -185,11 +187,6 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_assign(vkaa_parse_s *r
 vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_second_type2var(vkaa_parse_s *restrict p, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, opl, operator, vkaa_std_operator_label(proxy), vkaa_parse_optype_binary_second_type2var, towards, oplevel, NULL);
-}
-
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_or_unary_right(vkaa_parse_s *restrict p, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
-{
-	return vkaa_std_parse_set_operator(p, opl, operator, vkaa_std_operator_label(proxy), vkaa_parse_optype_binary_or_unary_right, towards, oplevel, NULL);
 }
 
 vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards, vkaa_std_operator_f parse)

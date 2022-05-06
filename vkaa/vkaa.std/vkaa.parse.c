@@ -6,14 +6,16 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 		vkaa_std_parse_set_operator_unary_left(r, opl, vkaa_parse_operator_brackets, vkaa_std_oplevel_inquiry, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_unary_left(r, opl, vkaa_parse_operator_square, vkaa_std_oplevel_inquiry, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary_second_type2var(r, opl, ".", vkaa_std_oplevel_inquiry, vkaa_parse_optowards_left2right) &&
+		vkaa_std_parse_set_operator_unary_right(r, opl, "+", vkaa_std_oplevel_unary, vkaa_parse_optowards_right2left) &&
+		vkaa_std_parse_set_operator_unary_right(r, opl, "-", vkaa_std_oplevel_unary, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_unary_right(r, opl, "!", vkaa_std_oplevel_unary, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_unary_right(r, opl, "~", vkaa_std_oplevel_unary, vkaa_parse_optowards_right2left) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "**", vkaa_std_oplevel_arith_3, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "*", vkaa_std_oplevel_arith_2, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "/", vkaa_std_oplevel_arith_2, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "%", vkaa_std_oplevel_arith_2, vkaa_parse_optowards_left2right) &&
-		vkaa_std_parse_set_operator_binary_or_unary_right(r, opl, "+", vkaa_std_oplevel_arith_1, vkaa_parse_optowards_left2right) &&
-		vkaa_std_parse_set_operator_binary_or_unary_right(r, opl, "-", vkaa_std_oplevel_arith_1, vkaa_parse_optowards_left2right) &&
+		vkaa_std_parse_set_operator_binary(r, opl, "+", vkaa_std_oplevel_arith_1, vkaa_parse_optowards_left2right) &&
+		vkaa_std_parse_set_operator_binary(r, opl, "-", vkaa_std_oplevel_arith_1, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "&", vkaa_std_oplevel_bitwise, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "|", vkaa_std_oplevel_bitwise, vkaa_parse_optowards_left2right) &&
 		vkaa_std_parse_set_operator_binary(r, opl, "^", vkaa_std_oplevel_bitwise, vkaa_parse_optowards_left2right) &&

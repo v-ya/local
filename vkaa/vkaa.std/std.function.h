@@ -24,10 +24,16 @@ vkaa_std_function_define(float, op_div);
 vkaa_std_function_define(uint, op_add);
 vkaa_std_function_define(int, op_add);
 vkaa_std_function_define(float, op_add);
+vkaa_std_function_define(uint, op_pos);
+vkaa_std_function_define(int, op_pos);
+vkaa_std_function_define(float, op_pos);
 // -
 vkaa_std_function_define(uint, op_sub);
 vkaa_std_function_define(int, op_sub);
 vkaa_std_function_define(float, op_sub);
+vkaa_std_function_define(uint, op_neg);
+vkaa_std_function_define(int, op_neg);
+vkaa_std_function_define(float, op_neg);
 // =
 vkaa_std_function_define(bool, op_mov);
 vkaa_std_function_define(uint, op_mov);

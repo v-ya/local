@@ -189,17 +189,6 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 			if (!op1 || !var[0] || !var[1]) goto label_fail;
 			vkaa_parse_parse_stack_repush_fill_param(param, var, 2);
 			break;
-		case vkaa_parse_optype_binary_or_unary_right:
-			var[1] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
-			op1 = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_op);
-			if (!op1 || !var[1]) goto label_fail;
-			if ((var[0] = vkaa_parse_parse_stack_get(context, layer_number, rpos, vkaa_parse_stack_type_var)))
-			{
-				++rpos;
-				vkaa_parse_parse_stack_repush_fill_param(param, var, 2);
-			}
-			else vkaa_parse_parse_stack_repush_fill_param(param, var + 1, 1);
-			break;
 		case vkaa_parse_optype_ternary_second:
 			optype = vkaa_parse_optype_ternary_first;
 			var[2] = vkaa_parse_parse_stack_get(context, layer_number, rpos++, vkaa_parse_stack_type_var);
@@ -316,6 +305,13 @@ static vkaa_parse_operator_s* vkaa_parse_parse_get_operator(const vkaa_parse_con
 	return NULL;
 }
 
+static vkaa_parse_operator_s* vkaa_parse_parse_get_op1unary(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax)
+{
+	if (syntax->type == vkaa_syntax_type_operator)
+		return vkaa_parse_op1unary_get(context->parse, syntax->data.operator->string);
+	return NULL;
+}
+
 vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result)
 {
 	const vkaa_syntax_t *restrict s;
@@ -367,7 +363,11 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 				vkaa_parse_result_clear(&var);
 				break;
 			case vkaa_syntax_type_operator:
-				goto label_operator;
+				if (vkaa_parse_parse_stack_last_is_var(context, layer_number))
+					goto label_operator;
+				else if ((op = vkaa_parse_parse_get_op1unary(context, s)))
+					goto label_op1unary;
+				else goto label_fail;
 			case vkaa_syntax_type_comma:
 			case vkaa_syntax_type_semicolon:
 				if (!vkaa_parse_parse_pop_clear(context, layer_number, NULL))
@@ -380,6 +380,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 					label_operator:
 					if (!(op = vkaa_parse_parse_get_operator(context, s)))
 						goto label_fail;
+					label_op1unary:
 					if (!vkaa_parse_parse_push_op(context, layer_number, op, s))
 						goto label_fail;
 					break;

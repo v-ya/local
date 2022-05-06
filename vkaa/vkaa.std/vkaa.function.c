@@ -73,6 +73,21 @@ vkaa_std_function_define(float, op_add)
 	vkaa_std_vo(float) = vkaa_std_vp(float, 0) + vkaa_std_vp(float, 1);
 	return r->output;
 }
+vkaa_std_function_define(uint, op_pos)
+{
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0);
+	return r->output;
+}
+vkaa_std_function_define(int, op_pos)
+{
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0);
+	return r->output;
+}
+vkaa_std_function_define(float, op_pos)
+{
+	vkaa_std_vo(float) = vkaa_std_vp(float, 0);
+	return r->output;
+}
 
 // -
 vkaa_std_function_define(uint, op_sub)
@@ -88,6 +103,21 @@ vkaa_std_function_define(int, op_sub)
 vkaa_std_function_define(float, op_sub)
 {
 	vkaa_std_vo(float) = vkaa_std_vp(float, 0) - vkaa_std_vp(float, 1);
+	return r->output;
+}
+vkaa_std_function_define(uint, op_neg)
+{
+	vkaa_std_vo(uint) = -vkaa_std_vp(uint, 0);
+	return r->output;
+}
+vkaa_std_function_define(int, op_neg)
+{
+	vkaa_std_vo(int) = -vkaa_std_vp(int, 0);
+	return r->output;
+}
+vkaa_std_function_define(float, op_neg)
+{
+	vkaa_std_vo(float) = -vkaa_std_vp(float, 0);
 	return r->output;
 }
 

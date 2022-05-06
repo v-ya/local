@@ -12,6 +12,7 @@ static void vkaa_parse_free_func(vkaa_parse_s *restrict r)
 {
 	hashmap_uini(&r->keyword);
 	hashmap_uini(&r->operator);
+	hashmap_uini(&r->op1unary);
 	hashmap_uini(&r->type2var);
 }
 
@@ -21,10 +22,20 @@ vkaa_parse_s* vkaa_parse_alloc(void)
 	if ((r = (vkaa_parse_s *) refer_alloz(sizeof(vkaa_parse_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_parse_free_func);
-		if (hashmap_init(&r->keyword) && hashmap_init(&r->operator) && hashmap_init(&r->type2var))
+		if (hashmap_init(&r->keyword) &&
+			hashmap_init(&r->operator) &&
+			hashmap_init(&r->op1unary) &&
+			hashmap_init(&r->type2var))
 			return r;
 		refer_free(r);
 	}
+	return NULL;
+}
+
+static refer_t vkaa_parse_refer_set_by_name(hashmap_t *restrict hm, const char *restrict name, refer_t value)
+{
+	if (hashmap_set_name(hm, name, value, vkaa_parse_hashmap_free_func))
+		return refer_save(value);
 	return NULL;
 }
 
@@ -35,9 +46,7 @@ vkaa_parse_keyword_s* vkaa_parse_keyword_get(const vkaa_parse_s *restrict parse,
 
 vkaa_parse_keyword_s* vkaa_parse_keyword_set(vkaa_parse_s *restrict parse, const char *restrict keyword, vkaa_parse_keyword_s *restrict kw)
 {
-	if (hashmap_set_name(&parse->keyword, keyword, kw, vkaa_parse_hashmap_free_func))
-		return (vkaa_parse_keyword_s *) refer_save(kw);
-	return NULL;
+	return (vkaa_parse_keyword_s *) vkaa_parse_refer_set_by_name(&parse->keyword, keyword, kw);
 }
 
 void vkaa_parse_keyword_unset(vkaa_parse_s *restrict parse, const char *restrict keyword)
@@ -52,14 +61,27 @@ vkaa_parse_operator_s* vkaa_parse_operator_get(const vkaa_parse_s *restrict pars
 
 vkaa_parse_operator_s* vkaa_parse_operator_set(vkaa_parse_s *restrict parse, const char *restrict operator, vkaa_parse_operator_s *restrict op)
 {
-	if (hashmap_set_name(&parse->operator, operator, op, vkaa_parse_hashmap_free_func))
-		return (vkaa_parse_operator_s *) refer_save(op);
-	return NULL;
+	return (vkaa_parse_operator_s *) vkaa_parse_refer_set_by_name(&parse->operator, operator, op);
 }
 
 void vkaa_parse_operator_unset(vkaa_parse_s *restrict parse, const char *restrict operator)
 {
 	hashmap_delete_name(&parse->operator, operator);
+}
+
+vkaa_parse_operator_s* vkaa_parse_op1unary_get(const vkaa_parse_s *restrict parse, const char *restrict operator)
+{
+	return (vkaa_parse_operator_s *) hashmap_get_name(&parse->op1unary, operator);
+}
+
+vkaa_parse_operator_s* vkaa_parse_op1unary_set(vkaa_parse_s *restrict parse, const char *restrict operator, vkaa_parse_operator_s *restrict op)
+{
+	return (vkaa_parse_operator_s *) vkaa_parse_refer_set_by_name(&parse->op1unary, operator, op);
+}
+
+void vkaa_parse_op1unary_unset(vkaa_parse_s *restrict parse, const char *restrict operator)
+{
+	hashmap_delete_name(&parse->op1unary, operator);
 }
 
 vkaa_parse_type2var_s* vkaa_parse_type2var_get(const vkaa_parse_s *restrict parse, vkaa_syntax_type_t type)

@@ -27,10 +27,9 @@ typedef enum vkaa_parse_keytype_t {
 typedef enum vkaa_parse_optype_t {
 	vkaa_parse_optype_none,
 	vkaa_parse_optype_unary_left,             // var[] var()
-	vkaa_parse_optype_unary_right,            // !var ~var
+	vkaa_parse_optype_unary_right,            // !var ~var -var
 	vkaa_parse_optype_binary,                 // var+var var*var
 	vkaa_parse_optype_binary_second_type2var, // var.name => var["name"]
-	vkaa_parse_optype_binary_or_unary_right,  // var-var -var
 	vkaa_parse_optype_ternary_first,          // var?var:var
 	vkaa_parse_optype_ternary_second,         // var?var:var
 } vkaa_parse_optype_t;
@@ -79,7 +78,8 @@ typedef vkaa_parse_result_t* (*vkaa_parse_type2var_f)(const vkaa_parse_type2var_
 
 struct vkaa_parse_s {
 	hashmap_t keyword;
-	hashmap_t operator;
+	hashmap_t operator; // (other)
+	hashmap_t op1unary; // vkaa_parse_optype_unary_right
 	hashmap_t type2var;
 };
 
@@ -108,6 +108,9 @@ void vkaa_parse_keyword_unset(vkaa_parse_s *restrict parse, const char *restrict
 vkaa_parse_operator_s* vkaa_parse_operator_get(const vkaa_parse_s *restrict parse, const char *restrict operator);
 vkaa_parse_operator_s* vkaa_parse_operator_set(vkaa_parse_s *restrict parse, const char *restrict operator, vkaa_parse_operator_s *restrict op);
 void vkaa_parse_operator_unset(vkaa_parse_s *restrict parse, const char *restrict operator);
+vkaa_parse_operator_s* vkaa_parse_op1unary_get(const vkaa_parse_s *restrict parse, const char *restrict operator);
+vkaa_parse_operator_s* vkaa_parse_op1unary_set(vkaa_parse_s *restrict parse, const char *restrict operator, vkaa_parse_operator_s *restrict op);
+void vkaa_parse_op1unary_unset(vkaa_parse_s *restrict parse, const char *restrict operator);
 vkaa_parse_type2var_s* vkaa_parse_type2var_get(const vkaa_parse_s *restrict parse, vkaa_syntax_type_t type);
 vkaa_parse_type2var_s* vkaa_parse_type2var_set(vkaa_parse_s *restrict parse, vkaa_syntax_type_t type, vkaa_parse_type2var_s *restrict t2v);
 void vkaa_parse_type2var_unset(vkaa_parse_s *restrict parse, vkaa_syntax_type_t type);
