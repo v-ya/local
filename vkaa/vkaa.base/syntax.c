@@ -14,6 +14,7 @@ typedef vkaa_syntaxor_parse_s* (*vkaa_syntaxor_parse_f)(vkaa_syntaxor_parse_s *r
 struct vkaa_syntaxor_s {
 	tparse_tmapping_s *mapping;
 	tparse_tstack_s *stack;
+	vkaa_syntaxor_parse_s *status[256];
 };
 
 struct vkaa_syntaxor_context_t {
@@ -454,20 +455,28 @@ static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_create_outside(void)
 
 // initial
 
-static tparse_tmapping_s* vkaa_syntaxor_initial_parse_once(tparse_tmapping_s *restrict mapping, uint8_t c, vkaa_syntaxor_parse_s *restrict p)
+static inline void vkaa_syntaxor_set_parse_status(vkaa_syntaxor_parse_s *status[], uint8_t index, vkaa_syntaxor_parse_s *restrict p)
+{
+	if (status[index]) refer_free(status[index]);
+	status[index] = (vkaa_syntaxor_parse_s *) refer_save(p);
+}
+
+static tparse_tmapping_s* vkaa_syntaxor_initial_parse_once(vkaa_syntaxor_parse_s *status[], tparse_tmapping_s *restrict mapping, uint8_t c, vkaa_syntaxor_parse_s *restrict p)
 {
 	char c2[2];
 	c2[0] = (char) c;
 	c2[1] = 0;
+	vkaa_syntaxor_set_parse_status(status, c, p);
 	return mapping->add(mapping, c2, p);
 }
 
-static tparse_tmapping_s* vkaa_syntaxor_initial_parse_keys(tparse_tmapping_s *restrict mapping, const char *restrict keys, vkaa_syntaxor_parse_s *restrict p)
+static tparse_tmapping_s* vkaa_syntaxor_initial_parse_keys(vkaa_syntaxor_parse_s *status[], tparse_tmapping_s *restrict mapping, const char *restrict keys, vkaa_syntaxor_parse_s *restrict p)
 {
 	char c2[2];
 	c2[1] = 0;
 	while ((c2[0] = *keys))
 	{
+		vkaa_syntaxor_set_parse_status(status, (uint8_t) c2[0], p);
 		if (!mapping->add(mapping, c2, p))
 			goto label_fail;
 		++keys;
@@ -477,13 +486,14 @@ static tparse_tmapping_s* vkaa_syntaxor_initial_parse_keys(tparse_tmapping_s *re
 	return NULL;
 }
 
-static tparse_tmapping_s* vkaa_syntaxor_initial_parse_range(tparse_tmapping_s *restrict mapping, uintptr_t c0, uintptr_t c1, vkaa_syntaxor_parse_s *restrict p)
+static tparse_tmapping_s* vkaa_syntaxor_initial_parse_range(vkaa_syntaxor_parse_s *status[], tparse_tmapping_s *restrict mapping, uintptr_t c0, uintptr_t c1, vkaa_syntaxor_parse_s *restrict p)
 {
 	char c2[2];
 	c2[1] = 0;
 	while (c0 <= c1)
 	{
 		c2[0] = (char) c0;
+		vkaa_syntaxor_set_parse_status(status, (uint8_t) c0, p);
 		if (!mapping->add(mapping, c2, p))
 			goto label_fail;
 		++c0;
@@ -498,41 +508,41 @@ static vkaa_syntaxor_s* vkaa_syntaxor_initial(vkaa_syntaxor_s *restrict r)
 	vkaa_syntaxor_parse_s *restrict p;
 	// keyword
 	if (!(p = vkaa_syntaxor_parse_create_keyword())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_range(r->mapping, 'A', 'Z', p)) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_range(r->mapping, 'a', 'z', p)) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_once(r->mapping, '_', p)) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_range(r->mapping, 0x80, 0xff, p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_range(r->status, r->mapping, 'A', 'Z', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_range(r->status, r->mapping, 'a', 'z', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_once(r->status, r->mapping, '_', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_range(r->status, r->mapping, 0x80, 0xff, p)) goto label_fail;
 	refer_free(p);
 	// operator
 	if (!(p = vkaa_syntaxor_parse_create_operator())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_keys(r->mapping, "!#$%^&*+-./:<=>?@\\^`|~", p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_keys(r->status, r->mapping, "!#$%^&*+-./:<=>?@\\^`|~", p)) goto label_fail;
 	refer_free(p);
 	// number
 	if (!(p = vkaa_syntaxor_parse_create_number())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_range(r->mapping, '0', '9', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_range(r->status, r->mapping, '0', '9', p)) goto label_fail;
 	refer_free(p);
 	// comma
 	if (!(p = vkaa_syntaxor_parse_create_comma())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_once(r->mapping, ',', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_once(r->status, r->mapping, ',', p)) goto label_fail;
 	refer_free(p);
 	// semicolon
 	if (!(p = vkaa_syntaxor_parse_create_semicolon())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_once(r->mapping, ';', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_once(r->status, r->mapping, ';', p)) goto label_fail;
 	refer_free(p);
 	// string
 	if (!(p = vkaa_syntaxor_parse_create_string())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_once(r->mapping, '\"', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_once(r->status, r->mapping, '\"', p)) goto label_fail;
 	refer_free(p);
 	// multichar
 	if (!(p = vkaa_syntaxor_parse_create_multichar())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_once(r->mapping, '\'', p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_once(r->status, r->mapping, '\'', p)) goto label_fail;
 	refer_free(p);
 	// scope brackets square
 	if (!(p = vkaa_syntaxor_parse_create_inside())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_keys(r->mapping, "([{", p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_keys(r->status, r->mapping, "([{", p)) goto label_fail;
 	refer_free(p);
 	if (!(p = vkaa_syntaxor_parse_create_outside())) goto label_fail;
-	if (!vkaa_syntaxor_initial_parse_keys(r->mapping, ")]}", p)) goto label_fail;
+	if (!vkaa_syntaxor_initial_parse_keys(r->status, r->mapping, ")]}", p)) goto label_fail;
 	refer_free(p);
 	return r;
 	label_fail:
@@ -542,8 +552,15 @@ static vkaa_syntaxor_s* vkaa_syntaxor_initial(vkaa_syntaxor_s *restrict r)
 
 static void vkaa_syntaxor_free_func(vkaa_syntaxor_s *restrict r)
 {
+	uintptr_t i, n;
 	if (r->mapping) refer_free(r->mapping);
 	if (r->stack) refer_free(r->stack);
+	n = sizeof(r->status) / sizeof(*r->status);
+	for (i = 0; i < n; ++i)
+	{
+		if (r->status[i])
+			refer_free(r->status[i]);
+	}
 }
 
 vkaa_syntaxor_s* vkaa_syntaxor_alloc(void)
@@ -559,6 +576,99 @@ vkaa_syntaxor_s* vkaa_syntaxor_alloc(void)
 		refer_free(r);
 	}
 	return NULL;
+}
+
+typedef struct vkaa_syntaxor_parse_comment_s {
+	vkaa_syntaxor_parse_s p;
+	vkaa_syntaxor_parse_s *next;
+	refer_nstring_t start;
+	refer_nstring_t stop;
+} vkaa_syntaxor_parse_comment_s;
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_comment_parse_func(vkaa_syntaxor_parse_comment_s *restrict p, vkaa_syntaxor_context_t *restrict context)
+{
+	const char *restrict s, *restrict t, *restrict u;
+	uintptr_t n, m, l;
+	s = context->data + context->pos;
+	n = context->size - context->pos;
+	if ((m = p->start->length) > n)
+		goto label_not_hit;
+	if (memcmp(s, p->start->string, m))
+		goto label_not_hit;
+	s += m;
+	n -= m;
+	t = p->stop->string;
+	m = p->stop->length;
+	while ((u = memchr(s, *t, n)))
+	{
+		l = (uintptr_t) u - (uintptr_t) s;
+		s += l;
+		n -= l;
+		if (m > n) break;
+		if (!memcmp(s, t, m))
+		{
+			n -= m;
+			context->pos = context->size - n;
+			return &p->p;
+		}
+		++s;
+		--n;
+	}
+	context->pos = context->size;
+	return &p->p;
+	label_not_hit:
+	if (!p->next || p->next->parse(p->next, context))
+		return &p->p;
+	return NULL;
+}
+
+static void vkaa_syntaxor_parse_comment_free_func(vkaa_syntaxor_parse_comment_s *restrict r)
+{
+	if (r->next) refer_free(r->next);
+	if (r->start) refer_free(r->start);
+	if (r->stop) refer_free(r->stop);
+}
+
+static vkaa_syntaxor_parse_s* vkaa_syntaxor_parse_comment_alloc(const char *restrict start, const char *restrict stop, vkaa_syntaxor_parse_s *restrict next)
+{
+	vkaa_syntaxor_parse_comment_s *restrict r;
+	if (start && stop && *start && *stop &&
+		(r = (vkaa_syntaxor_parse_comment_s *) refer_alloz(sizeof(vkaa_syntaxor_parse_comment_s))))
+	{
+		refer_set_free(r, (refer_free_f) vkaa_syntaxor_parse_comment_free_func);
+		r->next = (vkaa_syntaxor_parse_s *) refer_save(next);
+		if ((r->start = refer_dump_nstring(start)) &&
+			(r->stop = refer_dump_nstring(stop)))
+		{
+			r->p.parse = (vkaa_syntaxor_parse_f) vkaa_syntaxor_parse_comment_parse_func;
+			return &r->p;
+		}
+		refer_free(r);
+	}
+	return NULL;
+}
+
+vkaa_syntaxor_s* vkaa_syntaxor_add_comment(vkaa_syntaxor_s *restrict syntaxor, const char *restrict start, const char *restrict stop)
+{
+	vkaa_syntaxor_s *rr;
+	vkaa_syntaxor_parse_s *restrict comment;
+	char c2[2];
+	rr = NULL;
+	if (start && stop && *start && *stop)
+	{
+		if ((comment = vkaa_syntaxor_parse_comment_alloc(start, stop, syntaxor->status[*(uint8_t *) start])))
+		{
+			c2[0] = *start;
+			c2[1] = 0;
+			if (syntaxor->mapping->add(syntaxor->mapping, c2, comment))
+			{
+				vkaa_syntaxor_set_parse_status(syntaxor->status, *(uint8_t *) start, comment);
+				rr = syntaxor;
+			}
+			refer_free(comment);
+		}
+	}
+	return rr;
 }
 
 // create syntax

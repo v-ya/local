@@ -40,14 +40,15 @@ struct vkaa_syntax_s {
 	uintptr_t syntax_number;
 };
 
-vkaa_syntaxor_s* vkaa_syntaxor_alloc(void);
-
 vkaa_syntax_s* vkaa_syntax_alloc_empty(void);
 vkaa_syntax_s* vkaa_syntax_push_none(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type);
 refer_nstring_t vkaa_syntax_push_nstring(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type, const char *restrict data, uintptr_t length);
 vkaa_syntax_s* vkaa_syntax_push_syntax(vkaa_syntax_s *restrict syntax, vkaa_syntax_type_t type);
 
 const vkaa_syntax_t* vkaa_syntax_test(const vkaa_syntax_t *restrict syntax, vkaa_syntax_type_t type, const char *restrict string);
+
+vkaa_syntaxor_s* vkaa_syntaxor_alloc(void);
+vkaa_syntaxor_s* vkaa_syntaxor_add_comment(vkaa_syntaxor_s *restrict syntaxor, const char *restrict start, const char *restrict stop);
 
 const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const char *restrict source_data, uintptr_t source_length);
 

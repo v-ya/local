@@ -30,6 +30,15 @@ static void vkaa_std_create_tpool_initial_id(vkaa_std_typeid_t *restrict typeid,
 	typeid->id_float = vkaa_tpool_genid(tpool);
 }
 
+static vkaa_error_s* vkaa_std_create_tpool_initial_error(vkaa_error_s *restrict error)
+{
+	if (
+		vkaa_error_add_error(error, vkaa_std_error_memory_less) &&
+		vkaa_error_add_error(error, vkaa_std_error_div_zero)
+	) return error;
+	return NULL;
+}
+
 vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 {
 	vkaa_tpool_s *restrict r;
@@ -37,6 +46,7 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
 	{
 		vkaa_std_create_tpool_initial_id(typeid, r);
 		if (
+			vkaa_std_create_tpool_initial_error(r->e) &&
 			vkaa_std_tpool_set_void(r, typeid) &&
 			vkaa_std_tpool_set_null(r, typeid) &&
 			vkaa_std_tpool_set_scope(r, typeid) &&

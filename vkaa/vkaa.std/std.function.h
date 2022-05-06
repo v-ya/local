@@ -4,11 +4,13 @@
 #include "std.h"
 
 #define vkaa_std_function_label(_type, _name)   vkaa_std_function__##_type##_##_name
-#define vkaa_std_function_define(_type, _name)  vkaa_var_s* vkaa_std_function_label(_type, _name)(const vkaa_function_s *restrict r)
+#define vkaa_std_function_define(_type, _name)  uintptr_t vkaa_std_function_label(_type, _name)(const vkaa_function_s *restrict r)
 
 #define vkaa_std_vp(_type, _i)  (((vkaa_std_var_##_type##_s *) r->input_list[_i])->value)
 #define vkaa_std_vo(_type)      (((vkaa_std_var_##_type##_s *) r->output)->value)
 #define vkaa_std_vt(_type)      (((vkaa_std_var_##_type##_s *) r->this)->value)
+
+#define vkaa_std_error(_e)  vkaa_error_get_id(r->output->type->error, vkaa_std_error_##_e);
 
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
 

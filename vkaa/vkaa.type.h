@@ -10,6 +10,7 @@ struct vkaa_type_s {
 	uintptr_t id;
 	const char *name;
 	vattr_s *selector;
+	vkaa_error_s *error;
 	vkaa_type_create_f create;
 };
 

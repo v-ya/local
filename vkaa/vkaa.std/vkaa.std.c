@@ -16,6 +16,8 @@ const vkaa_std_s* vkaa_std_alloc(void)
 	{
 		refer_set_free(r, (refer_free_f) vkaa_std_free_func);
 		if ((r->syntaxor = vkaa_syntaxor_alloc()) &&
+			vkaa_syntaxor_add_comment(r->syntaxor, "#", "\n") &&
+			vkaa_syntaxor_add_comment(r->syntaxor, "##", "##") &&
 			(r->oplevel = vkaa_std_create_oplevel()) &&
 			(r->tpool = vkaa_std_create_tpool(&r->typeid)) &&
 			(r->parse = vkaa_std_create_parse(r->oplevel, &r->typeid)) &&
@@ -83,15 +85,7 @@ vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict 
 	return NULL;
 }
 
-vkaa_std_context_s* vkaa_std_context_exec(vkaa_std_context_s *restrict context, vkaa_var_s **restrict prvar)
+uintptr_t vkaa_std_context_exec(vkaa_std_context_s *restrict context)
 {
-	vkaa_var_s *restrict var;
-	var = NULL;
-	if (context->exec->execute_number)
-	{
-		if (!(var = vkaa_execute_do(context->exec)))
-			context = NULL;
-	}
-	if (prvar) *prvar = var;
-	return context;
+	return vkaa_execute_do(context->exec);
 }

@@ -1,14 +1,74 @@
 #include "../vkaa.execute.h"
 #include "../vkaa.function.h"
 
+typedef struct vkaa_execute_label_s {
+	exbuffer_t jumper_last_func_pos;
+	uintptr_t label_pos;
+} vkaa_execute_label_s;
+
+// label
+
+static void vkaa_execute_label_free_func(vkaa_execute_label_s *restrict r)
+{
+	exbuffer_uini(&r->jumper_last_func_pos);
+}
+
+static vkaa_execute_label_s* vkaa_execute_label_alloc(void)
+{
+	vkaa_execute_label_s *restrict r;
+	if ((r = (vkaa_execute_label_s *) refer_alloz(sizeof(vkaa_execute_label_s))))
+	{
+		refer_set_free(r, (refer_free_f) vkaa_execute_label_free_func);
+		r->label_pos = ~(uintptr_t) 0;
+		if (exbuffer_init(&r->jumper_last_func_pos, 0))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+static vkaa_execute_label_s* vkaa_execute_label_append_jumper(vkaa_execute_label_s *restrict r, uintptr_t jumper_last_func_next_pos)
+{
+	if (jumper_last_func_next_pos)
+	{
+		jumper_last_func_next_pos -= 1;
+		if (exbuffer_append(&r->jumper_last_func_pos, &jumper_last_func_next_pos, sizeof(jumper_last_func_next_pos)))
+			return r;
+	}
+	return NULL;
+}
+
+static vkaa_execute_label_s* vkaa_execute_label_okay(vkaa_execute_label_s *restrict r, vkaa_execute_t *restrict array, uintptr_t number)
+{
+	const uintptr_t *restrict jumper;
+	uintptr_t i, n, j;
+	if (r->label_pos > number)
+		goto label_fail;
+	jumper = (const uintptr_t *) r->jumper_last_func_pos.data;
+	n = r->jumper_last_func_pos.used / sizeof(*jumper);
+	for (i = 0; i < n; ++i)
+	{
+		if ((j = jumper[i]) >= number)
+			goto label_fail;
+		array[j].next = r->label_pos;
+	}
+	r->jumper_last_func_pos.used = 0;
+	return r;
+	label_fail:
+	return NULL;
+}
+
+// execute
+
 static void vkaa_execute_free_func(vkaa_execute_s *restrict r)
 {
-	vkaa_function_s *const *restrict array;
+	vkaa_execute_t *restrict array;
 	uintptr_t i, n;
 	array = r->execute_array;
 	n = r->execute_number;
 	for (i = 0; i < n; ++i)
-		refer_free(array[i]);
+		refer_free(array[i].func);
+	if (r->label) refer_free(r->label);
 	exbuffer_uini(&r->buffer);
 }
 
@@ -18,7 +78,8 @@ vkaa_execute_s* vkaa_execute_alloc(void)
 	if ((r = (vkaa_execute_s *) refer_alloz(sizeof(vkaa_execute_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_execute_free_func);
-		if (exbuffer_init(&r->buffer, 0))
+		if (exbuffer_init(&r->buffer, 0) &&
+			(r->label = vattr_alloc()))
 			return r;
 		refer_free(r);
 	}
@@ -28,7 +89,7 @@ vkaa_execute_s* vkaa_execute_alloc(void)
 vkaa_function_s* vkaa_execute_get_last_function(const vkaa_execute_s *restrict exec)
 {
 	if (exec->execute_number)
-		return exec->execute_array[exec->execute_number - 1];
+		return exec->execute_array[exec->execute_number - 1].func;
 	return NULL;
 }
 
@@ -40,11 +101,105 @@ vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec)
 	return NULL;
 }
 
+uintptr_t vkaa_execute_here_label_pos(vkaa_execute_s *restrict exec)
+{
+	return exec->execute_number;
+}
+
+vkaa_execute_s* vkaa_execute_push_label(vkaa_execute_s *restrict exec, const char *restrict label)
+{
+	vkaa_execute_label_s *restrict el;
+	vkaa_execute_s *rr;
+	rr = NULL;
+	if ((el = vkaa_execute_label_alloc()))
+	{
+		if (vattr_insert_first(exec->label, label, el))
+			rr = exec;
+		refer_free(el);
+	}
+	return rr;
+}
+
+vkaa_execute_s* vkaa_execute_pop_label(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t label_pos)
+{
+	vattr_vlist_t *restrict vl;
+	vkaa_execute_label_s *restrict el;
+	if ((vl = vattr_get_vlist_first(exec->label, label)) &&
+		(el = (vkaa_execute_label_s *) vl->value))
+	{
+		el->label_pos = label_pos;
+		if (vkaa_execute_label_okay(el, exec->execute_array, exec->execute_number))
+		{
+			vattr_delete_vlist(vl);
+			return exec;
+		}
+	}
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_here_jump_to_label(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t stack_pos)
+{
+	vkaa_execute_label_s *restrict el;
+	if ((el = (vkaa_execute_label_s *) vattr_get_index(exec->label, label, stack_pos)) &&
+		vkaa_execute_label_append_jumper(el, exec->execute_number))
+		return exec;
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_here_set_label_without_exist(vkaa_execute_s *restrict exec, const char *restrict label)
+{
+	vkaa_execute_label_s *restrict el;
+	vattr_vslot_t *restrict vslot;
+	vattr_vlist_t *restrict vl;
+	if ((vslot = vattr_get_vslot(exec->label, label)))
+	{
+		if (vslot->number == 1)
+		{
+			el = (vkaa_execute_label_s *) vslot->vslot->value;
+			if (!~el->label_pos)
+			{
+				label_set_label_pos:
+				el->label_pos = exec->execute_number;
+				return exec;
+			}
+		}
+	}
+	else if ((el = vkaa_execute_label_alloc()))
+	{
+		vl = vattr_set(exec->label, label, el);
+		refer_free(el);
+		if (vl) goto label_set_label_pos;
+	}
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_here_add_jump_any(vkaa_execute_s *restrict exec, const char *restrict label)
+{
+	vkaa_execute_label_s *restrict el;
+	vattr_vlist_t *restrict vl;
+	if ((el = (vkaa_execute_label_s *) vattr_get_first(exec->label, label)))
+	{
+		label_append_jumper:
+		if (vkaa_execute_label_append_jumper(el, exec->execute_number))
+			return exec;
+	}
+	else if ((el = vkaa_execute_label_alloc()))
+	{
+		vl = vattr_set(exec->label, label, el);
+		refer_free(el);
+		if (vl) goto label_append_jumper;
+	}
+	return NULL;
+}
+
 vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func)
 {
-	vkaa_function_s *const *restrict array;
-	if (vkaa_execute_okay(exec) &&
-		(array = (vkaa_function_s *const *) exbuffer_append(&exec->buffer, (const void *) &func, sizeof(func))))
+	vkaa_execute_t data;
+	vkaa_execute_t *restrict array;
+	data.func = func;
+	data.next = exec->execute_number + 1;
+	if (func && vkaa_execute_okay_last_function(exec) &&
+		(array = (vkaa_execute_t *) exbuffer_append(&exec->buffer, &data, sizeof(data))))
 	{
 		exec->execute_array = array;
 		exec->execute_number += 1;
@@ -54,7 +209,7 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec)
+vkaa_execute_s* vkaa_execute_okay_last_function(vkaa_execute_s *restrict exec)
 {
 	vkaa_function_s *restrict last;
 	if (!(last = vkaa_execute_get_last_function(exec)) || vkaa_function_okay(last))
@@ -62,33 +217,57 @@ vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec)
 	return NULL;
 }
 
-vkaa_var_s* vkaa_execute_do(const vkaa_execute_s *restrict exec)
+vkaa_execute_s* vkaa_execute_okay_label(vkaa_execute_s *restrict exec)
 {
-	vkaa_function_s *const *restrict array;
+	vattr_vlist_t *restrict vl;
+	vl = exec->label->vattr;
+	while (vl)
+	{
+		if (!vkaa_execute_label_okay((vkaa_execute_label_s *) vl->value, exec->execute_array, exec->execute_number))
+			goto label_fail;
+		vl = vl->vattr_next;
+		vattr_delete_vlist(vl);
+	}
+	return exec;
+	label_fail:
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec)
+{
+	if (vkaa_execute_okay_last_function(exec) && vkaa_execute_okay_label(exec))
+		return exec;
+	return NULL;
+}
+
+uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec)
+{
+	vkaa_execute_t *restrict array;
+	vkaa_function_s *restrict func;
 	uintptr_t i, n;
-	vkaa_var_s *restrict var;
+	uintptr_t error_id;
 	array = exec->execute_array;
 	n = exec->execute_number;
-	var = NULL;
-	for (i = 0; i < n; ++i)
+	for (i = 0; i < n; i = array[i].next)
 	{
-		if (!(var = array[i]->function(array[i])))
-			break;
+		func = array[i].func;
+		if ((error_id = func->function(func)))
+			goto label_fail;
 	}
-	return var;
+	return 0;
+	label_fail:
+	return error_id;
 }
 
 void vkaa_execute_clear(vkaa_execute_s *restrict exec)
 {
-	vkaa_function_s **restrict array;
+	vkaa_execute_t *restrict array;
 	uintptr_t i, n;
-	array = (vkaa_function_s **) exec->buffer.data;
+	array = exec->execute_array;
 	n = exec->execute_number;
 	exec->execute_number = 0;
 	exec->execute_array = NULL;
 	for (i = 0; i < n; ++i)
-	{
-		refer_free(array[i]);
-		array[i] = NULL;
-	}
+		refer_free(array[i].func);
+	vattr_clear(exec->label);
 }

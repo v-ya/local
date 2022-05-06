@@ -6,6 +6,7 @@ vkaa_type_s* vkaa_type_initial(vkaa_type_s *restrict type, uintptr_t id, const c
 	{
 		type->id = id;
 		type->name = name;
+		type->error = NULL;
 		type->create = create;
 		return type;
 	}
@@ -18,6 +19,11 @@ void vkaa_type_finally(vkaa_type_s *restrict type)
 	{
 		refer_free(type->selector);
 		type->selector = NULL;
+	}
+	if (type->error)
+	{
+		refer_free(type->error);
+		type->error = NULL;
 	}
 }
 

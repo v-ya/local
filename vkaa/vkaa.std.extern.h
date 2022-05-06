@@ -5,6 +5,7 @@
 #include "vkaa.std.h"
 #include "vkaa.syntax.h"
 #include "vkaa.oplevel.h"
+#include "vkaa.error.h"
 #include "vkaa.tpool.h"
 #include "vkaa.type.h"
 #include "vkaa.var.h"
@@ -13,6 +14,8 @@
 #include "vkaa.function.h"
 #include "vkaa.execute.h"
 #include "vkaa.parse.h"
+
+// oplevel
 
 #define vkaa_std_oplevel_assign    "assign"
 #define vkaa_std_oplevel_condition "condition"
@@ -24,6 +27,11 @@
 #define vkaa_std_oplevel_arith_3   "arith.3"
 #define vkaa_std_oplevel_unary     "unary"
 #define vkaa_std_oplevel_inquiry   "inquiry"
+
+// error
+
+#define vkaa_std_error_memory_less "vkaa.std.memory_less"
+#define vkaa_std_error_div_zero    "vkaa.std.div_zero"
 
 // var<void>
 

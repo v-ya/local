@@ -1,4 +1,5 @@
 #include "../vkaa.tpool.h"
+#include "../vkaa.error.h"
 #include "../vkaa.type.h"
 #include "../vkaa.var.h"
 
@@ -7,6 +8,7 @@ static void vkaa_tpool_free_func(vkaa_tpool_s *restrict r)
 	if (r->n2t) refer_free(r->n2t);
 	if (r->i2v) rbtree_clear(&r->i2v);
 	if (r->i2t) rbtree_clear(&r->i2t);
+	if (r->e) refer_free(r->e);
 }
 
 static void vkaa_tpool_rbtree_free_func(rbtree_t *restrict rbv)
@@ -20,7 +22,7 @@ vkaa_tpool_s* vkaa_tpool_alloc(void)
 	if ((r = (vkaa_tpool_s *) refer_alloz(sizeof(vkaa_tpool_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_tpool_free_func);
-		if ((r->n2t = vattr_alloc()))
+		if ((r->n2t = vattr_alloc()) && (r->e = vkaa_error_alloc()))
 			return r;
 		refer_free(r);
 	}
@@ -45,7 +47,7 @@ const vkaa_type_s* vkaa_tpool_find_id(const vkaa_tpool_s *restrict tpool, uintpt
 	return NULL;
 }
 
-vkaa_tpool_s* vkaa_tpool_insert(vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type)
+vkaa_tpool_s* vkaa_tpool_insert(vkaa_tpool_s *restrict tpool, vkaa_type_s *restrict type)
 {
 	rbtree_t *restrict vid;
 	if (type->id && !rbtree_find(&tpool->i2t, NULL, (uint64_t) type->id) &&
@@ -53,7 +55,11 @@ vkaa_tpool_s* vkaa_tpool_insert(vkaa_tpool_s *restrict tpool, const vkaa_type_s 
 	{
 		refer_save(type);
 		if (!type->name || vattr_insert_first(tpool->n2t, type->name, type))
+		{
+			if (!type->error)
+				type->error = (vkaa_error_s *) refer_save(tpool->e);
 			return tpool;
+		}
 		rbtree_delete_by_pointer(&tpool->i2t, vid);
 	}
 	return NULL;
