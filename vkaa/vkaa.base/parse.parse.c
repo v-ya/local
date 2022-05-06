@@ -331,9 +331,15 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 	while (ppos.pos < number)
 	{
 		s = syntax + ppos.pos++;
-		if (op && op->optype == vkaa_parse_optype_binary_second_type2var)
-			goto label_force_type2var;
-		op = NULL;
+		if (op)
+		{
+			if (op->optype == vkaa_parse_optype_binary_second_type2var)
+			{
+				op = NULL;
+				goto label_force_type2var;
+			}
+			op = NULL;
+		}
 		switch (s->type)
 		{
 			case vkaa_syntax_type_keyword:
