@@ -30,6 +30,14 @@ static vkaa_selector_s* vkaa_std_operator_get_selector_by_result(const vkaa_pars
 	return NULL;
 }
 
+static vkaa_selector_s* vkaa_std_operator_get_selector(vkaa_var_s *restrict p0, vkaa_var_s *restrict this, const char *restrict op)
+{
+	vkaa_selector_s *restrict s;
+	if (!(s = vkaa_var_find_selector(p0, op)))
+		s = vkaa_var_find_selector(this, op);
+	return s;
+}
+
 static vkaa_function_s* vkaa_std_operator_selector_do(const vkaa_selector_s *restrict selector, const vkaa_parse_context_t *restrict context, vkaa_var_s *restrict this, vkaa_var_s **input_list, uintptr_t input_number)
 {
 	vkaa_selector_param_t param;
@@ -48,7 +56,7 @@ static vkaa_std_operator_define(unary_brackets)
 	vkaa_std_param_t p;
 	if ((s = vkaa_std_operator_get_selector_by_result(param_list, &this)) ||
 		((this = vkaa_parse_result_get_var(param_list)) &&
-			(s = vkaa_var_find_selector(this, vkaa_parse_operator_brackets))))
+			(s = vkaa_std_operator_get_selector(this, context->this, vkaa_parse_operator_brackets))))
 	{
 		if (vkaa_std_param_initial(&p))
 		{
@@ -73,7 +81,7 @@ static vkaa_std_operator_define(unary_square)
 	vkaa_var_s *input_list[1];
 	vkaa_parse_result_t last_var;
 	if ((this = vkaa_parse_result_get_var(param_list)) &&
-		(s = vkaa_var_find_selector(this, vkaa_parse_operator_square)))
+		(s = vkaa_std_operator_get_selector(this, context->this, vkaa_parse_operator_square)))
 	{
 		square = syntax->data.square;
 		if (vkaa_parse_parse(context, square->syntax_array, square->syntax_number, &last_var))
@@ -105,7 +113,7 @@ static vkaa_std_operator_define(proxy)
 		if (!(input_list[input_number] = vkaa_parse_result_get_var(&param_list[input_number])))
 			goto label_fail;
 	}
-	if (!(s = vkaa_var_find_selector(input_list[0], op)))
+	if (!(s = vkaa_std_operator_get_selector(input_list[0], context->this, op)))
 		goto label_fail;
 	if ((result->data.function = vkaa_std_operator_selector_do(s, context, NULL, input_list, input_number)))
 	{

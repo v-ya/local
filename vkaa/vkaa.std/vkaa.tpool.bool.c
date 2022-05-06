@@ -1,4 +1,5 @@
 #include "std.tpool.h"
+#include "std.function.h"
 
 static vkaa_var_s* vkaa_std_type_bool_create(const vkaa_type_s *restrict type)
 {
@@ -11,36 +12,6 @@ static vkaa_var_s* vkaa_std_type_bool_create(const vkaa_type_s *restrict type)
 		refer_free(r);
 	}
 	return NULL;
-}
-
-static vkaa_std_function_define(bool, op_mov)
-{
-	vkaa_std_vp(bool, 0) = vkaa_std_vp(bool, 1);
-	return r->output;
-}
-
-static vkaa_std_function_define(bool, cv_bool)
-{
-	vkaa_std_vo(bool) = vkaa_std_vt(bool);
-	return r->output;
-}
-
-static vkaa_std_function_define(bool, cv_uint)
-{
-	vkaa_std_vo(uint) = (vkaa_std_uint_t) vkaa_std_vt(bool);
-	return r->output;
-}
-
-static vkaa_std_function_define(bool, cv_int)
-{
-	vkaa_std_vo(int) = (vkaa_std_int_t) vkaa_std_vt(bool);
-	return r->output;
-}
-
-static vkaa_std_function_define(bool, cv_float)
-{
-	vkaa_std_vo(float) = (vkaa_std_float_t) vkaa_std_vt(bool);
-	return r->output;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)

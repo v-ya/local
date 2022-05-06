@@ -57,11 +57,11 @@ vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict sele
 
 // selector do
 
-const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param)
+const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param, uintptr_t *restrict score)
 {
 	vkaa_var_s *const *restrict input_list;
 	const uintptr_t *restrict input_typeid;
-	uintptr_t i, n;
+	uintptr_t i, n, s;
 	if ((n = desc->input_number) == param->input_number)
 	{
 		input_list = param->input_list;
@@ -82,15 +82,18 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 			case vkaa_std_selector_output_new: break;
 			default: goto label_fail;
 		}
-		for (i = 0; i < n; ++i)
+		for (i = s = 0; i < n; ++i)
 		{
-			if (input_list[i]->type_id != input_typeid[i] &&
-				!vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool))
+			if (input_list[i]->type_id == input_typeid[i])
+				s |= (uintptr_t) 0x80000000 >> (uint32_t) i;
+			else if (!vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool))
 				goto label_fail;
 		}
+		if (score) *score = s;
 		return desc;
 	}
 	label_fail:
+	if (score) *score = 0;
 	return NULL;
 }
 
@@ -159,14 +162,25 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param)
 {
 	vattr_vlist_t *restrict vl;
-	const vkaa_std_selector_desc_t *restrict desc;
+	const vkaa_std_selector_desc_t *restrict desc, *restrict hit_desc;
+	uintptr_t score, max_score;
+	hit_desc = NULL;
+	max_score = 0;
 	for (vl = selector->std_desc->vattr; vl; vl = vl->vattr_next)
 	{
-		if ((desc = (const vkaa_std_selector_desc_t *) vl->value))
+		if ((desc = (const vkaa_std_selector_desc_t *) vl->value) &&
+			vkaa_std_selector_test(desc, param, &score))
 		{
-			if (vkaa_std_selector_test(desc, param))
-				return vkaa_std_selector_create(selector, param, desc);
+			if (!hit_desc) goto label_repace;
+			else if (score > max_score)
+			{
+				max_score = score;
+				label_repace:
+				hit_desc = desc;
+			}
 		}
 	}
+	if (hit_desc)
+		return vkaa_std_selector_create(selector, param, hit_desc);
 	return NULL;
 }
