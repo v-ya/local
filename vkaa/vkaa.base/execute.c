@@ -50,7 +50,7 @@ static vkaa_execute_label_s* vkaa_execute_label_okay(vkaa_execute_label_s *restr
 	{
 		if ((j = jumper[i]) >= number)
 			goto label_fail;
-		array[j].next = r->label_pos;
+		array[j].jump = r->label_pos;
 	}
 	r->jumper_last_func_pos.used = 0;
 	return r;
@@ -197,7 +197,7 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s
 	vkaa_execute_t data;
 	vkaa_execute_t *restrict array;
 	data.func = func;
-	data.next = exec->execute_number + 1;
+	data.jump = exec->execute_number + 1;
 	if (func && vkaa_execute_okay_last_function(exec) &&
 		(array = (vkaa_execute_t *) exbuffer_append(&exec->buffer, &data, sizeof(data))))
 	{
@@ -244,19 +244,21 @@ uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec)
 {
 	vkaa_execute_t *restrict array;
 	vkaa_function_s *restrict func;
-	uintptr_t i, n;
-	uintptr_t error_id;
+	vkaa_execute_control_t c;
+	uintptr_t n, error;
 	array = exec->execute_array;
 	n = exec->execute_number;
-	for (i = 0; i < n; i = array[i].next)
+	c.next_pos = 0;
+	c.array = array;
+	while (c.next_pos < n)
 	{
-		func = array[i].func;
-		if ((error_id = func->function(func)))
+		func = array[c.next_pos++].func;
+		if ((error = func->function(func, &c)))
 			goto label_fail;
 	}
 	return 0;
 	label_fail:
-	return error_id;
+	return error;
 }
 
 void vkaa_execute_clear(vkaa_execute_s *restrict exec)

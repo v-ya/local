@@ -7,8 +7,13 @@
 
 typedef struct vkaa_execute_t {
 	vkaa_function_s *func;
-	uintptr_t next;
+	uintptr_t jump;
 } vkaa_execute_t;
+
+struct vkaa_execute_control_t {
+	uintptr_t next_pos;
+	const vkaa_execute_t *array;
+};
 
 struct vkaa_execute_s {
 	exbuffer_t buffer;

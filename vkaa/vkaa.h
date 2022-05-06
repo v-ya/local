@@ -19,8 +19,9 @@ typedef struct vkaa_parse_s vkaa_parse_s;
 
 typedef enum vkaa_syntax_type_t vkaa_syntax_type_t;
 typedef struct vkaa_syntax_t vkaa_syntax_t;
+typedef struct vkaa_execute_control_t vkaa_execute_control_t;
 
 // return error id, 0 is okay
-typedef uintptr_t (*vkaa_function_f)(const vkaa_function_s *restrict r);
+typedef uintptr_t (*vkaa_function_f)(const vkaa_function_s *restrict r, vkaa_execute_control_t *restrict control);
 
 #endif
