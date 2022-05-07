@@ -27,14 +27,10 @@ static vkaa_execute_label_s* vkaa_execute_label_alloc(void)
 	return NULL;
 }
 
-static vkaa_execute_label_s* vkaa_execute_label_append_jumper(vkaa_execute_label_s *restrict r, uintptr_t jumper_last_func_next_pos)
+static vkaa_execute_label_s* vkaa_execute_label_append_jumper(vkaa_execute_label_s *restrict r, uintptr_t jumper_pos)
 {
-	if (jumper_last_func_next_pos)
-	{
-		jumper_last_func_next_pos -= 1;
-		if (exbuffer_append(&r->jumper_last_func_pos, &jumper_last_func_next_pos, sizeof(jumper_last_func_next_pos)))
-			return r;
-	}
+	if (exbuffer_append(&r->jumper_last_func_pos, &jumper_pos, sizeof(jumper_pos)))
+		return r;
 	return NULL;
 }
 
@@ -101,7 +97,7 @@ vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec)
 	return NULL;
 }
 
-uintptr_t vkaa_execute_here_label_pos(vkaa_execute_s *restrict exec)
+uintptr_t vkaa_execute_next_pos(vkaa_execute_s *restrict exec)
 {
 	return exec->execute_number;
 }
@@ -128,7 +124,7 @@ vkaa_execute_s* vkaa_execute_pop_label(vkaa_execute_s *restrict exec, const char
 		(el = (vkaa_execute_label_s *) vl->value))
 	{
 		el->label_pos = label_pos;
-		if (vkaa_execute_label_okay(el, exec->execute_array, exec->execute_number))
+		if (vkaa_execute_label_okay(el, exec->execute_array, label_pos))
 		{
 			vattr_delete_vlist(vl);
 			return exec;
@@ -137,16 +133,16 @@ vkaa_execute_s* vkaa_execute_pop_label(vkaa_execute_s *restrict exec, const char
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_here_jump_to_label(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t stack_pos)
+vkaa_execute_s* vkaa_execute_jump_to_label(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t stack_pos, uintptr_t jumper_pos)
 {
 	vkaa_execute_label_s *restrict el;
 	if ((el = (vkaa_execute_label_s *) vattr_get_index(exec->label, label, stack_pos)) &&
-		vkaa_execute_label_append_jumper(el, exec->execute_number))
+		vkaa_execute_label_append_jumper(el, jumper_pos))
 		return exec;
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_here_set_label_without_exist(vkaa_execute_s *restrict exec, const char *restrict label)
+vkaa_execute_s* vkaa_execute_set_label_without_exist(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t label_pos)
 {
 	vkaa_execute_label_s *restrict el;
 	vattr_vslot_t *restrict vslot;
@@ -159,7 +155,7 @@ vkaa_execute_s* vkaa_execute_here_set_label_without_exist(vkaa_execute_s *restri
 			if (!~el->label_pos)
 			{
 				label_set_label_pos:
-				el->label_pos = exec->execute_number;
+				el->label_pos = label_pos;
 				return exec;
 			}
 		}
@@ -173,14 +169,14 @@ vkaa_execute_s* vkaa_execute_here_set_label_without_exist(vkaa_execute_s *restri
 	return NULL;
 }
 
-vkaa_execute_s* vkaa_execute_here_add_jump_any(vkaa_execute_s *restrict exec, const char *restrict label)
+vkaa_execute_s* vkaa_execute_add_jump_any(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t jumper_pos)
 {
 	vkaa_execute_label_s *restrict el;
 	vattr_vlist_t *restrict vl;
 	if ((el = (vkaa_execute_label_s *) vattr_get_first(exec->label, label)))
 	{
 		label_append_jumper:
-		if (vkaa_execute_label_append_jumper(el, exec->execute_number))
+		if (vkaa_execute_label_append_jumper(el, jumper_pos))
 			return exec;
 	}
 	else if ((el = vkaa_execute_label_alloc()))

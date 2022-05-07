@@ -218,8 +218,8 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 				vkaa_parse_result_clear(&rvar);
 				return context;
 			}
-			vkaa_parse_result_clear(&rvar);
 		}
+		vkaa_parse_result_clear(&rvar);
 	}
 	label_fail:
 	return NULL;
@@ -230,6 +230,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op_notify_left_okay(con
 	vkaa_parse_stack_t *restrict var;
 	vkaa_parse_result_t param[2];
 	vkaa_parse_result_t rvar;
+	vkaa_parse_result_initial(&rvar);
 	switch (op->optype)
 	{
 		case vkaa_parse_optype_unary_right:
@@ -249,11 +250,17 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op_notify_left_okay(con
 	}
 	if (op->op_left_okay_notify)
 	{
-		vkaa_parse_result_initial(&rvar);
 		if (op->op_left_okay_notify(op, &rvar, context, syntax, param))
 		{
 			if (rvar.type)
 			{
+				if (rvar.type == vkaa_parse_rtype_function)
+				{
+					if (!rvar.data.function)
+						goto label_fail;
+					if (!vkaa_execute_push(context->execute, rvar.data.function))
+						goto label_fail;
+				}
 				if (var->var_data.none)
 				{
 					refer_free(var->var_data.none);
@@ -273,6 +280,7 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op_notify_left_okay(con
 		}
 	}
 	label_fail:
+	vkaa_parse_result_clear(&rvar);
 	return NULL;
 }
 

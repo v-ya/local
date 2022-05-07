@@ -89,11 +89,11 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 		{
 			case vkaa_std_selector_output_any: break;
 			case vkaa_std_selector_output_this:
-				if (!param->this || param->this->type_id != desc->output_typeid)
+				if (!param->this || desc->this_typeid != desc->output_typeid)
 					goto label_fail;
 				break;
 			case vkaa_std_selector_output_input_first:
-				if (!param->input_number || input_list[0]->type_id != desc->output_typeid)
+				if (!n || input_typeid[0] != desc->output_typeid)
 					goto label_fail;
 				break;
 			case vkaa_std_selector_output_new: break;
@@ -141,28 +141,6 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 					goto label_fail;
 				vkaa_function_set_this(rf, param->this);
 			}
-			switch (desc->output)
-			{
-				case vkaa_std_selector_output_any:
-					break;
-				case vkaa_std_selector_output_this:
-					if (!param->this)
-						goto label_fail;
-					if (!vkaa_function_set_output(rf, param->this))
-						goto label_fail;
-					break;
-				case vkaa_std_selector_output_input_first:
-					if (!param->input_number)
-						goto label_fail;
-					if (!vkaa_function_set_output(rf, input_list[0]))
-						goto label_fail;
-					break;
-				case vkaa_std_selector_output_new:
-					if (!vkaa_function_okay(rf))
-						goto label_fail;
-					break;
-				default: goto label_fail;
-			}
 			for (i = 0; i < n; ++i)
 			{
 				if (input_list[i]->type_id == input_typeid[i])
@@ -171,6 +149,27 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 					goto label_fail;
 				if (!vkaa_function_set_input(rf, i, vkaa_function_okay(cf)))
 					goto label_fail;
+			}
+			switch (desc->output)
+			{
+				case vkaa_std_selector_output_any:
+					break;
+				case vkaa_std_selector_output_this:
+					if (!rf->this)
+						goto label_fail;
+					if (!vkaa_function_set_output(rf, rf->this))
+						goto label_fail;
+					break;
+				case vkaa_std_selector_output_input_first:
+					if (!n) goto label_fail;
+					if (!vkaa_function_set_output(rf, rf->input_list[0]))
+						goto label_fail;
+					break;
+				case vkaa_std_selector_output_new:
+					if (!vkaa_function_okay(rf))
+						goto label_fail;
+					break;
+				default: goto label_fail;
 			}
 			return rf;
 			label_fail:
@@ -192,11 +191,9 @@ vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict 
 		if ((desc = (const vkaa_std_selector_desc_t *) vl->value) &&
 			vkaa_std_selector_test(desc, param, &score))
 		{
-			if (!hit_desc) goto label_repace;
-			else if (score > max_score)
+			if (score > max_score || (score == max_score && !hit_desc))
 			{
 				max_score = score;
-				label_repace:
 				hit_desc = desc;
 			}
 		}

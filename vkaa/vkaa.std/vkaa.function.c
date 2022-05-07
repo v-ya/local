@@ -17,6 +17,22 @@ vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, cons
 static void vkaa_std_function_verbose(const vkaa_function_s *restrict function, vkaa_execute_control_t *restrict control, const char *restrict name);
 #endif
 
+// !
+vkaa_std_function_define(bool, op_not_logic)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = !vkaa_std_vp(bool, 0);
+	return 0;
+}
+
+// ~
+vkaa_std_function_define(uint, op_not_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = ~vkaa_std_vp(uint, 0);
+	return 0;
+}
+
+// **
+
 // *
 vkaa_std_function_define(uint, op_mul)
 {vkaa_std_verbose_weak
@@ -60,6 +76,8 @@ vkaa_std_function_define(float, op_div)
 	vkaa_std_vo(float) = vkaa_std_vp(float, 0) / vkaa_std_vp(float, 1);
 	return 0;
 }
+
+// %
 
 // +
 vkaa_std_function_define(uint, op_add)
@@ -122,6 +140,39 @@ vkaa_std_function_define(int, op_neg)
 vkaa_std_function_define(float, op_neg)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(float) = -vkaa_std_vp(float, 0);
+	return 0;
+}
+
+// &&
+vkaa_std_function_define(bool, op_and_logic_test)
+{vkaa_std_verbose_weak
+	if (!vkaa_std_vp(bool, 0))
+		vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(bool, op_and_logic)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) & vkaa_std_vp(bool, 1);
+	return 0;
+}
+
+// ||
+vkaa_std_function_define(bool, op_or_logic_test)
+{vkaa_std_verbose_weak
+	if (vkaa_std_vp(bool, 0))
+		vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(bool, op_or_logic)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) | vkaa_std_vp(bool, 1);
+	return 0;
+}
+
+// ^^
+vkaa_std_function_define(bool, op_xor_logic)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) ^ vkaa_std_vp(bool, 1);
 	return 0;
 }
 

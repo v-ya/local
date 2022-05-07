@@ -1,13 +1,14 @@
 #include "std.h"
-#include <memory.h>
+#include <string.h>
 
-const char* vkaa_std_op_pre_name(vkaa_std_op_pre_t *restrict cache, refer_nstring_t op)
+const char* vkaa_std_op_testeval_name(vkaa_std_op_name_t *restrict cache, const char *restrict op)
 {
-	if (op->length <= sizeof(vkaa_std_op_pre_t) - sizeof(vkaa_std_op_preprocess_suffix))
+	uintptr_t n;
+	if ((n = strlen(op)) <= sizeof(vkaa_std_op_name_t) - sizeof(vkaa_std_op_testeval_suffix))
 	{
-		memcpy(cache->op_pre_name, op->string, op->length);
-		memcpy(cache->op_pre_name + op->length, vkaa_std_op_preprocess_suffix, sizeof(vkaa_std_op_preprocess_suffix));
-		return cache->op_pre_name;
+		memcpy(cache->op_name, op, n);
+		memcpy(cache->op_name + n, vkaa_std_op_testeval_suffix, sizeof(vkaa_std_op_testeval_suffix));
+		return cache->op_name;
 	}
 	return NULL;
 }

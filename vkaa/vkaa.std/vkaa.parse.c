@@ -22,8 +22,8 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 		d_op(binary,            "^",   bitwise,   left2right) &&
 		d_op(binary,            "<<",  bitwise,   left2right) &&
 		d_op(binary,            ">>",  bitwise,   left2right) &&
-		d_op(binary_preprocess, "&&",  logic,     left2right) &&
-		d_op(binary_preprocess, "||",  logic,     left2right) &&
+		d_op(binary_testeval,   "&&",  logic,     left2right) &&
+		d_op(binary_testeval,   "||",  logic,     left2right) &&
 		d_op(binary,            "^^",  logic,     left2right) &&
 		d_op(binary,            "==",  relation,  left2right) &&
 		d_op(binary,            "!=",  relation,  left2right) &&
@@ -31,7 +31,7 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 		d_op(binary,            "<",   relation,  left2right) &&
 		d_op(binary,            ">=",  relation,  left2right) &&
 		d_op(binary,            "<=",  relation,  left2right) &&
-		vkaa_std_parse_set_operator_ternary_preprocess(r, typeid, opl, "?", ":", vkaa_std_oplevel_condition, vkaa_parse_optowards_right2left) &&
+		vkaa_std_parse_set_operator_ternary_testeval(r, typeid, opl, "?", ":", vkaa_std_oplevel_condition, vkaa_parse_optowards_right2left) &&
 		d_op(binary_assign,     "=",   assign,    right2left) &&
 		d_op(binary,            "+=",  assign,    right2left) &&
 		d_op(binary,            "-=",  assign,    right2left) &&

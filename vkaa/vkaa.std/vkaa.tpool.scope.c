@@ -28,37 +28,49 @@ static vkaa_var_s* vkaa_std_type_scope_create(const vkaa_type_s *restrict type)
 
 static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)
 {
-	// uintptr_t tid_2_bool_bool[] = {typeid->id_bool, typeid->id_bool};
-	uintptr_t tid_2_uint_uint[] = {typeid->id_uint, typeid->id_uint};
-	uintptr_t tid_2_int_int[] = {typeid->id_int, typeid->id_int};
-	uintptr_t tid_2_float_float[] = {typeid->id_float, typeid->id_float};
-	vkaa_std_selector_output_t o = vkaa_std_selector_output_any;
-	vkaa_std_selector_convert_t c = vkaa_std_selector_convert_none;
+	uintptr_t tid_bool[] = {typeid->id_bool, typeid->id_bool};
+	uintptr_t tid_uint[] = {typeid->id_uint, typeid->id_uint};
+	uintptr_t tid_int[] = {typeid->id_int, typeid->id_int};
+	uintptr_t tid_float[] = {typeid->id_float, typeid->id_float};
+	vkaa_std_op_name_t cache;
 	vkaa_std_selector_s *restrict s;
-	const char *restrict op;
+	const char *restrict op, *restrict op2;
 	if (
-		#define need1(_t, _n)  vkaa_std_function_label(_t,  _n), o, c, 0, typeid->id_##_t, 1, tid_2_##_t##_##_t
-		#define need2(_t, _n)  vkaa_std_function_label(_t,  _n), o, c, 0, typeid->id_##_t, 2, tid_2_##_t##_##_t
-		(s = vkaa_std_type_set_function(type, op = "*", need2(uint,  op_mul))) &&
-			vkaa_std_selector_append(s,   op,       need2(int,   op_mul)) &&
-			vkaa_std_selector_append(s,   op,       need2(float, op_mul)) &&
-		(s = vkaa_std_type_set_function(type, op = "/", need2(uint,  op_div))) &&
-			vkaa_std_selector_append(s,   op,       need2(int,   op_div)) &&
-			vkaa_std_selector_append(s,   op,       need2(float, op_div)) &&
-		(s = vkaa_std_type_set_function(type, op = "+", need2(uint,  op_add))) &&
-			vkaa_std_selector_append(s,   op,       need2(int,   op_add)) &&
-			vkaa_std_selector_append(s,   op,       need2(float, op_add)) &&
-			vkaa_std_selector_append(s,   op,       need1(uint,  op_pos)) &&
-			vkaa_std_selector_append(s,   op,       need1(int,   op_pos)) &&
-			vkaa_std_selector_append(s,   op,       need1(float, op_pos)) &&
-		(s = vkaa_std_type_set_function(type, op = "-", need2(uint,  op_sub))) &&
-			vkaa_std_selector_append(s,   op,       need2(int,   op_sub)) &&
-			vkaa_std_selector_append(s,   op,       need2(float, op_sub)) &&
-			vkaa_std_selector_append(s,   op,       need1(uint,  op_neg)) &&
-			vkaa_std_selector_append(s,   op,       need1(int,   op_neg)) &&
-			vkaa_std_selector_append(s,   op,       need1(float, op_neg)) &&
-		#undef need1
-		#undef need2
+		#define need(_t, _n, _o, _l)  vkaa_std_function_label(_t,  _l), _o, vkaa_std_selector_convert_none, 0, typeid->id_##_t, _n, tid_##_t
+		#define need1a(_t, _l)        need(_t, 1, vkaa_std_selector_output_any, _l)
+		#define need1i(_t, _l)        need(_t, 1, vkaa_std_selector_output_input_first, _l)
+		#define need2a(_t, _l)        need(_t, 2, vkaa_std_selector_output_any, _l)
+		(s = vkaa_std_type_set_function(type, op = "!",  need1a(bool,  op_not_logic))) &&
+		(s = vkaa_std_type_set_function(type, op = "~",  need1a(uint,  op_not_bitwise))) &&
+		(s = vkaa_std_type_set_function(type, op = "*",  need2a(uint,  op_mul))) &&
+			vkaa_std_selector_append(s,   op,        need2a(int,   op_mul)) &&
+			vkaa_std_selector_append(s,   op,        need2a(float, op_mul)) &&
+		(s = vkaa_std_type_set_function(type, op = "/",  need2a(uint,  op_div))) &&
+			vkaa_std_selector_append(s,   op,        need2a(int,   op_div)) &&
+			vkaa_std_selector_append(s,   op,        need2a(float, op_div)) &&
+		(s = vkaa_std_type_set_function(type, op = "+",  need2a(uint,  op_add))) &&
+			vkaa_std_selector_append(s,   op,        need2a(int,   op_add)) &&
+			vkaa_std_selector_append(s,   op,        need2a(float, op_add)) &&
+			vkaa_std_selector_append(s,   op,        need1a(uint,  op_pos)) &&
+			vkaa_std_selector_append(s,   op,        need1a(int,   op_pos)) &&
+			vkaa_std_selector_append(s,   op,        need1a(float, op_pos)) &&
+		(s = vkaa_std_type_set_function(type, op = "-",  need2a(uint,  op_sub))) &&
+			vkaa_std_selector_append(s,   op,        need2a(int,   op_sub)) &&
+			vkaa_std_selector_append(s,   op,        need2a(float, op_sub)) &&
+			vkaa_std_selector_append(s,   op,        need1a(uint,  op_neg)) &&
+			vkaa_std_selector_append(s,   op,        need1a(int,   op_neg)) &&
+			vkaa_std_selector_append(s,   op,        need1a(float, op_neg)) &&
+		(op2 = vkaa_std_op_testeval_name(&cache, op = "&&")) &&
+			vkaa_std_type_set_function(type, op2,    need1i(bool, op_and_logic_test)) &&
+			vkaa_std_type_set_function(type, op,     need2a(bool, op_and_logic)) &&
+		(op2 = vkaa_std_op_testeval_name(&cache, op = "||")) &&
+			vkaa_std_type_set_function(type, op2,    need1i(bool,  op_or_logic_test)) &&
+			vkaa_std_type_set_function(type, op,     need2a(bool,  op_or_logic)) &&
+		(s = vkaa_std_type_set_function(type, op = "^^", need2a(bool,  op_xor_logic))) &&
+		#undef need1a
+		#undef need1i
+		#undef need2a
+		#undef need
 	1) return type;
 	return NULL;
 }

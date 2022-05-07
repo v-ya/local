@@ -25,6 +25,10 @@
 
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
 
+// !
+vkaa_std_function_define(bool, op_not_logic);
+// ~
+vkaa_std_function_define(uint, op_not_bitwise);
 // *
 vkaa_std_function_define(uint, op_mul);
 vkaa_std_function_define(int, op_mul);
@@ -47,6 +51,14 @@ vkaa_std_function_define(float, op_sub);
 vkaa_std_function_define(uint, op_neg);
 vkaa_std_function_define(int, op_neg);
 vkaa_std_function_define(float, op_neg);
+// &&
+vkaa_std_function_define(bool, op_and_logic_test);
+vkaa_std_function_define(bool, op_and_logic);
+// ||
+vkaa_std_function_define(bool, op_or_logic_test);
+vkaa_std_function_define(bool, op_or_logic);
+// ^^
+vkaa_std_function_define(bool, op_xor_logic);
 // =
 vkaa_std_function_define(bool, op_mov);
 vkaa_std_function_define(uint, op_mov);
