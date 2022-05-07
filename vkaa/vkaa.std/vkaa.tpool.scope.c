@@ -13,7 +13,7 @@ vkaa_std_var_scope_s* vkaa_std_type_scope_create_by_parent(const vkaa_type_s *re
 	if ((r = (vkaa_std_var_scope_s *) refer_alloz(sizeof(vkaa_std_var_scope_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_std_var_scope_free_func);
-		if (vkaa_var_initial(&r->var, type, NULL) &&
+		if (vkaa_var_initial(&r->var, type) &&
 			(r->scope = vkaa_scope_alloc(scope)))
 			return r;
 		refer_free(r);

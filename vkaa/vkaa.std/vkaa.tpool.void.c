@@ -6,7 +6,7 @@ static vkaa_var_s* vkaa_std_type_void_create(const vkaa_type_s *restrict type)
 	if ((r = (vkaa_var_s *) refer_alloz(sizeof(vkaa_var_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_var_finally);
-		if (vkaa_var_initial(r, type, NULL))
+		if (vkaa_var_initial(r, type))
 			return r;
 		refer_free(r);
 	}

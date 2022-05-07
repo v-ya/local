@@ -1,13 +1,12 @@
 #include "../vkaa.var.h"
 #include "../vkaa.type.h"
 
-vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type, void *value)
+vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type)
 {
 	if (type)
 	{
 		var->type_id = type->id;
 		var->type = (const vkaa_type_s *) refer_save(type);
-		var->value = value;
 		return var;
 	}
 	return NULL;
