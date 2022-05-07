@@ -11,6 +11,7 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, con
 	{
 		refer_set_free(r, (refer_free_f) vkaa_parse_operator_finally);
 		r->operator.parse = (vkaa_parse_operator_f) parse;
+		r->operator.op_left_okay_notify = NULL;
 		r->operator.optype = optype;
 		r->operator.towards = towards;
 		r->operator.oplevel = (const vkaa_level_s *) refer_save(level);
@@ -47,10 +48,28 @@ static vkaa_function_s* vkaa_std_operator_selector_do(const vkaa_selector_s *res
 	vkaa_selector_param_t param;
 	param.tpool = context->tpool;
 	param.exec = context->execute;
-	param.this = this?this:context->this;
+	param.this = this;
 	param.input_list = input_list;
 	param.input_number = input_number;
 	return selector->selector(selector, &param);
+}
+
+static const vkaa_parse_result_t* vkaa_std_operator_get_input_list(const vkaa_parse_result_t *const param_list, vkaa_var_s *input_list[], uintptr_t *restrict input_number)
+{
+	uintptr_t i, n;
+	n = *input_number;
+	for (i = 0; param_list[i].type; ++i)
+	{
+		if (i >= n)
+			goto label_fail;
+		if (!(input_list[i] = vkaa_parse_result_get_var(&param_list[i])))
+			goto label_fail;
+	}
+	*input_number = i;
+	return param_list;
+	label_fail:
+	*input_number = 0;
+	return param_list;
 }
 
 static vkaa_std_operator_define(unary_brackets)
@@ -105,19 +124,14 @@ static vkaa_std_operator_define(unary_square)
 static vkaa_std_operator_define(proxy)
 {
 	vkaa_selector_s *restrict s;
-	const char *restrict op;
 	uintptr_t input_number;
 	vkaa_var_s *input_list[3];
 	if (syntax->type != vkaa_syntax_type_operator)
 		goto label_fail;
-	op = syntax->data.operator->string;
-	for (input_number = 0; param_list[input_number].type; ++input_number)
-	{
-		if (input_number >= 3) goto label_fail;
-		if (!(input_list[input_number] = vkaa_parse_result_get_var(&param_list[input_number])))
-			goto label_fail;
-	}
-	if (!(s = vkaa_std_operator_get_selector(input_list[0], context->this, op)))
+	input_number = 3;
+	if (!vkaa_std_operator_get_input_list(param_list, input_list, &input_number))
+		goto label_fail;
+	if (!(s = vkaa_std_operator_get_selector(input_list[0], context->this, syntax->data.operator->string)))
 		goto label_fail;
 	if ((result->data.function = vkaa_std_operator_selector_do(s, context, NULL, input_list, input_number)))
 	{
@@ -128,25 +142,48 @@ static vkaa_std_operator_define(proxy)
 	return NULL;
 }
 
-static vkaa_var_s* vkaa_std_operator_assign_try(const vkaa_parse_result_t *restrict r0, const vkaa_parse_result_t *restrict r1)
+static vkaa_std_operator_define(proxy_preprocess)
 {
-	const vkaa_type_s *restrict type;
-	vkaa_function_s *restrict func;
-	vkaa_var_s *restrict v;
-	if ((type = vkaa_parse_result_get_type(r0)) &&
-		r1->type == vkaa_parse_rtype_function &&
-		type == vkaa_parse_result_get_type(r1) &&
-		!(func = r1->data.function)->output &&
-		(v = vkaa_parse_result_get_var(r0)) &&
-		vkaa_function_set_output(func, v))
-		return v;
+	vkaa_std_op_pre_t pre;
+	const char *restrict name;
+	vkaa_selector_s *restrict s;
+	uintptr_t input_number;
+	vkaa_var_s *input_list[1];
+	vkaa_function_s *func;
+	if (syntax->type != vkaa_syntax_type_operator)
+		goto label_fail;
+	if (!(name = vkaa_std_op_pre_name(&pre, syntax->data.operator)))
+		goto label_fail;
+	input_number = 1;
+	if (!vkaa_std_operator_get_input_list(param_list, input_list, &input_number))
+		goto label_fail;
+	if (!(s = vkaa_std_operator_get_selector(input_list[0], context->this, name)))
+		goto label_okay;
+	if (!(func = vkaa_std_operator_selector_do(s, context, NULL, input_list, input_number)))
+		goto label_fail;
+	result->data.var = vkaa_function_okay(func);
+	refer_free(func);
+	if (result->data.var)
+	{
+		result->type = vkaa_parse_rtype_var;
+		label_okay:
+		return result;
+	}
+	label_fail:
 	return NULL;
 }
 
 static vkaa_std_operator_define(assign_proxy)
 {
+	const vkaa_type_s *restrict type;
+	vkaa_function_s *restrict func;
 	vkaa_var_s *restrict v;
-	if ((v = vkaa_std_operator_assign_try(&param_list[0], &param_list[1])))
+	if ((type = vkaa_parse_result_get_type(param_list)) &&
+		param_list->type == vkaa_parse_rtype_function &&
+		type == vkaa_parse_result_get_type(param_list + 1) &&
+		!(func = param_list[1].data.function)->output &&
+		(v = vkaa_parse_result_get_var(param_list)) &&
+		vkaa_function_set_output(func, v))
 	{
 		result->type = vkaa_parse_rtype_var;
 		result->data.var = (vkaa_var_s *) refer_save(v);
@@ -182,7 +219,7 @@ static vkaa_std_operator_define(binary_selector)
 		result->this = (vkaa_var_s *) refer_save(this);
 		return result;
 	}
-	return NULL;
+	return vkaa_std_operator_label(proxy)(r, result, context, syntax, param_list);
 }
 
 vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_left(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
@@ -210,12 +247,36 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_selector(vkaa_parse_s 
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(binary_selector), vkaa_parse_optype_binary_second_type2var, towards, oplevel, NULL);
 }
 
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_preprocess(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+{
+	vkaa_parse_operator_s *restrict r;
+	if ((r = vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(proxy), vkaa_parse_optype_binary, towards, oplevel, NULL)))
+		r->op_left_okay_notify = (vkaa_parse_operator_f) vkaa_std_operator_label(proxy_preprocess);
+	return r;
+}
+
 vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	if (vkaa_std_parse_set_operator(p, typeid, opl, operator_first, vkaa_std_operator_label(proxy), vkaa_parse_optype_ternary_first, towards, oplevel, operator_second))
 	{
 		if (vkaa_std_parse_set_operator(p, typeid, opl, operator_second, vkaa_std_operator_label(proxy), vkaa_parse_optype_ternary_second, towards, oplevel, NULL))
 			return p;
+		vkaa_parse_operator_unset(p, operator_first);
+	}
+	return NULL;
+}
+
+vkaa_parse_s* vkaa_std_parse_set_operator_ternary_preprocess(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+{
+	vkaa_parse_operator_s *restrict po;
+	if ((po = (vkaa_std_parse_set_operator(p, typeid, opl, operator_first, vkaa_std_operator_label(proxy), vkaa_parse_optype_ternary_first, towards, oplevel, operator_second))))
+	{
+		po->op_left_okay_notify = (vkaa_parse_operator_f) vkaa_std_operator_label(proxy_preprocess);
+		if ((po = (vkaa_std_parse_set_operator(p, typeid, opl, operator_second, vkaa_std_operator_label(proxy), vkaa_parse_optype_ternary_second, towards, oplevel, NULL))))
+		{
+			po->op_left_okay_notify = (vkaa_parse_operator_f) vkaa_std_operator_label(proxy_preprocess);
+			return p;
+		}
 		vkaa_parse_operator_unset(p, operator_first);
 	}
 	return NULL;

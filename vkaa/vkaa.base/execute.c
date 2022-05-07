@@ -197,7 +197,7 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s
 	vkaa_execute_t data;
 	vkaa_execute_t *restrict array;
 	data.func = func;
-	data.jump = exec->execute_number + 1;
+	data.jump = ~(uintptr_t) 0;
 	if (func && vkaa_execute_okay_last_function(exec) &&
 		(array = (vkaa_execute_t *) exbuffer_append(&exec->buffer, &data, sizeof(data))))
 	{

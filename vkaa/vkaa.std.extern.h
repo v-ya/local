@@ -28,6 +28,10 @@
 #define vkaa_std_oplevel_unary     "unary"
 #define vkaa_std_oplevel_inquiry   "inquiry"
 
+// op suffix
+
+#define vkaa_std_op_preprocess_suffix "pre"
+
 // error
 
 #define vkaa_std_error_memory_less "vkaa.std.memory_less"
@@ -169,6 +173,12 @@ vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict 
 
 // parse
 
+typedef struct vkaa_std_op_pre_t {
+	char op_pre_name[16];
+} vkaa_std_op_pre_t;
+
+const char* vkaa_std_op_pre_name(vkaa_std_op_pre_t *restrict cache, refer_nstring_t op);
+
 typedef struct vkaa_std_keyword_s {
 	vkaa_parse_keyword_s keyword;
 	vkaa_std_typeid_t typeid;
@@ -195,7 +205,9 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_right(vkaa_parse_s *res
 vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_assign(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_selector(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards);
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_preprocess(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards);
+vkaa_parse_s* vkaa_std_parse_set_operator_ternary_preprocess(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, vkaa_syntax_type_t type, vkaa_std_type2var_f parse, vkaa_parse_type2var_type_t type2var_type);
 
 // other

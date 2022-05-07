@@ -90,6 +90,7 @@ struct vkaa_parse_keyword_s {
 
 struct vkaa_parse_operator_s {
 	vkaa_parse_operator_f parse;
+	vkaa_parse_operator_f op_left_okay_notify;
 	vkaa_parse_optype_t optype;
 	vkaa_parse_optowards_t towards;
 	const vkaa_level_s *oplevel;
@@ -122,6 +123,7 @@ void vkaa_parse_operator_finally(vkaa_parse_operator_s *restrict operator);
 
 void vkaa_parse_result_initial(vkaa_parse_result_t *restrict result);
 void vkaa_parse_result_clear(vkaa_parse_result_t *restrict result);
+void vkaa_parse_result_set(vkaa_parse_result_t *restrict dst, const vkaa_parse_result_t *restrict src);
 vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result);
 const vkaa_type_s* vkaa_parse_result_get_type(const vkaa_parse_result_t *restrict result);
 

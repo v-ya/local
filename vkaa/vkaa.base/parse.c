@@ -136,6 +136,14 @@ void vkaa_parse_result_clear(vkaa_parse_result_t *restrict result)
 	result->this = NULL;
 }
 
+void vkaa_parse_result_set(vkaa_parse_result_t *restrict dst, const vkaa_parse_result_t *restrict src)
+{
+	vkaa_parse_result_clear(dst);
+	dst->type = src->type;
+	dst->data.none = refer_save(src->data.none);
+	dst->this = (vkaa_var_s *) refer_save(src->this);
+}
+
 vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result)
 {
 	switch (result->type)

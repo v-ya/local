@@ -225,6 +225,57 @@ static const vkaa_parse_context_t* vkaa_parse_parse_stack_repush(const vkaa_pars
 	return NULL;
 }
 
+static const vkaa_parse_context_t* vkaa_parse_parse_push_op_notify_left_okay(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, const vkaa_parse_operator_s *restrict op, const vkaa_syntax_t *restrict syntax)
+{
+	vkaa_parse_stack_t *restrict var;
+	vkaa_parse_result_t param[2];
+	vkaa_parse_result_t rvar;
+	switch (op->optype)
+	{
+		case vkaa_parse_optype_unary_right:
+			var = NULL;
+			vkaa_parse_parse_stack_repush_fill_param(param, &var, 0);
+			break;
+		case vkaa_parse_optype_unary_left:
+		case vkaa_parse_optype_binary:
+		case vkaa_parse_optype_binary_second_type2var:
+		case vkaa_parse_optype_ternary_first:
+		case vkaa_parse_optype_ternary_second:
+			var = vkaa_parse_parse_stack_get(context, layer_number, 0, vkaa_parse_stack_type_var);
+			if (!var) goto label_fail;
+			vkaa_parse_parse_stack_repush_fill_param(param, &var, 1);
+			break;
+		default: goto label_fail;
+	}
+	if (op->op_left_okay_notify)
+	{
+		vkaa_parse_result_initial(&rvar);
+		if (op->op_left_okay_notify(op, &rvar, context, syntax, param))
+		{
+			if (rvar.type)
+			{
+				if (var->var_data.none)
+				{
+					refer_free(var->var_data.none);
+					var->var_data.none = NULL;
+				}
+				if (var->this)
+				{
+					refer_free(var->this);
+					var->this = NULL;
+				}
+				var->var_type = rvar.type;
+				var->var_data.none = refer_save(rvar.data.none);
+				var->this = (vkaa_var_s *) refer_save(rvar.this);
+			}
+			vkaa_parse_result_clear(&rvar);
+			return context;
+		}
+	}
+	label_fail:
+	return NULL;
+}
+
 static const vkaa_parse_context_t* vkaa_parse_parse_push_op(const vkaa_parse_context_t *restrict context, uintptr_t layer_number, const vkaa_parse_operator_s *restrict op, const vkaa_syntax_t *restrict syntax)
 {
 	vkaa_parse_stack_t *restrict stack;
@@ -238,6 +289,8 @@ static const vkaa_parse_context_t* vkaa_parse_parse_push_op(const vkaa_parse_con
 				op->towards == vkaa_parse_optowards_right2left))
 		{
 			label_push_op:
+			if (op->op_left_okay_notify && !vkaa_parse_parse_push_op_notify_left_okay(context, layer_number, op, syntax))
+				goto label_fail;
 			if (!(stack = (vkaa_parse_stack_t *) tparse_tstack_push(context->stack, sizeof(vkaa_parse_stack_t), (tparse_tstack_free_f) vkaa_parse_stack_free_func)))
 				goto label_fail;
 			stack->type = vkaa_parse_stack_type_op;

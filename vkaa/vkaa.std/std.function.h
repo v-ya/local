@@ -13,6 +13,8 @@
 #define vkaa_std_error(_e)  vkaa_error_get_id(r->output->type->error, vkaa_std_error_##_e)
 #define vkaa_std_jump()     (control->next_pos = control->array[control->next_pos - 1].jump)
 
+#define vkaa_std_verbose
+
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
 
 // *

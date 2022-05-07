@@ -6,44 +6,44 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 		#define d_op(_t, _op, _lev, _tow)  vkaa_std_parse_set_operator_##_t(r, typeid, opl, _op, vkaa_std_oplevel_##_lev, vkaa_parse_optowards_##_tow)
 		d_op(unary_left, vkaa_parse_operator_brackets, inquiry, left2right) &&
 		d_op(unary_left, vkaa_parse_operator_square,   inquiry, left2right) &&
-		d_op(binary_selector, ".",   inquiry,   left2right) &&
-		d_op(unary_right,     "+",   unary,     right2left) &&
-		d_op(unary_right,     "-",   unary,     right2left) &&
-		d_op(unary_right,     "!",   unary,     right2left) &&
-		d_op(unary_right,     "~",   unary,     right2left) &&
-		d_op(binary,          "**",  arith_3,   left2right) &&
-		d_op(binary,          "*",   arith_2,   left2right) &&
-		d_op(binary,          "/",   arith_2,   left2right) &&
-		d_op(binary,          "%",   arith_2,   left2right) &&
-		d_op(binary,          "+",   arith_1,   left2right) &&
-		d_op(binary,          "-",   arith_1,   left2right) &&
-		d_op(binary,          "&",   bitwise,   left2right) &&
-		d_op(binary,          "|",   bitwise,   left2right) &&
-		d_op(binary,          "^",   bitwise,   left2right) &&
-		d_op(binary,          "<<",  bitwise,   left2right) &&
-		d_op(binary,          ">>",  bitwise,   left2right) &&
-		d_op(binary,          "&&",  logic,     left2right) &&
-		d_op(binary,          "||",  logic,     left2right) &&
-		d_op(binary,          "^^",  logic,     left2right) &&
-		d_op(binary,          "==",  relation,  left2right) &&
-		d_op(binary,          "!=",  relation,  left2right) &&
-		d_op(binary,          ">",   relation,  left2right) &&
-		d_op(binary,          "<",   relation,  left2right) &&
-		d_op(binary,          ">=",  relation,  left2right) &&
-		d_op(binary,          "<=",  relation,  left2right) &&
-		vkaa_std_parse_set_operator_ternary(r, typeid, opl, "?", ":", vkaa_std_oplevel_condition, vkaa_parse_optowards_right2left) &&
-		d_op(binary_assign,   "=",   assign,    right2left) &&
-		d_op(binary,          "+=",  assign,    right2left) &&
-		d_op(binary,          "-=",  assign,    right2left) &&
-		d_op(binary,          "*=",  assign,    right2left) &&
-		d_op(binary,          "/=",  assign,    right2left) &&
-		d_op(binary,          "%=",  assign,    right2left) &&
-		d_op(binary,          "**=", assign,    right2left) &&
-		d_op(binary,          "&=",  assign,    right2left) &&
-		d_op(binary,          "|=",  assign,    right2left) &&
-		d_op(binary,          "^=",  assign,    right2left) &&
-		d_op(binary,          "<<=", assign,    right2left) &&
-		d_op(binary,          ">>=", assign,    right2left)
+		d_op(binary_selector,   ".",   inquiry,   left2right) &&
+		d_op(unary_right,       "+",   unary,     right2left) &&
+		d_op(unary_right,       "-",   unary,     right2left) &&
+		d_op(unary_right,       "!",   unary,     right2left) &&
+		d_op(unary_right,       "~",   unary,     right2left) &&
+		d_op(binary,            "**",  arith_3,   left2right) &&
+		d_op(binary,            "*",   arith_2,   left2right) &&
+		d_op(binary,            "/",   arith_2,   left2right) &&
+		d_op(binary,            "%",   arith_2,   left2right) &&
+		d_op(binary,            "+",   arith_1,   left2right) &&
+		d_op(binary,            "-",   arith_1,   left2right) &&
+		d_op(binary,            "&",   bitwise,   left2right) &&
+		d_op(binary,            "|",   bitwise,   left2right) &&
+		d_op(binary,            "^",   bitwise,   left2right) &&
+		d_op(binary,            "<<",  bitwise,   left2right) &&
+		d_op(binary,            ">>",  bitwise,   left2right) &&
+		d_op(binary_preprocess, "&&",  logic,     left2right) &&
+		d_op(binary_preprocess, "||",  logic,     left2right) &&
+		d_op(binary,            "^^",  logic,     left2right) &&
+		d_op(binary,            "==",  relation,  left2right) &&
+		d_op(binary,            "!=",  relation,  left2right) &&
+		d_op(binary,            ">",   relation,  left2right) &&
+		d_op(binary,            "<",   relation,  left2right) &&
+		d_op(binary,            ">=",  relation,  left2right) &&
+		d_op(binary,            "<=",  relation,  left2right) &&
+		vkaa_std_parse_set_operator_ternary_preprocess(r, typeid, opl, "?", ":", vkaa_std_oplevel_condition, vkaa_parse_optowards_right2left) &&
+		d_op(binary_assign,     "=",   assign,    right2left) &&
+		d_op(binary,            "+=",  assign,    right2left) &&
+		d_op(binary,            "-=",  assign,    right2left) &&
+		d_op(binary,            "*=",  assign,    right2left) &&
+		d_op(binary,            "/=",  assign,    right2left) &&
+		d_op(binary,            "%=",  assign,    right2left) &&
+		d_op(binary,            "**=", assign,    right2left) &&
+		d_op(binary,            "&=",  assign,    right2left) &&
+		d_op(binary,            "|=",  assign,    right2left) &&
+		d_op(binary,            "^=",  assign,    right2left) &&
+		d_op(binary,            "<<=", assign,    right2left) &&
+		d_op(binary,            ">>=", assign,    right2left)
 		#undef d_op
 	) return r;
 	return NULL;
