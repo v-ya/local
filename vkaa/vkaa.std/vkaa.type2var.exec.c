@@ -14,7 +14,7 @@ static vkaa_std_type2var_define(exec_orginal_scope)
 				if (result->type)
 					goto label_okay;
 				else if (syntax->type == vkaa_syntax_type_scope &&
-					(result->data.var = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_void)))
+					(result->data.var = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_void, NULL)))
 				{
 					result->type = vkaa_parse_rtype_var;
 					label_okay:

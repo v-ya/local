@@ -2,14 +2,10 @@
 
 static vkaa_std_keyword_define(null)
 {
-	const vkaa_syntax_t *restrict name;
-	if ((name = vkaa_parse_syntax_get_last(syntax)) && name->type == vkaa_syntax_type_keyword)
+	if ((result->data.var = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_null, NULL)))
 	{
-		if ((result->data.var = vkaa_tpool_var_create_by_name(context->tpool, name->data.keyword->string)))
-		{
-			result->type = vkaa_parse_rtype_var;
-			return result;
-		}
+		result->type = vkaa_parse_rtype_var;
+		return result;
 	}
 	return NULL;
 }

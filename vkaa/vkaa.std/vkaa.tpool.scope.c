@@ -21,9 +21,11 @@ vkaa_std_var_scope_s* vkaa_std_type_scope_create_by_parent(const vkaa_type_s *re
 	return NULL;
 }
 
-static vkaa_var_s* vkaa_std_type_scope_create(const vkaa_type_s *restrict type)
+static vkaa_std_type_create_define(scope)
 {
-	return &vkaa_std_type_scope_create_by_parent(type, NULL)->var;
+	if (!syntax)
+		return &vkaa_std_type_scope_create_by_parent(type, NULL)->var;
+	return NULL;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)
@@ -77,5 +79,5 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, cons
 
 vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "scope", typeid->id_scope, vkaa_std_type_scope_create, vkaa_std_type_initial_scope, typeid);
+	return vkaa_std_tpool_set(tpool, "scope", typeid->id_scope, vkaa_std_type_create_label(scope), vkaa_std_type_initial_scope, typeid);
 }

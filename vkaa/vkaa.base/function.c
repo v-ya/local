@@ -72,7 +72,7 @@ vkaa_function_s* vkaa_function_set_input(vkaa_function_s *restrict func, uintptr
 vkaa_var_s* vkaa_function_okay(vkaa_function_s *restrict func)
 {
 	vkaa_var_s *restrict var;
-	if ((var = func->output) || (func->output = var = func->output_type->create(func->output_type)))
+	if ((var = func->output) || (func->output = var = func->output_type->create(func->output_type, NULL)))
 		return var;
 	return NULL;
 }

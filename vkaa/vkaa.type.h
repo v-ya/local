@@ -4,7 +4,7 @@
 #include "vkaa.h"
 #include <vattr.h>
 
-typedef vkaa_var_s* (*vkaa_type_create_f)(const vkaa_type_s *restrict type);
+typedef vkaa_var_s* (*vkaa_type_create_f)(const vkaa_type_s *restrict type, const vkaa_syntax_t *restrict syntax);
 
 struct vkaa_type_s {
 	uintptr_t id;

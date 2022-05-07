@@ -59,7 +59,7 @@ vkaa_std_var_scope_s* vkaa_std_type_scope_create_by_parent(const vkaa_type_s *re
 typedef struct vkaa_std_var_syntax_s {
 	vkaa_var_s var;
 	vkaa_syntax_type_t type;
-	vkaa_syntax_s *syntax;
+	const vkaa_syntax_s *syntax;
 } vkaa_std_var_syntax_s;
 
 // var<function>

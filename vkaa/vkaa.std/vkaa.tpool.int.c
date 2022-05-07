@@ -1,14 +1,27 @@
 #include "std.tpool.h"
 #include "std.function.h"
+#include <stdlib.h>
 
-static vkaa_var_s* vkaa_std_type_int_create(const vkaa_type_s *restrict type)
+static vkaa_std_type_create_define(int)
 {
 	vkaa_std_var_int_s *restrict r;
 	if ((r = (vkaa_std_var_int_s *) refer_alloz(sizeof(vkaa_std_var_int_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_var_finally);
 		if (vkaa_var_initial(&r->var, type))
+		{
+			if (syntax)
+			{
+				char *endptr;
+				if (syntax->type != vkaa_syntax_type_number)
+					goto label_fail;
+				r->value = (vkaa_std_int_t) strtoll(syntax->data.number->string, &endptr, 0);
+				if (!endptr || *endptr)
+					goto label_fail;
+			}
 			return &r->var;
+		}
+		label_fail:
 		refer_free(r);
 	}
 	return NULL;
@@ -29,5 +42,5 @@ static vkaa_type_s* vkaa_std_type_initial_int(vkaa_type_s *restrict type, const 
 
 vkaa_type_s* vkaa_std_tpool_set_int(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "int", typeid->id_int, vkaa_std_type_int_create, vkaa_std_type_initial_int, typeid);
+	return vkaa_std_tpool_set(tpool, "int", typeid->id_int, vkaa_std_type_create_label(int), vkaa_std_type_initial_int, typeid);
 }

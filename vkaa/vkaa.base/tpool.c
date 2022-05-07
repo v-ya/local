@@ -105,7 +105,7 @@ vkaa_var_s* vkaa_tpool_var_const_enable(vkaa_tpool_s *restrict tpool, const vkaa
 {
 	vkaa_var_s *restrict var;
 	rbtree_delete(&tpool->i2v, NULL, type->id);
-	if ((var = type->create(type)))
+	if ((var = type->create(type, NULL)))
 	{
 		if (rbtree_insert(&tpool->i2v, NULL, type->id, var, vkaa_tpool_rbtree_free_func))
 			return var;
@@ -142,26 +142,26 @@ void vkaa_tpool_var_const_disable_by_id(vkaa_tpool_s *restrict tpool, uintptr_t 
 	rbtree_delete(&tpool->i2v, NULL, id);
 }
 
-vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type)
+vkaa_var_s* vkaa_tpool_var_create(const vkaa_tpool_s *restrict tpool, const vkaa_type_s *restrict type, const vkaa_syntax_t *restrict syntax)
 {
 	rbtree_t *restrict rbv;
 	if ((rbv = rbtree_find(&tpool->i2v, NULL, type->id)))
 		return (vkaa_var_s *) refer_save(rbv->value);
-	return type->create(type);
+	return type->create(type, syntax);
 }
 
-vkaa_var_s* vkaa_tpool_var_create_by_name(const vkaa_tpool_s *restrict tpool, const char *restrict name)
+vkaa_var_s* vkaa_tpool_var_create_by_name(const vkaa_tpool_s *restrict tpool, const char *restrict name, const vkaa_syntax_t *restrict syntax)
 {
 	const vkaa_type_s *restrict type;
 	if ((type = vkaa_tpool_find_name(tpool, name)))
-		return vkaa_tpool_var_create(tpool, type);
+		return vkaa_tpool_var_create(tpool, type, syntax);
 	return NULL;
 }
 
-vkaa_var_s* vkaa_tpool_var_create_by_id(const vkaa_tpool_s *restrict tpool, uintptr_t id)
+vkaa_var_s* vkaa_tpool_var_create_by_id(const vkaa_tpool_s *restrict tpool, uintptr_t id, const vkaa_syntax_t *restrict syntax)
 {
 	const vkaa_type_s *restrict type;
 	if ((type = vkaa_tpool_find_id(tpool, id)))
-		return vkaa_tpool_var_create(tpool, type);
+		return vkaa_tpool_var_create(tpool, type, syntax);
 	return NULL;
 }

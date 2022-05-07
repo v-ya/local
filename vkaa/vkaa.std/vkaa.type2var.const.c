@@ -1,19 +1,17 @@
 #include "std.parse.h"
 #include <string.h>
-#include <stdlib.h>
 
 static vkaa_std_type2var_define(string)
 {
-	vkaa_std_var_string_s *restrict v;
+	vkaa_var_s *restrict v;
 	switch (syntax->type)
 	{
 		case vkaa_syntax_type_keyword:
 		case vkaa_syntax_type_string:
-			if ((v = (vkaa_std_var_string_s *) vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_string)))
+			if ((v = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_string, syntax)))
 			{
-				v->value = (refer_nstring_t) refer_save(syntax->data.string);
 				result->type = vkaa_parse_rtype_var;
-				result->data.var = &v->var;
+				result->data.var = v;
 				return result;
 			}
 			// fall through
@@ -24,33 +22,25 @@ static vkaa_std_type2var_define(string)
 static vkaa_std_type2var_define(number)
 {
 	const char *restrict s;
-	char *endptr;
+	vkaa_var_s *restrict v;
 	if (syntax->type == vkaa_syntax_type_number)
 	{
 		s = syntax->data.number->string;
 		if (strchr(s, '.') || strchr(s, 'e') || strchr(s, 'E'))
 		{
-			vkaa_std_var_float_s *restrict v;
-			vkaa_std_float_t vv;
-			vv = (vkaa_std_float_t) strtod(s, &endptr);
-			if (!*endptr && (v = (vkaa_std_var_float_s *) vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_float)))
+			if ((v = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_float, syntax)))
 			{
-				v->value = vv;
 				result->type = vkaa_parse_rtype_var;
-				result->data.var = &v->var;
+				result->data.var = v;
 				return result;
 			}
 		}
 		else
 		{
-			vkaa_std_var_int_s *restrict v;
-			vkaa_std_int_t vv;
-			vv = (vkaa_std_int_t) strtoll(s, &endptr, 0);
-			if (!*endptr && (v = (vkaa_std_var_int_s *) vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_int)))
+			if ((v = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_int, syntax)))
 			{
-				v->value = vv;
 				result->type = vkaa_parse_rtype_var;
-				result->data.var = &v->var;
+				result->data.var = v;
 				return result;
 			}
 		}
