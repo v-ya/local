@@ -246,10 +246,9 @@ uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec)
 	vkaa_function_s *restrict func;
 	vkaa_execute_control_t c;
 	uintptr_t n, error;
-	array = exec->execute_array;
-	n = exec->execute_number;
 	c.next_pos = 0;
-	c.array = array;
+	c.array = array = exec->execute_array;
+	c.number = n = exec->execute_number;
 	while (c.next_pos < n)
 	{
 		func = array[c.next_pos++].func;

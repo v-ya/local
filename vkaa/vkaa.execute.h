@@ -13,6 +13,7 @@ typedef struct vkaa_execute_t {
 struct vkaa_execute_control_t {
 	uintptr_t next_pos;
 	const vkaa_execute_t *array;
+	uintptr_t number;
 };
 
 struct vkaa_execute_s {
