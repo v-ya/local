@@ -14,6 +14,7 @@
 
 #define vkaa_std_error(_e)  vkaa_error_get_id(r->output->type->error, vkaa_std_error_##_e)
 #define vkaa_std_jump()     (control->next_pos = control->array[control->next_pos - 1].jump)
+#define vkaa_std_njump()    (control->next_pos = control->array[control->next_pos].jump)
 
 #define vkaa_std_verbose 1
 
@@ -24,6 +25,8 @@
 #endif
 
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
+vkaa_function_s* vkaa_std_function_pushed(vkaa_execute_s *restrict exec, vkaa_function_f function, const vkaa_type_s *restrict output_type, vkaa_var_s *restrict this, vkaa_var_s *restrict output);
+const vkaa_parse_context_t* vkaa_std_function_pushed_block(const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax);
 
 // !
 vkaa_std_function_define(bool, op_not_logic);
@@ -85,5 +88,10 @@ vkaa_std_function_define(float, cv_bool);
 vkaa_std_function_define(float, cv_uint);
 vkaa_std_function_define(float, cv_int);
 vkaa_std_function_define(float, cv_float);
+
+// control
+vkaa_std_function_define(void, cj_goto);
+vkaa_std_function_define(void, cj_if_next);
+vkaa_std_function_define(void, cj_if_goto);
 
 #endif

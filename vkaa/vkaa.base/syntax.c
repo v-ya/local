@@ -147,12 +147,13 @@ const vkaa_syntax_t* vkaa_syntax_test(const vkaa_syntax_t *restrict syntax, vkaa
 			case vkaa_syntax_type_string:
 			case vkaa_syntax_type_multichar:
 			case vkaa_syntax_type_number:
-				if (!string || !strcmp(syntax->data.string->string, string))
-					return syntax;
+				if (string && strcmp(syntax->data.string->string, string))
+					goto label_fail;
 				// fall through
-			default: break;
+			default: return syntax;
 		}
 	}
+	label_fail:
 	return NULL;
 }
 

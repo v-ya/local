@@ -6,6 +6,12 @@
 // keyword
 
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_var(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_goto(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_break(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_continue(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_if(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_else(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_null(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid);
 
 // operator

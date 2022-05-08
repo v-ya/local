@@ -417,6 +417,13 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 						goto label_fail;
 					if (k->keytype == vkaa_parse_keytype_inner)
 						goto label_keyword_push_var;
+					if (var.type == vkaa_parse_rtype_function)
+					{
+						if (!var.data.function)
+							goto label_fail;
+						if (!vkaa_execute_push(context->execute, var.data.function))
+							goto label_fail;
+					}
 				}
 				else if ((var.data.var = vkaa_scope_find(context->scope, s->data.keyword->string)))
 				{

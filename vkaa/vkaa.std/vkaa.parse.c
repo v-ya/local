@@ -56,6 +56,12 @@ vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, cons
 	{
 		if (
 			vkaa_std_parse_set_keyword_var(r, typeid) &&
+			vkaa_std_parse_set_keyword_label(r, typeid) &&
+			vkaa_std_parse_set_keyword_goto(r, typeid) &&
+			vkaa_std_parse_set_keyword_break(r, typeid) &&
+			vkaa_std_parse_set_keyword_continue(r, typeid) &&
+			vkaa_std_parse_set_keyword_if(r, typeid) &&
+			vkaa_std_parse_set_keyword_else(r, typeid) &&
 			vkaa_std_parse_set_keyword_null(r, typeid) &&
 			vkaa_std_create_parse_preset_operator(r, typeid, oplevel) &&
 			vkaa_std_parse_set_type2var_scope(r, typeid) &&

@@ -61,9 +61,27 @@ vkaa_function_s* vkaa_std_convert_by_typeid(vkaa_execute_s *restrict exec, const
 	if ((dt = vkaa_tpool_find_id(tpool, dst)) && dt->name && (s = vkaa_var_find_selector(src, dt->name)) &&
 		(func = vkaa_std_convert_create_function(exec, tpool, src, s)))
 	{
-		if (vkaa_execute_push(exec, func))
+		if (func->output_type == dt && vkaa_execute_push(exec, func))
 			rr = func;
 		refer_free(func);
 	}
 	return rr;
+}
+
+vkaa_var_s* vkaa_std_convert_result_get_var(const vkaa_parse_result_t *restrict result, vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, uintptr_t type_id)
+{
+	vkaa_var_s *restrict r;
+	vkaa_function_s *restrict func;
+	if ((r = vkaa_parse_result_get_var(result)))
+	{
+		if (r->type_id == type_id)
+			goto label_okay;
+		if ((func = vkaa_std_convert_by_typeid(exec, tpool, r, type_id)) &&
+			(r = vkaa_function_okay(func)))
+		{
+			label_okay:
+			return r;
+		}
+	}
+	return NULL;
 }

@@ -13,6 +13,48 @@ vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, cons
 	return NULL;
 }
 
+vkaa_function_s* vkaa_std_function_pushed(vkaa_execute_s *restrict exec, vkaa_function_f function, const vkaa_type_s *restrict output_type, vkaa_var_s *restrict this, vkaa_var_s *restrict output)
+{
+	vkaa_function_s *restrict func, *rr;
+	rr = NULL;
+	if ((func = vkaa_function_alloc(NULL, function, output_type, 0, NULL)))
+	{
+		if (this) vkaa_function_set_this(func, this);
+		if (!output || vkaa_function_set_output(func, output))
+		{
+			if (vkaa_execute_push(exec, func))
+				rr = func;
+		}
+		refer_free(func);
+	}
+	return rr;
+}
+
+const vkaa_parse_context_t* vkaa_std_function_pushed_block(const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax)
+{
+	const vkaa_syntax_t *restrict s;
+	uintptr_t n;
+	if (!(s = vkaa_parse_syntax_get_curr(syntax)))
+		goto label_fail;
+	if (s->type == vkaa_syntax_type_scope)
+	{
+		if (!vkaa_parse_parse(context, s->data.scope->syntax_array, s->data.scope->syntax_number, NULL))
+			goto label_fail;
+		syntax->pos += 1;
+	}
+	else
+	{
+		if (!(s = vkaa_parse_syntax_get_range(syntax, &n, vkaa_syntax_type_semicolon, NULL)))
+			goto label_fail;
+		if (!vkaa_parse_parse(context, s, n, NULL))
+			goto label_fail;
+		syntax->pos += n;
+	}
+	return context;
+	label_fail:
+	return NULL;
+}
+
 #if vkaa_std_verbose
 static void vkaa_std_function_verbose(const vkaa_function_s *restrict function, vkaa_execute_control_t *restrict control, const char *restrict name);
 #endif
@@ -283,6 +325,26 @@ vkaa_std_function_define(float, cv_int)
 vkaa_std_function_define(float, cv_float)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(float) = vkaa_std_vt(float);
+	return 0;
+}
+
+// control
+vkaa_std_function_define(void, cj_goto)
+{vkaa_std_verbose_weak
+	vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(void, cj_if_next)
+{vkaa_std_verbose_weak
+	if (!vkaa_std_vo(bool))
+		vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(void, cj_if_goto)
+{vkaa_std_verbose_weak
+	if (vkaa_std_vo(bool))
+		vkaa_std_njump();
+	else vkaa_std_jump();
 	return 0;
 }
 

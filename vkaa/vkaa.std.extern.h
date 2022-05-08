@@ -32,6 +32,14 @@
 
 #define vkaa_std_op_testeval_suffix "pre"
 
+// control preset label
+
+#define vkaa_std_label_stack     ".stack"
+#define vkaa_std_label_break     ".break"
+#define vkaa_std_label_continue  ".continue"
+#define vkaa_std_label_if_next   ".if.next"
+#define vkaa_std_label_if_end    ".if.end"
+
 // error
 
 #define vkaa_std_error_memory_less "vkaa.std.memory_less"
@@ -132,6 +140,7 @@ const vkaa_selector_s* vkaa_std_convert_test_by_name(const vkaa_type_s *restrict
 const vkaa_selector_s* vkaa_std_convert_test_by_typeid(const vkaa_type_s *restrict src, uintptr_t dst, const vkaa_tpool_s *restrict tpool);
 vkaa_var_s* vkaa_std_convert_by_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, vkaa_var_s *restrict dst);
 vkaa_function_s* vkaa_std_convert_by_typeid(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, uintptr_t dst);
+vkaa_var_s* vkaa_std_convert_result_get_var(const vkaa_parse_result_t *restrict result, vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, uintptr_t type_id);
 
 // selector
 

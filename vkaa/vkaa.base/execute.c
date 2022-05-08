@@ -215,14 +215,14 @@ vkaa_execute_s* vkaa_execute_okay_last_function(vkaa_execute_s *restrict exec)
 
 vkaa_execute_s* vkaa_execute_okay_label(vkaa_execute_s *restrict exec)
 {
-	vattr_vlist_t *restrict vl;
+	vattr_vlist_t *restrict vl, *restrict vd;
 	vl = exec->label->vattr;
-	while (vl)
+	while ((vd = vl))
 	{
 		if (!vkaa_execute_label_okay((vkaa_execute_label_s *) vl->value, exec->execute_array, exec->execute_number))
 			goto label_fail;
 		vl = vl->vattr_next;
-		vattr_delete_vlist(vl);
+		vattr_delete_vlist(vd);
 	}
 	return exec;
 	label_fail:
