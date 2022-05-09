@@ -1,4 +1,5 @@
 #include "std.function.h"
+#include <math.h>
 
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid)
 {
@@ -119,6 +120,31 @@ vkaa_std_function_define(float, op_div)
 }
 
 // %
+vkaa_std_function_define(uint, op_mod)
+{vkaa_std_verbose_weak
+	vkaa_std_uint_t v1;
+	if ((v1 = vkaa_std_vp(uint, 1)))
+	{
+		vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) % v1;
+		return 0;
+	}
+	return vkaa_std_error(div_zero);
+}
+vkaa_std_function_define(int, op_mod)
+{vkaa_std_verbose_weak
+	vkaa_std_int_t v1;
+	if ((v1 = vkaa_std_vp(int, 1)))
+	{
+		vkaa_std_vo(int) = vkaa_std_vp(int, 0) % v1;
+		return 0;
+	}
+	return vkaa_std_error(div_zero);
+}
+vkaa_std_function_define(float, op_mod)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = fmod(vkaa_std_vp(float, 0), vkaa_std_vp(float, 1));
+	return 0;
+}
 
 // +
 vkaa_std_function_define(uint, op_add)
@@ -184,6 +210,81 @@ vkaa_std_function_define(float, op_neg)
 	return 0;
 }
 
+// &
+vkaa_std_function_define(bool, op_and_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) & vkaa_std_vp(bool, 1);
+	return 0;
+}
+vkaa_std_function_define(uint, op_and_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) & vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_and_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0) & vkaa_std_vp(int, 1);
+	return 0;
+}
+
+// |
+vkaa_std_function_define(bool, op_or_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) | vkaa_std_vp(bool, 1);
+	return 0;
+}
+vkaa_std_function_define(uint, op_or_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) | vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_or_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0) | vkaa_std_vp(int, 1);
+	return 0;
+}
+
+// ^
+vkaa_std_function_define(bool, op_xor_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) ^ vkaa_std_vp(bool, 1);
+	return 0;
+}
+vkaa_std_function_define(uint, op_xor_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) ^ vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_xor_bitwise)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0) ^ vkaa_std_vp(int, 1);
+	return 0;
+}
+
+// <<
+vkaa_std_function_define(uint, op_lshift)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) << (uint32_t) vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_lshift)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0) << (int32_t) vkaa_std_vp(int, 1);
+	return 0;
+}
+
+// >>
+vkaa_std_function_define(uint, op_rshift)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(uint) = vkaa_std_vp(uint, 0) >> (uint32_t) vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rshift)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(int) = vkaa_std_vp(int, 0) >> (int32_t) vkaa_std_vp(int, 1);
+	return 0;
+}
+
 // &&
 vkaa_std_function_define(bool, op_and_logic_test)
 {vkaa_std_verbose_weak
@@ -214,6 +315,118 @@ vkaa_std_function_define(bool, op_or_logic)
 vkaa_std_function_define(bool, op_xor_logic)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) ^ vkaa_std_vp(bool, 1);
+	return 0;
+}
+
+// ==
+vkaa_std_function_define(bool, op_rela_equ)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) == vkaa_std_vp(bool, 1);
+	return 0;
+}
+vkaa_std_function_define(uint, op_rela_equ)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) == vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_equ)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) == vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_equ)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) == vkaa_std_vp(float, 1);
+	return 0;
+}
+
+// !=
+vkaa_std_function_define(bool, op_rela_ne)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(bool, 0) != vkaa_std_vp(bool, 1);
+	return 0;
+}
+vkaa_std_function_define(uint, op_rela_ne)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) != vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_ne)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) != vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_ne)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) != vkaa_std_vp(float, 1);
+	return 0;
+}
+
+// >
+vkaa_std_function_define(uint, op_rela_gt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) > vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_gt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) > vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_gt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) > vkaa_std_vp(float, 1);
+	return 0;
+}
+
+// <
+vkaa_std_function_define(uint, op_rela_lt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) < vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_lt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) < vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_lt)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) < vkaa_std_vp(float, 1);
+	return 0;
+}
+
+// >=
+vkaa_std_function_define(uint, op_rela_gte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) >= vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_gte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) >= vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_gte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) >= vkaa_std_vp(float, 1);
+	return 0;
+}
+
+// <=
+vkaa_std_function_define(uint, op_rela_lte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(uint, 0) <= vkaa_std_vp(uint, 1);
+	return 0;
+}
+vkaa_std_function_define(int, op_rela_lte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(int, 0) <= vkaa_std_vp(int, 1);
+	return 0;
+}
+vkaa_std_function_define(float, op_rela_lte)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(bool) = vkaa_std_vp(float, 0) <= vkaa_std_vp(float, 1);
 	return 0;
 }
 
