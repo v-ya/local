@@ -29,9 +29,7 @@ static vkaa_std_type_create_define(uint)
 
 static vkaa_type_s* vkaa_std_type_initial_uint(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
 {
-	uintptr_t tid_2_uint_uint[] = {typeid->id_uint, typeid->id_uint};
 	if (
-		vkaa_std_type_set_function(type, "=", vkaa_std_function_label(uint, op_mov), vkaa_std_selector_output_input_first, vkaa_std_selector_convert_none, 0, typeid->id_uint, 2, tid_2_uint_uint) &&
 		vkaa_std_type_set_function(type, "bool", vkaa_std_function_label(uint, cv_bool), vkaa_std_selector_output_any, vkaa_std_selector_convert_none, typeid->id_uint, typeid->id_bool, 0, NULL) &&
 		vkaa_std_type_set_function(type, "uint", vkaa_std_function_label(uint, cv_uint), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_uint, typeid->id_uint, 0, NULL) &&
 		vkaa_std_type_set_function(type, "int", vkaa_std_function_label(uint, cv_int), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_uint, typeid->id_int, 0, NULL) &&

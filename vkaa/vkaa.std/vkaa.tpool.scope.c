@@ -42,6 +42,7 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa
 		#define need1a(_t, _l)        need(_t, 1, vkaa_std_selector_output_any, _l)
 		#define need1i(_t, _l)        need(_t, 1, vkaa_std_selector_output_input_first, _l)
 		#define need2a(_t, _l)        need(_t, 2, vkaa_std_selector_output_any, _l)
+		#define need2m(_t, _l)        need(_t, 2, vkaa_std_selector_output_must_first, _l)
 		(s = vkaa_std_type_set_function(type, op = "!",  need1a(bool,  op_not_logic))) &&
 		(s = vkaa_std_type_set_function(type, op = "~",  need1a(uint,  op_not_bitwise))) &&
 		(s = vkaa_std_type_set_function(type, op = "*",  need2a(uint,  op_mul))) &&
@@ -69,9 +70,14 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa
 			vkaa_std_type_set_function(type, op2,    need1i(bool,  op_or_logic_test)) &&
 			vkaa_std_type_set_function(type, op,     need2a(bool,  op_or_logic)) &&
 		(s = vkaa_std_type_set_function(type, op = "^^", need2a(bool,  op_xor_logic))) &&
+		(s = vkaa_std_type_set_function(type, op = "=",  need2m(bool,  op_mov))) &&
+			vkaa_std_selector_append(s,   op,        need2m(uint,  op_mov)) &&
+			vkaa_std_selector_append(s,   op,        need2m(int,   op_mov)) &&
+			vkaa_std_selector_append(s,   op,        need2m(float, op_mov)) &&
 		#undef need1a
 		#undef need1i
 		#undef need2a
+		#undef need2m
 		#undef need
 	1) return type;
 	return NULL;

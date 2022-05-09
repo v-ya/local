@@ -89,11 +89,15 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 		{
 			case vkaa_std_selector_output_any: break;
 			case vkaa_std_selector_output_this:
-				if (!param->this || desc->this_typeid != desc->output_typeid)
+				if (!param->this || param->this->type_id != desc->output_typeid)
 					goto label_fail;
 				break;
 			case vkaa_std_selector_output_input_first:
 				if (!n || input_typeid[0] != desc->output_typeid)
+					goto label_fail;
+				break;
+			case vkaa_std_selector_output_must_first:
+				if (!n || input_list[0]->type_id != desc->output_typeid)
 					goto label_fail;
 				break;
 			case vkaa_std_selector_output_new: break;
@@ -162,6 +166,13 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 					break;
 				case vkaa_std_selector_output_input_first:
 					if (!n) goto label_fail;
+					if (!vkaa_function_set_output(rf, rf->input_list[0]))
+						goto label_fail;
+					break;
+				case vkaa_std_selector_output_must_first:
+					if (!n) goto label_fail;
+					if (input_list[0] != rf->input_list[0])
+						goto label_fail;
 					if (!vkaa_function_set_output(rf, rf->input_list[0]))
 						goto label_fail;
 					break;

@@ -66,6 +66,8 @@ vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, vkaa
 			vkaa_std_parse_set_keyword_do(r, typeid) &&
 			vkaa_std_parse_set_keyword_for(r, typeid) &&
 			vkaa_std_parse_set_keyword_null(r, typeid) &&
+			vkaa_std_parse_set_keyword_true(r, typeid) &&
+			vkaa_std_parse_set_keyword_false(r, typeid) &&
 			vkaa_std_create_parse_preset_operator(r, typeid, oplevel) &&
 			vkaa_std_parse_set_type2var_scope(r, typeid) &&
 			vkaa_std_parse_set_type2var_brackets(r, typeid) &&

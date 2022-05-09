@@ -148,6 +148,7 @@ typedef enum vkaa_std_selector_output_t {
 	vkaa_std_selector_output_any,
 	vkaa_std_selector_output_this,
 	vkaa_std_selector_output_input_first,
+	vkaa_std_selector_output_must_first,
 	vkaa_std_selector_output_new,
 } vkaa_std_selector_output_t;
 

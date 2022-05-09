@@ -16,6 +16,8 @@ vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_while(vkaa_parse_s *restrict pa
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_do(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_for(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_null(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_true(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_false(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 
 // operator
 

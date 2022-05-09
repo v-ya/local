@@ -18,4 +18,3 @@ vkaa_std_typeid_s* vkaa_std_typeid_alloc(vkaa_tpool_s *restrict tpool)
 	}
 	return r;
 }
-
