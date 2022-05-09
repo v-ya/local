@@ -13,7 +13,7 @@ static vkaa_std_type_create_define(void)
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_void(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_void(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "void", typeid->id_void, vkaa_std_type_create_label(void), NULL, typeid);
 }

@@ -28,7 +28,7 @@ static vkaa_std_type_create_define(scope)
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)
+static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
 {
 	uintptr_t tid_bool[] = {typeid->id_bool, typeid->id_bool};
 	uintptr_t tid_uint[] = {typeid->id_uint, typeid->id_uint};
@@ -77,7 +77,7 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, cons
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "scope", typeid->id_scope, vkaa_std_type_create_label(scope), vkaa_std_type_initial_scope, typeid);
 }

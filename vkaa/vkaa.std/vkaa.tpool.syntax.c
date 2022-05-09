@@ -36,7 +36,7 @@ static vkaa_std_type_create_define(syntax)
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_syntax(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_syntax(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "syntax", typeid->id_syntax, vkaa_std_type_create_label(syntax), NULL, typeid);
 }

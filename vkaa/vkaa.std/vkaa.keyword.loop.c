@@ -19,7 +19,7 @@ static vkaa_std_keyword_define(while)
 		goto label_fail;
 	if (!vkaa_parse_parse(context, s->data.brackets->syntax_array, s->data.brackets->syntax_number, &rv))
 		goto label_fail;
-	if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid.id_bool)))
+	if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid->id_bool)))
 		goto label_fail;
 	if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_break, 0, vkaa_execute_next_pos(exec)))
 		goto label_fail;
@@ -34,7 +34,7 @@ static vkaa_std_keyword_define(while)
 		goto label_fail;
 	if (!vkaa_std_function_pushed(
 		exec, vkaa_std_function_label(void, cj_goto),
-		vkaa_tpool_find_id(context->tpool, r->typeid.id_void),
+		vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 		NULL, NULL))
 		goto label_fail;
 	if (!vkaa_execute_pop_label(exec, vkaa_std_label_continue, label_pos_check))
@@ -69,7 +69,7 @@ static vkaa_std_keyword_define(do)
 		goto label_fail;
 	if (!vkaa_parse_parse(context, s->data.brackets->syntax_array, s->data.brackets->syntax_number, &rv))
 		goto label_fail;
-	if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid.id_bool)))
+	if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid->id_bool)))
 		goto label_fail;
 	if (!vkaa_std_function_pushed(
 		exec, vkaa_std_function_label(void, cj_do_while),
@@ -149,12 +149,12 @@ static vkaa_std_keyword_define(for)
 	{
 		if (!vkaa_parse_parse(context, param.syntax_check, param.number_check, &rv))
 			goto label_fail;
-		if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid.id_bool)))
+		if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid->id_bool)))
 			goto label_fail;
 	}
 	else
 	{
-		if (!(rv.data.var = vbool = vkaa_tpool_var_create_by_id(context->tpool, r->typeid.id_bool, NULL)))
+		if (!(rv.data.var = vbool = vkaa_tpool_var_create_by_id(context->tpool, r->typeid->id_bool, NULL)))
 			goto label_fail;
 		rv.type = vkaa_parse_rtype_var;
 		vkaa_std_value(bool, vbool) = 1;
@@ -175,7 +175,7 @@ static vkaa_std_keyword_define(for)
 		goto label_fail;
 	if (!vkaa_std_function_pushed(
 		exec, vkaa_std_function_label(void, cj_goto),
-		vkaa_tpool_find_id(context->tpool, r->typeid.id_void),
+		vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 		NULL, NULL))
 		goto label_fail;
 	vkaa_execute_get_last_item(exec)->jump = label_pos_check;
@@ -188,17 +188,17 @@ static vkaa_std_keyword_define(for)
 	return NULL;
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_while(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_while(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "while", vkaa_std_keyword_label(while), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_do(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_do(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "do", vkaa_std_keyword_label(do), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_for(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_for(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "for", vkaa_std_keyword_label(for), vkaa_parse_keytype_complete);
 }

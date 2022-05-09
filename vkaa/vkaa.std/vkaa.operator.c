@@ -1,6 +1,12 @@
 #include "std.parse.h"
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, vkaa_std_operator_f parse, vkaa_parse_optype_t optype, vkaa_parse_optowards_t towards, const char *restrict oplevel, const char *restrict ternary_second_operator)
+static void vkaa_std_operator_free_func(vkaa_std_operator_s *restrict r)
+{
+	if (r->typeid) refer_free(r->typeid);
+	vkaa_parse_operator_finally(&r->operator);
+}
+
+vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, vkaa_std_operator_f parse, vkaa_parse_optype_t optype, vkaa_parse_optowards_t towards, const char *restrict oplevel, const char *restrict ternary_second_operator)
 {
 	const vkaa_level_s *restrict level;
 	vkaa_std_operator_s *restrict r;
@@ -9,14 +15,14 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator(vkaa_parse_s *restrict p, con
 	if ((level = vkaa_oplevel_get(opl, oplevel)) &&
 		(r = (vkaa_std_operator_s *) refer_alloc(sizeof(vkaa_std_operator_s))))
 	{
-		refer_set_free(r, (refer_free_f) vkaa_parse_operator_finally);
+		refer_set_free(r, (refer_free_f) vkaa_std_operator_free_func);
 		r->operator.parse = (vkaa_parse_operator_f) parse;
 		r->operator.op_left_okay_notify = NULL;
 		r->operator.optype = optype;
 		r->operator.towards = towards;
 		r->operator.oplevel = (const vkaa_level_s *) refer_save(level);
 		r->operator.ternary_second_operator = ternary_second_operator;
-		r->typeid = *typeid;
+		r->typeid = (vkaa_std_typeid_s *) refer_save(typeid);
 		if (optype != vkaa_parse_optype_unary_right)
 			rr = vkaa_parse_operator_set(p, operator, &r->operator);
 		else rr = vkaa_parse_op1unary_set(p, operator, &r->operator);
@@ -190,7 +196,7 @@ static vkaa_std_operator_define(binary_selector)
 	vkaa_selector_s *restrict s;
 	if ((this = vkaa_parse_result_get_var(param_list)) &&
 		(keyword = vkaa_parse_result_get_var(param_list + 1)) &&
-		keyword->type_id == r->typeid.id_string &&
+		keyword->type_id == r->typeid->id_string &&
 		(name = ((vkaa_std_var_string_s *) keyword)->value) &&
 		(s = vkaa_var_find_selector(this, name->string)))
 	{
@@ -249,32 +255,32 @@ static vkaa_std_operator_define(proxy_eval)
 	return NULL;
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_left(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_left(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(unary_left_proxy), vkaa_parse_optype_unary_left, towards, oplevel, NULL);
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_right(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_unary_right(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(proxy), vkaa_parse_optype_unary_right, towards, oplevel, NULL);
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(proxy), vkaa_parse_optype_binary, towards, oplevel, NULL);
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_assign(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_assign(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(assign_proxy), vkaa_parse_optype_binary, towards, oplevel, NULL);
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_selector(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_selector(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	return vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(binary_selector), vkaa_parse_optype_binary_second_type2var, towards, oplevel, NULL);
 }
 
-vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_testeval(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_testeval(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	vkaa_parse_operator_s *restrict r;
 	if ((r = vkaa_std_parse_set_operator(p, typeid, opl, operator, vkaa_std_operator_label(proxy_eval), vkaa_parse_optype_binary, towards, oplevel, NULL)))
@@ -282,7 +288,7 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_testeval(vkaa_parse_s 
 	return r;
 }
 
-vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	if (vkaa_std_parse_set_operator(p, typeid, opl, operator_first, vkaa_std_operator_label(proxy), vkaa_parse_optype_ternary_first, towards, oplevel, operator_second))
 	{
@@ -293,7 +299,7 @@ vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, cons
 	return NULL;
 }
 
-vkaa_parse_s* vkaa_std_parse_set_operator_ternary_testeval(vkaa_parse_s *restrict p, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
+vkaa_parse_s* vkaa_std_parse_set_operator_ternary_testeval(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards)
 {
 	vkaa_parse_operator_s *restrict po;
 	if ((po = (vkaa_std_parse_set_operator(p, typeid, opl, operator_first, vkaa_std_operator_label(proxy_eval), vkaa_parse_optype_ternary_first, towards, oplevel, operator_second))))

@@ -1,6 +1,6 @@
 #include "std.tpool.h"
 
-vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, vkaa_std_typeid_s *restrict typeid)
 {
 	vkaa_type_s *restrict r, *rr;
 	rr = NULL;
@@ -16,20 +16,6 @@ vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restri
 	return rr;
 }
 
-static void vkaa_std_create_tpool_initial_id(vkaa_std_typeid_t *restrict typeid, vkaa_tpool_s *restrict tpool)
-{
-	typeid->id_void = vkaa_tpool_genid(tpool);
-	typeid->id_null = vkaa_tpool_genid(tpool);
-	typeid->id_scope = vkaa_tpool_genid(tpool);
-	typeid->id_syntax = vkaa_tpool_genid(tpool);
-	typeid->id_function = vkaa_tpool_genid(tpool);
-	typeid->id_string = vkaa_tpool_genid(tpool);
-	typeid->id_bool = vkaa_tpool_genid(tpool);
-	typeid->id_uint = vkaa_tpool_genid(tpool);
-	typeid->id_int = vkaa_tpool_genid(tpool);
-	typeid->id_float = vkaa_tpool_genid(tpool);
-}
-
 static vkaa_error_s* vkaa_std_create_tpool_initial_error(vkaa_error_s *restrict error)
 {
 	if (
@@ -39,26 +25,28 @@ static vkaa_error_s* vkaa_std_create_tpool_initial_error(vkaa_error_s *restrict 
 	return NULL;
 }
 
-vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_t *restrict typeid)
+vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_s *restrict *restrict typeid)
 {
 	vkaa_tpool_s *restrict r;
+	vkaa_std_typeid_s *restrict tid;
 	if ((r = vkaa_tpool_alloc()))
 	{
-		vkaa_std_create_tpool_initial_id(typeid, r);
 		if (
+			!*typeid &&
+			(*typeid = tid = vkaa_std_typeid_alloc(r))&&
 			vkaa_std_create_tpool_initial_error(r->e) &&
-			vkaa_std_tpool_set_void(r, typeid) &&
-			vkaa_std_tpool_set_null(r, typeid) &&
-			vkaa_std_tpool_set_scope(r, typeid) &&
-			vkaa_std_tpool_set_syntax(r, typeid) &&
-			vkaa_std_tpool_set_function(r, typeid) &&
-			vkaa_std_tpool_set_string(r, typeid) &&
-			vkaa_std_tpool_set_bool(r, typeid) &&
-			vkaa_std_tpool_set_uint(r, typeid) &&
-			vkaa_std_tpool_set_int(r, typeid) &&
-			vkaa_std_tpool_set_float(r, typeid) &&
-			vkaa_tpool_var_const_enable_by_id(r, typeid->id_void) &&
-			vkaa_tpool_var_const_enable_by_id(r, typeid->id_null)
+			vkaa_std_tpool_set_void(r, tid) &&
+			vkaa_std_tpool_set_null(r, tid) &&
+			vkaa_std_tpool_set_scope(r, tid) &&
+			vkaa_std_tpool_set_syntax(r, tid) &&
+			vkaa_std_tpool_set_function(r, tid) &&
+			vkaa_std_tpool_set_string(r, tid) &&
+			vkaa_std_tpool_set_bool(r, tid) &&
+			vkaa_std_tpool_set_uint(r, tid) &&
+			vkaa_std_tpool_set_int(r, tid) &&
+			vkaa_std_tpool_set_float(r, tid) &&
+			vkaa_tpool_var_const_enable_by_id(r, tid->id_void) &&
+			vkaa_tpool_var_const_enable_by_id(r, tid->id_null)
 		) return r;
 		refer_free(r);
 	}

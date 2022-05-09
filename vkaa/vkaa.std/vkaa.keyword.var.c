@@ -37,7 +37,7 @@ static vkaa_std_keyword_define(var)
 	return NULL;
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_var(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_var(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "var", vkaa_std_keyword_label(var), vkaa_parse_keytype_complete);
 }

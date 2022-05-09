@@ -28,7 +28,7 @@ static vkaa_std_type_create_define(bool)
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)
+static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
 {
 	uintptr_t tid_2_bool_bool[] = {typeid->id_bool, typeid->id_bool};
 	if (
@@ -41,7 +41,7 @@ static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, const
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_bool(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_bool(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "bool", typeid->id_bool, vkaa_std_type_create_label(bool), vkaa_std_type_initial_bool, typeid);
 }

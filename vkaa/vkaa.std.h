@@ -4,7 +4,7 @@
 #include "vkaa.h"
 #include <tparse/tstack.h>
 
-typedef struct vkaa_std_typeid_t {
+typedef const struct vkaa_std_typeid_s {
 	uintptr_t id_void;
 	uintptr_t id_null;
 	uintptr_t id_scope;
@@ -15,15 +15,15 @@ typedef struct vkaa_std_typeid_t {
 	uintptr_t id_uint;
 	uintptr_t id_int;
 	uintptr_t id_float;
-} vkaa_std_typeid_t;
+} vkaa_std_typeid_s;
 
 typedef struct vkaa_std_s {
+	vkaa_std_typeid_s *typeid;
 	vkaa_syntaxor_s *syntaxor;
 	vkaa_oplevel_s *oplevel;
 	vkaa_tpool_s *tpool;
 	vkaa_parse_s *parse;
 	tparse_tstack_s *stack;
-	vkaa_std_typeid_t typeid;
 } vkaa_std_s;
 
 typedef struct vkaa_std_context_s {

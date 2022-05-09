@@ -1,6 +1,6 @@
 #include "std.parse.h"
 
-static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restrict r, const vkaa_std_typeid_t *restrict typeid, const vkaa_oplevel_s *restrict opl)
+static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restrict r, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl)
 {
 	if (
 		#define d_op(_t, _op, _lev, _tow)  vkaa_std_parse_set_operator_##_t(r, typeid, opl, _op, vkaa_std_oplevel_##_lev, vkaa_parse_optowards_##_tow)
@@ -49,7 +49,7 @@ static vkaa_parse_s* vkaa_std_create_parse_preset_operator(vkaa_parse_s *restric
 	return NULL;
 }
 
-vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, vkaa_std_typeid_s *restrict typeid)
 {
 	vkaa_parse_s *restrict r;
 	if ((r = vkaa_parse_alloc()))

@@ -35,7 +35,7 @@ static vkaa_std_keyword_define(goto)
 	{
 		if ((func = vkaa_function_alloc(NULL,
 			vkaa_std_function_label(void, cj_goto),
-			vkaa_tpool_find_id(context->tpool, r->typeid.id_void),
+			vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 			0, NULL)))
 		{
 			result->type = vkaa_parse_rtype_function;
@@ -82,7 +82,7 @@ static vkaa_parse_result_t* vkaa_std_keyword_goto_stack_label(const vkaa_std_key
 	{
 		if ((func = vkaa_function_alloc(NULL,
 			vkaa_std_function_label(void, cj_goto),
-			vkaa_tpool_find_id(context->tpool, r->typeid.id_void),
+			vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 			0, NULL)))
 		{
 			result->type = vkaa_parse_rtype_function;
@@ -104,22 +104,22 @@ static vkaa_std_keyword_define(continue)
 	return vkaa_std_keyword_goto_stack_label(r, result, context, syntax, vkaa_std_label_continue);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "label", vkaa_std_keyword_label(label), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_goto(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_goto(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "goto", vkaa_std_keyword_label(goto), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_break(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_break(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "break", vkaa_std_keyword_label(break), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_continue(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_continue(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "continue", vkaa_std_keyword_label(continue), vkaa_parse_keytype_complete);
 }

@@ -21,7 +21,7 @@ static vkaa_std_type_create_define(function)
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_function(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_function(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "function", typeid->id_function, vkaa_std_type_create_label(function), NULL, typeid);
 }

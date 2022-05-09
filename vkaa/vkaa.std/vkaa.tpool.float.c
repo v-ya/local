@@ -27,7 +27,7 @@ static vkaa_std_type_create_define(float)
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_float(vkaa_type_s *restrict type, const vkaa_std_typeid_t *restrict typeid)
+static vkaa_type_s* vkaa_std_type_initial_float(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
 {
 	uintptr_t tid_2_float_float[] = {typeid->id_float, typeid->id_float};
 	if (
@@ -40,7 +40,7 @@ static vkaa_type_s* vkaa_std_type_initial_float(vkaa_type_s *restrict type, cons
 	return NULL;
 }
 
-vkaa_type_s* vkaa_std_tpool_set_float(vkaa_tpool_s *restrict tpool, const vkaa_std_typeid_t *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set_float(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "float", typeid->id_float, vkaa_std_type_create_label(float), vkaa_std_type_initial_float, typeid);
 }

@@ -22,7 +22,7 @@ static vkaa_std_keyword_define(if)
 			goto label_fail;
 		if (!vkaa_parse_parse(context, s->data.brackets->syntax_array, s->data.brackets->syntax_number, &rv))
 			goto label_fail;
-		if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid.id_bool)))
+		if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid->id_bool)))
 			goto label_fail;
 		jumper_pos = vkaa_execute_next_pos(exec);
 		if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_if_next, 0, jumper_pos))
@@ -40,7 +40,7 @@ static vkaa_std_keyword_define(if)
 			goto label_fail;
 		if (!vkaa_std_function_pushed(
 			exec, vkaa_std_function_label(void, cj_goto),
-			vkaa_tpool_find_id(context->tpool, r->typeid.id_void),
+			vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 			NULL, NULL))
 			goto label_fail;
 		// if goto
@@ -85,12 +85,12 @@ static vkaa_std_keyword_define(else)
 	return NULL;
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_if(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_if(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "if", vkaa_std_keyword_label(if), vkaa_parse_keytype_complete);
 }
 
-vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_else(vkaa_parse_s *restrict parse, const vkaa_std_typeid_t *restrict typeid)
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_else(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "else", vkaa_std_keyword_label(else), vkaa_parse_keytype_complete);
 }

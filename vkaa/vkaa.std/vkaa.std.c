@@ -2,6 +2,7 @@
 
 static void vkaa_std_free_func(vkaa_std_s *restrict r)
 {
+	if (r->typeid) refer_free(r->typeid);
 	if (r->stack) refer_free(r->stack);
 	if (r->parse) refer_free(r->parse);
 	if (r->tpool) refer_free(r->tpool);
@@ -20,7 +21,7 @@ const vkaa_std_s* vkaa_std_alloc(void)
 			vkaa_syntaxor_add_comment(r->syntaxor, "##", "##") &&
 			(r->oplevel = vkaa_std_create_oplevel()) &&
 			(r->tpool = vkaa_std_create_tpool(&r->typeid)) &&
-			(r->parse = vkaa_std_create_parse(r->oplevel, &r->typeid)) &&
+			(r->parse = vkaa_std_create_parse(r->oplevel, r->typeid)) &&
 			(r->stack = tparse_tstack_alloc()))
 			return r;
 		refer_free(r);
@@ -44,7 +45,7 @@ vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std)
 		refer_set_free(r, (refer_free_f) vkaa_std_context_free_func);
 		r->std = (const vkaa_std_s *) refer_save(std);
 		if ((r->exec = vkaa_execute_alloc()) &&
-			(r->var = vkaa_tpool_var_create_by_id(std->tpool, std->typeid.id_scope, NULL)) &&
+			(r->var = vkaa_tpool_var_create_by_id(std->tpool, std->typeid->id_scope, NULL)) &&
 			(r->scope = (vkaa_scope_s *) refer_save(((vkaa_std_var_scope_s *) r->var)->scope)))
 			return r;
 		refer_free(r);
