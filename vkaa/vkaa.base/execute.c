@@ -82,6 +82,13 @@ vkaa_execute_s* vkaa_execute_alloc(void)
 	return NULL;
 }
 
+vkaa_execute_t* vkaa_execute_get_last_item(const vkaa_execute_s *restrict exec)
+{
+	if (exec->execute_number)
+		return &exec->execute_array[exec->execute_number - 1];
+	return NULL;
+}
+
 vkaa_function_s* vkaa_execute_get_last_function(const vkaa_execute_s *restrict exec)
 {
 	if (exec->execute_number)
@@ -124,7 +131,7 @@ vkaa_execute_s* vkaa_execute_pop_label(vkaa_execute_s *restrict exec, const char
 		(el = (vkaa_execute_label_s *) vl->value))
 	{
 		el->label_pos = label_pos;
-		if (vkaa_execute_label_okay(el, exec->execute_array, label_pos))
+		if (vkaa_execute_label_okay(el, exec->execute_array, exec->execute_number))
 		{
 			vattr_delete_vlist(vl);
 			return exec;

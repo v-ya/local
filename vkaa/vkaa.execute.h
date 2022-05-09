@@ -24,6 +24,7 @@ struct vkaa_execute_s {
 };
 
 vkaa_execute_s* vkaa_execute_alloc(void);
+vkaa_execute_t* vkaa_execute_get_last_item(const vkaa_execute_s *restrict exec);
 vkaa_function_s* vkaa_execute_get_last_function(const vkaa_execute_s *restrict exec);
 vkaa_var_s* vkaa_execute_get_last_var(const vkaa_execute_s *restrict exec);
 

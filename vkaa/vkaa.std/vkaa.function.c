@@ -38,9 +38,8 @@ const vkaa_parse_context_t* vkaa_std_function_pushed_block(const vkaa_parse_cont
 		goto label_fail;
 	if (s->type == vkaa_syntax_type_scope)
 	{
-		if (!vkaa_parse_parse(context, s->data.scope->syntax_array, s->data.scope->syntax_number, NULL))
+		if (!vkaa_parse_parse(context, s, n = 1, NULL))
 			goto label_fail;
-		syntax->pos += 1;
 	}
 	else
 	{
@@ -48,8 +47,8 @@ const vkaa_parse_context_t* vkaa_std_function_pushed_block(const vkaa_parse_cont
 			goto label_fail;
 		if (!vkaa_parse_parse(context, s, n, NULL))
 			goto label_fail;
-		syntax->pos += n;
 	}
+	syntax->pos += n;
 	return context;
 	label_fail:
 	return NULL;
@@ -345,6 +344,18 @@ vkaa_std_function_define(void, cj_if_goto)
 	if (vkaa_std_vo(bool))
 		vkaa_std_njump();
 	else vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(void, cj_while_do)
+{vkaa_std_verbose_weak
+	if (!vkaa_std_vo(bool))
+		vkaa_std_jump();
+	return 0;
+}
+vkaa_std_function_define(void, cj_do_while)
+{vkaa_std_verbose_weak
+	if (vkaa_std_vo(bool))
+		vkaa_std_jump();
 	return 0;
 }
 

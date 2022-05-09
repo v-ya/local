@@ -93,5 +93,7 @@ vkaa_std_function_define(float, cv_float);
 vkaa_std_function_define(void, cj_goto);
 vkaa_std_function_define(void, cj_if_next);
 vkaa_std_function_define(void, cj_if_goto);
+vkaa_std_function_define(void, cj_while_do);
+vkaa_std_function_define(void, cj_do_while);
 
 #endif
