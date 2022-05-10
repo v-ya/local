@@ -431,6 +431,14 @@ vkaa_std_function_define(float, op_rela_lte)
 }
 
 // =
+vkaa_std_function_define(void, op_mov)
+{vkaa_std_verbose_weak
+	return 0;
+}
+vkaa_std_function_define(null, op_mov)
+{vkaa_std_verbose_weak
+	return 0;
+}
 vkaa_std_function_define(bool, op_mov)
 {vkaa_std_verbose_weak
 	vkaa_std_vp(bool, 0) = vkaa_std_vp(bool, 1);
@@ -538,6 +546,34 @@ vkaa_std_function_define(float, cv_float)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(float) = vkaa_std_vt(float);
 	return 0;
+}
+
+// ()
+vkaa_std_function_define(function, do_call)
+{vkaa_std_verbose_weak
+	vkaa_std_var_function_s *restrict func;
+	vkaa_std_var_function_stack_s *restrict stack;
+	vkaa_std_var_function_inst_s *restrict inst;
+	uintptr_t error;
+	func = vkaa_std_var(function, r->this);
+	if ((stack = func->stack))
+	{
+		if (stack->stack_curr < stack->stack_size)
+		{
+			inst = stack->stack_inst[stack->stack_curr];
+			if (vkaa_std_var_function_inst_initial(inst, r))
+			{
+				stack->stack_curr += 1;
+				error = vkaa_execute_do(inst->exec, control->running);
+				stack->stack_curr -= 1;
+				vkaa_std_var_function_inst_finally(inst);
+				return error;
+			}
+			return vkaa_std_error(function_initial);
+		}
+		return vkaa_std_error(function_stack);
+	}
+	return vkaa_std_error(function_empty);
 }
 
 // control

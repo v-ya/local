@@ -30,6 +30,8 @@ static vkaa_std_type_create_define(scope)
 
 static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
 {
+	uintptr_t tid_void[] = {typeid->id_void, typeid->id_void};
+	uintptr_t tid_null[] = {typeid->id_null, typeid->id_null};
 	uintptr_t tid_bool[] = {typeid->id_bool, typeid->id_bool};
 	uintptr_t tid_uint[] = {typeid->id_uint, typeid->id_uint};
 	uintptr_t tid_int[] = {typeid->id_int, typeid->id_int};
@@ -107,7 +109,9 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa
 		(s = vkaa_std_type_set_function(type, op = "<=", need2r(uint,  op_rela_lte))) &&
 			vkaa_std_selector_append(s,   op,        need2r(int,   op_rela_lte)) &&
 			vkaa_std_selector_append(s,   op,        need2r(float, op_rela_lte)) &&
-		(s = vkaa_std_type_set_function(type, op = "=",  need2m(bool,  op_mov))) &&
+		(s = vkaa_std_type_set_function(type, op = "=",  need2m(void,  op_mov))) &&
+			vkaa_std_selector_append(s,   op,        need2m(null,  op_mov)) &&
+			vkaa_std_selector_append(s,   op,        need2m(bool,  op_mov)) &&
 			vkaa_std_selector_append(s,   op,        need2m(uint,  op_mov)) &&
 			vkaa_std_selector_append(s,   op,        need2m(int,   op_mov)) &&
 			vkaa_std_selector_append(s,   op,        need2m(float, op_mov)) &&

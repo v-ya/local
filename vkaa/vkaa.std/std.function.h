@@ -111,6 +111,8 @@ vkaa_std_function_define(uint, op_rela_lte);
 vkaa_std_function_define(int, op_rela_lte);
 vkaa_std_function_define(float, op_rela_lte);
 // =
+vkaa_std_function_define(void, op_mov);
+vkaa_std_function_define(null, op_mov);
 vkaa_std_function_define(bool, op_mov);
 vkaa_std_function_define(uint, op_mov);
 vkaa_std_function_define(int, op_mov);
@@ -136,6 +138,9 @@ vkaa_std_function_define(float, cv_bool);
 vkaa_std_function_define(float, cv_uint);
 vkaa_std_function_define(float, cv_int);
 vkaa_std_function_define(float, cv_float);
+
+// ()
+vkaa_std_function_define(function, do_call);
 
 // control
 vkaa_std_function_define(void, cj_goto);
