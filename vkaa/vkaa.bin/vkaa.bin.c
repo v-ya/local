@@ -92,7 +92,7 @@ int main(void)
 					if (vkaa_std_context_append_syntax(c, syntax))
 					{
 						printf("vkaa_std_context_append_syntax ... okay\n");
-						printf("vkaa_std_context_exec ... %zu\n", vkaa_std_context_exec(c));
+						printf("vkaa_std_context_exec ... %zu\n", vkaa_std_context_exec(c, NULL));
 					}
 					refer_free(syntax);
 				}

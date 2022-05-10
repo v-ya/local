@@ -243,7 +243,7 @@ vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec)
 	return NULL;
 }
 
-uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec)
+uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec, const volatile uintptr_t *running)
 {
 	vkaa_execute_t *restrict array;
 	vkaa_function_s *restrict func;
@@ -252,11 +252,23 @@ uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec)
 	c.next_pos = 0;
 	c.array = array = exec->execute_array;
 	c.number = n = exec->execute_number;
-	while (c.next_pos < n)
+	if (!(c.running = running))
 	{
-		func = array[c.next_pos++].func;
-		if ((error = func->function(func, &c)))
-			goto label_fail;
+		while (c.next_pos < n)
+		{
+			func = array[c.next_pos++].func;
+			if ((error = func->function(func, &c)))
+				goto label_fail;
+		}
+	}
+	else
+	{
+		while (*running && c.next_pos < n)
+		{
+			func = array[c.next_pos++].func;
+			if ((error = func->function(func, &c)))
+				goto label_fail;
+		}
 	}
 	return 0;
 	label_fail:

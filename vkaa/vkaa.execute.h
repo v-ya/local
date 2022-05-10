@@ -14,6 +14,7 @@ struct vkaa_execute_control_t {
 	uintptr_t next_pos;
 	const vkaa_execute_t *array;
 	uintptr_t number;
+	const volatile uintptr_t *running;
 };
 
 struct vkaa_execute_s {
@@ -45,7 +46,7 @@ vkaa_execute_s* vkaa_execute_okay_last_function(vkaa_execute_s *restrict exec);
 vkaa_execute_s* vkaa_execute_okay_label(vkaa_execute_s *restrict exec);
 vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec);
 
-uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec);
+uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec, const volatile uintptr_t *running);
 
 void vkaa_execute_clear(vkaa_execute_s *restrict exec);
 

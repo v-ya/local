@@ -86,7 +86,7 @@ vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict 
 	return NULL;
 }
 
-uintptr_t vkaa_std_context_exec(vkaa_std_context_s *restrict context)
+uintptr_t vkaa_std_context_exec(vkaa_std_context_s *restrict context, const volatile uintptr_t *running)
 {
-	return vkaa_execute_do(context->exec);
+	return vkaa_execute_do(context->exec, running);
 }

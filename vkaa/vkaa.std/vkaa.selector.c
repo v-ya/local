@@ -108,7 +108,7 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 		{
 			if (input_list[i]->type_id == input_typeid[i])
 				sr |= sp;
-			else if (!(s = vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool)))
+			else if (!param->exec || !(s = vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool)))
 				goto label_fail;
 			else if (vkaa_std_selector_test_convert_is_promotion(s))
 				sr |= (sp >> 1);
@@ -149,7 +149,7 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 			{
 				if (input_list[i]->type_id == input_typeid[i])
 					continue;
-				if (!(cf = vkaa_std_convert_by_typeid(param->exec, param->tpool, input_list[i], input_typeid[i])))
+				if (!param->exec || !(cf = vkaa_std_convert_by_typeid(param->exec, param->tpool, input_list[i], input_typeid[i])))
 					goto label_fail;
 				if (!vkaa_function_set_input(rf, i, vkaa_function_okay(cf)))
 					goto label_fail;
