@@ -130,6 +130,6 @@ void vkaa_parse_result_set(vkaa_parse_result_t *restrict dst, const vkaa_parse_r
 vkaa_var_s* vkaa_parse_result_get_var(const vkaa_parse_result_t *restrict result);
 const vkaa_type_s* vkaa_parse_result_get_type(const vkaa_parse_result_t *restrict result);
 
-vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result);
+const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result);
 
 #endif

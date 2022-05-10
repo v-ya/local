@@ -27,7 +27,7 @@ vkaa_std_selector_s* vkaa_std_selector_alloc(void)
 	return NULL;
 }
 
-static vkaa_std_selector_desc_t* vkaa_std_selector_desc_alloc(uintptr_t input_number, const uintptr_t *restrict input_typeid)
+vkaa_std_selector_desc_t* vkaa_std_selector_desc_alloc(uintptr_t input_number, const uintptr_t *restrict input_typeid)
 {
 	vkaa_std_selector_desc_t *restrict r;
 	if ((r = (vkaa_std_selector_desc_t *) refer_alloz(sizeof(vkaa_std_selector_desc_t) + sizeof(uintptr_t) * input_number)))

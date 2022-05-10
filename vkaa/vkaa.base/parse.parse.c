@@ -373,7 +373,7 @@ static vkaa_parse_operator_s* vkaa_parse_parse_get_op1unary(const vkaa_parse_con
 	return NULL;
 }
 
-vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result)
+const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, const vkaa_syntax_t *restrict syntax, uintptr_t number, vkaa_parse_result_t *restrict result)
 {
 	const vkaa_syntax_t *restrict s;
 	vkaa_parse_keyword_s *restrict k;
@@ -477,7 +477,7 @@ vkaa_parse_s* vkaa_parse_parse(const vkaa_parse_context_t *restrict context, con
 		}
 	}
 	if (vkaa_parse_parse_pop_clear(context, layer_number, result))
-		return context->parse;
+		return context;
 	label_fail:
 	vkaa_parse_result_clear(&var);
 	while (tparse_tstack_layer_number(context->stack) > layer_number)

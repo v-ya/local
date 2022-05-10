@@ -39,6 +39,7 @@
 #define vkaa_std_label_continue  ".continue"
 #define vkaa_std_label_if_next   ".if.next"
 #define vkaa_std_label_if_end    ".if.end"
+#define vkaa_std_label_return    ".return"
 
 // error
 
@@ -72,17 +73,38 @@ typedef struct vkaa_std_var_syntax_s {
 
 // var<function>
 
-typedef struct vkaa_std_var_function_param_s {
+struct vkaa_std_selector_desc_t;
+
+typedef struct vkaa_std_var_function_input_s {
 	uintptr_t number;
-	vkaa_var_s *param[];
-} vkaa_std_var_function_param_s;
+	uintptr_t output_typeid;
+	uintptr_t *typeid;
+	refer_nstring_t *name;
+} vkaa_std_var_function_input_s;
+
+typedef struct vkaa_std_var_function_inst_s {
+	uintptr_t number;
+	vkaa_execute_s *exec;
+	vkaa_scope_s *scope;
+	vkaa_std_var_scope_s *this;
+	vkaa_var_s *output;
+	vkaa_function_s *output_mov;
+	vkaa_function_s *input_mov[];
+} vkaa_std_var_function_inst_s;
 
 typedef struct vkaa_std_var_function_s {
 	vkaa_var_s var;
-	vkaa_scope_s *scope;
-	vkaa_execute_s *exec;
-	vkaa_std_var_function_param_s *param;
+	vkaa_std_var_function_input_s *input;
+	struct vkaa_std_selector_desc_t *desc;
+	vkaa_std_var_function_inst_s *inst;
+	uintptr_t exec_in_number;
 } vkaa_std_var_function_s;
+
+void vkaa_std_var_function_inst_finally(vkaa_std_var_function_inst_s *restrict r);
+vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_initial(vkaa_std_var_function_inst_s *restrict r, vkaa_function_s *restrict func);
+
+vkaa_std_var_function_s* vkaa_std_type_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid);
+vkaa_std_var_function_s* vkaa_std_type_function_set_scope(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_scope, uintptr_t id_scope);
 
 // var<bool>
 
@@ -175,6 +197,7 @@ typedef struct vkaa_std_selector_s {
 vkaa_std_selector_s* vkaa_std_selector_initial(vkaa_std_selector_s *restrict selector);
 void vkaa_std_selector_finally(vkaa_std_selector_s *restrict selector);
 vkaa_std_selector_s* vkaa_std_selector_alloc(void);
+vkaa_std_selector_desc_t* vkaa_std_selector_desc_alloc(uintptr_t input_number, const uintptr_t *restrict input_typeid);
 vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict selector, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
 
 const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param, uintptr_t *restrict score);
