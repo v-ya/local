@@ -20,7 +20,10 @@ static vkaa_error_s* vkaa_std_create_tpool_initial_error(vkaa_error_s *restrict 
 {
 	if (
 		vkaa_error_add_error(error, vkaa_std_error_memory_less) &&
-		vkaa_error_add_error(error, vkaa_std_error_div_zero)
+		vkaa_error_add_error(error, vkaa_std_error_div_zero) &&
+		vkaa_error_add_error(error, vkaa_std_error_function_empty) &&
+		vkaa_error_add_error(error, vkaa_std_error_function_stack) &&
+		vkaa_error_add_error(error, vkaa_std_error_function_initial)
 	) return error;
 	return NULL;
 }

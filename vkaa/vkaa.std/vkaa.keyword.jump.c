@@ -104,6 +104,42 @@ static vkaa_std_keyword_define(continue)
 	return vkaa_std_keyword_goto_stack_label(r, result, context, syntax, vkaa_std_label_continue);
 }
 
+static vkaa_std_keyword_define(return)
+{
+	vkaa_parse_result_t ret;
+	vkaa_var_s *restrict var, *restrict rrr;
+	const vkaa_syntax_t *restrict s;
+	uintptr_t n;
+	vkaa_parse_result_initial(&ret);
+	if (!(rrr = vkaa_scope_find_only_this(context->scope, vkaa_std_label_return)))
+		goto label_fail;
+	if (!(s = vkaa_parse_syntax_get_range(syntax, &n, vkaa_syntax_type_semicolon, NULL)))
+		goto label_fail;
+	n -= 1;
+	if (!vkaa_parse_parse(context, s, n, &ret))
+		goto label_fail;
+	syntax->pos += n;
+	switch (ret.type)
+	{
+		case vkaa_parse_rtype_none:
+			goto label_not_set;
+		case vkaa_parse_rtype_var:
+		case vkaa_parse_rtype_function:
+			if ((var = vkaa_parse_result_get_var(&ret)))
+				break;
+			// fall through
+		default: goto label_fail;
+	}
+	if (!vkaa_std_convert_set_var(context->execute, context->tpool, context->this, var, rrr))
+		goto label_fail;
+	label_not_set:
+	vkaa_parse_result_clear(&ret);
+	return vkaa_std_keyword_goto_stack_label(r, result, context, syntax, vkaa_std_label_return);
+	label_fail:
+	vkaa_parse_result_clear(&ret);
+	return NULL;
+}
+
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "label", vkaa_std_keyword_label(label), vkaa_parse_keytype_complete);
@@ -122,4 +158,9 @@ vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_break(vkaa_parse_s *restrict pa
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_continue(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "continue", vkaa_std_keyword_label(continue), vkaa_parse_keytype_complete);
+}
+
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_return(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
+{
+	return vkaa_std_parse_set_keyword(parse, typeid, "return", vkaa_std_keyword_label(return), vkaa_parse_keytype_complete);
 }

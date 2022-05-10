@@ -1,6 +1,20 @@
 #include "std.function.h"
 #include <math.h>
 
+vkaa_selector_s* vkaa_std_type_set_selector(vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_f selector)
+{
+	vkaa_selector_s *s, *sr;
+	if (selector && !vkaa_type_find_selector(type, name) &&
+		(s = (vkaa_selector_s *) refer_alloz(sizeof(vkaa_selector_s))))
+	{
+		s->selector = selector;
+		sr = vkaa_type_insert_selector(type, name, s);
+		refer_free(s);
+		return sr;
+	}
+	return NULL;
+}
+
 vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid)
 {
 	vkaa_std_selector_s *s, *snew;

@@ -104,6 +104,11 @@ vkaa_scope_s* vkaa_scope_set_parent(vkaa_scope_s *restrict scope, vkaa_scope_s *
 	return NULL;
 }
 
+vkaa_var_s* vkaa_scope_find_only_this(const vkaa_scope_s *restrict scope, const char *restrict name)
+{
+	return (vkaa_var_s *) hashmap_get_name(&scope->var, name);
+}
+
 vkaa_var_s* vkaa_scope_find(const vkaa_scope_s *restrict scope, const char *restrict name)
 {
 	vkaa_var_s *restrict var;

@@ -77,9 +77,10 @@ static vkaa_std_var_function_input_s* vkaa_std_var_function_input_initial(vkaa_s
 		keyword = s[i++].data.keyword;
 		if (!(type = vkaa_tpool_find_name(tpool, keyword->string)))
 			goto label_fail;
-		typeid[i] = type->id;
+		typeid[p] = type->id;
 		keyword = s[i++].data.keyword;
-		name[i] = (refer_nstring_t) refer_save(keyword);
+		name[p] = (refer_nstring_t) refer_save(keyword);
+		++p;
 		++i;
 	}
 	return r;
@@ -159,40 +160,13 @@ static vkaa_var_s* vkaa_std_var_function_inst_put_var(const vkaa_tpool_s *restri
 	return NULL;
 }
 
-static vkaa_function_s* vkaa_std_var_function_inst_push_mov(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict var, vkaa_var_s *restrict this)
-{
-	static const char op_name[] = "=";
-	vkaa_function_s *restrict func;
-	vkaa_selector_s *restrict s;
-	vkaa_selector_param_t param;
-	vkaa_var_s *input_list[2];
-	if ((s = vkaa_var_find_selector(var, op_name)) ||
-		(s = vkaa_var_find_selector(this, op_name)))
-	{
-		input_list[0] = var;
-		input_list[1] = var;
-		param.tpool = tpool;
-		param.exec = exec;
-		param.this = NULL;
-		param.input_list = input_list;
-		param.input_number = 2;
-		if ((func = s->selector(s, &param)))
-		{
-			if (func->output == var && !vkaa_execute_push(exec, func))
-				return func;
-			refer_free(func);
-		}
-	}
-	return NULL;
-}
-
 static vkaa_function_s* vkaa_std_var_function_inst_put_var_mov(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope, vkaa_var_s *restrict this, const char *restrict name, uintptr_t id)
 {
 	vkaa_function_s *restrict func;
 	vkaa_var_s *restrict v;
 	if ((v = vkaa_std_var_function_inst_put_var(tpool, scope, name, id)))
 	{
-		func = vkaa_std_var_function_inst_push_mov(exec, tpool, v, this);
+		func = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(exec, tpool, this, v, v));
 		refer_free(v);
 		return func;
 	}
@@ -208,6 +182,7 @@ static vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_alloc(const vkaa
 	if ((r = (vkaa_std_var_function_inst_s *) refer_alloz(sizeof(vkaa_std_var_function_inst_s) + n * sizeof(vkaa_function_s *))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_std_var_function_inst_free_func);
+		r->number = n;
 		if ((scope_type = vkaa_tpool_find_id(tpool, id_scope)) &&
 			(r->exec = vkaa_execute_alloc()) &&
 			(r->this = vkaa_std_type_scope_create_by_parent(scope_type, scope)) && 
@@ -234,7 +209,7 @@ static vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_okay(vkaa_std_va
 {
 	if (!r->output_mov &&
 		vkaa_execute_pop_label(r->exec, vkaa_std_label_return, vkaa_execute_next_pos(r->exec)) &&
-		(r->output_mov = vkaa_std_var_function_inst_push_mov(r->exec, tpool, r->output, &r->this->var)) &&
+		(r->output_mov = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(r->exec, tpool, &r->this->var, r->output, r->output))) &&
 		vkaa_execute_okay(r->exec))
 		return r;
 	return NULL;
@@ -329,7 +304,7 @@ static void vkaa_std_var_function_free_func(vkaa_std_var_function_s *restrict r)
 	vkaa_var_finally(&r->var);
 }
 
-vkaa_std_var_function_s* vkaa_std_type_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid)
+vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid)
 {
 	vkaa_std_var_function_input_s *restrict input;
 	vkaa_std_selector_desc_t *restrict desc;
@@ -353,7 +328,7 @@ vkaa_std_var_function_s* vkaa_std_type_function_set_input(vkaa_std_var_function_
 	return NULL;
 }
 
-vkaa_std_var_function_s* vkaa_std_type_function_set_scope(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_scope, uintptr_t id_scope, uintptr_t stack_size)
+vkaa_std_var_function_s* vkaa_std_var_function_set_scope(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_scope, uintptr_t id_scope, uintptr_t stack_size)
 {
 	vkaa_std_var_function_stack_s *restrict s;
 	if (var->input && (s = vkaa_std_var_function_stack_alloc(var->input, context, syntax_scope, id_scope, stack_size)))
@@ -378,7 +353,25 @@ static vkaa_std_type_create_define(function)
 	return NULL;
 }
 
+static vkaa_function_s* vkaa_std_type_function_selector_call(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param)
+{
+	vkaa_std_var_function_s *restrict this;
+	if ((this = (vkaa_std_var_function_s *) param->this) && this->desc)
+	{
+		if (vkaa_std_selector_test(this->desc, param, NULL))
+			return vkaa_std_selector_create(selector, param, this->desc);
+	}
+	return NULL;
+}
+
+static vkaa_type_s* vkaa_std_type_initial_function(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
+{
+	if (vkaa_std_type_set_selector(type, "()", vkaa_std_type_function_selector_call))
+		return type;
+	return NULL;
+}
+
 vkaa_type_s* vkaa_std_tpool_set_function(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "function", typeid->id_function, vkaa_std_type_create_label(function), NULL, typeid);
+	return vkaa_std_tpool_set(tpool, "function", typeid->id_function, vkaa_std_type_create_label(function), vkaa_std_type_initial_function, typeid);
 }

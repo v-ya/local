@@ -26,8 +26,7 @@ vkaa_std_param_t* vkaa_std_param_push_var(vkaa_std_param_t *restrict param, vkaa
 	vkaa_var_s **restrict p;
 	if (var && (param->input_list = p = (vkaa_var_s **) exbuffer_need(&param->buffer, (param->input_number + 1) * sizeof(*p))))
 	{
-		*p = (vkaa_var_s *) refer_save(var);
-		param->input_number += 1;
+		p[param->input_number++] = (vkaa_var_s *) refer_save(var);
 		return param;
 	}
 	return NULL;

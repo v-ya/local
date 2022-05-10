@@ -122,7 +122,7 @@ const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_d
 	return NULL;
 }
 
-vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc)
+vkaa_function_s* vkaa_std_selector_create(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc)
 {
 	vkaa_function_s *restrict rf;
 	vkaa_function_s *restrict cf;
@@ -134,8 +134,7 @@ vkaa_function_s* vkaa_std_selector_create(const vkaa_std_selector_s *restrict se
 	{
 		input_list = param->input_list;
 		input_typeid = desc->input_typeid;
-		if ((rf = vkaa_function_alloc(
-			&selector->selector, desc->function,
+		if ((rf = vkaa_function_alloc(selector, desc->function,
 			vkaa_tpool_find_id(param->tpool, desc->output_typeid),
 			n, input_list)))
 		{
@@ -210,6 +209,6 @@ vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict 
 		}
 	}
 	if (hit_desc)
-		return vkaa_std_selector_create(selector, param, hit_desc);
+		return vkaa_std_selector_create(&selector->selector, param, hit_desc);
 	return NULL;
 }
