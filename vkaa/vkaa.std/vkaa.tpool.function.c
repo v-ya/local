@@ -296,14 +296,6 @@ static vkaa_std_var_function_stack_s* vkaa_std_var_function_stack_alloc(const vk
 
 // function
 
-static void vkaa_std_var_function_free_func(vkaa_std_var_function_s *restrict r)
-{
-	if (r->stack) refer_free(r->stack);
-	if (r->desc) refer_free(r->desc);
-	if (r->input) refer_free(r->input);
-	vkaa_var_finally(&r->var);
-}
-
 vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid)
 {
 	vkaa_std_var_function_input_s *restrict input;
@@ -340,6 +332,14 @@ vkaa_std_var_function_s* vkaa_std_var_function_set_scope(vkaa_std_var_function_s
 	return NULL;
 }
 
+static void vkaa_std_var_function_free_func(vkaa_std_var_function_s *restrict r)
+{
+	if (r->stack) refer_free(r->stack);
+	if (r->desc) refer_free(r->desc);
+	if (r->input) refer_free(r->input);
+	vkaa_var_finally(&r->var);
+}
+
 static vkaa_std_type_create_define(function)
 {
 	vkaa_std_var_function_s *restrict r;
@@ -353,15 +353,39 @@ static vkaa_std_type_create_define(function)
 	return NULL;
 }
 
+static vkaa_std_var_function_s* vkaa_std_var_function_dump(vkaa_std_var_function_s *restrict var)
+{
+	vkaa_std_var_function_s *restrict r;
+	if (refer_get_free(var) == (refer_free_f) vkaa_std_var_function_free_func)
+	{
+		if ((r = (vkaa_std_var_function_s *) vkaa_std_type_create_label(function)(var->var.type, NULL)))
+		{
+			r->input = (vkaa_std_var_function_input_s *) refer_save(var->input);
+			r->desc = (vkaa_std_selector_desc_t *) refer_save(var->desc);
+			r->stack = (vkaa_std_var_function_stack_s *) refer_save(var->stack);
+			return r;
+		}
+	}
+	return NULL;
+}
+
 static vkaa_function_s* vkaa_std_type_function_selector_call(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param)
 {
 	vkaa_std_var_function_s *restrict this;
+	vkaa_function_s *restrict rfunc;
+	vkaa_selector_param_t p;
+	rfunc = NULL;
 	if ((this = (vkaa_std_var_function_s *) param->this) && this->desc)
 	{
-		if (vkaa_std_selector_test(this->desc, param, NULL))
-			return vkaa_std_selector_create(selector, param, this->desc);
+		p = *param;
+		if ((p.this = &vkaa_std_var_function_dump(this)->var))
+		{
+			if (vkaa_std_selector_test(this->desc, &p, NULL))
+				rfunc = vkaa_std_selector_create(selector, &p, this->desc);
+			refer_free(p.this);
+		}
 	}
-	return NULL;
+	return rfunc;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_function(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)

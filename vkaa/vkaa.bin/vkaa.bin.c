@@ -1,5 +1,7 @@
 #include "../vkaa.std.h"
 #include "../vkaa.syntax.h"
+#include "../vkaa.error.h"
+#include "../vkaa.tpool.h"
 #include <fsys.h>
 #include <stdio.h>
 
@@ -82,6 +84,8 @@ int main(void)
 	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
 	const vkaa_syntax_s *restrict syntax;
+	uintptr_t error;
+	const char *restrict error_name;
 	if ((std = vkaa_std_alloc()))
 	{
 		if ((c = vkaa_std_context_alloc(std)))
@@ -90,11 +94,15 @@ int main(void)
 			{
 				if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
 				{
+					printf("syntax: %p\n", syntax);
 					// dump_syntax(syntax, 0);
 					if (vkaa_std_context_append_syntax(c, syntax))
 					{
 						printf("vkaa_std_context_append_syntax ... okay\n");
-						printf("vkaa_std_context_exec ... %zu\n", vkaa_std_context_exec(c, NULL));
+						error_name = NULL;
+						error = vkaa_std_context_exec(c, NULL);
+						if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
+						printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
 					}
 					refer_free(syntax);
 				}

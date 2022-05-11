@@ -668,7 +668,7 @@ static void vkaa_std_function_verbose(const vkaa_function_s *restrict function, 
 	njpos = -1;
 	if (control->next_pos < control->number)
 		njpos = (intptr_t) control->array[control->next_pos].jump;
-	printf("[%zu] %s: jump[%zd], next_jump[%zd]\n", cpos, name, jpos, njpos);
+	printf("%p[%zu] %s: jump[%zd], next_jump[%zd]\n", control->array, cpos, name, jpos, njpos);
 	printf("\toutput: %s\n", vkaa_std_function_verbose_var(buffer, function->output));
 	if (function->this)
 		printf("\t  this: %s\n", vkaa_std_function_verbose_var(buffer, function->this));
