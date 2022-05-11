@@ -126,11 +126,21 @@ static vkaa_parse_result_t* vkaa_std_operator_unary_brackets_marco(vkaa_parse_re
 					if (result->type == vkaa_parse_rtype_function)
 					{
 						vkaa_function_s *rfunc;
-						if ((rfunc = vkaa_execute_pop(context->execute)))
+						rfunc = vkaa_execute_get_last_function(context->execute);
+						if (result->data.function == rfunc)
 						{
-							if (rfunc != result->data.function)
-								vkaa_execute_push(context->execute, rfunc);
+							if ((rfunc = vkaa_execute_pop(context->execute)))
+								refer_free(rfunc);
+						}
+						else
+						{
+							rfunc = result->data.function;
+							result->data.function = NULL;
+							result->type = vkaa_parse_rtype_var;
+							result->data.var = vkaa_function_okay(rfunc);
 							refer_free(rfunc);
+							if (!result->data.var)
+								rr = NULL;
 						}
 					}
 				}
