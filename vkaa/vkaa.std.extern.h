@@ -74,6 +74,15 @@ typedef struct vkaa_std_var_syntax_s {
 	const vkaa_syntax_s *syntax;
 } vkaa_std_var_syntax_s;
 
+// var<marco>
+
+typedef struct vkaa_std_var_marco_s {
+	vkaa_var_s var;
+	uintptr_t number;
+	const vkaa_syntax_s *scope;
+	refer_nstring_t name[];
+} vkaa_std_var_marco_s;
+
 // var<function>
 
 struct vkaa_std_selector_desc_t;

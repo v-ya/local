@@ -78,25 +78,90 @@ static const vkaa_parse_result_t* vkaa_std_operator_get_input_list(const vkaa_pa
 	return param_list;
 }
 
+static vkaa_parse_result_t* vkaa_std_operator_unary_brackets_call(vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, vkaa_var_s *restrict this, vkaa_selector_s *restrict s, const vkaa_syntax_s *restrict brackets)
+{
+	vkaa_std_param_t p;
+	if (vkaa_std_param_initial(&p))
+	{
+		if (vkaa_std_param_push_syntax(&p, context, brackets))
+			result->data.function = vkaa_std_operator_selector_do(s, context, this, p.input_list, p.input_number);
+		vkaa_std_param_finally(&p);
+		if (result->data.function)
+		{
+			result->type = vkaa_parse_rtype_function;
+			return result;
+		}
+	}
+	return NULL;
+}
+
+static vkaa_parse_result_t* vkaa_std_operator_unary_brackets_marco(vkaa_parse_result_t *restrict result, const vkaa_parse_context_t *restrict context, vkaa_std_var_marco_s *restrict marco, vkaa_std_typeid_s *restrict typeid, const vkaa_syntax_s *restrict brackets)
+{
+	vkaa_parse_result_t *restrict rr;
+	const vkaa_type_s *restrict type;
+	vkaa_std_var_scope_s *restrict v;
+	vkaa_parse_context_t c;
+	vkaa_std_param_t p;
+	uintptr_t i;
+	rr = NULL;
+	if (marco->scope && vkaa_std_param_initial(&p))
+	{
+		if (vkaa_std_param_push_syntax(&p, context, brackets) && p.input_number == marco->number &&
+			(type = vkaa_tpool_find_id(context->tpool, typeid->id_scope)) &&
+			(v = vkaa_std_type_scope_create_by_parent(type, context->scope)))
+		{
+			c = *context;
+			c.scope = v->scope;
+			c.this = &v->var;
+			for (i = 0; i < p.input_number; ++i)
+			{
+				if (!vkaa_scope_put(c.scope, marco->name[i]->string, p.input_list[i]))
+					goto label_fail;
+			}
+			if (vkaa_parse_parse(&c, marco->scope->syntax_array, marco->scope->syntax_number, result))
+			{
+				if (result->type)
+				{
+					rr = result;
+					if (result->type == vkaa_parse_rtype_function)
+					{
+						vkaa_function_s *rfunc;
+						if ((rfunc = vkaa_execute_pop(context->execute)))
+						{
+							if (rfunc != result->data.function)
+								vkaa_execute_push(context->execute, rfunc);
+							refer_free(rfunc);
+						}
+					}
+				}
+				else if ((result->data.var = vkaa_tpool_var_create_by_id(context->tpool, typeid->id_void, NULL)))
+				{
+					result->type = vkaa_parse_rtype_var;
+					rr = result;
+				}
+			}
+			label_fail:
+			refer_free(v);
+		}
+		vkaa_std_param_finally(&p);
+	}
+	return rr;
+}
+
 static vkaa_std_operator_define(unary_brackets)
 {
 	vkaa_selector_s *restrict s;
 	vkaa_var_s *restrict this;
-	vkaa_std_param_t p;
-	if ((s = vkaa_std_operator_get_selector_by_result(param_list, &this)) ||
-		((this = vkaa_parse_result_get_var(param_list)) &&
-			(s = vkaa_std_operator_get_selector(this, context->this, vkaa_parse_operator_brackets))))
+	if ((s = vkaa_std_operator_get_selector_by_result(param_list, &this)))
+		goto label_call;
+	else if ((this = vkaa_parse_result_get_var(param_list)))
 	{
-		if (vkaa_std_param_initial(&p))
+		if (this->type_id == r->typeid->id_marco)
+			return vkaa_std_operator_unary_brackets_marco(result, context, (vkaa_std_var_marco_s *) this, r->typeid, syntax->data.brackets);
+		else if ((s = vkaa_std_operator_get_selector(this, context->this, vkaa_parse_operator_brackets)))
 		{
-			if (vkaa_std_param_push_syntax(&p, context, syntax->data.brackets))
-				result->data.function = vkaa_std_operator_selector_do(s, context, this, p.input_list, p.input_number);
-			vkaa_std_param_finally(&p);
-			if (result->data.function)
-			{
-				result->type = vkaa_parse_rtype_function;
-				return result;
-			}
+			label_call:
+			return vkaa_std_operator_unary_brackets_call(result, context, this, s, syntax->data.brackets);
 		}
 	}
 	return NULL;

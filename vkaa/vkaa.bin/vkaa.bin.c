@@ -69,6 +69,7 @@ refer_nstring_t load_file(const char *restrict path)
 	(vkaa_selector_f) maybe `type_cast` to (vkaa_selector_param_t).exec;
 	complate keyword:
 		var<type> name1, ...;
+		marco name(name, name, ...) {}
 		func<type> name(type name, type name, ...);
 		func<type> name(type name, type name, ...) {}
 		func<type> name(type name, type name, ...) [1] {}

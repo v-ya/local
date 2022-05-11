@@ -212,6 +212,16 @@ vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s
 	return NULL;
 }
 
+vkaa_function_s* vkaa_execute_pop(vkaa_execute_s *restrict exec)
+{
+	if (exec->execute_number)
+	{
+		exec->buffer.used -= sizeof(vkaa_execute_t);
+		return exec->execute_array[--exec->execute_number].func;
+	}
+	return NULL;
+}
+
 vkaa_execute_s* vkaa_execute_okay_last_function(vkaa_execute_s *restrict exec)
 {
 	vkaa_function_s *restrict last;

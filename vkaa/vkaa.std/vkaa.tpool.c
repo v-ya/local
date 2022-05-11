@@ -42,6 +42,7 @@ vkaa_tpool_s* vkaa_std_create_tpool(vkaa_std_typeid_s *restrict *restrict typeid
 			vkaa_std_tpool_set_null(r, tid) &&
 			vkaa_std_tpool_set_scope(r, tid) &&
 			vkaa_std_tpool_set_syntax(r, tid) &&
+			vkaa_std_tpool_set_marco(r, tid) &&
 			vkaa_std_tpool_set_function(r, tid) &&
 			vkaa_std_tpool_set_string(r, tid) &&
 			vkaa_std_tpool_set_bool(r, tid) &&

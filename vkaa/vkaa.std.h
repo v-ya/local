@@ -9,6 +9,7 @@ typedef const struct vkaa_std_typeid_s {
 	uintptr_t id_null;
 	uintptr_t id_scope;
 	uintptr_t id_syntax;
+	uintptr_t id_marco;
 	uintptr_t id_function;
 	uintptr_t id_string;
 	uintptr_t id_bool;

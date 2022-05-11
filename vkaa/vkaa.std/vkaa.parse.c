@@ -56,6 +56,7 @@ vkaa_parse_s* vkaa_std_create_parse(const vkaa_oplevel_s *restrict oplevel, vkaa
 	{
 		if (
 			vkaa_std_parse_set_keyword_var(r, typeid) &&
+			vkaa_std_parse_set_keyword_marco(r, typeid) &&
 			vkaa_std_parse_set_keyword_func(r, typeid) &&
 			vkaa_std_parse_set_keyword_label(r, typeid) &&
 			vkaa_std_parse_set_keyword_goto(r, typeid) &&

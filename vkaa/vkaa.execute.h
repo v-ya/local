@@ -41,6 +41,7 @@ vkaa_execute_s* vkaa_execute_set_label_without_exist(vkaa_execute_s *restrict ex
 vkaa_execute_s* vkaa_execute_add_jump_any(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t jumper_pos);
 
 vkaa_execute_s* vkaa_execute_push(vkaa_execute_s *restrict exec, vkaa_function_s *restrict func);
+vkaa_function_s* vkaa_execute_pop(vkaa_execute_s *restrict exec);
 
 vkaa_execute_s* vkaa_execute_okay_last_function(vkaa_execute_s *restrict exec);
 vkaa_execute_s* vkaa_execute_okay_label(vkaa_execute_s *restrict exec);

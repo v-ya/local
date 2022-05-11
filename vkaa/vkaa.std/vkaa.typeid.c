@@ -9,6 +9,7 @@ vkaa_std_typeid_s* vkaa_std_typeid_alloc(vkaa_tpool_s *restrict tpool)
 		r->id_null = vkaa_tpool_genid(tpool);
 		r->id_scope = vkaa_tpool_genid(tpool);
 		r->id_syntax = vkaa_tpool_genid(tpool);
+		r->id_marco = vkaa_tpool_genid(tpool);
 		r->id_function = vkaa_tpool_genid(tpool);
 		r->id_string = vkaa_tpool_genid(tpool);
 		r->id_bool = vkaa_tpool_genid(tpool);
