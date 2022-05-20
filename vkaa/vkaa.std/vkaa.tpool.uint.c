@@ -20,7 +20,17 @@ vkaa_std_var_uint_s* vkaa_std_type_uint_create_by_value(const vkaa_type_s *restr
 
 static vkaa_std_type_create_define(uint)
 {
-	return &vkaa_std_type_uint_create_by_value(type, 0)->var;
+	if (!syntax)
+		return &vkaa_std_type_uint_create_by_value(type, 0)->var;
+	if (syntax->syntax_number == 1)
+	{
+		const vkaa_syntax_t *restrict s;
+		uintptr_t value;
+		s = syntax->syntax_array;
+		if (vkaa_syntax_convert_uintptr(s, &value, 0))
+			return &vkaa_std_type_uint_create_by_value(type, value)->var;
+	}
+	return NULL;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_uint(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)

@@ -47,16 +47,10 @@ static vkaa_std_keyword_define(goto)
 	return NULL;
 }
 
-static const vkaa_syntax_s* vkaa_std_keyword_goto_stack_label_get_stack_pos(const vkaa_syntax_s *restrict syntax, uintptr_t *restrict stack_pos)
+static inline const vkaa_syntax_t* vkaa_std_keyword_goto_stack_label_get_stack_pos(const vkaa_syntax_s *restrict syntax, uintptr_t *restrict stack_pos)
 {
-	const vkaa_syntax_t *restrict s;
-	char *endptr;
-	if (syntax->syntax_number == 1 && (s = syntax->syntax_array) && s->type == vkaa_syntax_type_number)
-	{
-		*stack_pos = strtoul(s->data.number->string, &endptr, 0);
-		if (endptr && !*endptr)
-			return syntax;
-	}
+	if (syntax->syntax_number == 1)
+		return vkaa_syntax_convert_uintptr(syntax->syntax_array, stack_pos, 0);
 	return NULL;
 }
 

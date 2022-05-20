@@ -24,7 +24,16 @@ vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *r
 
 static vkaa_std_type_create_define(string)
 {
-	return &vkaa_std_type_string_create_by_value(type, NULL)->var;
+	if (!syntax)
+		return &vkaa_std_type_string_create_by_value(type, NULL)->var;
+	if (syntax->syntax_number == 1)
+	{
+		const vkaa_syntax_t *restrict s;
+		s = syntax->syntax_array;
+		if (s->type == vkaa_syntax_type_string)
+			return &vkaa_std_type_string_create_by_value(type, s->data.string)->var;
+	}
+	return NULL;
 }
 
 vkaa_type_s* vkaa_std_tpool_set_string(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)

@@ -5,6 +5,7 @@ static vkaa_std_keyword_define(var)
 	const vkaa_syntax_t *restrict s;
 	const vkaa_syntax_t *restrict k;
 	const vkaa_type_s *restrict type;
+	const vkaa_syntax_s *restrict initial;
 	vkaa_var_s *restrict var;
 	var = NULL;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, "<"))
@@ -15,18 +16,25 @@ static vkaa_std_keyword_define(var)
 		goto label_fail;
 	if (!(type = vkaa_tpool_find_name(context->tpool, k->data.keyword->string)))
 		goto label_fail;
-	while ((s = vkaa_parse_syntax_fetch_and_next(syntax)))
+	while ((k = vkaa_parse_syntax_fetch_and_next(syntax)))
 	{
-		if (s->type != vkaa_syntax_type_keyword)
+		if (k->type != vkaa_syntax_type_keyword)
 			goto label_fail;
-		if (!(var = vkaa_tpool_var_create(context->tpool, type, NULL)))
+		if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)))
 			goto label_fail;
-		if (!vkaa_scope_put(context->scope, s->data.keyword->string, var))
+		initial = NULL;
+		if (s->type == vkaa_syntax_type_brackets)
+		{
+			initial = s->data.brackets;
+			if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)))
+				goto label_fail;
+		}
+		if (!(var = vkaa_tpool_var_create(context->tpool, type, initial)))
+			goto label_fail;
+		if (!vkaa_scope_put(context->scope, k->data.keyword->string, var))
 			goto label_fail;
 		refer_free(var);
 		var = NULL;
-		if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)))
-			goto label_fail;
 		if (s->type == vkaa_syntax_type_semicolon)
 			return result;
 		if (s->type != vkaa_syntax_type_comma)

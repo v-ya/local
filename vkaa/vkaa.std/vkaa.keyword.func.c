@@ -18,20 +18,10 @@ static vkaa_std_var_function_s* vkaa_std_keyword_func_create_or_find(const vkaa_
 	return NULL;
 }
 
-static const vkaa_syntax_s* vkaa_std_keyword_func_get_stack_size(const vkaa_syntax_s *restrict syntax_square, uintptr_t *restrict stack_size)
+static inline const vkaa_syntax_t* vkaa_std_keyword_func_get_stack_size(const vkaa_syntax_s *restrict syntax_square, uintptr_t *restrict stack_size)
 {
-	const vkaa_syntax_t *restrict s;
-	char *endptr;
 	if (syntax_square->syntax_number == 1)
-	{
-		s = syntax_square->syntax_array;
-		if (s->type == vkaa_syntax_type_number)
-		{
-			*stack_size = (uintptr_t) strtoul(s->data.number->string, &endptr, 0);
-			if (endptr && !*endptr)
-				return syntax_square;
-		}
-	}
+		return vkaa_syntax_convert_uintptr(syntax_square->syntax_array, stack_size, 0);
 	return NULL;
 }
 

@@ -20,7 +20,23 @@ vkaa_std_var_int_s* vkaa_std_type_int_create_by_value(const vkaa_type_s *restric
 
 static vkaa_std_type_create_define(int)
 {
-	return &vkaa_std_type_int_create_by_value(type, 0)->var;
+	const vkaa_syntax_t *restrict s;
+	intptr_t value;
+	if (!syntax)
+		return &vkaa_std_type_int_create_by_value(type, 0)->var;
+	s = syntax->syntax_array;
+	if (syntax->syntax_number == 1)
+	{
+		if (vkaa_syntax_convert_intptr(s, &value, 0))
+			return &vkaa_std_type_int_create_by_value(type, value)->var;
+	}
+	else if (syntax->syntax_number == 2)
+	{
+		if (vkaa_syntax_test(s, vkaa_syntax_type_operator, "-") &&
+			vkaa_syntax_convert_intptr(s + 1, &value, 0))
+			return &vkaa_std_type_int_create_by_value(type, -value)->var;
+	}
+	return NULL;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_int(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)

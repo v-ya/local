@@ -30,7 +30,18 @@ vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_false(const vkaa_type_s *restr
 
 static vkaa_std_type_create_define(bool)
 {
-	return &vkaa_std_type_bool_create_by_value(type, 0)->var;
+	if (!syntax)
+		return &vkaa_std_type_bool_create_by_value(type, 0)->var;
+	if (syntax->syntax_number == 1)
+	{
+		const vkaa_syntax_t *restrict s;
+		s = syntax->syntax_array;
+		if (vkaa_syntax_test(s, vkaa_syntax_type_keyword, "true"))
+			return &vkaa_std_type_bool_create_by_true(type)->var;
+		else if (vkaa_syntax_test(s, vkaa_syntax_type_keyword, "false"))
+			return &vkaa_std_type_bool_create_by_false(type)->var;
+	}
+	return NULL;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
