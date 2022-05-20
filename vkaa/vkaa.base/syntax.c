@@ -706,3 +706,71 @@ const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const
 	}
 	return NULL;
 }
+
+// syntax convert
+
+#include <stdlib.h>
+
+const vkaa_syntax_t* vkaa_syntax_convert_uintptr(const vkaa_syntax_t *restrict syntax, uintptr_t *restrict value, int base)
+{
+	char *endptr;
+	uintptr_t v;
+	if (syntax->type == vkaa_syntax_type_number)
+	{
+		v = (uintptr_t) strtoull(syntax->data.number->string, &endptr, base);
+		if (endptr && !*endptr)
+		{
+			if (value) *value = v;
+			return syntax;
+		}
+	}
+	return NULL;
+}
+
+const vkaa_syntax_t* vkaa_syntax_convert_intptr(const vkaa_syntax_t *restrict syntax, intptr_t *restrict value, int base)
+{
+	char *endptr;
+	intptr_t v;
+	if (syntax->type == vkaa_syntax_type_number)
+	{
+		v = (intptr_t) strtoll(syntax->data.number->string, &endptr, base);
+		if (endptr && !*endptr)
+		{
+			if (value) *value = v;
+			return syntax;
+		}
+	}
+	return NULL;
+}
+
+const vkaa_syntax_t* vkaa_syntax_convert_double(const vkaa_syntax_t *restrict syntax, double *restrict value)
+{
+	char *endptr;
+	double v;
+	if (syntax->type == vkaa_syntax_type_number)
+	{
+		v = strtod(syntax->data.number->string, &endptr);
+		if (endptr && !*endptr)
+		{
+			if (value) *value = v;
+			return syntax;
+		}
+	}
+	return NULL;
+}
+
+const vkaa_syntax_t* vkaa_syntax_convert_float(const vkaa_syntax_t *restrict syntax, float *restrict value)
+{
+	char *endptr;
+	float v;
+	if (syntax->type == vkaa_syntax_type_number)
+	{
+		v = strtof(syntax->data.number->string, &endptr);
+		if (endptr && !*endptr)
+		{
+			if (value) *value = v;
+			return syntax;
+		}
+	}
+	return NULL;
+}

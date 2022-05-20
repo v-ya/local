@@ -2,7 +2,7 @@
 #include "std.function.h"
 #include <string.h>
 
-static vkaa_std_type_create_define(bool)
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_value(const vkaa_type_s *restrict type, vkaa_std_bool_t boolean)
 {
 	vkaa_std_var_bool_s *restrict r;
 	if ((r = (vkaa_std_var_bool_s *) refer_alloz(sizeof(vkaa_std_var_bool_s))))
@@ -10,22 +10,27 @@ static vkaa_std_type_create_define(bool)
 		refer_set_free(r, (refer_free_f) vkaa_var_finally);
 		if (vkaa_var_initial(&r->var, type))
 		{
-			if (syntax)
-			{
-				if (syntax->type != vkaa_syntax_type_keyword)
-					goto label_fail;
-				if (!strcmp(syntax->data.keyword->string, "true"))
-					r->value = 1;
-				else if (!strcmp(syntax->data.keyword->string, "false"))
-					r->value = 0;
-				else goto label_fail;
-			}
-			return &r->var;
+			r->value = boolean;
+			return r;
 		}
-		label_fail:
 		refer_free(r);
 	}
 	return NULL;
+}
+
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_true(const vkaa_type_s *restrict type)
+{
+	return vkaa_std_type_bool_create_by_value(type, 1);
+}
+
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_false(const vkaa_type_s *restrict type)
+{
+	return vkaa_std_type_bool_create_by_value(type, 0);
+}
+
+static vkaa_std_type_create_define(bool)
+{
+	return &vkaa_std_type_bool_create_by_value(type, 0)->var;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)

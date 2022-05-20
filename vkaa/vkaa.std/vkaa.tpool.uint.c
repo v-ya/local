@@ -2,7 +2,7 @@
 #include "std.function.h"
 #include <stdlib.h>
 
-static vkaa_std_type_create_define(uint)
+vkaa_std_var_uint_s* vkaa_std_type_uint_create_by_value(const vkaa_type_s *restrict type, vkaa_std_uint_t value)
 {
 	vkaa_std_var_uint_s *restrict r;
 	if ((r = (vkaa_std_var_uint_s *) refer_alloz(sizeof(vkaa_std_var_uint_s))))
@@ -10,21 +10,17 @@ static vkaa_std_type_create_define(uint)
 		refer_set_free(r, (refer_free_f) vkaa_var_finally);
 		if (vkaa_var_initial(&r->var, type))
 		{
-			if (syntax)
-			{
-				char *endptr;
-				if (syntax->type != vkaa_syntax_type_number)
-					goto label_fail;
-				r->value = (vkaa_std_uint_t) strtoull(syntax->data.number->string, &endptr, 0);
-				if (!endptr || *endptr)
-					goto label_fail;
-			}
-			return &r->var;
+			r->value = value;
+			return r;
 		}
-		label_fail:
 		refer_free(r);
 	}
 	return NULL;
+}
+
+static vkaa_std_type_create_define(uint)
+{
+	return &vkaa_std_type_uint_create_by_value(type, 0)->var;
 }
 
 static vkaa_type_s* vkaa_std_type_initial_uint(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)

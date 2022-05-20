@@ -52,4 +52,9 @@ vkaa_syntaxor_s* vkaa_syntaxor_add_comment(vkaa_syntaxor_s *restrict syntaxor, c
 
 const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const char *restrict source_data, uintptr_t source_length);
 
+const vkaa_syntax_t* vkaa_syntax_convert_uintptr(const vkaa_syntax_t *restrict syntax, uintptr_t *restrict value, int base);
+const vkaa_syntax_t* vkaa_syntax_convert_intptr(const vkaa_syntax_t *restrict syntax, intptr_t *restrict value, int base);
+const vkaa_syntax_t* vkaa_syntax_convert_double(const vkaa_syntax_t *restrict syntax, double *restrict value);
+const vkaa_syntax_t* vkaa_syntax_convert_float(const vkaa_syntax_t *restrict syntax, float *restrict value);
+
 #endif

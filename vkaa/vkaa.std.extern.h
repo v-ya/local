@@ -70,7 +70,6 @@ vkaa_std_var_scope_s* vkaa_std_type_scope_create_by_parent(const vkaa_type_s *re
 
 typedef struct vkaa_std_var_syntax_s {
 	vkaa_var_s var;
-	vkaa_syntax_type_t type;
 	const vkaa_syntax_s *syntax;
 } vkaa_std_var_syntax_s;
 
@@ -134,12 +133,18 @@ typedef struct vkaa_std_var_bool_s {
 	vkaa_std_bool_t value;
 } vkaa_std_var_bool_s;
 
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_value(const vkaa_type_s *restrict type, vkaa_std_bool_t boolean);
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_true(const vkaa_type_s *restrict type);
+vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_false(const vkaa_type_s *restrict type);
+
 // var<string>
 
 typedef struct vkaa_std_var_string_s {
 	vkaa_var_s var;
 	refer_nstring_t value;
 } vkaa_std_var_string_s;
+
+vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *restrict type, refer_nstring_t value);
 
 // var<uint>
 
@@ -150,6 +155,8 @@ typedef struct vkaa_std_var_uint_s {
 	vkaa_std_uint_t value;
 } vkaa_std_var_uint_s;
 
+vkaa_std_var_uint_s* vkaa_std_type_uint_create_by_value(const vkaa_type_s *restrict type, vkaa_std_uint_t value);
+
 // var<int>
 
 typedef intptr_t vkaa_std_int_t;
@@ -159,6 +166,8 @@ typedef struct vkaa_std_var_int_s {
 	vkaa_std_int_t value;
 } vkaa_std_var_int_s;
 
+vkaa_std_var_int_s* vkaa_std_type_int_create_by_value(const vkaa_type_s *restrict type, vkaa_std_int_t value);
+
 // var<float>
 
 typedef double vkaa_std_float_t;
@@ -167,6 +176,8 @@ typedef struct vkaa_std_var_float_s {
 	vkaa_var_s var;
 	vkaa_std_float_t value;
 } vkaa_std_var_float_s;
+
+vkaa_std_var_float_s* vkaa_std_type_float_create_by_value(const vkaa_type_s *restrict type, vkaa_std_float_t value);
 
 // tpool
 

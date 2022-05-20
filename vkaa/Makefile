@@ -7,7 +7,7 @@ HEADER		= $(wildcard *.h)
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -ltparse -soname ${TARGET-LIB}
+LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -ltparse -lmlog -soname ${TARGET-LIB}
 LDFLAGS-STD	= -shared -lm -lrefer -L. -lvkaa -soname ${TARGET-STD}
 LDFLAGS-BIN	= -lrefer -lfsys -L. -lvkaa -lvkaa-std
 

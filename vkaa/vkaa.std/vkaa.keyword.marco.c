@@ -17,7 +17,7 @@ static vkaa_std_keyword_define(marco)
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_scope)
 		goto label_fail;
 	scope = s->data.scope;
-	if (!(marco = (vkaa_std_var_marco_s *) vkaa_tpool_var_create_by_id(context->tpool, r->typeid->id_marco, brackets)))
+	if (!(marco = (vkaa_std_var_marco_s *) vkaa_tpool_var_create_by_id(context->tpool, r->typeid->id_marco, brackets->data.brackets)))
 		goto label_fail;
 	marco->scope = (const vkaa_syntax_s *) refer_save(scope);
 	if (!vkaa_scope_put(context->scope, name, &marco->var))

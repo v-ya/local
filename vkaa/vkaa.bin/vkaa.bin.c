@@ -91,7 +91,7 @@ int main(void)
 	{
 		if ((c = vkaa_std_context_alloc(std)))
 		{
-			if ((code = load_file("../test.vkaa")))
+			if ((code = load_file("test.vkaa")))
 			{
 				if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
 				{

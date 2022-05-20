@@ -12,25 +12,11 @@ static vkaa_std_type_create_define(syntax)
 	if ((r = (vkaa_std_var_syntax_s *) refer_alloz(sizeof(vkaa_std_var_syntax_s))))
 	{
 		refer_set_free(r, (refer_free_f) vkaa_std_var_syntax_free_func);
-		r->type = vkaa_syntax_type_semicolon;
 		if (vkaa_var_initial(&r->var, type))
 		{
-			if (syntax)
-			{
-				switch (syntax->type)
-				{
-					case vkaa_syntax_type_scope:
-					case vkaa_syntax_type_brackets:
-					case vkaa_syntax_type_square:
-						r->type = syntax->type;
-						r->syntax = (const vkaa_syntax_s *) refer_save(syntax->data.scope);
-						break;
-					default: goto label_fail;
-				}
-			}
+			r->syntax = (const vkaa_syntax_s *) refer_save(syntax);
 			return &r->var;
 		}
-		label_fail:
 		refer_free(r);
 	}
 	return NULL;

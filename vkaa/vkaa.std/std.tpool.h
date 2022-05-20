@@ -16,6 +16,6 @@ vkaa_type_s* vkaa_std_tpool_set_int(vkaa_tpool_s *restrict tpool, vkaa_std_typei
 vkaa_type_s* vkaa_std_tpool_set_float(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 
 #define vkaa_std_type_create_label(_name)   vkaa_std_type__##_name##_create
-#define vkaa_std_type_create_define(_name)  vkaa_var_s* vkaa_std_type_create_label(_name)(const vkaa_type_s *restrict type, const vkaa_syntax_t *restrict syntax)
+#define vkaa_std_type_create_define(_name)  vkaa_var_s* vkaa_std_type_create_label(_name)(const vkaa_type_s *restrict type, const vkaa_syntax_s *restrict syntax)
 
 #endif
