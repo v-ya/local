@@ -9,6 +9,7 @@ vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_var(vkaa_parse_s *restrict pars
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_marco(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_func(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_unlabel(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_goto(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_break(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_continue(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid);

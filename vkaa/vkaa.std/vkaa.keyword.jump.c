@@ -19,6 +19,21 @@ static vkaa_std_keyword_define(label)
 	return NULL;
 }
 
+static vkaa_std_keyword_define(unlabel)
+{
+	const vkaa_syntax_t *restrict s;
+	const char *restrict label;
+	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_keyword)
+		goto label_fail;
+	label = s->data.keyword->string;
+	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_semicolon)
+		goto label_fail;
+	if (vkaa_execute_set_unlabel(context->execute, label))
+		return result;
+	label_fail:
+	return NULL;
+}
+
 static vkaa_std_keyword_define(goto)
 {
 	const vkaa_syntax_t *restrict s;
@@ -137,6 +152,11 @@ static vkaa_std_keyword_define(return)
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_label(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_parse_set_keyword(parse, typeid, "label", vkaa_std_keyword_label(label), vkaa_parse_keytype_complete);
+}
+
+vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_unlabel(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)
+{
+	return vkaa_std_parse_set_keyword(parse, typeid, "unlabel", vkaa_std_keyword_label(unlabel), vkaa_parse_keytype_complete);
 }
 
 vkaa_parse_keyword_s* vkaa_std_parse_set_keyword_goto(vkaa_parse_s *restrict parse, vkaa_std_typeid_s *restrict typeid)

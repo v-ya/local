@@ -1,3 +1,187 @@
-# type
+# keyword complete
+	var `type` `list`;
+		`type`:
+			< `type_name` >
+			<? `var_name` >
+		`list`:
+			`var_define` , `var_define` ...
+				`var_define`:
+					`var_name`
+					`var_name` ( `initial` )
 
-# keyword
+	marco `marco_name` `marco_param` `marco_code`
+		`marco_param`:
+			( `var_name` , `var_name` ... )
+		`marco_code`:
+			{ `code` }
+
+	func `type` `func_name` `func_param` `func_define`
+		`type`:
+			< `type_name` >
+		`func_param`:
+			( `type_name` `var_name` , `type_name` `var_name` ... )
+		`func_define`:
+			;
+			{ `code` }
+			[ `stack_size` ] { `code` }
+				`stack_size`: number(>0), default(1)
+
+	label `label_name` :
+	unlabel `label_name` ;
+	goto `label_name` ;
+	break ;
+	continue ;
+
+	return `value`
+		`value`:
+			;
+			`code` ;
+				`code`: code's var as return value
+
+	if `condition` `tail`
+		`tail`:
+			`done`
+			`done` else `done`
+			`done` else if `condition` `tail`
+	while `condition` `done`
+	do `done` while `condition` ;
+	for ( `code-initial` ; `condition` ; `code-finally` ) `done`
+		`condition`:
+			( `code` )
+				`code`: code's var must convert bool
+		`done`:
+			`code` ;
+			{ `code` }
+
+# keyword inner
+	null
+		=> type(null)
+	true
+		=> type(bool)
+	false
+		=> type(bool)
+
+# type
+	void
+	null
+	scope
+		!     (bool)         => bool  : any
+		~     (uint)         => uint  : any
+		*     (uint, uint)   => uint  : any
+		*     (int, int)     => int   : any
+		*     (float, float) => float : any
+		/     (uint, uint)   => uint  : any
+		/     (int, int)     => int   : any
+		/     (float, float) => float : any
+		%     (uint, uint)   => uint  : any
+		%     (int, int)     => int   : any
+		%     (float, float) => float : any
+		+     (uint, uint)   => uint  : any
+		+     (int, int)     => int   : any
+		+     (float, float) => float : any
+		+     (uint)         => uint  : any
+		+     (int)          => int   : any
+		+     (float)        => float : any
+		-     (uint, uint)   => uint  : any
+		-     (int, int)     => int   : any
+		-     (float, float) => float : any
+		-     (uint)         => uint  : any
+		-     (int)          => int   : any
+		-     (float)        => float : any
+		&     (bool, bool)   => bool  : any
+		&     (uint, uint)   => uint  : any
+		&     (int, int)     => int   : any
+		|     (bool, bool)   => bool  : any
+		|     (uint, uint)   => uint  : any
+		|     (int, int)     => int   : any
+		^     (bool, bool)   => bool  : any
+		^     (uint, uint)   => uint  : any
+		^     (int, int)     => int   : any
+		&&pre (bool)         => bool  : input_first
+		&&    (bool, bool)   => bool  : any
+		||pre (bool)         => bool  : input_first
+		||    (bool, bool)   => bool  : any
+		^^    (bool, bool)   => bool  : any
+		<<    (uint, uint)   => uint  : any
+		<<    (int, int)     => int   : any
+		>>    (uint, uint)   => uint  : any
+		>>    (int, int)     => int   : any
+		==    (bool, bool)   => bool  : any
+		==    (uint, uint)   => bool  : any
+		==    (int, int)     => bool  : any
+		==    (float, float) => bool  : any
+		!=    (bool, bool)   => bool  : any
+		!=    (uint, uint)   => bool  : any
+		!=    (int, int)     => bool  : any
+		!=    (float, float) => bool  : any
+		>     (uint, uint)   => bool  : any
+		>     (int, int)     => bool  : any
+		>     (float, float) => bool  : any
+		<     (uint, uint)   => bool  : any
+		<     (int, int)     => bool  : any
+		<     (float, float) => bool  : any
+		>=    (uint, uint)   => bool  : any
+		>=    (int, int)     => bool  : any
+		>=    (float, float) => bool  : any
+		<=    (uint, uint)   => bool  : any
+		<=    (int, int)     => bool  : any
+		<=    (float, float) => bool  : any
+		=     (void, void)   => void  : must_first
+		=     (null, null)   => null  : must_first
+		=     (bool, bool)   => bool  : must_first
+		=     (uint, uint)   => uint  : must_first
+		=     (int, int)     => int   : must_first
+		=     (float, float) => float : must_first
+		+=    (uint, uint)   => uint  : must_first
+		+=    (int, int)     => int   : must_first
+		+=    (float, float) => float : must_first
+		-=    (uint, uint)   => uint  : must_first
+		-=    (int, int)     => int   : must_first
+		-=    (float, float) => float : must_first
+		*=    (uint, uint)   => uint  : must_first
+		*=    (int, int)     => int   : must_first
+		*=    (float, float) => float : must_first
+		/=    (uint, uint)   => uint  : must_first
+		/=    (int, int)     => int   : must_first
+		/=    (float, float) => float : must_first
+		%=    (uint, uint)   => uint  : must_first
+		%=    (int, int)     => int   : must_first
+		%=    (float, float) => float : must_first
+		&=    (bool, bool)   => bool  : must_first
+		&=    (uint, uint)   => uint  : must_first
+		&=    (int, int)     => int   : must_first
+		|=    (bool, bool)   => bool  : must_first
+		|=    (uint, uint)   => uint  : must_first
+		|=    (int, int)     => int   : must_first
+		^=    (bool, bool)   => bool  : must_first
+		^=    (uint, uint)   => uint  : must_first
+		^=    (int, int)     => int   : must_first
+		<<=   (uint, uint)   => uint  : must_first
+		<<=   (int, int)     => int   : must_first
+		>>=   (uint, uint)   => uint  : must_first
+		>>=   (int, int)     => int   : must_first
+	syntax
+	marco
+	function
+		()
+	bool
+		bool  () => bool  : any
+		uint  () => uint  : any
+		int   () => int   : any
+		float () => float : any
+	string
+	uint
+		bool  () => bool  : any
+		uint  () => uint  : any
+		int   () => int   : any
+		float () => float : any
+	int
+		bool  () => bool  : any
+		uint  () => uint  : any
+		int   () => int   : any
+		float () => float : any
+	float
+		bool  () => bool  : any
+		uint  () => uint  : any
+		int   () => int   : any
+		float () => float : any

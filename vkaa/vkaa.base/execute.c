@@ -176,6 +176,20 @@ vkaa_execute_s* vkaa_execute_set_label_without_exist(vkaa_execute_s *restrict ex
 	return NULL;
 }
 
+vkaa_execute_s* vkaa_execute_set_unlabel(vkaa_execute_s *restrict exec, const char *restrict label)
+{
+	vattr_vslot_t *restrict vslot;
+	if ((vslot = vattr_get_vslot(exec->label, label)) && vslot->number == 1)
+	{
+		if (vkaa_execute_label_okay((vkaa_execute_label_s *) vslot->vslot->value, exec->execute_array, exec->execute_number))
+		{
+			vattr_delete_vslot(vslot);
+			return exec;
+		}
+	}
+	return NULL;
+}
+
 vkaa_execute_s* vkaa_execute_add_jump_any(vkaa_execute_s *restrict exec, const char *restrict label, uintptr_t jumper_pos)
 {
 	vkaa_execute_label_s *restrict el;

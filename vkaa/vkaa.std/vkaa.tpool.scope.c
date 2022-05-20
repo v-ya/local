@@ -84,11 +84,11 @@ static vkaa_type_s* vkaa_std_type_initial_scope(vkaa_type_s *restrict type, vkaa
 		(op2 = vkaa_std_op_testeval_name(&cache, op = "||")) &&
 			vkaa_std_type_set_function(type, op2,    need1i(bool,  op_or_logic_test)) &&
 			vkaa_std_type_set_function(type, op,     need2a(bool,  op_or_logic)) &&
+		(s = vkaa_std_type_set_function(type, op = "^^", need2a(bool,  op_xor_logic))) &&
 		(s = vkaa_std_type_set_function(type, op = "<<", need2a(uint,  op_lshift))) &&
 			vkaa_std_selector_append(s,   op,        need2a(int,   op_lshift)) &&
 		(s = vkaa_std_type_set_function(type, op = ">>", need2a(uint,  op_rshift))) &&
 			vkaa_std_selector_append(s,   op,        need2a(int,   op_rshift)) &&
-		(s = vkaa_std_type_set_function(type, op = "^^", need2a(bool,  op_xor_logic))) &&
 		(s = vkaa_std_type_set_function(type, op = "==", need2r(bool,  op_rela_equ))) &&
 			vkaa_std_selector_append(s,   op,        need2r(uint,  op_rela_equ)) &&
 			vkaa_std_selector_append(s,   op,        need2r(int,   op_rela_equ)) &&
