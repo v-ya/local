@@ -1,6 +1,4 @@
 #include "std.tpool.h"
-#include "std.function.h"
-#include <stdlib.h>
 
 vkaa_std_var_int_s* vkaa_std_type_int_create_by_value(const vkaa_type_s *restrict type, vkaa_std_int_t value)
 {
@@ -39,18 +37,30 @@ static vkaa_std_type_create_define(int)
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_int(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
+static vkaa_std_type_init_define(int)
 {
 	if (
-		vkaa_std_type_set_function(type, "bool", vkaa_std_function_label(int, cv_bool), vkaa_std_selector_output_any, vkaa_std_selector_convert_none, typeid->id_int, typeid->id_bool, 0, NULL) &&
-		vkaa_std_type_set_function(type, "uint", vkaa_std_function_label(int, cv_uint), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_int, typeid->id_uint, 0, NULL) &&
-		vkaa_std_type_set_function(type, "int", vkaa_std_function_label(int, cv_int), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_int, typeid->id_int, 0, NULL) &&
-		vkaa_std_type_set_function(type, "float", vkaa_std_function_label(int, cv_float), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_int, typeid->id_float, 0, NULL) &&
+		vkaa_std_type_set_function_si(type, "=", sfsi_need2m(int, op_mov)) &&
+		vkaa_std_type_set_function_si(type, "+=", sfsi_need2m(int, op_add)) &&
+		vkaa_std_type_set_function_si(type, "-=", sfsi_need2m(int, op_sub)) &&
+		vkaa_std_type_set_function_si(type, "*=", sfsi_need2m(int, op_mul)) &&
+		vkaa_std_type_set_function_si(type, "/=", sfsi_need2m(int, op_div)) &&
+		vkaa_std_type_set_function_si(type, "%=", sfsi_need2m(int, op_mod)) &&
+		vkaa_std_type_set_function_si(type, "&=", sfsi_need2m(int, op_and_bitwise)) &&
+		vkaa_std_type_set_function_si(type, "|=", sfsi_need2m(int, op_or_bitwise)) &&
+		vkaa_std_type_set_function_si(type, "^=", sfsi_need2m(int, op_xor_bitwise)) &&
+		vkaa_std_type_set_function_si(type, "<<=", sfsi_need2m(int, op_lshift)) &&
+		vkaa_std_type_set_function_si(type, ">>=", sfsi_need2m(int, op_rshift)) &&
+		vkaa_std_type_set_function(type, "bool", sf_need0cvn(int, bool, cv_bool)) &&
+		vkaa_std_type_set_function(type, "uint", sf_need0cvp(int, uint, cv_uint)) &&
+		vkaa_std_type_set_function(type, "int", sf_need0cvp(int, int, cv_int)) &&
+		vkaa_std_type_set_function(type, "float", sf_need0cvp(int, float, cv_float)) &&
 	1) return type;
 	return NULL;
 }
 
 vkaa_type_s* vkaa_std_tpool_set_int(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "int", typeid->id_int, vkaa_std_type_create_label(int), vkaa_std_type_initial_int, typeid);
+	return vkaa_std_tpool_set(tpool, "int", typeid->id_int, typeid,
+		vkaa_std_type_create_label(int), vkaa_std_type_init_label(int));
 }

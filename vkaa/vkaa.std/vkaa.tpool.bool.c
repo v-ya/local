@@ -1,6 +1,4 @@
 #include "std.tpool.h"
-#include "std.function.h"
-#include <string.h>
 
 vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_value(const vkaa_type_s *restrict type, vkaa_std_bool_t boolean)
 {
@@ -44,18 +42,23 @@ static vkaa_std_type_create_define(bool)
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_bool(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
+static vkaa_std_type_init_define(bool)
 {
 	if (
-		vkaa_std_type_set_function(type, "bool", vkaa_std_function_label(bool, cv_bool), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_bool, typeid->id_bool, 0, NULL) &&
-		vkaa_std_type_set_function(type, "uint", vkaa_std_function_label(bool, cv_uint), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_bool, typeid->id_uint, 0, NULL) &&
-		vkaa_std_type_set_function(type, "int", vkaa_std_function_label(bool, cv_int), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_bool, typeid->id_int, 0, NULL) &&
-		vkaa_std_type_set_function(type, "float", vkaa_std_function_label(bool, cv_float), vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion, typeid->id_bool, typeid->id_float, 0, NULL) &&
+		vkaa_std_type_set_function_si(type, "=", sfsi_need2m(bool, op_mov)) &&
+		vkaa_std_type_set_function_si(type, "&=", sfsi_need2m(bool, op_and_bitwise)) &&
+		vkaa_std_type_set_function_si(type, "|=", sfsi_need2m(bool, op_or_bitwise)) &&
+		vkaa_std_type_set_function_si(type, "^=", sfsi_need2m(bool, op_xor_bitwise)) &&
+		vkaa_std_type_set_function(type, "bool", sf_need0cvp(bool, bool, cv_bool)) &&
+		vkaa_std_type_set_function(type, "uint", sf_need0cvp(bool, uint, cv_uint)) &&
+		vkaa_std_type_set_function(type, "int", sf_need0cvp(bool, int, cv_int)) &&
+		vkaa_std_type_set_function(type, "float", sf_need0cvp(bool, float, cv_float)) &&
 	1) return type;
 	return NULL;
 }
 
 vkaa_type_s* vkaa_std_tpool_set_bool(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "bool", typeid->id_bool, vkaa_std_type_create_label(bool), vkaa_std_type_initial_bool, typeid);
+	return vkaa_std_tpool_set(tpool, "bool", typeid->id_bool, typeid,
+		vkaa_std_type_create_label(bool), vkaa_std_type_init_label(bool));
 }

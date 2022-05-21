@@ -13,7 +13,16 @@ static vkaa_std_type_create_define(void)
 	return NULL;
 }
 
+static vkaa_std_type_init_define(void)
+{
+	if (
+		vkaa_std_type_set_function_si(type, "=", sfsi_need2m(void, op_mov)) &&
+	1) return type;
+	return NULL;
+}
+
 vkaa_type_s* vkaa_std_tpool_set_void(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "void", typeid->id_void, vkaa_std_type_create_label(void), NULL, typeid);
+	return vkaa_std_tpool_set(tpool, "void", typeid->id_void, typeid,
+		vkaa_std_type_create_label(void), vkaa_std_type_init_label(void));
 }

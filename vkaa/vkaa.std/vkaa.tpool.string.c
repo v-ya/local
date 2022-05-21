@@ -38,5 +38,6 @@ static vkaa_std_type_create_define(string)
 
 vkaa_type_s* vkaa_std_tpool_set_string(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "string", typeid->id_string, vkaa_std_type_create_label(string), NULL, typeid);
+	return vkaa_std_tpool_set(tpool, "string", typeid->id_string, typeid,
+		vkaa_std_type_create_label(string), NULL);
 }

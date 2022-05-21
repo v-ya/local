@@ -77,5 +77,6 @@ static vkaa_std_type_create_define(marco)
 
 vkaa_type_s* vkaa_std_tpool_set_marco(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
-	return vkaa_std_tpool_set(tpool, "marco", typeid->id_marco, vkaa_std_type_create_label(marco), NULL, typeid);
+	return vkaa_std_tpool_set(tpool, "marco", typeid->id_marco, typeid,
+		vkaa_std_type_create_label(marco), NULL);
 }

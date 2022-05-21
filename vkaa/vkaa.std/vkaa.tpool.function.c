@@ -1,5 +1,4 @@
 #include "std.tpool.h"
-#include "std.function.h"
 #include <string.h>
 
 // input
@@ -160,13 +159,13 @@ static vkaa_var_s* vkaa_std_var_function_inst_put_var(const vkaa_tpool_s *restri
 	return NULL;
 }
 
-static vkaa_function_s* vkaa_std_var_function_inst_put_var_mov(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope, vkaa_var_s *restrict this, const char *restrict name, uintptr_t id)
+static vkaa_function_s* vkaa_std_var_function_inst_put_var_mov(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_scope_s *restrict scope, const char *restrict name, uintptr_t id)
 {
 	vkaa_function_s *restrict func;
 	vkaa_var_s *restrict v;
 	if ((v = vkaa_std_var_function_inst_put_var(tpool, scope, name, id)))
 	{
-		func = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(exec, tpool, this, v, v));
+		func = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(exec, tpool, v, v));
 		refer_free(v);
 		return func;
 	}
@@ -191,7 +190,7 @@ static vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_alloc(const vkaa
 			for (i = 0; i < n; ++i)
 			{
 				if (!(r->input_mov[i] = vkaa_std_var_function_inst_put_var_mov(
-					r->exec, tpool, r->scope, &r->this->var, input->name[i]->string, input->typeid[i])))
+					r->exec, tpool, r->scope, input->name[i]->string, input->typeid[i])))
 					goto label_fail;
 			}
 			if (!(r->output = vkaa_std_var_function_inst_put_var(tpool, r->scope, vkaa_std_label_return, input->output_typeid)))
@@ -209,7 +208,7 @@ static vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_okay(vkaa_std_va
 {
 	if (!r->output_mov &&
 		vkaa_execute_pop_label(r->exec, vkaa_std_label_return, vkaa_execute_next_pos(r->exec)) &&
-		(r->output_mov = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(r->exec, tpool, &r->this->var, r->output, r->output))) &&
+		(r->output_mov = (vkaa_function_s *) refer_save(vkaa_std_convert_mov_var(r->exec, tpool, r->output, r->output))) &&
 		vkaa_execute_okay(r->exec))
 		return r;
 	return NULL;
@@ -388,7 +387,7 @@ static vkaa_function_s* vkaa_std_type_function_selector_call(const vkaa_selector
 	return NULL;
 }
 
-static vkaa_type_s* vkaa_std_type_initial_function(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid)
+static vkaa_std_type_init_define(function)
 {
 	if (vkaa_std_type_set_selector(type, "()", vkaa_std_type_function_selector_call))
 		return type;
@@ -398,7 +397,8 @@ static vkaa_type_s* vkaa_std_type_initial_function(vkaa_type_s *restrict type, v
 vkaa_type_s* vkaa_std_tpool_set_function(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	vkaa_type_s *restrict type;
-	if ((type = vkaa_std_tpool_set(tpool, "function", typeid->id_function, vkaa_std_type_create_label(function), vkaa_std_type_initial_function, typeid)))
+	if ((type = vkaa_std_tpool_set(tpool, "function", typeid->id_function, typeid,
+		vkaa_std_type_create_label(function), vkaa_std_type_init_label(function))))
 		type->clear = vkaa_std_type_clear_label(function);
 	return type;
 }

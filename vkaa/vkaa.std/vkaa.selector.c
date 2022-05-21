@@ -33,7 +33,8 @@ vkaa_std_selector_desc_t* vkaa_std_selector_desc_alloc(uintptr_t input_number, c
 	if ((r = (vkaa_std_selector_desc_t *) refer_alloz(sizeof(vkaa_std_selector_desc_t) + sizeof(uintptr_t) * input_number)))
 	{
 		r->input_number = input_number;
-		memcpy(r + 1, input_typeid, sizeof(uintptr_t) * input_number);
+		if (input_number && input_typeid)
+			memcpy(r + 1, input_typeid, sizeof(uintptr_t) * input_number);
 	}
 	return r;
 }
@@ -48,6 +49,26 @@ vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict sele
 		d->convert = convert;
 		d->this_typeid = this_typeid;
 		d->output_typeid = output_typeid;
+		if (!vattr_insert_tail(selector->std_desc, name, d))
+			selector = NULL;
+		refer_free(d);
+		return selector;
+	}
+	return NULL;
+}
+
+vkaa_std_selector_s* vkaa_std_selector_append_si(vkaa_std_selector_s *restrict selector, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid)
+{
+	vkaa_std_selector_desc_t *restrict d;
+	if (name && (d = vkaa_std_selector_desc_alloc(input_number, NULL)))
+	{
+		d->function = function;
+		d->output = output;
+		d->convert = convert;
+		d->this_typeid = this_typeid;
+		d->output_typeid = output_typeid;
+		while (input_number)
+			d->input_typeid[--input_number] = input_typeid;
 		if (!vattr_insert_tail(selector->std_desc, name, d))
 			selector = NULL;
 		refer_free(d);

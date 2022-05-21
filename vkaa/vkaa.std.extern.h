@@ -184,7 +184,7 @@ vkaa_std_var_float_s* vkaa_std_type_float_create_by_value(const vkaa_type_s *res
 
 typedef vkaa_type_s* (*vkaa_std_type_initial_f)(vkaa_type_s *restrict type, vkaa_std_typeid_s *restrict typeid);
 
-vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, vkaa_std_typeid_s *restrict typeid);
+vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_std_typeid_s *restrict typeid, vkaa_type_create_f create, vkaa_std_type_initial_f initial);
 
 // convert
 
@@ -193,8 +193,8 @@ const vkaa_selector_s* vkaa_std_convert_test_by_name(const vkaa_type_s *restrict
 const vkaa_selector_s* vkaa_std_convert_test_by_typeid(const vkaa_type_s *restrict src, uintptr_t dst, const vkaa_tpool_s *restrict tpool);
 vkaa_function_s* vkaa_std_convert_by_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
 vkaa_function_s* vkaa_std_convert_by_typeid(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, uintptr_t dst);
-vkaa_function_s* vkaa_std_convert_mov_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict this, vkaa_var_s *src, vkaa_var_s *dst);
-vkaa_function_s* vkaa_std_convert_set_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict this, vkaa_var_s *src, vkaa_var_s *dst);
+vkaa_function_s* vkaa_std_convert_mov_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
+vkaa_function_s* vkaa_std_convert_set_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
 vkaa_var_s* vkaa_std_convert_result_get_var(const vkaa_parse_result_t *restrict result, vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, uintptr_t type_id);
 
 // selector
@@ -232,6 +232,7 @@ void vkaa_std_selector_finally(vkaa_std_selector_s *restrict selector);
 vkaa_std_selector_s* vkaa_std_selector_alloc(void);
 vkaa_std_selector_desc_t* vkaa_std_selector_desc_alloc(uintptr_t input_number, const uintptr_t *restrict input_typeid);
 vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict selector, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
+vkaa_std_selector_s* vkaa_std_selector_append_si(vkaa_std_selector_s *restrict selector, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid);
 
 const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param, uintptr_t *restrict score);
 vkaa_function_s* vkaa_std_selector_create(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc);

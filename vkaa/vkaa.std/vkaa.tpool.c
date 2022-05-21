@@ -1,6 +1,6 @@
 #include "std.tpool.h"
 
-vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_type_create_f create, vkaa_std_type_initial_f initial, vkaa_std_typeid_s *restrict typeid)
+vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restrict name, uintptr_t id, vkaa_std_typeid_s *restrict typeid, vkaa_type_create_f create, vkaa_std_type_initial_f initial)
 {
 	vkaa_type_s *restrict r, *rr;
 	rr = NULL;

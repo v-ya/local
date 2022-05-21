@@ -139,7 +139,7 @@ static vkaa_std_keyword_define(return)
 			// fall through
 		default: goto label_fail;
 	}
-	if (!vkaa_std_convert_set_var(context->execute, context->tpool, context->this, var, rrr))
+	if (!vkaa_std_convert_set_var(context->execute, context->tpool, var, rrr))
 		goto label_fail;
 	label_not_set:
 	vkaa_parse_result_clear(&ret);
