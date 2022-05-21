@@ -11,8 +11,17 @@ static vkaa_std_var_function_s* vkaa_std_keyword_func_create_or_find(const vkaa_
 	}
 	else if ((var = vkaa_tpool_var_create_by_id(tpool, id_function, NULL)))
 	{
+		if (var->type->clear)
+		{
+			vkaa_vclear_s *restrict vclear;
+			if (!(vclear = vkaa_scope_find_vclear(scope)))
+				goto label_fail;
+			if (!vkaa_vclear_push(vclear, var))
+				goto label_fail;
+		}
 		if (vkaa_scope_put(scope, name, var))
 			return (vkaa_std_var_function_s *) var;
+		label_fail:
 		refer_free(var);
 	}
 	return NULL;
@@ -45,12 +54,18 @@ static vkaa_std_keyword_define(func)
 		goto label_fail;
 	if (!(func = vkaa_std_keyword_func_create_or_find(context->tpool, context->scope, s->data.keyword->string, r->typeid->id_function)))
 		goto label_fail;
-	if (func->input || func->desc)
-		goto label_fail;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_brackets)
 		goto label_fail;
-	if (!vkaa_std_var_function_set_input(func, context, s->data.brackets, type->id))
-		goto label_fail;
+	if (!func->input && !func->desc)
+	{
+		if (!vkaa_std_var_function_set_input(func, context->tpool, s->data.brackets, type->id))
+			goto label_fail;
+	}
+	else
+	{
+		if (!vkaa_std_var_function_same_input(func, context->tpool, s->data.brackets, type->id))
+			goto label_fail;
+	}
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)))
 		goto label_fail;
 	if (s->type == vkaa_syntax_type_semicolon)

@@ -6,10 +6,13 @@
 
 struct vkaa_scope_s {
 	hashmap_t var;
+	vkaa_vclear_s *vclear;
 	vkaa_scope_s *parent;
 };
 
 vkaa_scope_s* vkaa_scope_alloc(vkaa_scope_s *restrict parent);
+void vkaa_scope_set_vclear(vkaa_scope_s *restrict scope, vkaa_vclear_s *vclear);
+vkaa_vclear_s* vkaa_scope_find_vclear(const vkaa_scope_s *restrict scope);
 vkaa_scope_s* vkaa_scope_set_parent(vkaa_scope_s *restrict scope, vkaa_scope_s *restrict parent);
 vkaa_var_s* vkaa_scope_find_only_this(const vkaa_scope_s *restrict scope, const char *restrict name);
 vkaa_var_s* vkaa_scope_find(const vkaa_scope_s *restrict scope, const char *restrict name);

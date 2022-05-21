@@ -8,6 +8,7 @@ vkaa_type_s* vkaa_type_initial(vkaa_type_s *restrict type, uintptr_t id, const c
 		type->name = name;
 		type->error = NULL;
 		type->create = create;
+		type->clear = NULL;
 		return type;
 	}
 	return NULL;

@@ -64,6 +64,7 @@ static void vkaa_scope_free_func(vkaa_scope_impl_s *restrict r)
 	vkaa_scope_impl_clear_child_list((vkaa_scope_notify_s *volatile *) &r->child_list);
 	if (r->parent_notify) refer_free(r->parent_notify);
 	hashmap_uini(&r->scope.var);
+	if (r->scope.vclear) refer_free(r->scope.vclear);
 }
 
 vkaa_scope_s* vkaa_scope_alloc(vkaa_scope_s *restrict parent)
@@ -78,6 +79,21 @@ vkaa_scope_s* vkaa_scope_alloc(vkaa_scope_s *restrict parent)
 		refer_free(r);
 	}
 	return NULL;
+}
+
+void vkaa_scope_set_vclear(vkaa_scope_s *restrict scope, vkaa_vclear_s *vclear)
+{
+	if (scope->vclear) refer_free(scope->vclear);
+	scope->vclear = (vkaa_vclear_s *) refer_save(vclear);
+}
+
+vkaa_vclear_s* vkaa_scope_find_vclear(const vkaa_scope_s *restrict scope)
+{
+	vkaa_vclear_s *restrict vclear;
+	vclear = NULL;
+	while (scope && !(vclear = scope->vclear))
+		scope = scope->parent;
+	return vclear;
 }
 
 static vkaa_scope_s* vkaa_scope_rpath_exist(vkaa_scope_s *restrict r, vkaa_scope_s *restrict e)

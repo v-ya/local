@@ -121,7 +121,8 @@ int vkaa_std_var_function_input_compare(const vkaa_std_var_function_input_s *res
 void vkaa_std_var_function_inst_finally(vkaa_std_var_function_inst_s *restrict r);
 vkaa_std_var_function_inst_s* vkaa_std_var_function_inst_initial(vkaa_std_var_function_inst_s *restrict r, const vkaa_function_s *restrict func);
 
-vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid);
+vkaa_std_var_function_s* vkaa_std_var_function_same_input(vkaa_std_var_function_s *restrict var, const vkaa_tpool_s *restrict tpool, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid);
+vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_tpool_s *restrict tpool, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid);
 vkaa_std_var_function_s* vkaa_std_var_function_set_scope(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_scope, uintptr_t id_scope, uintptr_t stack_size);
 
 // var<bool>

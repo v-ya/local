@@ -29,6 +29,7 @@ typedef struct vkaa_std_s {
 
 typedef struct vkaa_std_context_s {
 	const vkaa_std_s *std;
+	vkaa_vclear_s *vclear;
 	vkaa_execute_s *exec;
 	vkaa_scope_s *scope;
 	vkaa_var_s *var;

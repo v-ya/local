@@ -5,6 +5,7 @@
 #include <vattr.h>
 
 typedef vkaa_var_s* (*vkaa_type_create_f)(const vkaa_type_s *restrict type, const vkaa_syntax_s *restrict syntax);
+typedef void (*vkaa_type_clear_f)(vkaa_var_s *restrict var);
 
 struct vkaa_type_s {
 	uintptr_t id;
@@ -12,6 +13,7 @@ struct vkaa_type_s {
 	vattr_s *selector;
 	vkaa_error_s *error;
 	vkaa_type_create_f create;
+	vkaa_type_clear_f clear;
 };
 
 vkaa_type_s* vkaa_type_initial(vkaa_type_s *restrict type, uintptr_t id, const char *name, vkaa_type_create_f create);
