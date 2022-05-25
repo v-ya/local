@@ -78,16 +78,25 @@ vkaa_std_context_s* vkaa_std_context_append_syntax(vkaa_std_context_s *restrict 
 	return rr;
 }
 
-vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict context, const char *restrict source_data, uintptr_t source_length)
+vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict context, refer_nstring_t source, const char *restrict name)
 {
+	vkaa_syntax_source_s *restrict ss;
 	const vkaa_syntax_s *restrict s;
-	if ((s = vkaa_syntax_alloc(context->std->syntaxor, source_data, source_length)))
+	vkaa_std_context_s *rr;
+	rr = NULL;
+	if ((ss = vkaa_syntax_source_alloc(source)))
 	{
-		context = vkaa_std_context_append_syntax(context, s);
-		refer_free(s);
-		return context;
+		if (!name || vkaa_syntax_source_set_name(ss, name))
+		{
+			if ((s = vkaa_syntax_alloc(context->std->syntaxor, ss)))
+			{
+				rr = vkaa_std_context_append_syntax(context, s);
+				refer_free(s);
+			}
+		}
+		refer_free(ss);
 	}
-	return NULL;
+	return rr;
 }
 
 uintptr_t vkaa_std_context_exec(vkaa_std_context_s *restrict context, const volatile uintptr_t *running)

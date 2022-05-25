@@ -84,28 +84,23 @@ int main(void)
 	const vkaa_std_s *restrict std;
 	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
-	const vkaa_syntax_s *restrict syntax;
 	uintptr_t error;
 	const char *restrict error_name;
+	const char *restrict source_name;
+	source_name = "test.vkaa";
 	if ((std = vkaa_std_alloc()))
 	{
 		if ((c = vkaa_std_context_alloc(std)))
 		{
-			if ((code = load_file("test.vkaa")))
+			if ((code = load_file(source_name)))
 			{
-				if ((syntax = vkaa_syntax_alloc(std->syntaxor, code->string, code->length)))
+				if (vkaa_std_context_append_source(c, code, source_name))
 				{
-					printf("syntax: %p\n", syntax);
-					// dump_syntax(syntax, 0);
-					if (vkaa_std_context_append_syntax(c, syntax))
-					{
-						printf("vkaa_std_context_append_syntax ... okay\n");
-						error_name = NULL;
-						error = vkaa_std_context_exec(c, NULL);
-						if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
-						printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
-					}
-					refer_free(syntax);
+					printf("vkaa_std_context_append_syntax ... okay\n");
+					error_name = NULL;
+					error = vkaa_std_context_exec(c, NULL);
+					if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
+					printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
 				}
 				refer_free(code);
 			}

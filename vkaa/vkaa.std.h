@@ -39,7 +39,7 @@ const vkaa_std_s* vkaa_std_alloc(void);
 
 vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std);
 vkaa_std_context_s* vkaa_std_context_append_syntax(vkaa_std_context_s *restrict context, const vkaa_syntax_s *restrict syntax);
-vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict context, const char *restrict source_data, uintptr_t source_length);
+vkaa_std_context_s* vkaa_std_context_append_source(vkaa_std_context_s *restrict context, refer_nstring_t source, const char *restrict name);
 uintptr_t vkaa_std_context_exec(vkaa_std_context_s *restrict context, const volatile uintptr_t *running);
 
 #endif
