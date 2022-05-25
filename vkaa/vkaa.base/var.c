@@ -28,19 +28,17 @@ vkaa_selector_s* vkaa_var_find_selector(const vkaa_var_s *restrict var, const ch
 
 static void vkaa_vclear_free_func(vkaa_vclear_s *restrict r)
 {
-	vkaa_var_s **restrict p;
-	vkaa_var_s *restrict v;
-	uintptr_t i, n;
-	if ((p = r->var_array) && (n = r->var_length))
+	rbtree_clear(&r->var);
+}
+
+static void vkaa_vclear_var_free_func(rbtree_t *restrict rbv)
+{
+	vkaa_var_s *restrict var;
+	if ((var = rbv->value))
 	{
-		for (i = 0; i < n; ++i)
-		{
-			v = p[i];
-			v->type->clear(v);
-			refer_free(v);
-		}
+		var->type->clear(var);
+		refer_free(var);
 	}
-	exbuffer_uini(&r->buffer);
 }
 
 vkaa_vclear_s* vkaa_vclear_alloc(void)
@@ -48,12 +46,8 @@ vkaa_vclear_s* vkaa_vclear_alloc(void)
 	vkaa_vclear_s *restrict r;
 	if ((r = (vkaa_vclear_s *) refer_alloz(sizeof(vkaa_vclear_s))))
 	{
-		if (exbuffer_init(&r->buffer, 0))
-		{
-			refer_set_free(r, (refer_free_f) vkaa_vclear_free_func);
-			return r;
-		}
-		refer_free(r);
+		refer_set_free(r, (refer_free_f) vkaa_vclear_free_func);
+		return r;
 	}
 	return NULL;
 }
@@ -62,12 +56,12 @@ vkaa_vclear_s* vkaa_vclear_push(vkaa_vclear_s *restrict vclear, vkaa_var_s *rest
 {
 	if (var->type->clear)
 	{
-		vkaa_var_s **restrict p;
-		if ((p = (vkaa_var_s **) exbuffer_need(&vclear->buffer, sizeof(vkaa_var_s *) * (vclear->var_length + 1))))
+		if (rbtree_find(&vclear->var, NULL, (uint64_t) (uintptr_t) var))
+			goto label_okay;
+		else if (rbtree_insert(&vclear->var, NULL, (uint64_t) (uintptr_t) var, var, vkaa_vclear_var_free_func))
 		{
-			p[vclear->var_length] = (vkaa_var_s *) refer_save(var);
-			vclear->var_array = p;
-			vclear->var_length += 1;
+			refer_save(var);
+			label_okay:
 			return vclear;
 		}
 	}

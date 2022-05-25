@@ -11,17 +11,8 @@ static vkaa_std_var_function_s* vkaa_std_keyword_func_create_or_find(const vkaa_
 	}
 	else if ((var = vkaa_tpool_var_create_by_id(tpool, id_function, NULL)))
 	{
-		if (var->type->clear)
-		{
-			vkaa_vclear_s *restrict vclear;
-			if (!(vclear = vkaa_scope_find_vclear(scope)))
-				goto label_fail;
-			if (!vkaa_vclear_push(vclear, var))
-				goto label_fail;
-		}
 		if (vkaa_scope_put(scope, name, var))
 			return (vkaa_std_var_function_s *) var;
-		label_fail:
 		refer_free(var);
 	}
 	return NULL;

@@ -6,10 +6,8 @@ static vkaa_std_keyword_define(var)
 	const vkaa_syntax_t *restrict k;
 	const vkaa_type_s *restrict type;
 	const vkaa_syntax_s *restrict initial;
-	vkaa_vclear_s *restrict vclear;
 	vkaa_var_s *restrict var;
 	type = NULL;
-	vclear = NULL;
 	var = NULL;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)))
 		goto label_fail;
@@ -31,8 +29,6 @@ static vkaa_std_keyword_define(var)
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, ">"))
 		goto label_fail;
 	if (!type) goto label_fail;
-	if (type->clear && !(vclear = vkaa_scope_find_vclear(context->scope)))
-		goto label_fail;
 	while ((k = vkaa_parse_syntax_fetch_and_next(syntax)))
 	{
 		if (k->type != vkaa_syntax_type_keyword)
@@ -47,8 +43,6 @@ static vkaa_std_keyword_define(var)
 				goto label_fail;
 		}
 		if (!(var = vkaa_tpool_var_create(context->tpool, type, initial)))
-			goto label_fail;
-		if (vclear && !vkaa_vclear_push(vclear, var))
 			goto label_fail;
 		if (!vkaa_scope_put(context->scope, k->data.keyword->string, var))
 			goto label_fail;

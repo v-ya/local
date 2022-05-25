@@ -2,7 +2,7 @@
 #define _vkaa_var_h_
 
 #include "vkaa.h"
-#include <exbuffer.h>
+#include <rbtree.h>
 
 struct vkaa_var_s {
 	uintptr_t type_id;
@@ -10,9 +10,7 @@ struct vkaa_var_s {
 };
 
 struct vkaa_vclear_s {
-	exbuffer_t buffer;
-	vkaa_var_s **var_array;
-	uintptr_t var_length;
+	rbtree_t *var;
 };
 
 vkaa_var_s* vkaa_var_initial(vkaa_var_s *restrict var, const vkaa_type_s *restrict type);

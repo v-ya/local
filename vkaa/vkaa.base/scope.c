@@ -1,4 +1,6 @@
 #include "../vkaa.scope.h"
+#include "../vkaa.type.h"
+#include "../vkaa.var.h"
 
 typedef struct vkaa_scope_notify_s vkaa_scope_notify_s;
 
@@ -134,6 +136,20 @@ vkaa_var_s* vkaa_scope_find(const vkaa_scope_s *restrict scope, const char *rest
 	return var;
 }
 
+vkaa_var_s* vkaa_scope_push_clear(vkaa_scope_s *restrict scope, vkaa_var_s *var)
+{
+	vkaa_vclear_s *restrict vclear;
+	if (!var->type->clear)
+		goto label_okay;
+	if ((vclear = vkaa_scope_find_vclear(scope)) &&
+		vkaa_vclear_push(vclear, var))
+	{
+		label_okay:
+		return var;
+	}
+	return NULL;
+}
+
 static void vkaa_scope_hashmap_free_func(hashmap_vlist_t *restrict vl)
 {
 	if (vl->value) refer_free(vl->value);
@@ -141,10 +157,15 @@ static void vkaa_scope_hashmap_free_func(hashmap_vlist_t *restrict vl)
 
 vkaa_var_s* vkaa_scope_put(vkaa_scope_s *restrict scope, const char *restrict name, vkaa_var_s *var)
 {
-	if (!hashmap_find_name(&scope->var, name) && hashmap_set_name(&scope->var, name, var, vkaa_scope_hashmap_free_func))
+	if (!hashmap_find_name(&scope->var, name) &&
+		hashmap_set_name(&scope->var, name, var, vkaa_scope_hashmap_free_func))
 	{
-		refer_save(var);
-		return var;
+		if (vkaa_scope_push_clear(scope, var))
+		{
+			refer_save(var);
+			return var;
+		}
+		hashmap_delete_name(&scope->var, name);
 	}
 	return NULL;
 }
@@ -153,8 +174,12 @@ vkaa_var_s* vkaa_scope_set(vkaa_scope_s *restrict scope, const char *restrict na
 {
 	if (hashmap_set_name(&scope->var, name, var, vkaa_scope_hashmap_free_func))
 	{
-		refer_save(var);
-		return var;
+		if (vkaa_scope_push_clear(scope, var))
+		{
+			refer_save(var);
+			return var;
+		}
+		hashmap_delete_name(&scope->var, name);
 	}
 	return NULL;
 }
