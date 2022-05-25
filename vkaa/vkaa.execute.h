@@ -4,6 +4,7 @@
 #include "vkaa.h"
 #include <exbuffer.h>
 #include <vattr.h>
+#include <mlog.h>
 
 typedef struct vkaa_execute_t {
 	vkaa_function_s *func;
@@ -22,6 +23,7 @@ struct vkaa_execute_s {
 	vkaa_execute_t *execute_array;
 	uintptr_t execute_number;
 	vattr_s *label;
+	vkaa_elog_s *elog;
 };
 
 vkaa_execute_s* vkaa_execute_alloc(void);
@@ -51,5 +53,9 @@ vkaa_execute_s* vkaa_execute_okay(vkaa_execute_s *restrict exec);
 uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec, const volatile uintptr_t *running);
 
 void vkaa_execute_clear(vkaa_execute_s *restrict exec);
+
+vkaa_execute_s* vkaa_execute_elog_enable(vkaa_execute_s *restrict exec, mlog_s *ctime, mlog_s *rtime, const vkaa_error_s *error);
+void vkaa_execute_elog_print_ctime(const vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *restrict source, uint32_t syntax_pos, const char *restrict message);
+void vkaa_execute_elog_print_rtime(const vkaa_execute_s *restrict exec, uintptr_t pos, uintptr_t error);
 
 #endif

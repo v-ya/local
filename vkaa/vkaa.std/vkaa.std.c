@@ -70,6 +70,7 @@ vkaa_std_context_s* vkaa_std_context_append_syntax(vkaa_std_context_s *restrict 
 	c.tpool = std->tpool;
 	c.scope = context->scope;
 	c.this = context->var;
+	c.source = syntax->source;
 	tparse_tstack_clear(c.stack);
 	if (vkaa_parse_parse(&c, syntax->syntax_array, syntax->syntax_number, NULL) &&
 		vkaa_execute_okay(c.execute))

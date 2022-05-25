@@ -9,6 +9,7 @@ typedef struct vkaa_syntax_s vkaa_syntax_s;
 typedef struct vkaa_oplevel_s vkaa_oplevel_s;
 typedef struct vkaa_level_s vkaa_level_s;
 typedef struct vkaa_error_s vkaa_error_s;
+typedef struct vkaa_elog_s vkaa_elog_s;
 typedef struct vkaa_tpool_s vkaa_tpool_s;
 typedef struct vkaa_type_s vkaa_type_s;
 typedef struct vkaa_var_s vkaa_var_s;

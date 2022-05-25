@@ -64,6 +64,7 @@ typedef struct vkaa_parse_context_t {
 	vkaa_tpool_s *tpool;
 	vkaa_scope_s *scope;
 	vkaa_var_s *this;
+	const vkaa_syntax_source_s *source;
 } vkaa_parse_context_t;
 
 typedef struct vkaa_parse_syntax_t {

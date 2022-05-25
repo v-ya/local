@@ -64,7 +64,7 @@ vkaa_syntax_source_s* vkaa_syntax_source_alloc(refer_nstring_t source);
 vkaa_syntax_source_s* vkaa_syntax_source_alloc_by_data(const char *restrict source_data, uintptr_t source_length);
 refer_string_t vkaa_syntax_source_refer_name(vkaa_syntax_source_s *restrict source, refer_string_t name);
 refer_string_t vkaa_syntax_source_set_name(vkaa_syntax_source_s *restrict source, const char *restrict name);
-uint32_t vkaa_syntax_source_linepos(vkaa_syntax_source_s *restrict source, uint32_t pos, uint32_t *restrict cpos);
+uint32_t vkaa_syntax_source_linepos(const vkaa_syntax_source_s *restrict source, uint32_t pos, uint32_t *restrict cpos);
 
 const vkaa_syntax_s* vkaa_syntax_alloc(vkaa_syntaxor_s *restrict syntaxor, const vkaa_syntax_source_s *restrict source);
 

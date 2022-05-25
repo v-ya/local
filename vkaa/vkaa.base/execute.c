@@ -1,5 +1,6 @@
 #include "../vkaa.execute.h"
 #include "../vkaa.function.h"
+#include "../vkaa.error.h"
 
 typedef struct vkaa_execute_label_s {
 	exbuffer_t jumper_last_func_pos;
@@ -65,6 +66,7 @@ static void vkaa_execute_free_func(vkaa_execute_s *restrict r)
 	for (i = 0; i < n; ++i)
 		refer_free(array[i].func);
 	if (r->label) refer_free(r->label);
+	if (r->elog) refer_free(r->elog);
 	exbuffer_uini(&r->buffer);
 }
 
@@ -296,6 +298,7 @@ uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec, const volatile ui
 	}
 	return 0;
 	label_fail:
+	vkaa_execute_elog_print_rtime(exec, c.next_pos - 1, error);
 	return error;
 }
 
@@ -310,4 +313,27 @@ void vkaa_execute_clear(vkaa_execute_s *restrict exec)
 	for (i = 0; i < n; ++i)
 		refer_free(array[i].func);
 	vattr_clear(exec->label);
+}
+
+vkaa_execute_s* vkaa_execute_elog_enable(vkaa_execute_s *restrict exec, mlog_s *ctime, mlog_s *rtime, const vkaa_error_s *error)
+{
+	if (!exec->elog)
+	{
+		if ((exec->elog = vkaa_elog_alloc(ctime, rtime, error)))
+			return exec;
+	}
+	return NULL;
+}
+
+void vkaa_execute_elog_print_ctime(const vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *restrict source, uint32_t syntax_pos, const char *restrict message)
+{
+	if (exec->elog)
+		vkaa_elog_print_parse(exec->elog, source, syntax_pos, exec->execute_number, message);
+}
+
+void vkaa_execute_elog_print_rtime(const vkaa_execute_s *restrict exec, uintptr_t pos, uintptr_t error)
+{
+	vkaa_elog_s *restrict elog;
+	if ((elog = exec->elog))
+		vkaa_elog_print_exec(elog, pos, elog->error?vkaa_error_get_name(elog->error, error):NULL);
 }

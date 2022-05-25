@@ -756,7 +756,7 @@ refer_string_t vkaa_syntax_source_set_name(vkaa_syntax_source_s *restrict source
 	return rs;
 }
 
-uint32_t vkaa_syntax_source_linepos(vkaa_syntax_source_s *restrict source, uint32_t pos, uint32_t *restrict cpos)
+uint32_t vkaa_syntax_source_linepos(const vkaa_syntax_source_s *restrict source, uint32_t pos, uint32_t *restrict cpos)
 {
 	const uint32_t *restrict p;
 	uintptr_t i, t, n;
