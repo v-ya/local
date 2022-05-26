@@ -9,7 +9,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -ltparse -lmlog -soname ${TARGET-LIB}
 LDFLAGS-STD	= -shared -lm -lrefer -L. -lvkaa -soname ${TARGET-STD}
-LDFLAGS-BIN	= -lrefer -lfsys -L. -lvkaa -lvkaa-std
+LDFLAGS-BIN	= -lrefer -lmlog -lfsys -L. -lvkaa -lvkaa-std
 
 OBJECT-LIB	= $(patsubst %.c, %.o, $(wildcard vkaa.base/*.c))
 OBJECT-STD	= $(patsubst %.c, %.o, $(wildcard vkaa.std/*.c))

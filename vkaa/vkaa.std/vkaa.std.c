@@ -38,7 +38,7 @@ static void vkaa_std_context_free_func(vkaa_std_context_s *restrict r)
 	if (r->std) refer_free(r->std);
 }
 
-vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std)
+vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std, mlog_s *ctime, mlog_s *rtime)
 {
 	vkaa_std_context_s *restrict r;
 	if (std && (r = (vkaa_std_context_s *) refer_alloz(sizeof(vkaa_std_context_s))))
@@ -46,6 +46,7 @@ vkaa_std_context_s* vkaa_std_context_alloc(const vkaa_std_s *restrict std)
 		refer_set_free(r, (refer_free_f) vkaa_std_context_free_func);
 		r->std = (const vkaa_std_s *) refer_save(std);
 		if ((r->vclear = vkaa_vclear_alloc()) && (r->exec = vkaa_execute_alloc()) &&
+			((!ctime && !rtime) || vkaa_execute_elog_enable(r->exec, ctime, rtime, rtime?std->tpool->e:NULL)) &&
 			(r->var = vkaa_tpool_var_create_by_id(std->tpool, std->typeid->id_scope, NULL)) &&
 			(r->scope = (vkaa_scope_s *) refer_save(((vkaa_std_var_scope_s *) r->var)->scope)))
 		{

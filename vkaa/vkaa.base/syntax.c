@@ -769,8 +769,6 @@ uint32_t vkaa_syntax_source_linepos(const vkaa_syntax_source_s *restrict source,
 		t = n >> 1;
 		linepos = p[t];
 		if (linepos < pos)
-			n = t;
-		else if (linepos > pos)
 		{
 			if (t)
 			{
@@ -784,13 +782,15 @@ uint32_t vkaa_syntax_source_linepos(const vkaa_syntax_source_s *restrict source,
 				break;
 			}
 		}
+		else if (linepos > pos)
+			n = t;
 		else
 		{
-			i += t;
+			i += t + 1;
 			break;
 		}
 	}
-	if (cpos) *cpos = i?(pos - source->linepos_array[i - 1]):pos;
+	if (cpos) *cpos = (i?(pos - source->linepos_array[i - 1]):pos) + 1;
 	return (uint32_t) (i + 1);
 }
 

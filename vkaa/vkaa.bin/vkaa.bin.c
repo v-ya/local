@@ -81,6 +81,7 @@ refer_nstring_t load_file(const char *restrict path)
 
 int main(void)
 {
+	mlog_s *restrict mlog;
 	const vkaa_std_s *restrict std;
 	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
@@ -88,25 +89,30 @@ int main(void)
 	const char *restrict error_name;
 	const char *restrict source_name;
 	source_name = "test.vkaa";
-	if ((std = vkaa_std_alloc()))
+	if ((mlog = mlog_alloc(0)))
 	{
-		if ((c = vkaa_std_context_alloc(std)))
+		mlog_set_report(mlog, mlog_report_stdout_func, NULL);
+		if ((std = vkaa_std_alloc()))
 		{
-			if ((code = load_file(source_name)))
+			if ((c = vkaa_std_context_alloc(std, mlog, mlog)))
 			{
-				if (vkaa_std_context_append_source(c, code, source_name))
+				if ((code = load_file(source_name)))
 				{
-					printf("vkaa_std_context_append_syntax ... okay\n");
-					error_name = NULL;
-					error = vkaa_std_context_exec(c, NULL);
-					if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
-					printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
+					if (vkaa_std_context_append_source(c, code, source_name))
+					{
+						printf("vkaa_std_context_append_syntax ... okay\n");
+						error_name = NULL;
+						error = vkaa_std_context_exec(c, NULL);
+						if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
+						printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
+					}
+					refer_free(code);
 				}
-				refer_free(code);
+				refer_free(c);
 			}
-			refer_free(c);
+			refer_free(std);
 		}
-		refer_free(std);
+		refer_free(mlog);
 	}
 	return 0;
 }

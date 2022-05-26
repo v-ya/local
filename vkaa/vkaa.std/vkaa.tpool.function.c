@@ -278,6 +278,8 @@ static vkaa_std_var_function_stack_s* vkaa_std_var_function_stack_alloc(const vk
 		{
 			if (!(r->stack_inst[i] = inst = vkaa_std_var_function_inst_alloc(input, c.tpool, c.scope, id_scope)))
 				goto label_fail;
+			if (!vkaa_execute_elog_enable_by_exec(inst->exec, context->execute))
+				goto label_fail;
 			c.execute = inst->exec;
 			c.scope = inst->scope;
 			c.this = &inst->this->var;

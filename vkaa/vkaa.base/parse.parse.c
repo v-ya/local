@@ -1,6 +1,7 @@
 #include "../vkaa.parse.h"
 #include "../vkaa.syntax.h"
 #include "../vkaa.oplevel.h"
+#include "../vkaa.error.h"
 #include "../vkaa.tpool.h"
 #include "../vkaa.scope.h"
 #include "../vkaa.selector.h"
@@ -382,105 +383,160 @@ const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restric
 	vkaa_parse_syntax_t ppos;
 	vkaa_parse_result_t var;
 	uintptr_t layer_number;
+	const char *restrict ctime_message;
 	op = NULL;
+	ctime_message = NULL;
 	ppos.syntax = syntax;
 	ppos.number = number;
 	ppos.pos = 0;
 	vkaa_parse_result_initial(&var);
 	if (result) vkaa_parse_result_initial(result);
 	layer_number = tparse_tstack_layer_number(context->stack);
-	while (ppos.pos < number)
+	if (vkaa_execute_elog_push(context->execute, context->source, syntax, number))
 	{
-		s = syntax + ppos.pos++;
-		if (op)
+		while (ppos.pos < number)
 		{
-			if (op->optype == vkaa_parse_optype_binary_second_type2var)
+			s = syntax + ppos.pos++;
+			if (op)
 			{
+				if (op->optype == vkaa_parse_optype_binary_second_type2var)
+				{
+					op = NULL;
+					goto label_force_type2var;
+				}
 				op = NULL;
-				goto label_force_type2var;
 			}
-			op = NULL;
-		}
-		switch (s->type)
-		{
-			case vkaa_syntax_type_keyword:
-				if ((k = vkaa_parse_keyword_get(context->parse, s->data.keyword->string)))
-				{
-					if (k->keytype == vkaa_parse_keytype_complete)
+			switch (s->type)
+			{
+				case vkaa_syntax_type_keyword:
+					if ((k = vkaa_parse_keyword_get(context->parse, s->data.keyword->string)))
 					{
-						if (!vkaa_parse_parse_stack_maybe_empty(context, layer_number))
-							goto label_fail;
+						if (k->keytype == vkaa_parse_keytype_complete)
+						{
+							if (!vkaa_parse_parse_stack_maybe_empty(context, layer_number))
+								goto label_fail_keyword_curr_not_complete;
+						}
+						else if (k->keytype != vkaa_parse_keytype_inner)
+							goto label_fail_unknow;
+						if (!(k->parse(k, &var, context, &ppos)))
+							goto label_fail_keyword_parse;
+						if (k->keytype == vkaa_parse_keytype_inner)
+							goto label_keyword_push_var;
+						if (var.type == vkaa_parse_rtype_function)
+						{
+							if (!var.data.function)
+								goto label_fail_unknow;
+							if (!vkaa_execute_push(context->execute, var.data.function))
+								goto label_fail_maybe_memoryless;
+						}
+						if (!vkaa_execute_elog_fence(context->execute, context->source, syntax, number, ppos.pos))
+							goto label_fail_maybe_memoryless;
 					}
-					else if (k->keytype != vkaa_parse_keytype_inner)
-						goto label_fail;
-					if (!(k->parse(k, &var, context, &ppos)))
-						goto label_fail;
-					if (k->keytype == vkaa_parse_keytype_inner)
-						goto label_keyword_push_var;
-					if (var.type == vkaa_parse_rtype_function)
+					else if ((var.data.var = vkaa_scope_find(context->scope, s->data.keyword->string)))
 					{
-						if (!var.data.function)
-							goto label_fail;
-						if (!vkaa_execute_push(context->execute, var.data.function))
-							goto label_fail;
+						var.type = vkaa_parse_rtype_var;
+						refer_save(var.data.var);
+						label_keyword_push_var:
+						if (!vkaa_parse_parse_push_var(context, layer_number, &var, vkaa_parse_keytype_normal))
+							goto label_fail_push_var;
 					}
-				}
-				else if ((var.data.var = vkaa_scope_find(context->scope, s->data.keyword->string)))
-				{
-					var.type = vkaa_parse_rtype_var;
-					refer_save(var.data.var);
-					label_keyword_push_var:
-					if (!vkaa_parse_parse_push_var(context, layer_number, &var, vkaa_parse_keytype_normal))
-						goto label_fail;
-				}
-				else goto label_fail;
-				vkaa_parse_result_clear(&var);
-				break;
-			case vkaa_syntax_type_operator:
-				if (vkaa_parse_parse_stack_last_is_var(context, layer_number))
-					goto label_operator;
-				else if ((op = vkaa_parse_parse_get_op1unary(context, s)))
-					goto label_op1unary;
-				else goto label_fail;
-			case vkaa_syntax_type_comma:
-			case vkaa_syntax_type_semicolon:
-				if (!vkaa_parse_parse_pop_clear(context, layer_number, NULL))
-					goto label_fail;
-				break;
-			case vkaa_syntax_type_brackets:
-			case vkaa_syntax_type_square:
-				if (vkaa_parse_parse_stack_last_is_var(context, layer_number))
-				{
-					label_operator:
-					if (!(op = vkaa_parse_parse_get_operator(context, s)))
-						goto label_fail;
-					label_op1unary:
-					if (!vkaa_parse_parse_push_op(context, layer_number, op, s))
-						goto label_fail;
+					else goto label_fail_keyword_not_find;
+					vkaa_parse_result_clear(&var);
 					break;
-				}
-				// fall through
-			case vkaa_syntax_type_scope:
-			case vkaa_syntax_type_string:
-			case vkaa_syntax_type_multichar:
-			case vkaa_syntax_type_number:
-				label_force_type2var:
-				if (!(t2v = vkaa_parse_type2var_get(context->parse, s->type)))
-					goto label_fail;
-				if (!(t2v->parse(t2v, &var, context, s)))
-					goto label_fail;
-				if (!vkaa_parse_parse_push_var(context, layer_number, &var, t2v->type))
-					goto label_fail;
-				vkaa_parse_result_clear(&var);
-				break;
-			default: goto label_fail;
+				case vkaa_syntax_type_operator:
+					if (vkaa_parse_parse_stack_last_is_var(context, layer_number))
+						goto label_operator;
+					else if ((op = vkaa_parse_parse_get_op1unary(context, s)))
+						goto label_op1unary;
+					else goto label_fail_operator;
+				case vkaa_syntax_type_comma:
+				case vkaa_syntax_type_semicolon:
+					if (!vkaa_parse_parse_pop_clear(context, layer_number, NULL))
+						goto label_fail_pop_clear;
+					if (!vkaa_execute_elog_fence(context->execute, context->source, syntax, number, ppos.pos))
+						goto label_fail_maybe_memoryless;
+					break;
+				case vkaa_syntax_type_brackets:
+				case vkaa_syntax_type_square:
+					if (vkaa_parse_parse_stack_last_is_var(context, layer_number))
+					{
+						label_operator:
+						if (!(op = vkaa_parse_parse_get_operator(context, s)))
+							goto label_fail_operator;
+						label_op1unary:
+						if (!vkaa_parse_parse_push_op(context, layer_number, op, s))
+							goto label_fail_push_operator;
+						break;
+					}
+					// fall through
+				case vkaa_syntax_type_scope:
+				case vkaa_syntax_type_string:
+				case vkaa_syntax_type_multichar:
+				case vkaa_syntax_type_number:
+					label_force_type2var:
+					if (!(t2v = vkaa_parse_type2var_get(context->parse, s->type)))
+						goto label_fail_type2var;
+					if (!(t2v->parse(t2v, &var, context, s)))
+						goto label_fail_type2var_parse;
+					if (!vkaa_parse_parse_push_var(context, layer_number, &var, t2v->type))
+						goto label_fail_push_var;
+					vkaa_parse_result_clear(&var);
+					break;
+				default: goto label_fail_unknow;
+			}
 		}
-	}
-	if (vkaa_parse_parse_pop_clear(context, layer_number, result))
+		if (!vkaa_parse_parse_pop_clear(context, layer_number, result))
+			goto label_fail_pop_clear;
+		vkaa_execute_elog_pop(context->execute, syntax, number);
 		return context;
-	label_fail:
+		label_fail_do:
+		vkaa_execute_elog_pop(context->execute, syntax, number);
+	}
 	vkaa_parse_result_clear(&var);
 	while (tparse_tstack_layer_number(context->stack) > layer_number)
 		tparse_tstack_pop(context->stack);
 	return NULL;
+	label_fail_unknow:
+	label_fail:
+	if (number)
+	{
+		if (ppos.pos) ppos.pos -= 1;
+		if (ppos.pos < number)
+			s = &syntax[ppos.pos];
+		else s = &syntax[number - 1];
+		if (!ctime_message)
+			ctime_message = "c-error: unknow error";
+		vkaa_execute_elog_print_ctime(context->execute, context->source, s->pos, ctime_message);
+	}
+	goto label_fail_do;
+	label_fail_maybe_memoryless:
+	ctime_message = "c-error: maybe memory less";
+	goto label_fail;
+	label_fail_keyword_curr_not_complete:
+	ctime_message = "c-error: complete keyword maybe not at here";
+	goto label_fail;
+	label_fail_keyword_parse:
+	ctime_message = "c-error: keyword parse fail";
+	goto label_fail;
+	label_fail_keyword_not_find:
+	ctime_message = "c-error: keyword or var-name not find";
+	goto label_fail;
+	label_fail_operator:
+	ctime_message = "c-error: operator parse fail";
+	goto label_fail;
+	label_fail_type2var:
+	ctime_message = "c-error: type2var parse not find";
+	goto label_fail;
+	label_fail_type2var_parse:
+	ctime_message = "c-error: type2var parse fail";
+	goto label_fail;
+	label_fail_push_var:
+	ctime_message = "c-error: push var to parse stack fail";
+	goto label_fail;
+	label_fail_push_operator:
+	ctime_message = "c-error: push operator to parse stack fail";
+	goto label_fail;
+	label_fail_pop_clear:
+	ctime_message = "c-error: pop clear parse stack fail";
+	goto label_fail;
 }

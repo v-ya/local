@@ -1,6 +1,7 @@
 #include "../vkaa.execute.h"
-#include "../vkaa.function.h"
+#include "../vkaa.syntax.h"
 #include "../vkaa.error.h"
+#include "../vkaa.function.h"
 
 typedef struct vkaa_execute_label_s {
 	exbuffer_t jumper_last_func_pos;
@@ -322,6 +323,45 @@ vkaa_execute_s* vkaa_execute_elog_enable(vkaa_execute_s *restrict exec, mlog_s *
 		if ((exec->elog = vkaa_elog_alloc(ctime, rtime, error)))
 			return exec;
 	}
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_elog_enable_by_exec(vkaa_execute_s *restrict exec, const vkaa_execute_s *restrict src)
+{
+	vkaa_elog_s *restrict elog;
+	if (!exec->elog)
+	{
+		if (!(elog = src->elog))
+			goto label_okay;
+		else if (!elog->parse && !elog->exec)
+			goto label_okay;
+		else if ((exec->elog = vkaa_elog_alloc(elog->parse, elog->exec, elog->error)))
+		{
+			label_okay:
+			return exec;
+		}
+	}
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_elog_push(vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *source, const vkaa_syntax_t *restrict syntax, uintptr_t number)
+{
+	if (!exec->elog || !number || vkaa_elog_push(exec->elog, source, exec->execute_number, syntax[0].pos))
+		return exec;
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_elog_fence(vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *source, const vkaa_syntax_t *restrict syntax, uintptr_t number, uintptr_t pos)
+{
+	if (!exec->elog || pos >= number || vkaa_elog_fence(exec->elog, source, exec->execute_number, syntax[pos].pos))
+		return exec;
+	return NULL;
+}
+
+vkaa_execute_s* vkaa_execute_elog_pop(vkaa_execute_s *restrict exec, const vkaa_syntax_t *restrict syntax, uintptr_t number)
+{
+	if (!exec->elog || !number || vkaa_elog_pop(exec->elog, exec->execute_number, syntax[number - 1].pos))
+		return exec;
 	return NULL;
 }
 

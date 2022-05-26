@@ -55,6 +55,10 @@ uintptr_t vkaa_execute_do(const vkaa_execute_s *restrict exec, const volatile ui
 void vkaa_execute_clear(vkaa_execute_s *restrict exec);
 
 vkaa_execute_s* vkaa_execute_elog_enable(vkaa_execute_s *restrict exec, mlog_s *ctime, mlog_s *rtime, const vkaa_error_s *error);
+vkaa_execute_s* vkaa_execute_elog_enable_by_exec(vkaa_execute_s *restrict exec, const vkaa_execute_s *restrict src);
+vkaa_execute_s* vkaa_execute_elog_push(vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *source, const vkaa_syntax_t *restrict syntax, uintptr_t number);
+vkaa_execute_s* vkaa_execute_elog_fence(vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *source, const vkaa_syntax_t *restrict syntax, uintptr_t number, uintptr_t pos);
+vkaa_execute_s* vkaa_execute_elog_pop(vkaa_execute_s *restrict exec, const vkaa_syntax_t *restrict syntax, uintptr_t number);
 void vkaa_execute_elog_print_ctime(const vkaa_execute_s *restrict exec, const vkaa_syntax_source_s *restrict source, uint32_t syntax_pos, const char *restrict message);
 void vkaa_execute_elog_print_rtime(const vkaa_execute_s *restrict exec, uintptr_t pos, uintptr_t error);
 

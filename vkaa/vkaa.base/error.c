@@ -55,8 +55,10 @@ const char* vkaa_error_get_name(const vkaa_error_s *restrict error, uintptr_t id
 
 static void vkaa_elog_print(mlog_s *restrict mlog, const vkaa_syntax_source_s *restrict source, uint32_t syntax_pos_start, uint32_t syntax_pos_stop, uintptr_t exec_pos, const char *restrict message)
 {
+	const char *restrict name;
+	name = (source && source->name)?source->name:"";
 	if (message)
-		mlog_printf(mlog, "[%zu] %s\n", exec_pos, message);
+		mlog_printf(mlog, "[%s:%zu] %s\n", name, exec_pos, message);
 	if (source)
 	{
 		uintptr_t i, n;
@@ -136,6 +138,7 @@ static uintptr_t vkaa_elog_get_empty(vkaa_elog_s *restrict elog, const vkaa_synt
 	i = elog->exec_number;
 	if ((p = (vkaa_elog_exec_t *) exbuffer_need(&elog->exec_buffer, sizeof(vkaa_elog_exec_t) * (i + 1))))
 	{
+		elog->exec_array = p;
 		p += i;
 		p->index_skip = 0;
 		p->index_parent = ~(uintptr_t) 0;
@@ -152,12 +155,10 @@ static uintptr_t vkaa_elog_get_empty(vkaa_elog_s *restrict elog, const vkaa_synt
 
 vkaa_elog_s* vkaa_elog_push(vkaa_elog_s *restrict elog, const vkaa_syntax_source_s *source, uintptr_t exec_pos_start, uint32_t syntax_pos_start)
 {
-	vkaa_elog_exec_t *restrict p;
 	uintptr_t index_new;
-	p = elog->exec_array;
 	if (~(index_new = vkaa_elog_get_empty(elog, source, exec_pos_start, syntax_pos_start)))
 	{
-		p[index_new].index_parent = elog->exec_curr;
+		elog->exec_array[index_new].index_parent = elog->exec_curr;
 		elog->exec_curr = index_new;
 		return elog;
 	}
@@ -176,6 +177,7 @@ vkaa_elog_s* vkaa_elog_fence(vkaa_elog_s *restrict elog, const vkaa_syntax_sourc
 		p[index_curr].syntax_pos_stop = syntax_pos;
 		if (~(index_new = vkaa_elog_get_empty(elog, source, exec_pos, syntax_pos)))
 		{
+			p = elog->exec_array;
 			p[index_new].index_parent = p[index_curr].index_parent;
 			elog->exec_curr = index_new;
 			return elog;
@@ -188,9 +190,9 @@ vkaa_elog_s* vkaa_elog_pop(vkaa_elog_s *restrict elog, uintptr_t exec_pos_stop, 
 {
 	vkaa_elog_exec_t *restrict p;
 	uintptr_t index_curr;
-	p = elog->exec_array;
 	if (~(index_curr = elog->exec_curr))
 	{
+		p = elog->exec_array;
 		p[index_curr].index_skip = elog->exec_number - index_curr;
 		p[index_curr].exec_pos_stop = exec_pos_stop;
 		p[index_curr].syntax_pos_stop = syntax_pos_stop;
@@ -213,7 +215,7 @@ const vkaa_elog_exec_t* vkaa_elog_find(const vkaa_elog_s *restrict elog, uintptr
 		if (exec_pos >= p[i].exec_pos_start && exec_pos < p[i].exec_pos_stop)
 		{
 			hit = (p += i);
-			n = p[i].index_skip;
+			n = p[0].index_skip;
 			i = 1;
 		}
 		else i += p[i].index_skip;
