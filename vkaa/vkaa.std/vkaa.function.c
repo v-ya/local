@@ -466,6 +466,12 @@ vkaa_std_function_define(null, op_mov)
 {vkaa_std_verbose_weak
 	return 0;
 }
+vkaa_std_function_define(refer, op_mov)
+{vkaa_std_verbose_weak
+	if (vkaa_std_var_refer_mov(vkaa_std_var(refer, r->input_list[0]), vkaa_std_var(refer, r->input_list[1])))
+		return 0;
+	return vkaa_std_error(refer_type);
+}
 vkaa_std_function_define(string, op_mov)
 {vkaa_std_verbose_weak
 	vkaa_std_var_string_mov(vkaa_std_var(string, r->input_list[0]), vkaa_std_var(string, r->input_list[1]));
@@ -608,6 +614,38 @@ vkaa_std_function_define(function, do_call)
 	return vkaa_std_error(function_empty);
 }
 
+// refer
+vkaa_std_function_define(refer, op_store)
+{vkaa_std_verbose_weak
+	vkaa_function_s *restrict mov;
+	vkaa_var_s *target;
+	mov = (vkaa_function_s *) r->pri_data;
+	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
+	{
+		if ((mov->output == target || vkaa_function_set_output(mov, target)) &&
+			(!mov->input_number || mov->input_list[0] == target || vkaa_function_set_input(mov, 0, target)))
+			return mov->function(mov, control);
+		return vkaa_std_error(refer_type);
+	}
+	return vkaa_std_error(refer_empty);
+}
+vkaa_std_function_define(refer, op_load)
+{vkaa_std_verbose_weak
+	vkaa_function_s *restrict mov;
+	vkaa_var_s *target, *output;
+	mov = (vkaa_function_s *) r->pri_data;
+	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
+	{
+		output = r->output;
+		if ((mov->output == output || vkaa_function_set_output(mov, output)) &&
+			(mov->input_list[0] == output || vkaa_function_set_input(mov, 0, output)) &&
+			(mov->input_list[1] == target || vkaa_function_set_input(mov, 1, target)))
+			return mov->function(mov, control);
+		return vkaa_std_error(refer_type);
+	}
+	return vkaa_std_error(refer_empty);
+}
+
 // control
 vkaa_std_function_define(void, cj_goto)
 {vkaa_std_verbose_weak
@@ -658,7 +696,19 @@ static const char* vkaa_std_function_verbose_var(char *restrict buffer, uintptr_
 	pos += snprintf(buffer + pos, buffer_size - pos, "%8s[%2zu]@%p", name?name:"", type->id, var);
 	if (name)
 	{
-		if (!strcmp(name, "string"))
+		if (!strcmp(name, "refer"))
+		{
+			if (vkaa_std_var(refer, var)->refer_type)
+			{
+				const char *restrict refer_type_name;
+				uintptr_t refer_type_id;
+				refer_type_id = vkaa_std_var(refer, var)->refer_type->id;
+				if (!(refer_type_name = vkaa_std_var(refer, var)->refer_type->name))
+					refer_type_name = "";
+				pos += snprintf(buffer + pos, buffer_size - pos, " %s[%2zu]", refer_type_name, refer_type_id);
+			}
+		}
+		else if (!strcmp(name, "string"))
 		{
 			refer_nstring_t v;
 			if ((v = vkaa_std_value(string, var)))

@@ -378,20 +378,20 @@ static vkaa_std_type_clear_define(function)
 	}
 }
 
-static vkaa_function_s* vkaa_std_type_function_selector_call(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param)
+static vkaa_std_selector_define(function, do_call)
 {
 	vkaa_std_var_function_s *restrict this;
 	if ((this = (vkaa_std_var_function_s *) param->this) && this->desc)
 	{
 		if (vkaa_std_selector_test(this->desc, param, NULL))
-			return vkaa_std_selector_create(selector, param, this->desc);
+			return vkaa_std_selector_create(param, this->desc, NULL);
 	}
 	return NULL;
 }
 
 static vkaa_std_type_init_define(function)
 {
-	if (vkaa_std_type_set_selector(type, "()", vkaa_std_type_function_selector_call))
+	if (vkaa_std_type_set_selector(type, "()", vkaa_std_selector_label(function, do_call)))
 		return type;
 	return NULL;
 }

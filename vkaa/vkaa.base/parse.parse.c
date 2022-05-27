@@ -411,6 +411,7 @@ const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restric
 				case vkaa_syntax_type_keyword:
 					if ((k = vkaa_parse_keyword_get(context->parse, s->data.keyword->string)))
 					{
+						label_parse_keyword:
 						if (k->keytype == vkaa_parse_keytype_complete)
 						{
 							if (!vkaa_parse_parse_stack_maybe_empty(context, layer_number))
@@ -448,7 +449,13 @@ const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restric
 						goto label_operator;
 					else if ((op = vkaa_parse_parse_get_op1unary(context, s)))
 						goto label_op1unary;
-					else goto label_fail_operator;
+					else
+					{
+						label_try_operator_as_keyword:
+						if ((k = vkaa_parse_keyword_get(context->parse, s->data.operator->string)))
+							goto label_parse_keyword;
+						goto label_fail_operator;
+					}
 				case vkaa_syntax_type_comma:
 				case vkaa_syntax_type_semicolon:
 					if (!vkaa_parse_parse_pop_clear(context, layer_number, NULL))
@@ -462,7 +469,7 @@ const vkaa_parse_context_t* vkaa_parse_parse(const vkaa_parse_context_t *restric
 					{
 						label_operator:
 						if (!(op = vkaa_parse_parse_get_operator(context, s)))
-							goto label_fail_operator;
+							goto label_try_operator_as_keyword;
 						label_op1unary:
 						if (!vkaa_parse_parse_push_op(context, layer_number, op, s))
 							goto label_fail_push_operator;

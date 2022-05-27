@@ -16,7 +16,7 @@
 #define vkaa_std_jump()     (control->next_pos = control->array[control->next_pos - 1].jump)
 #define vkaa_std_njump()    (control->next_pos = control->array[control->next_pos].jump)
 
-#define vkaa_std_verbose 1
+#define vkaa_std_verbose 0
 
 #if vkaa_std_verbose
 #define vkaa_std_verbose_weak vkaa_std_function_verbose(r, control, __func__);
@@ -115,6 +115,7 @@ vkaa_std_function_define(float, op_rela_lte);
 // =
 vkaa_std_function_define(void, op_mov);
 vkaa_std_function_define(null, op_mov);
+vkaa_std_function_define(refer, op_mov);
 vkaa_std_function_define(string, op_mov);
 vkaa_std_function_define(bool, op_mov);
 vkaa_std_function_define(uint, op_mov);
@@ -144,6 +145,10 @@ vkaa_std_function_define(float, cv_float);
 
 // ()
 vkaa_std_function_define(function, do_call);
+
+// refer
+vkaa_std_function_define(refer, op_store);
+vkaa_std_function_define(refer, op_load);
 
 // control
 vkaa_std_function_define(void, cj_goto);

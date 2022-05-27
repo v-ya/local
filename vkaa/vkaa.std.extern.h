@@ -48,6 +48,8 @@
 #define vkaa_std_error_function_empty   "vkaa.std.function_empty"
 #define vkaa_std_error_function_stack   "vkaa.std.function_stack"
 #define vkaa_std_error_function_initial "vkaa.std.function_initial"
+#define vkaa_std_error_refer_type       "vkaa.std.refer_type"
+#define vkaa_std_error_refer_empty      "vkaa.std.refer_empty"
 
 // var<void>
 
@@ -135,6 +137,11 @@ typedef struct vkaa_std_var_refer_s {
 
 vkaa_std_var_refer_s* vkaa_std_type_refer_create_by_type(const vkaa_type_s *restrict type, const vkaa_type_s *restrict refer_type);
 
+vkaa_std_var_refer_s* vkaa_std_var_refer_must_type(vkaa_std_var_refer_s *restrict var, const vkaa_type_s *restrict refer_type);
+vkaa_var_s* vkaa_std_var_refer_must_value(vkaa_std_var_refer_s *restrict var);
+vkaa_std_var_refer_s* vkaa_std_var_refer_link(vkaa_std_var_refer_s *restrict var, vkaa_var_s *restrict refer_var);
+vkaa_std_var_refer_s* vkaa_std_var_refer_mov(vkaa_std_var_refer_s *restrict dst, const vkaa_std_var_refer_s *restrict src);
+
 // var<string>
 
 typedef struct vkaa_std_var_string_s {
@@ -219,10 +226,16 @@ vkaa_type_s* vkaa_std_tpool_set(vkaa_tpool_s *restrict tpool, const char *restri
 const vkaa_selector_s* vkaa_std_convert_test_by_type(const vkaa_type_s *restrict src, const vkaa_type_s *restrict dst);
 const vkaa_selector_s* vkaa_std_convert_test_by_name(const vkaa_type_s *restrict src, const char *restrict dst);
 const vkaa_selector_s* vkaa_std_convert_test_by_typeid(const vkaa_type_s *restrict src, uintptr_t dst, const vkaa_tpool_s *restrict tpool);
+
+vkaa_function_s* vkaa_std_convert_create_function_by_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
 vkaa_function_s* vkaa_std_convert_by_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
+vkaa_function_s* vkaa_std_convert_create_function_by_typeid(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, uintptr_t dst);
 vkaa_function_s* vkaa_std_convert_by_typeid(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *restrict src, uintptr_t dst);
+vkaa_function_s* vkaa_std_convert_create_function_mov_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
 vkaa_function_s* vkaa_std_convert_mov_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
+vkaa_function_s* vkaa_std_convert_create_function_set_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
 vkaa_function_s* vkaa_std_convert_set_var(vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, vkaa_var_s *src, vkaa_var_s *dst);
+
 vkaa_var_s* vkaa_std_convert_result_get_var(const vkaa_parse_result_t *restrict result, vkaa_execute_s *restrict exec, const vkaa_tpool_s *restrict tpool, uintptr_t type_id);
 
 // selector
@@ -263,7 +276,7 @@ vkaa_std_selector_s* vkaa_std_selector_append(vkaa_std_selector_s *restrict sele
 vkaa_std_selector_s* vkaa_std_selector_append_si(vkaa_std_selector_s *restrict selector, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid);
 
 const vkaa_std_selector_desc_t* vkaa_std_selector_test(const vkaa_std_selector_desc_t *restrict desc, const vkaa_selector_param_t *restrict param, uintptr_t *restrict score);
-vkaa_function_s* vkaa_std_selector_create(const vkaa_selector_s *restrict selector, const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc);
+vkaa_function_s* vkaa_std_selector_create(const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_t *restrict desc, refer_t pri_data);
 vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param);
 
 // parse
@@ -304,6 +317,8 @@ vkaa_parse_operator_s* vkaa_std_parse_set_operator_binary_testeval(vkaa_parse_s 
 vkaa_parse_s* vkaa_std_parse_set_operator_ternary(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_s* vkaa_std_parse_set_operator_ternary_testeval(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, const vkaa_oplevel_s *restrict opl, const char *restrict operator_first, const char *restrict operator_second, const char *restrict oplevel, vkaa_parse_optowards_t towards);
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, vkaa_syntax_type_t type, vkaa_std_type2var_f parse, vkaa_parse_type2var_type_t type2var_type);
+
+const vkaa_type_s* vkaa_std_keyword_parse_get_type(const vkaa_tpool_s *restrict tpool, const vkaa_scope_s *restrict scope, vkaa_parse_syntax_t *restrict syntax);
 
 // other
 

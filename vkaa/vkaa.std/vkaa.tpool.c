@@ -23,7 +23,8 @@ static vkaa_error_s* vkaa_std_create_tpool_initial_error(vkaa_error_s *restrict 
 		vkaa_error_add_error(error, vkaa_std_error_div_zero) &&
 		vkaa_error_add_error(error, vkaa_std_error_function_empty) &&
 		vkaa_error_add_error(error, vkaa_std_error_function_stack) &&
-		vkaa_error_add_error(error, vkaa_std_error_function_initial)
+		vkaa_error_add_error(error, vkaa_std_error_function_initial) &&
+		vkaa_error_add_error(error, vkaa_std_error_refer_type)
 	) return error;
 	return NULL;
 }

@@ -163,13 +163,16 @@
 	syntax
 	marco
 	function
-		()
+		(*) => * : any
+	refer
+		= (refer, refer) => refer : must_first
+	string
+		= (string, string) => string : must_first
 	bool
 		bool  () => bool  : any
 		uint  () => uint  : any
 		int   () => int   : any
 		float () => float : any
-	string
 	uint
 		bool  () => bool  : any
 		uint  () => uint  : any
@@ -185,3 +188,4 @@
 		uint  () => uint  : any
 		int   () => int   : any
 		float () => float : any
+	bytes

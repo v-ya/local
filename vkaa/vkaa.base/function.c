@@ -5,7 +5,7 @@
 static void vkaa_function_free_func(vkaa_function_s *restrict r)
 {
 	uintptr_t i;
-	if (r->selector) refer_free(r->selector);
+	if (r->pri_data) refer_free(r->pri_data);
 	if (r->this) refer_free(r->this);
 	if (r->output_type) refer_free(r->output_type);
 	if (r->output) refer_free(r->output);
@@ -16,7 +16,7 @@ static void vkaa_function_free_func(vkaa_function_s *restrict r)
 	}
 }
 
-vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, vkaa_function_f function, const vkaa_type_s *restrict output_type, uintptr_t input_number, vkaa_var_s *const *restrict input_list)
+vkaa_function_s* vkaa_function_alloc(refer_t pri_data, vkaa_function_f function, const vkaa_type_s *restrict output_type, uintptr_t input_number, vkaa_var_s *const *restrict input_list)
 {
 	vkaa_function_s *restrict r;
 	uintptr_t i;
@@ -25,7 +25,7 @@ vkaa_function_s* vkaa_function_alloc(const vkaa_selector_s *restrict selector, v
 		refer_set_free(r, (refer_free_f) vkaa_function_free_func);
 		if (!(r->function = function))
 			goto label_fail;
-		r->selector = (const vkaa_selector_s *) refer_save(selector);
+		r->pri_data = refer_save(pri_data);
 		if (!(r->output_type = (const vkaa_type_s *) refer_save(output_type)))
 			goto label_fail;
 		r->input_number = input_number;

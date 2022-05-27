@@ -33,13 +33,7 @@ static vkaa_std_keyword_define(func)
 	uintptr_t stack_size;
 	func = NULL;
 	stack_size = 1;
-	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, "<"))
-		goto label_fail;
-	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_keyword)
-		goto label_fail;
-	if (!(type = vkaa_tpool_find_name(context->tpool, s->data.keyword->string)))
-		goto label_fail;
-	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_operator, ">"))
+	if (!(type = vkaa_std_keyword_parse_get_type(context->tpool, context->scope, syntax)))
 		goto label_fail;
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || s->type != vkaa_syntax_type_keyword)
 		goto label_fail;
