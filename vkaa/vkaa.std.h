@@ -12,11 +12,13 @@ typedef const struct vkaa_std_typeid_s {
 	uintptr_t id_syntax;
 	uintptr_t id_marco;
 	uintptr_t id_function;
+	uintptr_t id_refer;
 	uintptr_t id_string;
 	uintptr_t id_bool;
 	uintptr_t id_uint;
 	uintptr_t id_int;
 	uintptr_t id_float;
+	uintptr_t id_bytes;
 } vkaa_std_typeid_s;
 
 typedef struct vkaa_std_s {

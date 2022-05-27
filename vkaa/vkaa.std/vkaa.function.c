@@ -466,6 +466,11 @@ vkaa_std_function_define(null, op_mov)
 {vkaa_std_verbose_weak
 	return 0;
 }
+vkaa_std_function_define(string, op_mov)
+{vkaa_std_verbose_weak
+	vkaa_std_var_string_mov(vkaa_std_var(string, r->input_list[0]), vkaa_std_var(string, r->input_list[1]));
+	return 0;
+}
 vkaa_std_function_define(bool, op_mov)
 {vkaa_std_verbose_weak
 	vkaa_std_vp(bool, 0) = vkaa_std_vp(bool, 1);
@@ -642,31 +647,31 @@ vkaa_std_function_define(void, cj_do_while)
 #include <stdio.h>
 #include <string.h>
 
-static const char* vkaa_std_function_verbose_var(char *restrict buffer, const vkaa_var_s *restrict var)
+static const char* vkaa_std_function_verbose_var(char *restrict buffer, uintptr_t buffer_size, const vkaa_var_s *restrict var)
 {
 	const vkaa_type_s *restrict type;
 	const char *restrict name;
-	char *restrict p;
+	uintptr_t pos;
 	type = var->type;
 	name = type->name;
-	p = buffer;
-	p += sprintf(p, "%8s[%2zu]@%p", name?name:"", type->id, var);
+	pos = 0;
+	pos += snprintf(buffer + pos, buffer_size - pos, "%8s[%2zu]@%p", name?name:"", type->id, var);
 	if (name)
 	{
 		if (!strcmp(name, "string"))
 		{
 			refer_nstring_t v;
 			if ((v = vkaa_std_value(string, var)))
-				p += sprintf(" %s", v->string);
+				pos += snprintf(buffer + pos, buffer_size - pos, " %s", v->string);
 		}
 		else if (!strcmp(name, "bool"))
-			p += sprintf(p, " %s", vkaa_std_value(bool, var)?"true":"false");
+			pos += snprintf(buffer + pos, buffer_size - pos, " %s", vkaa_std_value(bool, var)?"true":"false");
 		else if (!strcmp(name, "uint"))
-			p += sprintf(p, " %zu", vkaa_std_value(uint, var));
+			pos += snprintf(buffer + pos, buffer_size - pos, " %zu", vkaa_std_value(uint, var));
 		else if (!strcmp(name, "int"))
-			p += sprintf(p, " %zd", vkaa_std_value(int, var));
+			pos += snprintf(buffer + pos, buffer_size - pos, " %zd", vkaa_std_value(int, var));
 		else if (!strcmp(name, "float"))
-			p += sprintf(p, " %g", vkaa_std_value(float, var));
+			pos += snprintf(buffer + pos, buffer_size - pos, " %g", vkaa_std_value(float, var));
 	}
 	return buffer;
 }
@@ -675,18 +680,18 @@ static void vkaa_std_function_verbose(const vkaa_function_s *restrict function, 
 {
 	uintptr_t cpos, i;
 	intptr_t jpos, njpos;
-	char buffer[256];
+	char buffer[128];
 	cpos = control->next_pos - 1;
 	jpos = (intptr_t) control->array[cpos].jump;
 	njpos = -1;
 	if (control->next_pos < control->number)
 		njpos = (intptr_t) control->array[control->next_pos].jump;
 	printf("%p[%zu] %s: jump[%zd], next_jump[%zd]\n", control->array, cpos, name, jpos, njpos);
-	printf("\toutput: %s\n", vkaa_std_function_verbose_var(buffer, function->output));
+	printf("\toutput: %s\n", vkaa_std_function_verbose_var(buffer, sizeof(buffer), function->output));
 	if (function->this)
-		printf("\t  this: %s\n", vkaa_std_function_verbose_var(buffer, function->this));
+		printf("\t  this: %s\n", vkaa_std_function_verbose_var(buffer, sizeof(buffer), function->this));
 	for (i = 0; i < function->input_number; ++i)
-		printf("\t[%4zu]: %s\n", i, vkaa_std_function_verbose_var(buffer, function->input_list[i]));
+		printf("\t[%4zu]: %s\n", i, vkaa_std_function_verbose_var(buffer, sizeof(buffer), function->input_list[i]));
 }
 
 #endif

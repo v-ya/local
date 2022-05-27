@@ -9,11 +9,13 @@ vkaa_type_s* vkaa_std_tpool_set_scope(vkaa_tpool_s *restrict tpool, vkaa_std_typ
 vkaa_type_s* vkaa_std_tpool_set_syntax(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_marco(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_function(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
-vkaa_type_s* vkaa_std_tpool_set_bool(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
+vkaa_type_s* vkaa_std_tpool_set_refer(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_string(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
+vkaa_type_s* vkaa_std_tpool_set_bool(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_uint(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_int(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 vkaa_type_s* vkaa_std_tpool_set_float(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
+vkaa_type_s* vkaa_std_tpool_set_bytes(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid);
 
 #define vkaa_std_type_init_label(_name)     vkaa_std_type__##_name##_init
 #define vkaa_std_type_create_label(_name)   vkaa_std_type__##_name##_create

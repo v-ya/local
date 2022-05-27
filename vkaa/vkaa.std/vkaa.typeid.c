@@ -11,11 +11,13 @@ vkaa_std_typeid_s* vkaa_std_typeid_alloc(vkaa_tpool_s *restrict tpool)
 		r->id_syntax = vkaa_tpool_genid(tpool);
 		r->id_marco = vkaa_tpool_genid(tpool);
 		r->id_function = vkaa_tpool_genid(tpool);
+		r->id_refer = vkaa_tpool_genid(tpool);
 		r->id_string = vkaa_tpool_genid(tpool);
 		r->id_bool = vkaa_tpool_genid(tpool);
 		r->id_uint = vkaa_tpool_genid(tpool);
 		r->id_int = vkaa_tpool_genid(tpool);
 		r->id_float = vkaa_tpool_genid(tpool);
+		r->id_bytes = vkaa_tpool_genid(tpool);
 	}
 	return r;
 }

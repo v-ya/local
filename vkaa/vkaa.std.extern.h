@@ -125,6 +125,27 @@ vkaa_std_var_function_s* vkaa_std_var_function_same_input(vkaa_std_var_function_
 vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_tpool_s *restrict tpool, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid);
 vkaa_std_var_function_s* vkaa_std_var_function_set_scope(vkaa_std_var_function_s *restrict var, const vkaa_parse_context_t *restrict context, const vkaa_syntax_s *restrict syntax_scope, uintptr_t id_scope, uintptr_t stack_size);
 
+// var<refer>
+
+typedef struct vkaa_std_var_refer_s {
+	vkaa_var_s var;
+	const vkaa_type_s *refer_type;
+	vkaa_var_s *refer_var;
+} vkaa_std_var_refer_s;
+
+vkaa_std_var_refer_s* vkaa_std_type_refer_create_by_type(const vkaa_type_s *restrict type, const vkaa_type_s *restrict refer_type);
+
+// var<string>
+
+typedef struct vkaa_std_var_string_s {
+	vkaa_var_s var;
+	refer_nstring_t value;
+} vkaa_std_var_string_s;
+
+vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *restrict type, refer_nstring_t value);
+
+void vkaa_std_var_string_mov(vkaa_std_var_string_s *restrict dst, const vkaa_std_var_string_s *restrict src);
+
 // var<bool>
 
 typedef uintptr_t vkaa_std_bool_t;
@@ -137,15 +158,6 @@ typedef struct vkaa_std_var_bool_s {
 vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_value(const vkaa_type_s *restrict type, vkaa_std_bool_t boolean);
 vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_true(const vkaa_type_s *restrict type);
 vkaa_std_var_bool_s* vkaa_std_type_bool_create_by_false(const vkaa_type_s *restrict type);
-
-// var<string>
-
-typedef struct vkaa_std_var_string_s {
-	vkaa_var_s var;
-	refer_nstring_t value;
-} vkaa_std_var_string_s;
-
-vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *restrict type, refer_nstring_t value);
 
 // var<uint>
 
@@ -179,6 +191,22 @@ typedef struct vkaa_std_var_float_s {
 } vkaa_std_var_float_s;
 
 vkaa_std_var_float_s* vkaa_std_type_float_create_by_value(const vkaa_type_s *restrict type, vkaa_std_float_t value);
+
+// var<bytes>
+
+typedef struct vkaa_std_var_bytes_value_s {
+	exbuffer_t bytes;
+} vkaa_std_var_bytes_value_s;
+
+typedef struct vkaa_std_var_bytes_s {
+	vkaa_var_s var;
+	vkaa_std_var_bytes_value_s *value;
+} vkaa_std_var_bytes_s;
+
+vkaa_std_var_bytes_s* vkaa_std_type_bytes_create_by_value(const vkaa_type_s *restrict type, vkaa_std_var_bytes_value_s *restrict value);
+
+void vkaa_std_var_bytes_mov(vkaa_std_var_bytes_s *restrict dst, const vkaa_std_var_bytes_s *restrict src);
+vkaa_std_var_bytes_value_s* vkaa_std_var_bytes_value(vkaa_std_var_bytes_s *restrict var, uintptr_t need_size);
 
 // tpool
 

@@ -63,7 +63,7 @@ static void vkaa_elog_print(mlog_s *restrict mlog, const vkaa_syntax_source_s *r
 	{
 		uintptr_t i, n;
 		uint32_t r1, r2, c1, c2;
-		char hint[256];
+		char hint[128];
 		n = source->source->length;
 		if (n > syntax_pos_stop)
 			n = syntax_pos_stop;

@@ -22,6 +22,14 @@ vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *r
 	return NULL;
 }
 
+void vkaa_std_var_string_mov(vkaa_std_var_string_s *restrict dst, const vkaa_std_var_string_s *restrict src)
+{
+	refer_nstring_t value;
+	refer_save(value = src->value);
+	if (dst->value) refer_free(dst->value);
+	dst->value = value;
+}
+
 static vkaa_std_type_create_define(string)
 {
 	if (!syntax)
@@ -36,8 +44,16 @@ static vkaa_std_type_create_define(string)
 	return NULL;
 }
 
+static vkaa_std_type_init_define(string)
+{
+	if (
+		vkaa_std_type_set_function_si(type, "=", sfsi_need2m(string, op_mov)) &&
+	1) return type;
+	return NULL;
+}
+
 vkaa_type_s* vkaa_std_tpool_set_string(vkaa_tpool_s *restrict tpool, vkaa_std_typeid_s *restrict typeid)
 {
 	return vkaa_std_tpool_set(tpool, "string", typeid->id_string, typeid,
-		vkaa_std_type_create_label(string), NULL);
+		vkaa_std_type_create_label(string), vkaa_std_type_init_label(string));
 }
