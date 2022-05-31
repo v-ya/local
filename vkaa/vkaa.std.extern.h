@@ -292,6 +292,11 @@ const vkaa_std_selector_desc_s* vkaa_std_selector_test(const vkaa_std_selector_d
 vkaa_function_s* vkaa_std_selector_create(const vkaa_selector_param_t *restrict param, const vkaa_std_selector_desc_s *restrict desc);
 vkaa_function_s* vkaa_std_selector_selector(const vkaa_std_selector_s *restrict selector, const vkaa_selector_param_t *restrict param);
 
+vkaa_selector_s* vkaa_std_type_set_selector(vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_f selector);
+vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
+vkaa_std_selector_s* vkaa_std_type_set_function_si(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid);
+vkaa_std_selector_s* vkaa_std_type_set_function_any(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, const vkaa_std_selector_desc_input_t *restrict must, const vkaa_std_selector_desc_input_t *restrict maybe);
+
 // parse
 
 typedef struct vkaa_std_op_name_t {
@@ -332,6 +337,8 @@ vkaa_parse_s* vkaa_std_parse_set_operator_ternary_testeval(vkaa_parse_s *restric
 vkaa_parse_type2var_s* vkaa_std_parse_set_type2var(vkaa_parse_s *restrict p, vkaa_std_typeid_s *restrict typeid, vkaa_syntax_type_t type, vkaa_std_type2var_f parse, vkaa_parse_type2var_type_t type2var_type);
 
 const vkaa_type_s* vkaa_std_keyword_parse_get_type(const vkaa_tpool_s *restrict tpool, const vkaa_scope_s *restrict scope, vkaa_parse_syntax_t *restrict syntax);
+vkaa_function_s* vkaa_std_keyword_function_pushed(vkaa_execute_s *restrict exec, vkaa_function_f function, const vkaa_type_s *restrict output_type, vkaa_var_s *restrict this, vkaa_var_s *restrict output);
+const vkaa_parse_context_t* vkaa_std_keyword_function_pushed_block(const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax);
 
 // other
 

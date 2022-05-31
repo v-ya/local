@@ -24,13 +24,6 @@
 #define vkaa_std_verbose_weak
 #endif
 
-vkaa_selector_s* vkaa_std_type_set_selector(vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_f selector);
-vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid);
-vkaa_std_selector_s* vkaa_std_type_set_function_si(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid);
-vkaa_std_selector_s* vkaa_std_type_set_function_any(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, const vkaa_std_selector_desc_input_t *restrict must, const vkaa_std_selector_desc_input_t *restrict maybe);
-vkaa_function_s* vkaa_std_function_pushed(vkaa_execute_s *restrict exec, vkaa_function_f function, const vkaa_type_s *restrict output_type, vkaa_var_s *restrict this, vkaa_var_s *restrict output);
-const vkaa_parse_context_t* vkaa_std_function_pushed_block(const vkaa_parse_context_t *restrict context, vkaa_parse_syntax_t *restrict syntax);
-
 // !
 vkaa_std_function_define(bool, op_not_logic);
 // ~

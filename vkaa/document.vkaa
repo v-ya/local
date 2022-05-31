@@ -1,6 +1,6 @@
 # keyword complete
-	var `type` `list`;
-		`type`:
+	var `type_parse` `list`;
+		`type_parse`:
 			< `type_name` >
 			<? `var_name` >
 		`list`:
@@ -15,9 +15,7 @@
 		`marco_code`:
 			{ `code` }
 
-	func `type` `func_name` `func_param` `func_define`
-		`type`:
-			< `type_name` >
+	func `type_parse` `func_name` `func_param` `func_define`
 		`func_param`:
 			( `type_name` `var_name` , `type_name` `var_name` ... )
 		`func_define`:
@@ -60,6 +58,8 @@
 		=> type(bool)
 	false
 		=> type(bool)
+	refer_type `type_parse` ( `exec` )
+		=> type(refer)
 	& `exec_syntax_once`
 		=> type(refer)
 

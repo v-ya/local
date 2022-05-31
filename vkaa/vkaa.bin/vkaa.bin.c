@@ -1,7 +1,6 @@
+#include "../vkaa.h"
 #include "../vkaa.std.h"
-#include "../vkaa.syntax.h"
-#include "../vkaa.error.h"
-#include "../vkaa.tpool.h"
+#include "../vkaa.std.extern.h"
 #include <fsys.h>
 #include <stdio.h>
 
@@ -65,19 +64,48 @@ refer_nstring_t load_file(const char *restrict path)
 	return r;
 }
 
-/*
-	(vkaa_selector_f) maybe `type_cast` to (vkaa_selector_param_t).exec;
-	complate keyword:
-		var<type> name1, ...;
-		marco name(name, name, ...) {}
-		func<type> name(type name, type name, ...);
-		func<type> name(type name, type name, ...) {}
-		func<type> name(type name, type name, ...) [1] {}
-	inner keyword:
-		(syntax ()) (syntax []) (syntax {})  // return var<syntax>
-		(type_cast<type> (var))              // call '=' function to temp var;
-		(type_check<type> (var))             // force check var's type, maybe used by return var's typeid is 0;
-*/
+static vkaa_var_s* vkaa_type_stdout_create(const vkaa_type_s *restrict type, const vkaa_syntax_s *restrict syntax)
+{
+	vkaa_var_s *restrict r;
+	if (!syntax && (r = (vkaa_var_s *) refer_alloz(sizeof(vkaa_var_s))))
+	{
+		refer_set_free(r, (refer_free_f) vkaa_var_finally);
+		if (vkaa_var_initial(r, type))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+static uintptr_t vkaa_var_stdout_print(const vkaa_function_s *restrict r, vkaa_execute_control_t *restrict control)
+{
+	refer_nstring_t msg;
+	if ((msg = ((vkaa_std_var_string_s *) r->input_list[1])->value))
+		mlog_printf((mlog_s *) r->pri_data, "%s", msg->string);
+	return 0;
+}
+
+const vkaa_std_s* vkaa_me_insert_stdout(const vkaa_std_s *restrict std, mlog_s *restrict mlog)
+{
+	const vkaa_std_s *rr;
+	vkaa_type_s *restrict r;
+	uintptr_t id;
+	rr = NULL;
+	id = vkaa_tpool_genid(std->tpool);
+	if ((r = (vkaa_type_s *) refer_alloz(sizeof(vkaa_type_s))))
+	{
+		refer_set_free(r, (refer_free_f) vkaa_type_finally);
+		if (vkaa_type_initial(r, id, "stdout", vkaa_type_stdout_create) &&
+			vkaa_std_type_set_function(r, "<<", vkaa_var_stdout_print, mlog,
+				vkaa_std_selector_output_must_first, vkaa_std_selector_convert_none,
+				0, id, 2, (const uintptr_t []) {id, std->typeid->id_string}) &&
+			vkaa_tpool_insert(std->tpool, r) &&
+			vkaa_tpool_var_const_enable(std->tpool, r))
+			rr = std;
+		refer_free(r);
+	}
+	return rr;
+}
 
 int main(void)
 {
@@ -85,8 +113,6 @@ int main(void)
 	const vkaa_std_s *restrict std;
 	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
-	uintptr_t error;
-	const char *restrict error_name;
 	const char *restrict source_name;
 	source_name = "test.vkaa";
 	if ((mlog = mlog_alloc(0)))
@@ -94,18 +120,13 @@ int main(void)
 		mlog_set_report(mlog, mlog_report_stdout_func, NULL);
 		if ((std = vkaa_std_alloc()))
 		{
-			if ((c = vkaa_std_context_alloc(std, mlog, mlog)))
+			if (vkaa_me_insert_stdout(std, mlog) &&
+				(c = vkaa_std_context_alloc(std, mlog, mlog)))
 			{
 				if ((code = load_file(source_name)))
 				{
 					if (vkaa_std_context_append_source(c, code, source_name))
-					{
-						printf("vkaa_std_context_append_syntax ... okay\n");
-						error_name = NULL;
-						error = vkaa_std_context_exec(c, NULL);
-						if (error) error_name = vkaa_error_get_name(std->tpool->e, error);
-						printf("vkaa_std_context_exec ... %zu %s\n", error, error_name?error_name:"");
-					}
+						vkaa_std_context_exec(c, NULL);
 					refer_free(code);
 				}
 				refer_free(c);

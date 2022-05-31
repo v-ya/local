@@ -23,16 +23,16 @@ static vkaa_std_keyword_define(while)
 		goto label_fail;
 	if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_break, 0, vkaa_execute_next_pos(exec)))
 		goto label_fail;
-	if (!vkaa_std_function_pushed(
+	if (!vkaa_std_keyword_function_pushed(
 		exec, vkaa_std_function_label(void, cj_while_do),
 		vbool->type, NULL, vbool))
 		goto label_fail;
 	vkaa_parse_result_clear(&rv);
-	if (!vkaa_std_function_pushed_block(context, syntax))
+	if (!vkaa_std_keyword_function_pushed_block(context, syntax))
 		goto label_fail;
 	if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_continue, 0, vkaa_execute_next_pos(exec)))
 		goto label_fail;
-	if (!vkaa_std_function_pushed(
+	if (!vkaa_std_keyword_function_pushed(
 		exec, vkaa_std_function_label(void, cj_goto),
 		vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 		NULL, NULL))
@@ -60,7 +60,7 @@ static vkaa_std_keyword_define(do)
 	if (!vkaa_execute_push_label(exec, vkaa_std_label_break))
 		goto label_fail;
 	label_pos_begin = vkaa_execute_next_pos(exec);
-	if (!vkaa_std_function_pushed_block(context, syntax))
+	if (!vkaa_std_keyword_function_pushed_block(context, syntax))
 		goto label_fail;
 	label_pos_check = vkaa_execute_next_pos(exec);
 	if (!(s = vkaa_parse_syntax_fetch_and_next(syntax)) || !vkaa_syntax_test(s, vkaa_syntax_type_keyword, "while"))
@@ -71,7 +71,7 @@ static vkaa_std_keyword_define(do)
 		goto label_fail;
 	if (!(vbool = vkaa_std_convert_result_get_var(&rv, exec, context->tpool, r->typeid->id_bool)))
 		goto label_fail;
-	if (!vkaa_std_function_pushed(
+	if (!vkaa_std_keyword_function_pushed(
 		exec, vkaa_std_function_label(void, cj_do_while),
 		vbool->type, NULL, vbool))
 		goto label_fail;
@@ -161,19 +161,19 @@ static vkaa_std_keyword_define(for)
 	}
 	if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_break, 0, vkaa_execute_next_pos(exec)))
 		goto label_fail;
-	if (!vkaa_std_function_pushed(
+	if (!vkaa_std_keyword_function_pushed(
 		exec, vkaa_std_function_label(void, cj_while_do),
 		vbool->type, NULL, vbool))
 		goto label_fail;
 	vkaa_parse_result_clear(&rv);
 	// do
-	if (!vkaa_std_function_pushed_block(context, syntax))
+	if (!vkaa_std_keyword_function_pushed_block(context, syntax))
 		goto label_fail;
 	// next
 	label_pos_continue = vkaa_execute_next_pos(exec);
 	if (!vkaa_parse_parse(context, param.syntax_next, param.number_next, NULL))
 		goto label_fail;
-	if (!vkaa_std_function_pushed(
+	if (!vkaa_std_keyword_function_pushed(
 		exec, vkaa_std_function_label(void, cj_goto),
 		vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 		NULL, NULL))

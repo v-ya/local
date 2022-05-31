@@ -27,18 +27,18 @@ static vkaa_std_keyword_define(if)
 		jumper_pos = vkaa_execute_next_pos(exec);
 		if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_if_next, 0, jumper_pos))
 			goto label_fail;
-		if (!(func = vkaa_std_function_pushed(
+		if (!(func = vkaa_std_keyword_function_pushed(
 			exec, vkaa_std_function_label(void, cj_if_next),
 			vbool->type, NULL, vbool)))
 			goto label_fail;
 		vkaa_parse_result_clear(&rv);
 		// get do
-		if (!vkaa_std_function_pushed_block(context, syntax))
+		if (!vkaa_std_keyword_function_pushed_block(context, syntax))
 			goto label_fail;
 		// done goto end
 		if (!vkaa_execute_jump_to_label(exec, vkaa_std_label_if_end, 0, vkaa_execute_next_pos(exec)))
 			goto label_fail;
-		if (!vkaa_std_function_pushed(
+		if (!vkaa_std_keyword_function_pushed(
 			exec, vkaa_std_function_label(void, cj_goto),
 			vkaa_tpool_find_id(context->tpool, r->typeid->id_void),
 			NULL, NULL))
@@ -67,7 +67,7 @@ static vkaa_std_keyword_define(if)
 		else
 		{
 			// else
-			if (!vkaa_std_function_pushed_block(context, syntax))
+			if (!vkaa_std_keyword_function_pushed_block(context, syntax))
 				goto label_fail;
 			break;
 		}
