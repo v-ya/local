@@ -315,7 +315,7 @@ vkaa_std_var_function_s* vkaa_std_var_function_same_input(vkaa_std_var_function_
 vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s *restrict var, const vkaa_tpool_s *restrict tpool, const vkaa_syntax_s *restrict syntax_brackets, uintptr_t output_typeid)
 {
 	vkaa_std_var_function_input_s *restrict input;
-	vkaa_std_selector_desc_t *restrict desc;
+	vkaa_std_selector_desc_s *restrict desc;
 	if ((input = vkaa_std_var_function_input_alloc(tpool, syntax_brackets, output_typeid)))
 	{
 		if ((desc = vkaa_std_selector_desc_alloc(input->number, input->typeid)))
@@ -325,11 +325,15 @@ vkaa_std_var_function_s* vkaa_std_var_function_set_input(vkaa_std_var_function_s
 			desc->convert = vkaa_std_selector_convert_none;
 			desc->this_typeid = var->var.type_id;
 			desc->output_typeid = input->output_typeid;
-			if (var->input) refer_free(var->input);
-			if (var->desc) refer_free(var->desc);
-			var->input = input;
-			var->desc = desc;
-			return var;
+			if (vkaa_std_selector_desc_check(desc))
+			{
+				if (var->input) refer_free(var->input);
+				if (var->desc) refer_free(var->desc);
+				var->input = input;
+				var->desc = desc;
+				return var;
+			}
+			refer_free(desc);
 		}
 		refer_free(input);
 	}
@@ -384,7 +388,7 @@ static vkaa_std_selector_define(function, do_call)
 	if ((this = (vkaa_std_var_function_s *) param->this) && this->desc)
 	{
 		if (vkaa_std_selector_test(this->desc, param, NULL))
-			return vkaa_std_selector_create(param, this->desc, NULL);
+			return vkaa_std_selector_create(param, this->desc);
 	}
 	return NULL;
 }

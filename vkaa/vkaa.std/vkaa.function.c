@@ -15,27 +15,40 @@ vkaa_selector_s* vkaa_std_type_set_selector(vkaa_type_s *restrict type, const ch
 	return NULL;
 }
 
-vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid)
+vkaa_std_selector_s* vkaa_std_type_set_function(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, const uintptr_t *restrict input_typeid)
 {
 	vkaa_std_selector_s *s, *snew;
 	if (!vkaa_type_find_selector(type, name) && (snew = vkaa_std_selector_alloc()))
 	{
 		s = (vkaa_std_selector_s *) vkaa_type_insert_selector(type, name, &snew->selector);
 		refer_free(snew);
-		if (s && vkaa_std_selector_append(s, name, function, output, convert, this_typeid, output_typeid, input_number, input_typeid))
+		if (s && vkaa_std_selector_append(s, name, function, pri_data, output, convert, this_typeid, output_typeid, input_number, input_typeid))
 			return s;
 	}
 	return NULL;
 }
 
-vkaa_std_selector_s* vkaa_std_type_set_function_si(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid)
+vkaa_std_selector_s* vkaa_std_type_set_function_si(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, uintptr_t input_number, uintptr_t input_typeid)
 {
 	vkaa_std_selector_s *s, *snew;
 	if (!vkaa_type_find_selector(type, name) && (snew = vkaa_std_selector_alloc()))
 	{
 		s = (vkaa_std_selector_s *) vkaa_type_insert_selector(type, name, &snew->selector);
 		refer_free(snew);
-		if (s && vkaa_std_selector_append_si(s, name, function, output, convert, this_typeid, output_typeid, input_number, input_typeid))
+		if (s && vkaa_std_selector_append_si(s, name, function, pri_data, output, convert, this_typeid, output_typeid, input_number, input_typeid))
+			return s;
+	}
+	return NULL;
+}
+
+vkaa_std_selector_s* vkaa_std_type_set_function_any(vkaa_type_s *restrict type, const char *restrict name, vkaa_function_f function, refer_t pri_data, vkaa_std_selector_output_t output, vkaa_std_selector_convert_t convert, uintptr_t this_typeid, uintptr_t output_typeid, const vkaa_std_selector_desc_input_t *restrict must, const vkaa_std_selector_desc_input_t *restrict maybe)
+{
+	vkaa_std_selector_s *s, *snew;
+	if (!vkaa_type_find_selector(type, name) && (snew = vkaa_std_selector_alloc()))
+	{
+		s = (vkaa_std_selector_s *) vkaa_type_insert_selector(type, name, &snew->selector);
+		refer_free(snew);
+		if (s && vkaa_std_selector_append_any(s, name, function, pri_data, output, convert, this_typeid, output_typeid, must, maybe))
 			return s;
 	}
 	return NULL;
