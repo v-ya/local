@@ -22,6 +22,15 @@ vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *r
 	return NULL;
 }
 
+void vkaa_std_var_string_clear(vkaa_std_var_string_s *restrict var)
+{
+	if (var->value)
+	{
+		refer_free(var->value);
+		var->value = NULL;
+	}
+}
+
 void vkaa_std_var_string_mov(vkaa_std_var_string_s *restrict dst, const vkaa_std_var_string_s *restrict src)
 {
 	refer_nstring_t value;
@@ -48,6 +57,7 @@ static vkaa_std_type_init_define(string)
 {
 	if (
 		vkaa_std_type_set_function_si(type, "=", sfsi_need2m(string, op_mov)) &&
+		vkaa_std_type_set_function(type, "bytes", sf_need0cvn(string, bytes, cv_bytes)) &&
 	1) return type;
 	return NULL;
 }

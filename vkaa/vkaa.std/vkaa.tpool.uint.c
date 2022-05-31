@@ -45,7 +45,8 @@ static vkaa_std_type_init_define(uint)
 		vkaa_std_type_set_function_si(type, "^=", sfsi_need2m(uint, op_xor_bitwise)) &&
 		vkaa_std_type_set_function_si(type, "<<=", sfsi_need2m(uint, op_lshift)) &&
 		vkaa_std_type_set_function_si(type, ">>=", sfsi_need2m(uint, op_rshift)) &&
-		vkaa_std_type_set_function(type, "bool", sf_need0cvp(uint, bool, cv_bool)) &&
+		vkaa_std_type_set_function(type, "string", sf_need0cvn(uint, string, cv_string)) &&
+		vkaa_std_type_set_function(type, "bool", sf_need0cvn(uint, bool, cv_bool)) &&
 		vkaa_std_type_set_function(type, "uint", sf_need0cvp(uint, uint, cv_uint)) &&
 		vkaa_std_type_set_function(type, "int", sf_need0cvp(uint, int, cv_int)) &&
 		vkaa_std_type_set_function(type, "float", sf_need0cvp(uint, float, cv_float)) &&

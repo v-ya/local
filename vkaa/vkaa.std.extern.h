@@ -45,6 +45,7 @@
 
 #define vkaa_std_error_memory_less      "vkaa.std.memory_less"
 #define vkaa_std_error_div_zero         "vkaa.std.div_zero"
+#define vkaa_std_error_param_miss       "vkaa.std.param_miss"
 #define vkaa_std_error_function_empty   "vkaa.std.function_empty"
 #define vkaa_std_error_function_stack   "vkaa.std.function_stack"
 #define vkaa_std_error_function_initial "vkaa.std.function_initial"
@@ -151,6 +152,7 @@ typedef struct vkaa_std_var_string_s {
 
 vkaa_std_var_string_s* vkaa_std_type_string_create_by_value(const vkaa_type_s *restrict type, refer_nstring_t value);
 
+void vkaa_std_var_string_clear(vkaa_std_var_string_s *restrict var);
 void vkaa_std_var_string_mov(vkaa_std_var_string_s *restrict dst, const vkaa_std_var_string_s *restrict src);
 
 // var<bool>
@@ -212,8 +214,10 @@ typedef struct vkaa_std_var_bytes_s {
 
 vkaa_std_var_bytes_s* vkaa_std_type_bytes_create_by_value(const vkaa_type_s *restrict type, vkaa_std_var_bytes_value_s *restrict value);
 
+void vkaa_std_var_bytes_clear(vkaa_std_var_bytes_s *restrict var);
 void vkaa_std_var_bytes_mov(vkaa_std_var_bytes_s *restrict dst, const vkaa_std_var_bytes_s *restrict src);
 vkaa_std_var_bytes_value_s* vkaa_std_var_bytes_value(vkaa_std_var_bytes_s *restrict var, uintptr_t need_size);
+vkaa_std_var_bytes_value_s* vkaa_std_var_bytes_append(vkaa_std_var_bytes_s *restrict var, const void *restrict data, uintptr_t size);
 
 // tpool
 

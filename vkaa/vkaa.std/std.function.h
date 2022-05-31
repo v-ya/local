@@ -122,34 +122,36 @@ vkaa_std_function_define(bool, op_mov);
 vkaa_std_function_define(uint, op_mov);
 vkaa_std_function_define(int, op_mov);
 vkaa_std_function_define(float, op_mov);
+vkaa_std_function_define(bytes, op_mov);
 
+// conver<string>
+vkaa_std_function_define(string, cv_bytes);
 // conver<bool>
+vkaa_std_function_define(bool, cv_string);
 vkaa_std_function_define(bool, cv_bool);
 vkaa_std_function_define(bool, cv_uint);
 vkaa_std_function_define(bool, cv_int);
 vkaa_std_function_define(bool, cv_float);
 // conver<uint>
+vkaa_std_function_define(uint, cv_string);
 vkaa_std_function_define(uint, cv_bool);
 vkaa_std_function_define(uint, cv_uint);
 vkaa_std_function_define(uint, cv_int);
 vkaa_std_function_define(uint, cv_float);
 // conver<int>
+vkaa_std_function_define(int, cv_string);
 vkaa_std_function_define(int, cv_bool);
 vkaa_std_function_define(int, cv_uint);
 vkaa_std_function_define(int, cv_int);
 vkaa_std_function_define(int, cv_float);
 // conver<float>
+vkaa_std_function_define(float, cv_string);
 vkaa_std_function_define(float, cv_bool);
 vkaa_std_function_define(float, cv_uint);
 vkaa_std_function_define(float, cv_int);
 vkaa_std_function_define(float, cv_float);
-
-// ()
-vkaa_std_function_define(function, do_call);
-
-// refer
-vkaa_std_function_define(refer, op_store);
-vkaa_std_function_define(refer, op_load);
+// conver<bytes>
+vkaa_std_function_define(bytes, cv_string);
 
 // control
 vkaa_std_function_define(void, cj_goto);
@@ -157,5 +159,16 @@ vkaa_std_function_define(void, cj_if_next);
 vkaa_std_function_define(void, cj_if_goto);
 vkaa_std_function_define(void, cj_while_do);
 vkaa_std_function_define(void, cj_do_while);
+
+// <function>
+vkaa_std_function_define(function, do_call);
+
+// <refer>
+vkaa_std_function_define(refer, op_store);
+vkaa_std_function_define(refer, op_load);
+
+// <bytes>
+vkaa_std_function_define(bytes, fn_clear);
+vkaa_std_function_define(bytes, fn_append);
 
 #endif

@@ -1,5 +1,7 @@
 #include "std.function.h"
 #include <math.h>
+#include <memory.h>
+#include <stdio.h>
 
 vkaa_selector_s* vkaa_std_type_set_selector(vkaa_type_s *restrict type, const char *restrict name, vkaa_selector_f selector)
 {
@@ -510,8 +512,39 @@ vkaa_std_function_define(float, op_mov)
 	vkaa_std_vp(float, 0) = vkaa_std_vp(float, 1);
 	return 0;
 }
+vkaa_std_function_define(bytes, op_mov)
+{vkaa_std_verbose_weak
+	vkaa_std_var_bytes_mov(vkaa_std_var(bytes, r->input_list[0]), vkaa_std_var(bytes, r->input_list[1]));
+	return 0;
+}
+
+// conver<string>
+vkaa_std_function_define(string, cv_bytes)
+{vkaa_std_verbose_weak
+	refer_nstring_t src;
+	vkaa_std_var_bytes_value_s *restrict dst;
+	uintptr_t n;
+	vkaa_std_var_bytes_clear(vkaa_std_var(bytes, r->output));
+	if ((src = vkaa_std_vt(string)))
+	{
+		if (!(dst = vkaa_std_var_bytes_value(vkaa_std_var(bytes, r->output), n = src->length)))
+			goto label_fail;
+		if (n) memcpy(dst->bytes.data, src->string, n);
+		dst->bytes.used = n;
+	}
+	return 0;
+	label_fail:
+	return vkaa_std_error(memory_less);
+}
 
 // conver<bool>
+vkaa_std_function_define(bool, cv_string)
+{vkaa_std_verbose_weak
+	vkaa_std_var_string_clear(vkaa_std_var(string, r->output));
+	if ((vkaa_std_vo(string) = vkaa_std_vt(bool)?refer_dump_nstring("true"):refer_dump_nstring("false")))
+		return 0;
+	return vkaa_std_error(memory_less);
+}
 vkaa_std_function_define(bool, cv_bool)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(bool) = vkaa_std_vt(bool);
@@ -534,6 +567,14 @@ vkaa_std_function_define(bool, cv_float)
 }
 
 // conver<uint>
+vkaa_std_function_define(uint, cv_string)
+{vkaa_std_verbose_weak
+	char buffer[64];
+	vkaa_std_var_string_clear(vkaa_std_var(string, r->output));
+	if ((vkaa_std_vo(string) = refer_dump_nstring_with_length(buffer, (uintptr_t) sprintf(buffer, "%zu", vkaa_std_vt(uint)))))
+		return 0;
+	return vkaa_std_error(memory_less);
+}
 vkaa_std_function_define(uint, cv_bool)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(bool) = !!vkaa_std_vt(uint);
@@ -556,6 +597,14 @@ vkaa_std_function_define(uint, cv_float)
 }
 
 // conver<int>
+vkaa_std_function_define(int, cv_string)
+{vkaa_std_verbose_weak
+	char buffer[64];
+	vkaa_std_var_string_clear(vkaa_std_var(string, r->output));
+	if ((vkaa_std_vo(string) = refer_dump_nstring_with_length(buffer, (uintptr_t) sprintf(buffer, "%zd", vkaa_std_vt(int)))))
+		return 0;
+	return vkaa_std_error(memory_less);
+}
 vkaa_std_function_define(int, cv_bool)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(bool) = !!vkaa_std_vt(int);
@@ -578,6 +627,14 @@ vkaa_std_function_define(int, cv_float)
 }
 
 // conver<float>
+vkaa_std_function_define(float, cv_string)
+{vkaa_std_verbose_weak
+	char buffer[64];
+	vkaa_std_var_string_clear(vkaa_std_var(string, r->output));
+	if ((vkaa_std_vo(string) = refer_dump_nstring_with_length(buffer, (uintptr_t) sprintf(buffer, "%g", vkaa_std_vt(float)))))
+		return 0;
+	return vkaa_std_error(memory_less);
+}
 vkaa_std_function_define(float, cv_bool)
 {vkaa_std_verbose_weak
 	vkaa_std_vo(bool) = !!vkaa_std_vt(float);
@@ -599,64 +656,20 @@ vkaa_std_function_define(float, cv_float)
 	return 0;
 }
 
-// ()
-vkaa_std_function_define(function, do_call)
+// conver<bytes>
+vkaa_std_function_define(bytes, cv_string)
 {vkaa_std_verbose_weak
-	vkaa_std_var_function_s *restrict func;
-	vkaa_std_var_function_stack_s *restrict stack;
-	vkaa_std_var_function_inst_s *restrict inst;
-	uintptr_t error;
-	func = vkaa_std_var(function, r->this);
-	if ((stack = func->stack))
+	vkaa_std_var_bytes_value_s *restrict src;
+	vkaa_std_var_string_s *restrict dst;
+	vkaa_std_var_string_clear(dst = vkaa_std_var(string, r->output));
+	if ((src = vkaa_std_vt(bytes)))
 	{
-		if (stack->stack_curr < stack->stack_size)
-		{
-			inst = stack->stack_inst[stack->stack_curr];
-			if (vkaa_std_var_function_inst_initial(inst, r))
-			{
-				stack->stack_curr += 1;
-				error = vkaa_execute_do(inst->exec, control->running);
-				stack->stack_curr -= 1;
-				vkaa_std_var_function_inst_finally(inst);
-				return error;
-			}
-			return vkaa_std_error(function_initial);
-		}
-		return vkaa_std_error(function_stack);
+		if (!(dst->value = refer_dump_nstring_with_length((const char *) src->bytes.data, src->bytes.used)))
+			goto label_fail;
 	}
-	return vkaa_std_error(function_empty);
-}
-
-// refer
-vkaa_std_function_define(refer, op_store)
-{vkaa_std_verbose_weak
-	vkaa_function_s *restrict mov;
-	vkaa_var_s *target;
-	mov = (vkaa_function_s *) r->pri_data;
-	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
-	{
-		if ((mov->output == target || vkaa_function_set_output(mov, target)) &&
-			(!mov->input_number || mov->input_list[0] == target || vkaa_function_set_input(mov, 0, target)))
-			return mov->function(mov, control);
-		return vkaa_std_error(refer_type);
-	}
-	return vkaa_std_error(refer_empty);
-}
-vkaa_std_function_define(refer, op_load)
-{vkaa_std_verbose_weak
-	vkaa_function_s *restrict mov;
-	vkaa_var_s *target, *output;
-	mov = (vkaa_function_s *) r->pri_data;
-	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
-	{
-		output = r->output;
-		if ((mov->output == output || vkaa_function_set_output(mov, output)) &&
-			(mov->input_list[0] == output || vkaa_function_set_input(mov, 0, output)) &&
-			(mov->input_list[1] == target || vkaa_function_set_input(mov, 1, target)))
-			return mov->function(mov, control);
-		return vkaa_std_error(refer_type);
-	}
-	return vkaa_std_error(refer_empty);
+	return 0;
+	label_fail:
+	return vkaa_std_error(memory_less);
 }
 
 // control
@@ -691,11 +704,112 @@ vkaa_std_function_define(void, cj_do_while)
 	return 0;
 }
 
+// <function>
+vkaa_std_function_define(function, do_call)
+{vkaa_std_verbose_weak
+	vkaa_std_var_function_s *restrict func;
+	vkaa_std_var_function_stack_s *restrict stack;
+	vkaa_std_var_function_inst_s *restrict inst;
+	uintptr_t error;
+	func = vkaa_std_var(function, r->this);
+	if ((stack = func->stack))
+	{
+		if (stack->stack_curr < stack->stack_size)
+		{
+			inst = stack->stack_inst[stack->stack_curr];
+			if (vkaa_std_var_function_inst_initial(inst, r))
+			{
+				stack->stack_curr += 1;
+				error = vkaa_execute_do(inst->exec, control->running);
+				stack->stack_curr -= 1;
+				vkaa_std_var_function_inst_finally(inst);
+				return error;
+			}
+			return vkaa_std_error(function_initial);
+		}
+		return vkaa_std_error(function_stack);
+	}
+	return vkaa_std_error(function_empty);
+}
+
+// <refer>
+vkaa_std_function_define(refer, op_store)
+{vkaa_std_verbose_weak
+	vkaa_function_s *restrict mov;
+	vkaa_var_s *target;
+	mov = (vkaa_function_s *) r->pri_data;
+	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
+	{
+		if ((mov->output == target || vkaa_function_set_output(mov, target)) &&
+			(!mov->input_number || mov->input_list[0] == target || vkaa_function_set_input(mov, 0, target)))
+			return mov->function(mov, control);
+		return vkaa_std_error(refer_type);
+	}
+	return vkaa_std_error(refer_empty);
+}
+vkaa_std_function_define(refer, op_load)
+{vkaa_std_verbose_weak
+	vkaa_function_s *restrict mov;
+	vkaa_var_s *target, *output;
+	mov = (vkaa_function_s *) r->pri_data;
+	if ((target = vkaa_std_var(refer, r->input_list[0])->refer_var))
+	{
+		output = r->output;
+		if ((mov->output == output || vkaa_function_set_output(mov, output)) &&
+			(mov->input_list[0] == output || vkaa_function_set_input(mov, 0, output)) &&
+			(mov->input_list[1] == target || vkaa_function_set_input(mov, 1, target)))
+			return mov->function(mov, control);
+		return vkaa_std_error(refer_type);
+	}
+	return vkaa_std_error(refer_empty);
+}
+
+// <bytes>
+vkaa_std_function_define(bytes, fn_clear)
+{vkaa_std_verbose_weak
+	vkaa_std_var_bytes_clear(vkaa_std_var(bytes, r->this));
+	return 0;
+}
+vkaa_std_function_define(bytes, fn_append)
+{vkaa_std_verbose_weak
+	const vkaa_std_typeid_s *restrict typeid;
+	vkaa_std_var_bytes_s *restrict rt;
+	vkaa_var_s *const *restrict p, *restrict v;
+	uintptr_t i, n;
+	typeid = (const vkaa_std_typeid_s *) r->pri_data;
+	rt = vkaa_std_var(bytes, r->this);
+	p = r->input_list;
+	n = r->input_number;
+	for (i = 0; i < n; ++i)
+	{
+		v = p[i];
+		if (v->type_id == typeid->id_string)
+		{
+			refer_nstring_t value;
+			if ((value = vkaa_std_var(string, v)->value) && value->length &&
+				!vkaa_std_var_bytes_append(rt, value->string, value->length))
+				goto label_fail_memory;
+		}
+		else if (v->type_id == typeid->id_bytes)
+		{
+			vkaa_std_var_bytes_value_s *restrict value;
+			if ((value = vkaa_std_var(bytes, v)->value) && value->bytes.used &&
+				!vkaa_std_var_bytes_append(rt, value->bytes.data, value->bytes.used))
+				goto label_fail_memory;
+		}
+		else goto label_fail_param;
+	}
+	return 0;
+	label_fail_param:
+	return vkaa_std_error(param_miss);
+	label_fail_memory:
+	return vkaa_std_error(memory_less);
+}
+
 // debug verbose
 
 #if vkaa_std_verbose
 
-#include <stdio.h>
 #include <string.h>
 
 static const char* vkaa_std_function_verbose_var(char *restrict buffer, uintptr_t buffer_size, const vkaa_var_s *restrict var)

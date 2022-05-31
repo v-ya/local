@@ -60,6 +60,8 @@
 		=> type(bool)
 	false
 		=> type(bool)
+	& `exec_syntax_once`
+		=> type(refer)
 
 # type
 	void
@@ -163,29 +165,40 @@
 	syntax
 	marco
 	function
-		(*) => * : any
+		(*...) => * : any
 	refer
-		= (refer, refer) => refer : must_first
+		=  (refer, refer) => refer : must_first
+		:= (refer, *)     => refer : must_first
+		*  ()             => *     : any
 	string
-		= (string, string) => string : must_first
+		=     (string, string) => string : must_first
+		bytes ()               => bytes  : any
 	bool
-		bool  () => bool  : any
-		uint  () => uint  : any
-		int   () => int   : any
-		float () => float : any
+		string () => string : any
+		bool   () => bool   : any
+		uint   () => uint   : any
+		int    () => int    : any
+		float  () => float  : any
 	uint
-		bool  () => bool  : any
-		uint  () => uint  : any
-		int   () => int   : any
-		float () => float : any
+		string () => string : any
+		bool   () => bool   : any
+		uint   () => uint   : any
+		int    () => int    : any
+		float  () => float  : any
 	int
-		bool  () => bool  : any
-		uint  () => uint  : any
-		int   () => int   : any
-		float () => float : any
+		string () => string : any
+		bool   () => bool   : any
+		uint   () => uint   : any
+		int    () => int    : any
+		float  () => float  : any
 	float
-		bool  () => bool  : any
-		uint  () => uint  : any
-		int   () => int   : any
-		float () => float : any
+		string () => string : any
+		bool   () => bool   : any
+		uint   () => uint   : any
+		int    () => int    : any
+		float  () => float  : any
 	bytes
+		=      (bytes, bytes)        => bytes  : must_first
+		string ()                    => string : any
+		clear  ()                    => bytes  : this
+		append ([string | bytes]...) => bytes  : this
