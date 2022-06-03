@@ -1,7 +1,7 @@
 #ifndef _media_core_channel_h_
 #define _media_core_channel_h_
 
-#include "../media.h"
+#include <refer.h>
 #include "cell.h"
 
 struct media_channel_s {

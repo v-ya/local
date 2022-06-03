@@ -1,7 +1,7 @@
 #ifndef _media_core_frame_id_h_
 #define _media_core_frame_id_h_
 
-#include "../media.h"
+#include <refer.h>
 #include "cell.h"
 #include "channel.h"
 

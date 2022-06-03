@@ -1,7 +1,7 @@
 #ifndef _media_core_cell_h_
 #define _media_core_cell_h_
 
-#include "../media.h"
+#include <refer.h>
 
 // if (!dimension_multiplier) `this dimension is not exist`;
 // cell_size = (cell_size + cell_addend + cell_align - 1) / cell_align;

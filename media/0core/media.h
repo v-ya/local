@@ -1,7 +1,7 @@
 #ifndef _media_core_media_h_
 #define _media_core_media_h_
 
-#include "../media.h"
+#include <refer.h>
 #include "frame_id.h"
 #include <hashmap.h>
 
