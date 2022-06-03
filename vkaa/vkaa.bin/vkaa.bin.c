@@ -3,6 +3,7 @@
 #include "../vkaa.std.extern.h"
 #include <fsys.h>
 #include <stdio.h>
+#include <signal.h>
 
 void dump_syntax(const vkaa_syntax_s *restrict syntax, int n)
 {
@@ -107,33 +108,49 @@ const vkaa_std_s* vkaa_me_insert_stdout(const vkaa_std_s *restrict std, mlog_s *
 	return rr;
 }
 
-int main(void)
+static volatile uintptr_t running;
+
+static void signal_int_func(int sig)
+{
+	printf("signal want to stop ...\n");
+	running = 0;
+}
+
+int main(int argc, const char *const restrict argv[])
 {
 	mlog_s *restrict mlog;
 	const vkaa_std_s *restrict std;
 	vkaa_std_context_s *restrict c;
 	refer_nstring_t code;
 	const char *restrict source_name;
-	source_name = "test.vkaa";
-	if ((mlog = mlog_alloc(0)))
+	int rr;
+	rr = -1;
+	if (argc == 2)
 	{
-		mlog_set_report(mlog, mlog_report_stdout_func, NULL);
-		if ((std = vkaa_std_alloc()))
+		source_name = argv[1];
+		running = 1;
+		signal(SIGINT, signal_int_func);
+		if ((mlog = mlog_alloc(0)))
 		{
-			if (vkaa_me_insert_stdout(std, mlog) &&
-				(c = vkaa_std_context_alloc(std, mlog, mlog)))
+			mlog_set_report(mlog, mlog_report_stdout_func, NULL);
+			if ((std = vkaa_std_alloc()))
 			{
-				if ((code = load_file(source_name)))
+				if (vkaa_me_insert_stdout(std, mlog) &&
+					(c = vkaa_std_context_alloc(std, mlog, mlog)))
 				{
-					if (vkaa_std_context_append_source(c, code, source_name))
-						vkaa_std_context_exec(c, NULL);
-					refer_free(code);
+					if ((code = load_file(source_name)))
+					{
+						if (vkaa_std_context_append_source(c, code, source_name))
+							rr = (int) vkaa_std_context_exec(c, &running);
+						refer_free(code);
+					}
+					refer_free(c);
 				}
-				refer_free(c);
+				refer_free(std);
 			}
-			refer_free(std);
+			refer_free(mlog);
 		}
-		refer_free(mlog);
 	}
-	return 0;
+	else printf("%s <vkaa-script>\n", argv[0]);
+	return rr;
 }
