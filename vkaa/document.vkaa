@@ -69,6 +69,9 @@
 	scope
 		!     (bool)         => bool  : any
 		~     (uint)         => uint  : any
+		**    (uint, uint)   => uint  : any
+		**    (int, int)     => int   : any
+		**    (float, float) => float : any
 		*     (uint, uint)   => uint  : any
 		*     (int, int)     => int   : any
 		*     (float, float) => float : any
@@ -197,6 +200,15 @@
 		uint   () => uint   : any
 		int    () => int    : any
 		float  () => float  : any
+		mulpi  () => float  : any
+		exp    () => float  : any
+		ln     () => float  : any
+		sin    () => float  : any
+		cos    () => float  : any
+		tan    () => float  : any
+		asin   () => float  : any
+		acos   () => float  : any
+		atan   () => float  : any
 	bytes
 		=      (bytes, bytes)        => bytes  : must_first
 		string ()                    => string : any

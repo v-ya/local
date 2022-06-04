@@ -28,6 +28,7 @@ vkaa_type_s* vkaa_std_tpool_set_bytes(vkaa_tpool_s *restrict tpool, vkaa_std_typ
 #define vkaa_std_selector_define(_type, _name)  vkaa_function_s* vkaa_std_selector_label(_type, _name)(const vkaa_selector_s *restrict r, const vkaa_selector_param_t *restrict param)
 
 #define sf_need(_l, _tt, _to, _ai, _n, _o, _c)  vkaa_std_function_label(_tt, _l), NULL, _o, _c, typeid->id_##_tt, typeid->id_##_to, _n, _ai
+#define sf_need0fna(_tt, _to, _l)               sf_need(_l, _tt, _to, NULL, 0, vkaa_std_selector_output_any, vkaa_std_selector_convert_none)
 #define sf_need0cvn(_tt, _to, _l)               sf_need(_l, _tt, _to, NULL, 0, vkaa_std_selector_output_any, vkaa_std_selector_convert_none)
 #define sf_need0cvp(_tt, _to, _l)               sf_need(_l, _tt, _to, NULL, 0, vkaa_std_selector_output_any, vkaa_std_selector_convert_promotion)
 #define sfsi_need(_l, _to, _ti, _n, _o)         vkaa_std_function_label(_ti, _l), NULL, _o, vkaa_std_selector_convert_none, 0, typeid->id_##_to, _n, typeid->id_##_ti

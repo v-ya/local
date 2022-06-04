@@ -45,6 +45,7 @@
 
 #define vkaa_std_error_memory_less      "vkaa.std.memory_less"
 #define vkaa_std_error_div_zero         "vkaa.std.div_zero"
+#define vkaa_std_error_pow_neg          "vkaa.std.pow_neg"
 #define vkaa_std_error_param_miss       "vkaa.std.param_miss"
 #define vkaa_std_error_function_empty   "vkaa.std.function_empty"
 #define vkaa_std_error_function_stack   "vkaa.std.function_stack"

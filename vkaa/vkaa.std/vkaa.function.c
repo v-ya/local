@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #include "std.function.h"
 #include <math.h>
 #include <memory.h>
@@ -22,6 +23,45 @@ vkaa_std_function_define(uint, op_not_bitwise)
 }
 
 // **
+vkaa_std_function_define(uint, op_pow)
+{vkaa_std_verbose_weak
+	vkaa_std_uint_t o, b, p;
+	b = vkaa_std_vp(uint, 0);
+	p = vkaa_std_vp(uint, 1);
+	o = 1;
+	while (p)
+	{
+		if (p & 1) o *= b;
+		b *= b;
+		p >>= 1;
+	}
+	vkaa_std_vo(uint) = o;
+	return 0;
+}
+vkaa_std_function_define(int, op_pow)
+{vkaa_std_verbose_weak
+	vkaa_std_int_t o, b, p;
+	b = vkaa_std_vp(int, 0);
+	p = vkaa_std_vp(int, 1);
+	o = 1;
+	if (p >= 0)
+	{
+		while (p)
+		{
+			if (p & 1) o *= b;
+			b *= b;
+			p >>= 1;
+		}
+		vkaa_std_vo(int) = o;
+		return 0;
+	}
+	return vkaa_std_error(pow_neg);
+}
+vkaa_std_function_define(float, op_pow)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = pow(vkaa_std_vp(float, 0), vkaa_std_vp(float, 1));
+	return 0;
+}
 
 // *
 vkaa_std_function_define(uint, op_mul)
@@ -668,6 +708,53 @@ vkaa_std_function_define(refer, op_load)
 		return vkaa_std_error(refer_type);
 	}
 	return vkaa_std_error(refer_empty);
+}
+
+// <float>
+vkaa_std_function_define(float, fn_mulpi)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = vkaa_std_vt(float) * M_PI;
+	return 0;
+}
+vkaa_std_function_define(float, fn_exp)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = exp(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_ln)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = log(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_sin)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = sin(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_cos)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = cos(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_tan)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = tan(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_asin)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = asin(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_acos)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = acos(vkaa_std_vt(float));
+	return 0;
+}
+vkaa_std_function_define(float, fn_atan)
+{vkaa_std_verbose_weak
+	vkaa_std_vo(float) = atan(vkaa_std_vt(float));
+	return 0;
 }
 
 // <bytes>

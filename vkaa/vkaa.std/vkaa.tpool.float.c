@@ -51,6 +51,15 @@ static vkaa_std_type_init_define(float)
 		vkaa_std_type_set_function(type, "uint", sf_need0cvn(float, uint, cv_uint)) &&
 		vkaa_std_type_set_function(type, "int", sf_need0cvn(float, int, cv_int)) &&
 		vkaa_std_type_set_function(type, "float", sf_need0cvp(float, float, cv_float)) &&
+		vkaa_std_type_set_function(type, "mulpi", sf_need0fna(float, float, fn_mulpi)) &&
+		vkaa_std_type_set_function(type, "exp", sf_need0fna(float, float, fn_exp)) &&
+		vkaa_std_type_set_function(type, "ln", sf_need0fna(float, float, fn_ln)) &&
+		vkaa_std_type_set_function(type, "sin", sf_need0fna(float, float, fn_sin)) &&
+		vkaa_std_type_set_function(type, "cos", sf_need0fna(float, float, fn_cos)) &&
+		vkaa_std_type_set_function(type, "tan", sf_need0fna(float, float, fn_tan)) &&
+		vkaa_std_type_set_function(type, "asin", sf_need0fna(float, float, fn_asin)) &&
+		vkaa_std_type_set_function(type, "acos", sf_need0fna(float, float, fn_acos)) &&
+		vkaa_std_type_set_function(type, "atan", sf_need0fna(float, float, fn_atan)) &&
 	1) return type;
 	return NULL;
 }

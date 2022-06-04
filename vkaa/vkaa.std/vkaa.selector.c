@@ -261,41 +261,47 @@ static int vkaa_std_selector_test_input_hit(const vkaa_selector_param_t *restric
 
 static const vkaa_selector_param_t* vkaa_std_selector_test_input(const vkaa_selector_param_t *restrict param, uintptr_t input_number, const uintptr_t *restrict input_typeid, uintptr_t *restrict score)
 {
+	#define sv_initial()   (sr = 0, sp = (uintptr_t) 1 << (sizeof(uintptr_t) * 8 - 1))
+	#define sv_hit()       (sr = (sr | sp) + 1)
+	#define sv_promotion() (sr |= sp)
+	#define sv_normal()    ((void) sr)
+	#define sv_next()      (sp = (sp >> 1) & ~(uintptr_t) 0xff)
 	vkaa_var_s *const *restrict input_list;
 	const uintptr_t *restrict maybe_typeid;
 	const vkaa_selector_s *restrict s;
 	uintptr_t i, n, sr, sp;
 	input_list = param->input_list;
-	sp = (uintptr_t) 0x80000000;
+	sv_initial();
 	if (~input_number)
 	{
 		if (input_number != param->input_number)
 			goto label_fail;
-		for (i = sr = 0; i < input_number; ++i)
+		for (i = 0; i < input_number; ++i)
 		{
 			if (input_list[i]->type_id == input_typeid[i])
-				sr |= sp;
+				sv_hit();
 			else if (!param->exec || !(s = vkaa_std_convert_test_by_typeid(input_list[i]->type, input_typeid[i], param->tpool)))
 				goto label_fail;
 			else if (vkaa_std_selector_test_convert_is_promotion(s))
-				sr |= (sp >> 1);
-			sp >>= 2;
+				sv_promotion();
+			else sv_normal();
+			sv_next();
 		}
 	}
 	else
 	{
 		input_number = param->input_number;
-		for (i = sr = 0; i < input_number && (n = *input_typeid); ++i)
+		for (i = 0; i < input_number && (n = *input_typeid); ++i)
 		{
 			switch (vkaa_std_selector_test_input_hit(param, input_list[i], n, ++input_typeid, NULL))
 			{
-				case 2: sr |= sp; break;
-				case 1: sr |= (sp >> 1); // fall through
-				case 0: break;
+				case 2: sv_hit(); break;
+				case 1: sv_promotion(); break;
+				case 0: sv_normal(); break;
 				default: goto label_fail;
 			}
 			input_typeid += n;
-			sp >>= 2;
+			sv_next();
 		}
 		if (!*input_typeid++)
 		{
@@ -310,13 +316,13 @@ static const vkaa_selector_param_t* vkaa_std_selector_test_input(const vkaa_sele
 					n = *(input_typeid = maybe_typeid);
 				switch (vkaa_std_selector_test_input_hit(param, input_list[i], n, ++input_typeid, NULL))
 				{
-					case 2: sr |= sp; break;
-					case 1: sr |= (sp >> 1); // fall through
-					case 0: break;
+					case 2: sv_hit(); break;
+					case 1: sv_promotion(); break;
+					case 0: sv_normal(); break;
 					default: goto label_fail;
 				}
 				input_typeid += n;
-				sp >>= 2;
+				sv_next();
 				++i;
 			}
 			if (*input_typeid)
@@ -330,6 +336,11 @@ static const vkaa_selector_param_t* vkaa_std_selector_test_input(const vkaa_sele
 	return param;
 	label_fail:
 	return NULL;
+	#undef sv_initial
+	#undef sv_hit
+	#undef sv_promotion
+	#undef sv_normal
+	#undef sv_next
 }
 
 static const vkaa_selector_param_t* vkaa_std_selector_fix_input(const vkaa_selector_param_t *restrict param, uintptr_t input_number, const uintptr_t *restrict input_typeid, vkaa_function_s *restrict function)

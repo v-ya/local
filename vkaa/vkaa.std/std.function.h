@@ -28,6 +28,10 @@
 vkaa_std_function_define(bool, op_not_logic);
 // ~
 vkaa_std_function_define(uint, op_not_bitwise);
+// **
+vkaa_std_function_define(uint, op_pow);
+vkaa_std_function_define(int, op_pow);
+vkaa_std_function_define(float, op_pow);
 // *
 vkaa_std_function_define(uint, op_mul);
 vkaa_std_function_define(int, op_mul);
@@ -159,6 +163,17 @@ vkaa_std_function_define(function, do_call);
 // <refer>
 vkaa_std_function_define(refer, op_store);
 vkaa_std_function_define(refer, op_load);
+
+// <float>
+vkaa_std_function_define(float, fn_mulpi);
+vkaa_std_function_define(float, fn_exp);
+vkaa_std_function_define(float, fn_ln);
+vkaa_std_function_define(float, fn_sin);
+vkaa_std_function_define(float, fn_cos);
+vkaa_std_function_define(float, fn_tan);
+vkaa_std_function_define(float, fn_asin);
+vkaa_std_function_define(float, fn_acos);
+vkaa_std_function_define(float, fn_atan);
 
 // <bytes>
 vkaa_std_function_define(bytes, fn_clear);

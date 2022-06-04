@@ -35,6 +35,9 @@ static vkaa_std_type_init_define(scope)
 	if (
 		(s = vkaa_std_type_set_function_si(type, op = "!",  sfsi_need1a(bool,  op_not_logic))) &&
 		(s = vkaa_std_type_set_function_si(type, op = "~",  sfsi_need1a(uint,  op_not_bitwise))) &&
+		(s = vkaa_std_type_set_function_si(type, op = "**", sfsi_need2a(uint,  op_pow))) &&
+			vkaa_std_selector_append_si(s,   op,        sfsi_need2a(int,   op_pow)) &&
+			vkaa_std_selector_append_si(s,   op,        sfsi_need2a(float, op_pow)) &&
 		(s = vkaa_std_type_set_function_si(type, op = "*",  sfsi_need2a(uint,  op_mul))) &&
 			vkaa_std_selector_append_si(s,   op,        sfsi_need2a(int,   op_mul)) &&
 			vkaa_std_selector_append_si(s,   op,        sfsi_need2a(float, op_mul)) &&
