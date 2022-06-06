@@ -5,10 +5,11 @@
 #include "cell.h"
 #include "channel.h"
 #include "frame_id.h"
+#include "attr.h"
 
 struct media_frame_s {
 	const struct media_frame_id_s *id;
-	refer_t data_source;
+	struct media_attr_s *attr;
 	uintptr_t channel;
 	struct media_channel_s *channel_chip[];
 };

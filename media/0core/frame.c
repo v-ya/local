@@ -8,7 +8,7 @@ static void media_frame_free_func(struct media_frame_s *restrict r)
 		if (r->channel_chip[i])
 			refer_free(r->channel_chip[i]);
 	}
-	if (r->data_source) refer_free(r->data_source);
+	if (r->attr) refer_free(r->attr);
 	if (r->id) refer_free(r->id);
 }
 
