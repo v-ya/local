@@ -108,7 +108,21 @@ const char* transport_udp_last_remote(transport_s *restrict r, uint32_t *restric
 	if (remote_port)
 		*remote_port = 0;
 	if (r->type == t_type)
-		return transport_inner_socket_addr2info_write(me(r)->last_remote_ip, &me(r)->last_remote_addr.addr, &me(r)->last_remote_port);
+	{
+		transport_inner_socket_addr2info_write(me(r)->last_remote_ip, &me(r)->last_remote_addr.addr, &me(r)->last_remote_port);
+		*remote_port = me(r)->last_remote_port;
+		return me(r)->last_remote_ip;
+	}
+	return NULL;
+}
+
+transport_s* transport_udp_enable_broadcast(transport_s *restrict r)
+{
+	if (r->type == t_type)
+	{
+		if (!transport_inner_socket_set_broadcast(me(r)->sock))
+			return r;
+	}
 	return NULL;
 }
 
@@ -122,8 +136,7 @@ transport_s* transport_udp_set_remote(transport_s *restrict r, const char *restr
 		else if (me(r)->addr_length == sizeof(struct sockaddr_in6))
 			addr = NULL;
 		else addr = NULL;
-		if (addr)
-			return r;
+		if (addr) return r;
 	}
 	return NULL;
 }

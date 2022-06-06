@@ -32,6 +32,7 @@ int transport_inner_socket_accept_wait(transport_inner_socket_t sock, transport_
 int transport_inner_socket_set_timeout_send(transport_inner_socket_t sock, uint64_t timeout_ms);
 int transport_inner_socket_set_timeout_recv(transport_inner_socket_t sock, uint64_t timeout_ms);
 int transport_inner_socket_set_reuse_addr(transport_inner_socket_t sock);
+int transport_inner_socket_set_broadcast(transport_inner_socket_t sock);
 
 struct sockaddr* transport_inner_socket_get_local(transport_inner_socket_t sock, transport_inner_addr_param_t *restrict addr);
 struct sockaddr* transport_inner_socket_get_remote(transport_inner_socket_t sock, transport_inner_addr_param_t *restrict addr);

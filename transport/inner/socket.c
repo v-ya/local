@@ -144,6 +144,12 @@ int transport_inner_socket_set_reuse_addr(transport_inner_socket_t sock)
 	return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
 }
 
+int transport_inner_socket_set_broadcast(transport_inner_socket_t sock)
+{
+	int value = 1;
+	return setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &value, sizeof(value));
+}
+
 struct sockaddr* transport_inner_socket_get_local(transport_inner_socket_t sock, transport_inner_addr_param_t *restrict addr)
 {
 	socklen_t len;
