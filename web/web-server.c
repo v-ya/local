@@ -182,10 +182,7 @@ static void web_server_pri_free_func(web_server_pri_s *restrict r)
 	uintptr_t i;
 	r->server.running = 0;
 	if (r->signal)
-	{
-		yaw_signal_inc(r->signal);
-		yaw_signal_wake(r->signal, ~0);
-	}
+		yaw_signal_inc_wake(r->signal, ~0);
 	// release working
 	for (i = 0; i < r->limit.working_number; ++i)
 	{
@@ -538,10 +535,7 @@ static transport_s* web_server_inner_push_tp(web_server_pri_s *restrict p, trans
 	__sync_fetch_and_add(&p->status.transport, 1);
 	__sync_fetch_and_add(&p->status.wait_req, 1);
 	if (p->q_transport->push(p->q_transport, tp))
-	{
-		yaw_signal_inc(p->signal);
-		yaw_signal_wake(p->signal, ~0);
-	}
+		yaw_signal_inc_wake(p->signal, ~0);
 	else
 	{
 		__sync_fetch_and_sub(&p->status.wait_req, 1);

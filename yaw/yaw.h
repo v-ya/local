@@ -41,6 +41,7 @@ struct yaw_signal_s {
 	yaw_signal_wait_time_f wait_time;
 	yaw_signal_sink_number_f sink_number;
 	yaw_signal_inc_f inc;
+	yaw_signal_wake_f inc_wake;
 };
 
 yaw_s* yaw_alloc(yaw_do_f func, refer_t pri);
@@ -62,6 +63,8 @@ uint64_t yaw_timestamp_msec(void);
 uint64_t yaw_timestamp_usec(void);
 uint64_t yaw_timestamp_nsec(void);
 
+int yaw_set_self_nice(float nice);
+
 yaw_lock_s* yaw_lock_alloc_mutex(void);
 yaw_lock_s* yaw_lock_alloc_spin(void);
 int yaw_lock_alloc_rwlock(yaw_lock_s *restrict *restrict read, yaw_lock_s *restrict *restrict write);
@@ -80,5 +83,6 @@ yaw_signal_s* yaw_signal_alloc(void);
 #define yaw_signal_wait_time(_ys, _s, _us)  (_ys)->wait_time(_ys, _s, _us)
 #define yaw_signal_sink_number(_ys)         (_ys)->sink_number(_ys)
 #define yaw_signal_inc(_ys)                 (_ys)->inc(_ys)
+#define yaw_signal_inc_wake(_ys, _n)        (_ys)->inc_wake(_ys, _n)
 
 #endif

@@ -66,6 +66,12 @@ static uint32_t yaw_signal_futex_inc(yaw_signal_s *ys)
 	return (uint32_t) __sync_add_and_fetch(&me(ys)->status, 1);
 }
 
+static uint32_t yaw_signal_futex_inc_wake(yaw_signal_s *ys, uint32_t number)
+{
+	__sync_add_and_fetch(&me(ys)->status, 1);
+	return yaw_signal_futex_wake(ys, number);
+}
+
 yaw_signal_s* yaw_signal_alloc(void)
 {
 	yaw_signal_futex_s *restrict r;
@@ -78,6 +84,7 @@ yaw_signal_s* yaw_signal_alloc(void)
 		r->signal.wait_time = yaw_signal_futex_wait_time;
 		r->signal.sink_number = yaw_signal_futex_sink_number;
 		r->signal.inc = yaw_signal_futex_inc;
+		r->signal.inc_wake = yaw_signal_futex_inc_wake;
 		r->status = 0;
 		r->number = 0;
 	}

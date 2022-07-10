@@ -42,8 +42,7 @@ struct web_dns_s {
 
 static inline void web_dns_signal_wake_all(yaw_signal_s *s)
 {
-	yaw_signal_inc(s);
-	yaw_signal_wake(s, ~0);
+	yaw_signal_inc_wake(s, ~0);
 }
 
 static void web_dns_hashmap_free_func(hashmap_vlist_t *restrict vl)

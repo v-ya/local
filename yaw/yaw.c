@@ -172,3 +172,23 @@ uint64_t yaw_timestamp_nsec(void)
 		return (uint64_t) ts.tv_sec * dt_s2ns + (uint64_t) ts.tv_nsec;
 	return 0;
 }
+
+#include <sys/resource.h>
+
+int yaw_set_self_nice(float nice)
+{
+	int ni;
+	if (nice >= 0)
+	{
+		if (nice <= 1)
+			ni = (int) (nice * PRIO_MAX + 0.5);
+		else ni = PRIO_MAX;
+	}
+	else
+	{
+		if (nice >= -1)
+			ni = (int) (nice * (-PRIO_MIN) - 0.5);
+		else ni = PRIO_MIN;
+	}
+	return setpriority(PRIO_PROCESS, syscall(SYS_gettid), ni);
+}
