@@ -46,7 +46,7 @@ static inline void mtask_core_task_do_fence(struct mtask_input_fence_s *input, c
 {
 	yaw_signal_s *restrict signal_fence;
 	signal_fence = stack->pipe->signal_fence;
-	if (__sync_sub_and_fetch(&input->remaining_core, 1))
+	if (__sync_sub_and_fetch(&input->remaining_initial, 1))
 	{
 		const volatile uintptr_t *running;
 		uint32_t status;
@@ -64,8 +64,9 @@ static inline void mtask_core_task_do_fence(struct mtask_input_fence_s *input, c
 		mtask_inner_transfer_process(&input->transfer, &stack->context);
 		input->notify_okay = 1;
 		yaw_signal_inc_wake(signal_fence, ~0);
-		mtask_inner_transfer_fence(stack->context.mtask, input, stack->context.pipe_index + 1);
 	}
+	if (!__sync_sub_and_fetch(&input->remaining_finally, 1))
+		mtask_inner_transfer_fence(stack->context.mtask, input, stack->context.pipe_index + 1);
 }
 
 static void mtask_core_task_do(struct mtask_input_s *input, const struct mtask_core_stack_t *restrict stack)
@@ -150,9 +151,16 @@ struct mtask_core_s* mtask_core_alloc(const struct mtask_context_t *restrict con
 		r->context = *context;
 		r->interrupt = queue_alloc_ring(queue_interrupt_size);
 		r->task = yaw_alloc(mtask_core_task, NULL);
-		if (r->interrupt && r->task && yaw_start(r->task, r))
+		if (r->interrupt && r->task)
 			return r;
 		refer_free(r);
 	}
+	return NULL;
+}
+
+struct mtask_core_s* mtask_core_start(struct mtask_core_s *restrict core)
+{
+	if (yaw_start(core->task, core))
+		return core;
 	return NULL;
 }

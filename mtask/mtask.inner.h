@@ -42,8 +42,9 @@ struct mtask_input_semaphore_s {
 
 struct mtask_input_fence_s {
 	struct mtask_input_s input;
-	volatile uintptr_t remaining_core;
+	volatile uintptr_t remaining_initial;
 	volatile uintptr_t notify_okay;
+	volatile uintptr_t remaining_finally;
 	struct mtask_transfer_t transfer;
 };
 
@@ -82,6 +83,9 @@ struct mtask_inst_s {
 
 struct mtask_input_task_s* mtask_inner_input_need_task(struct mtask_inst_s *restrict mtask, mtask_deal_f deal_func, refer_t deal_data);
 void mtask_inner_input_unlink_task(struct mtask_inst_s *restrict mtask, struct mtask_input_task_s *restrict task);
+struct mtask_input_semaphore_s* mtask_inner_input_create_semaphore(uintptr_t pipe_number);
+struct mtask_input_fence_s* mtask_inner_input_create_fence(uintptr_t pipe_number);
+void mtask_inner_transfer_set(struct mtask_transfer_t *restrict transfer, const struct mtask_param_transfer_t *restrict param);
 
 queue_s* mtask_inner_queue_must_push(queue_s *restrict q, refer_t v, yaw_signal_s *restrict s, const volatile uintptr_t *running);
 void mtask_inner_transfer_process(const struct mtask_transfer_t *restrict transfer, const struct mtask_context_t *restrict context);
@@ -91,10 +95,12 @@ struct mtask_inst_s* mtask_inner_transfer_fence(struct mtask_inst_s *restrict mt
 // core
 
 struct mtask_core_s* mtask_core_alloc(const struct mtask_context_t *restrict context, uintptr_t queue_interrupt_size);
+struct mtask_core_s* mtask_core_start(struct mtask_core_s *restrict core);
 
 // pipe
 
 struct mtask_pipe_s* mtask_pipe_alloc(struct mtask_inst_s *restrict mtask, uintptr_t pipe_index, const struct mtask_param_pipe_t *restrict param);
+struct mtask_pipe_s* mtask_pipe_start(struct mtask_pipe_s *restrict pipe);
 
 // timer
 

@@ -1,6 +1,6 @@
 #include "mtask.inner.h"
 
-static mtask_param_inst_t* mtask_inst_test_param(mtask_param_inst_t *restrict param)
+static const mtask_param_inst_t* mtask_inst_test_param(const mtask_param_inst_t *restrict param)
 {
 	const mtask_param_pipe_t *restrict p;
 	uintptr_t i, n, cn;
@@ -30,9 +30,11 @@ static void mtask_inst_free_func(mtask_inst_s *restrict r)
 		if (r->pipe[i])
 			refer_free(r->pipe[i]);
 	}
+	if (r->cache_task)
+		refer_free(r->cache_task);
 }
 
-mtask_inst_s* mtask_inst_alloc(mtask_param_inst_t *restrict param)
+mtask_inst_s* mtask_inst_alloc(const mtask_param_inst_t *restrict param)
 {
 	mtask_inst_s *restrict r;
 	uintptr_t i, n;
@@ -51,6 +53,8 @@ mtask_inst_s* mtask_inst_alloc(mtask_param_inst_t *restrict param)
 		{
 			if (!(r->pipe[i] = mtask_pipe_alloc(r, i, param->pipe_param + i)))
 				goto label_fail;
+			if (!mtask_pipe_start(r->pipe[i]))
+				goto label_fail;
 		}
 		return r;
 		label_fail:
@@ -59,7 +63,12 @@ mtask_inst_s* mtask_inst_alloc(mtask_param_inst_t *restrict param)
 	return NULL;
 }
 
-mtask_inst_s* mtask_push_task_active(mtask_inst_s *mtask, uintptr_t pipe_index)
+void mtask_inst_stop(mtask_inst_s *restrict mtask)
+{
+	mtask->running = 0;
+}
+
+mtask_inst_s* mtask_active_pipe(mtask_inst_s *mtask, uintptr_t pipe_index)
 {
 	yaw_signal_s *restrict signal_pipe;
 	if (pipe_index < mtask->pipe_number)
@@ -79,12 +88,10 @@ mtask_inst_s* mtask_push_task_nonblock(mtask_inst_s *mtask, uintptr_t pipe_index
 		(task = mtask_inner_input_need_task(mtask, deal_func, deal_data)))
 	{
 		queue = mtask->pipe[pipe_index]->input;
-		if (queue->push(queue, task))
-		{
-			refer_free(task);
-			return mtask;
-		}
+		queue = queue->push(queue, task);
 		refer_free(task);
+		if (queue)
+			return mtask;
 	}
 	return NULL;
 }
@@ -93,16 +100,87 @@ mtask_inst_s* mtask_push_task_block(mtask_inst_s *mtask, uintptr_t pipe_index, m
 {
 	struct mtask_input_task_s *restrict task;
 	struct mtask_pipe_s *restrict pipe;
+	queue_s *restrict queue;
 	if (pipe_index < mtask->pipe_number &&
 		(task = mtask_inner_input_need_task(mtask, deal_func, deal_data)))
 	{
 		pipe = mtask->pipe[pipe_index];
-		if (mtask_inner_queue_must_push(pipe->input, task, pipe->signal_pipe, &mtask->running))
-		{
-			refer_free(task);
-			return mtask;
-		}
+		queue = mtask_inner_queue_must_push(pipe->input, task, pipe->signal_pipe, &mtask->running);
 		refer_free(task);
+		if (queue)
+			return mtask;
+	}
+	return NULL;
+}
+
+mtask_inst_s* mtask_push_semaphore_block(mtask_inst_s *mtask, const mtask_param_transfer_t *restrict param)
+{
+	struct mtask_input_semaphore_s *restrict semaphore;
+	if (param->pipe_index < mtask->pipe_number && param->transfer_number &&
+		(semaphore = mtask_inner_input_create_semaphore(mtask->pipe_number)))
+	{
+		mtask_inner_transfer_set(&semaphore->transfer, param);
+		mtask = mtask_inner_transfer_semaphore(mtask, semaphore, param->pipe_index);
+		refer_free(semaphore);
+		return mtask;
+	}
+	return NULL;
+}
+
+mtask_inst_s* mtask_push_fence_block(mtask_inst_s *mtask, const mtask_param_transfer_t *restrict param)
+{
+	struct mtask_input_fence_s *restrict fence;
+	if (param->pipe_index < mtask->pipe_number && param->transfer_number &&
+		(fence = mtask_inner_input_create_fence(mtask->pipe_number)))
+	{
+		mtask_inner_transfer_set(&fence->transfer, param);
+		mtask = mtask_inner_transfer_fence(mtask, fence, param->pipe_index);
+		refer_free(fence);
+		return mtask;
+	}
+	return NULL;
+}
+
+mtask_inst_s* mtask_push_semaphore_single(mtask_inst_s *mtask, uintptr_t pipe_index, uintptr_t transfer_number, mtask_deal_f deal_func, refer_t deal_data)
+{
+	struct mtask_input_semaphore_s *restrict semaphore;
+	struct mtask_process_t *restrict p;
+	mtask_param_transfer_t param;
+	param.pipe_index = pipe_index;
+	param.transfer_number = transfer_number;
+	param.transfer_process = NULL;
+	if (param.pipe_index < mtask->pipe_number && param.transfer_number &&
+		(semaphore = mtask_inner_input_create_semaphore(mtask->pipe_number)))
+	{
+		mtask_inner_transfer_set(&semaphore->transfer, &param);
+		p = &semaphore->transfer.process[param.pipe_index + param.transfer_number - 1];
+		p->deal = deal_func;
+		p->data = refer_save(deal_data);
+		mtask = mtask_inner_transfer_semaphore(mtask, semaphore, param.pipe_index);
+		refer_free(semaphore);
+		return mtask;
+	}
+	return NULL;
+}
+
+mtask_inst_s* mtask_push_fence_single(mtask_inst_s *mtask, uintptr_t pipe_index, uintptr_t transfer_number, mtask_deal_f deal_func, refer_t deal_data)
+{
+	struct mtask_input_fence_s *restrict fence;
+	struct mtask_process_t *restrict p;
+	mtask_param_transfer_t param;
+	param.pipe_index = pipe_index;
+	param.transfer_number = transfer_number;
+	param.transfer_process = NULL;
+	if (param.pipe_index < mtask->pipe_number && param.transfer_number &&
+		(fence = mtask_inner_input_create_fence(mtask->pipe_number)))
+	{
+		mtask_inner_transfer_set(&fence->transfer, &param);
+		p = &fence->transfer.process[param.pipe_index + param.transfer_number - 1];
+		p->deal = deal_func;
+		p->data = refer_save(deal_data);
+		mtask = mtask_inner_transfer_fence(mtask, fence, param.pipe_index);
+		refer_free(fence);
+		return mtask;
 	}
 	return NULL;
 }

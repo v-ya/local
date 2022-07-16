@@ -39,6 +39,78 @@ void mtask_inner_input_unlink_task(struct mtask_inst_s *restrict mtask, struct m
 		refer_free(task);
 }
 
+static inline void mtask_inner_transfer_clear(struct mtask_transfer_t *restrict r)
+{
+	uintptr_t i, n;
+	for (i = 0, n = r->process_number; i < n; ++i)
+	{
+		if (r->process[i].data)
+			refer_free(r->process[i].data);
+		r->process[i].deal = NULL;
+		r->process[i].data = NULL;
+	}
+}
+
+static void mtask_input_semaphore_free_func(struct mtask_input_semaphore_s *restrict r)
+{
+	mtask_inner_transfer_clear(&r->transfer);
+}
+
+struct mtask_input_semaphore_s* mtask_inner_input_create_semaphore(uintptr_t pipe_number)
+{
+	struct mtask_input_semaphore_s *restrict r;
+	if ((r = (struct mtask_input_semaphore_s *) refer_alloz(
+		sizeof(struct mtask_input_semaphore_s) + sizeof(struct mtask_process_t) * pipe_number)))
+	{
+		refer_set_free(r, (refer_free_f) mtask_input_semaphore_free_func);
+		r->input.type = mtask_type__semaphore;
+		r->transfer.process_number = pipe_number;
+		return r;
+	}
+	return NULL;
+}
+
+static void mtask_input_fence_free_func(struct mtask_input_fence_s *restrict r)
+{
+	mtask_inner_transfer_clear(&r->transfer);
+}
+
+struct mtask_input_fence_s* mtask_inner_input_create_fence(uintptr_t pipe_number)
+{
+	struct mtask_input_fence_s *restrict r;
+	if ((r = (struct mtask_input_fence_s *) refer_alloz(
+		sizeof(struct mtask_input_fence_s) + sizeof(struct mtask_process_t) * pipe_number)))
+	{
+		refer_set_free(r, (refer_free_f) mtask_input_fence_free_func);
+		r->input.type = mtask_type__fence;
+		r->transfer.process_number = pipe_number;
+		return r;
+	}
+	return NULL;
+}
+
+void mtask_inner_transfer_set(struct mtask_transfer_t *restrict transfer, const struct mtask_param_transfer_t *restrict param)
+{
+	const struct mtask_param_process_t *restrict p;
+	uintptr_t i, n;
+	n = (i = param->pipe_index) + param->transfer_number;
+	if (n > transfer->process_number)
+		n = transfer->process_number;
+	transfer->transfer_finish = n;
+	if ((p = param->transfer_process))
+	{
+		while (i < n)
+		{
+			if (transfer->process[i].data)
+				refer_free(transfer->process[i].data);
+			transfer->process[i].deal = p->deal;
+			transfer->process[i].data = refer_save(p->data);
+			++p;
+			++i;
+		}
+	}
+}
+
 queue_s* mtask_inner_queue_must_push(queue_s *restrict q, refer_t v, yaw_signal_s *restrict s, const volatile uintptr_t *running)
 {
 	uint32_t status;
@@ -99,8 +171,9 @@ struct mtask_inst_s* mtask_inner_transfer_fence(struct mtask_inst_s *restrict mt
 		signal_pipe = pipe->signal_pipe;
 		mutex_fence = pipe->mutex_fence;
 		number = pipe->core_number;
-		fence->remaining_core = number;
+		fence->remaining_initial = number;
 		fence->notify_okay = 0;
+		fence->remaining_finally = number;
 		yaw_lock_lock(mutex_fence);
 		while (number)
 		{

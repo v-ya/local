@@ -52,3 +52,16 @@ struct mtask_pipe_s* mtask_pipe_alloc(struct mtask_inst_s *restrict mtask, uintp
 	}
 	return NULL;
 }
+
+struct mtask_pipe_s* mtask_pipe_start(struct mtask_pipe_s *restrict pipe)
+{
+	uintptr_t i, n;
+	for (i = 0, n = pipe->core_number; i < n; ++i)
+	{
+		if (!mtask_core_start(pipe->core[i]))
+			goto label_fail;
+	}
+	return pipe;
+	label_fail:
+	return NULL;
+}
