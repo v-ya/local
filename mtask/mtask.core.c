@@ -37,31 +37,20 @@ static inline void mtask_core_task_do_semaphore(struct mtask_input_semaphore_s *
 	}
 	if (!__sync_sub_and_fetch(&input->remaining_core, 1))
 	{
-		mtask_deal_f deal;
-		uintptr_t index;
-		index = stack->context.pipe_index;
-		if (index < input->transfer.process_number &&
-			(deal = input->transfer.process[index].deal))
-			deal(input->transfer.process[index].data, &stack->context);
-		index += 1;
-		if (index < input->transfer.transfer_finish &&
-			index < stack->context.mtask->pipe_number)
-		{
-			// transfer next pipe
-			;
-		}
+		mtask_inner_transfer_process(&input->transfer, &stack->context);
+		mtask_inner_transfer_semaphore(stack->context.mtask, input, stack->context.pipe_index + 1);
 	}
 }
 
 static inline void mtask_core_task_do_fence(struct mtask_input_fence_s *input, const struct mtask_core_stack_t *restrict stack)
 {
-	const volatile uintptr_t *running;
 	yaw_signal_s *restrict signal_fence;
-	running = &stack->context.mtask->running;
 	signal_fence = stack->pipe->signal_fence;
 	if (__sync_sub_and_fetch(&input->remaining_core, 1))
 	{
+		const volatile uintptr_t *running;
 		uint32_t status;
+		running = &stack->context.mtask->running;
 		for (;;)
 		{
 			status = yaw_signal_get(signal_fence);
@@ -72,20 +61,10 @@ static inline void mtask_core_task_do_fence(struct mtask_input_fence_s *input, c
 	}
 	else
 	{
-		mtask_deal_f deal;
-		uintptr_t index;
-		index = stack->context.pipe_index;
-		if (index < input->transfer.process_number &&
-			(deal = input->transfer.process[index].deal))
-			deal(input->transfer.process[index].data, &stack->context);
+		mtask_inner_transfer_process(&input->transfer, &stack->context);
+		input->notify_okay = 1;
 		yaw_signal_inc_wake(signal_fence, ~0);
-		index += 1;
-		if (index < input->transfer.transfer_finish &&
-			index < stack->context.mtask->pipe_number)
-		{
-			// transfer next pipe
-			;
-		}
+		mtask_inner_transfer_fence(stack->context.mtask, input, stack->context.pipe_index + 1);
 	}
 }
 
@@ -112,7 +91,7 @@ static void mtask_core_task(yaw_s *restrict yaw)
 {
 	struct mtask_core_s *restrict core;
 	struct mtask_pipe_s *restrict pipe;
-	struct mtask_s *restrict mtask;
+	struct mtask_inst_s *restrict mtask;
 	yaw_signal_s *restrict signal_pipe;
 	queue_s *restrict queue_input;
 	queue_s *restrict queue_interrupt;
@@ -124,6 +103,8 @@ static void mtask_core_task(yaw_s *restrict yaw)
 		core->context.pipe_index < mtask->pipe_number &&
 		(pipe = mtask->pipe[core->context.pipe_index]))
 	{
+		if (pipe->friendly)
+			yaw_set_self_nice((float) 1);
 		signal_pipe = pipe->signal_pipe;
 		queue_input = pipe->input;
 		queue_interrupt = core->interrupt;
@@ -138,7 +119,7 @@ static void mtask_core_task(yaw_s *restrict yaw)
 					mtask_core_task_do(input, &stack);
 				if ((input = (struct mtask_input_s *) queue_input->pull(queue_input)))
 					mtask_core_task_do(input, &stack);
-			} while (input);
+			} while (mtask->running && input);
 			yaw_signal_wait(signal_pipe, status);
 		}
 	}
