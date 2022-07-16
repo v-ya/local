@@ -18,6 +18,7 @@ struct mtask_context_t {
 };
 
 struct mtask_param_inst_t {
+	uintptr_t task_cache_number;
 	uintptr_t pipe_number;
 	const mtask_param_pipe_t *pipe_param;
 };
@@ -29,6 +30,9 @@ struct mtask_param_pipe_t {
 	uintptr_t friendly;
 };
 
-mtask_inst_s* mtask_inst_alloc(struct mtask_param_inst_t *restrict param);
+mtask_inst_s* mtask_inst_alloc(mtask_param_inst_t *restrict param);
+mtask_inst_s* mtask_push_task_active(mtask_inst_s *mtask, uintptr_t pipe_index);
+mtask_inst_s* mtask_push_task_nonblock(mtask_inst_s *mtask, uintptr_t pipe_index, mtask_deal_f deal_func, refer_t deal_data);
+mtask_inst_s* mtask_push_task_block(mtask_inst_s *mtask, uintptr_t pipe_index, mtask_deal_f deal_func, refer_t deal_data);
 
 #endif

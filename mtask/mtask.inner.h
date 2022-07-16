@@ -73,11 +73,15 @@ struct mtask_pipe_s {
 
 struct mtask_inst_s {
 	volatile uintptr_t running;
+	queue_s *cache_task;
 	uintptr_t pipe_number;
 	struct mtask_pipe_s *pipe[];
 };
 
 // inner
+
+struct mtask_input_task_s* mtask_inner_input_need_task(struct mtask_inst_s *restrict mtask, mtask_deal_f deal_func, refer_t deal_data);
+void mtask_inner_input_unlink_task(struct mtask_inst_s *restrict mtask, struct mtask_input_task_s *restrict task);
 
 queue_s* mtask_inner_queue_must_push(queue_s *restrict q, refer_t v, yaw_signal_s *restrict s, const volatile uintptr_t *running);
 void mtask_inner_transfer_process(const struct mtask_transfer_t *restrict transfer, const struct mtask_context_t *restrict context);

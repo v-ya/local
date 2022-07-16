@@ -74,17 +74,20 @@ static void mtask_core_task_do(struct mtask_input_s *input, const struct mtask_c
 	{
 		case mtask_type__task:
 			mtask_core_task_do_task((struct mtask_input_task_s *) input, stack);
+			mtask_inner_input_unlink_task(stack->context.mtask, (struct mtask_input_task_s *) input);
 			break;
 		case mtask_type__semaphore:
 			mtask_core_task_do_semaphore((struct mtask_input_semaphore_s *) input, stack);
+			refer_free(input);
 			break;
 		case mtask_type__fence:
 			mtask_core_task_do_fence((struct mtask_input_fence_s *) input, stack);
+			refer_free(input);
 			break;
 		default:
+			refer_free(input);
 			break;
 	}
-	refer_free(input);
 }
 
 static void mtask_core_task(yaw_s *restrict yaw)

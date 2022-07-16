@@ -1,5 +1,44 @@
 #include "mtask.inner.h"
 
+static inline void mtask_inner_process_set(struct mtask_process_t *restrict r, mtask_deal_f deal_func, refer_t deal_data)
+{
+	if (r->data)
+		refer_free(r->data);
+	r->deal = deal_func;
+	r->data = refer_save(deal_data);
+}
+
+static void mtask_input_task_free_func(struct mtask_input_task_s *restrict r)
+{
+	mtask_inner_process_set(&r->process, NULL, NULL);
+}
+
+struct mtask_input_task_s* mtask_inner_input_need_task(struct mtask_inst_s *restrict mtask, mtask_deal_f deal_func, refer_t deal_data)
+{
+	struct mtask_input_task_s *restrict r;
+	queue_s *restrict q;
+	if ((q = mtask->cache_task) && (r = (struct mtask_input_task_s *) q->pull(q)))
+		goto label_okay;
+	else if ((r = (struct mtask_input_task_s *) refer_alloz(sizeof(struct mtask_input_task_s))))
+	{
+		refer_set_free(r, (refer_free_f) mtask_input_task_free_func);
+		r->input.type = mtask_type__task;
+		r->process.deal = deal_func;
+		r->process.data = refer_save(deal_data);
+		label_okay:
+		return r;
+	}
+	return NULL;
+}
+
+void mtask_inner_input_unlink_task(struct mtask_inst_s *restrict mtask, struct mtask_input_task_s *restrict task)
+{
+	queue_s *restrict q;
+	mtask_inner_process_set(&task->process, NULL, NULL);
+	if (!(q = mtask->cache_task) || !q->push(q, task))
+		refer_free(task);
+}
+
 queue_s* mtask_inner_queue_must_push(queue_s *restrict q, refer_t v, yaw_signal_s *restrict s, const volatile uintptr_t *running)
 {
 	uint32_t status;
