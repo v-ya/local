@@ -4,7 +4,7 @@ HEADER		= xwindow.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lxcb -lxcb-shm -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lhashmap -lyaw -lxcb -lxcb-shm -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 

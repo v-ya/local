@@ -4,8 +4,6 @@ static void xwindow_free_func(xwindow_s *restrict r)
 {
 	if (r->connection)
 	{
-		if (r->shmseg)
-			xcb_shm_detach(r->connection, r->shmseg);
 		if (r->gcontext)
 			xcb_free_gc(r->connection, r->gcontext);
 		if (r->window)
@@ -15,10 +13,7 @@ static void xwindow_free_func(xwindow_s *restrict r)
 		xcb_flush(r->connection);
 		xcb_disconnect(r->connection);
 	}
-	if (r->shm)
-		refer_free(r->shm);
-	if (r->report.data)
-		refer_free(r->report.data);
+	if (r->atom) refer_free(r->atom);
 }
 
 static inline void xwindow_fix_xywh(const xcb_screen_t *restrict screen, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict w, uint32_t *restrict h)
@@ -36,11 +31,12 @@ xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t 
 	{
 		refer_set_free(r, (refer_free_f) xwindow_free_func);
 		error = NULL;
+		if (!(r->atom = xwindow_atom_alloc()))
+			goto label_fail;
 		r->connection = xcb_connect(NULL, NULL);
 		if (!r->connection)
 			goto label_fail;
-		if (!xwindow_inner_get_atom(r->connection, &r->atom))
-			goto label_fail;
+		xwindow_inner_atom_touch_common(r->atom, r->connection);
 		r->screen = xwindow_inner_get_screen(r->connection, depth, &r->visual);
 		if (!r->screen)
 			goto label_fail;
@@ -58,7 +54,7 @@ xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t 
 				XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL | XCB_CW_COLORMAP,
 				(uint32_t []) {0, 0, r->colormap}))))
 			goto label_fail;
-		if (!xwindow_inner_allow_close_event(r->connection, &r->atom, r->window))
+		if (!xwindow_inner_allow_close_event(r->connection, r->atom, r->window))
 			goto label_fail;
 		r->gcontext = xcb_generate_id(r->connection);
 		if ((error = xcb_request_check(r->connection, xcb_create_gc_checked(

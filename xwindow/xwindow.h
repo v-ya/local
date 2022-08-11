@@ -4,6 +4,8 @@
 #include <refer.h>
 
 typedef struct xwindow_s xwindow_s;
+typedef struct xwindow_event_s xwindow_event_s;
+typedef struct xwindow_image_s xwindow_image_s;
 
 typedef enum xwindow_event_t {
 	xwindow_event_null,      // 事件队列结束符
@@ -65,26 +67,9 @@ typedef void (*xwindow_event_area_f)(refer_t data, xwindow_s *w, xwindow_event_s
 typedef void (*xwindow_event_focus_f)(refer_t data, xwindow_s *w, uint32_t focus);
 typedef void (*xwindow_event_config_f)(refer_t data, xwindow_s *w, int32_t x, int32_t y, uint32_t width, uint32_t height);
 
-void xwindow_usleep(uint32_t us);
 xwindow_s* xwindow_alloc(int32_t x, int32_t y, uint32_t w, uint32_t h, uint32_t depth);
-xwindow_s* xwindow_enable_shm(xwindow_s *restrict r, uintptr_t shm_size);
-xwindow_s* xwindow_disable_shm(xwindow_s *restrict r);
 xwindow_s* xwindow_map(xwindow_s *restrict r);
 xwindow_s* xwindow_unmap(xwindow_s *restrict r);
-xwindow_s* xwindow_update(xwindow_s *restrict r, const uint32_t *restrict data, uint32_t width, uint32_t height, int32_t x, int32_t y);
-xwindow_s* xwindow_set_event(xwindow_s *restrict r, const xwindow_event_t *restrict events);
-xwindow_s* xwindow_do_event(xwindow_s *restrict r);
-uintptr_t xwindow_do_all_events(xwindow_s *restrict r);
-void xwindow_register_event_data(xwindow_s *restrict r, refer_t data);
-void xwindow_register_event_close(xwindow_s *restrict r, xwindow_event_close_f func);
-void xwindow_register_event_expose(xwindow_s *restrict r, xwindow_event_expose_f func);
-void xwindow_register_event_key(xwindow_s *restrict r, xwindow_event_key_f func);
-void xwindow_register_event_button(xwindow_s *restrict r, xwindow_event_button_f func);
-void xwindow_register_event_pointer(xwindow_s *restrict r, xwindow_event_pointer_f func);
-void xwindow_register_event_area(xwindow_s *restrict r, xwindow_event_area_f func);
-void xwindow_register_event_focus(xwindow_s *restrict r, xwindow_event_focus_f func);
-void xwindow_register_event_config(xwindow_s *restrict r, xwindow_event_config_f func);
-void xwindow_register_clear(xwindow_s *restrict r);
 const xwindow_s* xwindow_get_screen_size(const xwindow_s *restrict r, uint32_t *restrict width_pixels, uint32_t *restrict height_pixels, uint32_t *restrict width_mm, uint32_t *restrict height_mm, uint32_t *restrict depth);
 const xwindow_s* xwindow_get_geometry(const xwindow_s *restrict r, uint32_t *restrict width, uint32_t *restrict height, int32_t *restrict x, int32_t *restrict y, uint32_t *restrict depth);
 xwindow_s* xwindow_set_position(xwindow_s *restrict r, int32_t x, int32_t y);
@@ -93,5 +78,25 @@ xwindow_s* xwindow_set_title(xwindow_s *restrict r, const char *restrict utf8_st
 xwindow_s* xwindow_set_icon(xwindow_s *restrict r, uint32_t width, uint32_t height, const uint32_t *restrict data_bgra);
 xwindow_s* xwindow_set_hint_decorations(xwindow_s *restrict r, uint32_t enable);
 xwindow_s* xwindow_set_fullscreen(xwindow_s *restrict r, uint32_t enable);
+
+xwindow_event_s* xwindow_event_alloc(xwindow_s *restrict xwindow, const xwindow_event_t *restrict events);
+xwindow_event_s* xwindow_event_used(xwindow_event_s *restrict r, const xwindow_event_t *restrict events);
+void xwindow_event_clear_register(xwindow_event_s *restrict r);
+void xwindow_event_register_close(xwindow_event_s *restrict r, xwindow_event_close_f func, refer_t data);
+void xwindow_event_register_expose(xwindow_event_s *restrict r, xwindow_event_expose_f func, refer_t data);
+void xwindow_event_register_key(xwindow_event_s *restrict r, xwindow_event_key_f func, refer_t data);
+void xwindow_event_register_button(xwindow_event_s *restrict r, xwindow_event_button_f func, refer_t data);
+void xwindow_event_register_pointer(xwindow_event_s *restrict r, xwindow_event_pointer_f func, refer_t data);
+void xwindow_event_register_area(xwindow_event_s *restrict r, xwindow_event_area_f func, refer_t data);
+void xwindow_event_register_focus(xwindow_event_s *restrict r, xwindow_event_focus_f func, refer_t data);
+void xwindow_event_register_config(xwindow_event_s *restrict r, xwindow_event_config_f func, refer_t data);
+xwindow_event_s* xwindow_event_do(xwindow_event_s *restrict r);
+uintptr_t xwindow_event_done(xwindow_event_s *restrict r);
+
+xwindow_image_s* xwindow_image_alloc_memory(xwindow_s *restrict xwindow, uint32_t width_max, uint32_t height_max);
+xwindow_image_s* xwindow_image_alloc_shm(xwindow_s *restrict xwindow, uint32_t width_max, uint32_t height_max);
+uint32_t* xwindow_image_map(xwindow_image_s *restrict r, uint32_t width, uint32_t height);
+xwindow_image_s* xwindow_image_update_full(xwindow_image_s *restrict r, int32_t dx, int32_t dy);
+xwindow_image_s* xwindow_image_update_block(xwindow_image_s *restrict r, uint32_t w, uint32_t h, int32_t sx, int32_t sy, int32_t dx, int32_t dy);
 
 #endif
