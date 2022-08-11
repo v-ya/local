@@ -8,7 +8,7 @@ static const uint32_t* image_load(const char *restrict path, uint32_t *restrict 
 	const uint32_t *restrict r;
 	uint32_t *restrict data;
 	AVFormatContext *format;
-	AVCodec *codec;
+	const AVCodec *codec;
 	AVCodecContext *codecer;
 	AVPacket *packet;
 	AVFrame *frame;

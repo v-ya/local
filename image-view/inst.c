@@ -2,6 +2,8 @@
 #include "image_load.h"
 #include "image_resample.h"
 #include <xwindow.h>
+#include <yaw.h>
+#include <memory.h>
 #include <math.h>
 
 #define  inst_zoom_in_2   0.7071067811865475f
@@ -23,6 +25,8 @@ struct inst_s {
 	const image_bgra_s *image;
 	image_resample_s *resample;
 	xwindow_s *window;
+	xwindow_event_s *event;
+	xwindow_image_s *ximage;
 	volatile uint32_t is_close;
 	volatile uint32_t update;
 	inst_task_t task;
@@ -229,6 +233,10 @@ static void inst_event_pointer_func(inst_s *restrict r, xwindow_s *w, xwindow_ev
 
 static void inst_free_func(inst_s *restrict r)
 {
+	if (r->ximage)
+		refer_free(r->ximage);
+	if (r->event)
+		refer_free(r->event);
 	if (r->window)
 	{
 		xwindow_unmap(r->window);
@@ -253,9 +261,10 @@ static void inst_set_title_and_icon(inst_s *restrict r, const char *restrict pat
 	image_resample_m_reset(r->resample);
 }
 
-inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor)
+inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor, uint32_t shm_enable)
 {
 	inst_s *restrict r;
+	uint32_t w, h;
 	r = (inst_s *) refer_alloz(sizeof(inst_s));
 	if (r)
 	{
@@ -269,16 +278,21 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 				r->window = xwindow_alloc(0, 0, r->width = r->image->width, r->height = r->image->height, 24);
 				if (r->window)
 				{
+					r->event = xwindow_event_alloc(r->window, NULL);
+					if (xwindow_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
+						r->ximage = (shm_enable?xwindow_image_alloc_shm:xwindow_image_alloc_memory)(r->window, w, h);
 					r->hint_decorations = 1;
 					inst_set_title_and_icon(r, path);
-					xwindow_register_event_data(r->window, r);
-					xwindow_register_event_close(r->window, (xwindow_event_close_f) inst_event_close_func);
-					xwindow_register_event_expose(r->window, (xwindow_event_expose_f) inst_event_expose_func);
-					xwindow_register_event_key(r->window, (xwindow_event_key_f) inst_event_key_func);
-					xwindow_register_event_button(r->window, (xwindow_event_button_f) inst_event_button_func);
-					xwindow_register_event_pointer(r->window, (xwindow_event_pointer_f) inst_event_pointer_func);
-					xwindow_register_event_config(r->window, (xwindow_event_config_f) inst_event_config_func);
-					return r;
+					if (r->event && r->ximage)
+					{
+						xwindow_event_register_close(r->event, (xwindow_event_close_f) inst_event_close_func, r);
+						xwindow_event_register_expose(r->event, (xwindow_event_expose_f) inst_event_expose_func, r);
+						xwindow_event_register_key(r->event, (xwindow_event_key_f) inst_event_key_func, r);
+						xwindow_event_register_button(r->event, (xwindow_event_button_f) inst_event_button_func, r);
+						xwindow_event_register_pointer(r->event, (xwindow_event_pointer_f) inst_event_pointer_func, r);
+						xwindow_event_register_config(r->event, (xwindow_event_config_f) inst_event_config_func, r);
+						return r;
+					}
 				}
 			}
 		}
@@ -287,25 +301,9 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 	return NULL;
 }
 
-inst_s* inst_enable_shm(inst_s *restrict r, uintptr_t shm_size)
-{
-	if (!shm_size)
-	{
-		uint32_t w, h;
-		if (!xwindow_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
-			goto label_fail;
-		shm_size = sizeof(uint32_t) * w * h;
-	}
-	xwindow_disable_shm(r->window);
-	if (xwindow_enable_shm(r->window, shm_size))
-		return r;
-	label_fail:
-	return NULL;
-}
-
 inst_s* inst_begin(inst_s *restrict r)
 {
-	if (xwindow_set_event(r->window, (const xwindow_event_t []) {
+	if (xwindow_event_used(r->event, (const xwindow_event_t []) {
 			xwindow_event_close,
 			xwindow_event_expose,
 			xwindow_event_key,
@@ -320,28 +318,33 @@ inst_s* inst_begin(inst_s *restrict r)
 
 void inst_free(inst_s *restrict r)
 {
-	if (r->window)
-		xwindow_register_clear(r->window);
+	if (r->event)
+		xwindow_event_clear_register(r->event);
 	refer_free(r);
 }
 
 void inst_wait(inst_s *restrict r)
 {
+	uint32_t *restrict data;
 	while (!r->is_close)
 	{
 		if (!r->update)
-			xwindow_usleep(5000);
+			yaw_msleep(5);
 		else
 		{
 			if (image_resample_set_dst(r->resample, r->width, r->height))
 			{
 				if (image_resample_get_dst(r->resample))
 				{
-					xwindow_update(r->window, r->resample->dst, r->width, r->height, 0, 0);
+					if ((data = xwindow_image_map(r->ximage, r->width, r->height)))
+					{
+						memcpy(data, r->resample->dst, (uintptr_t) r->width * r->height * 4);
+						xwindow_image_update_full(r->ximage, 0, 0);
+					}
 				}
 			}
 			r->update = 0;
 		}
-		xwindow_do_all_events(r->window);
+		xwindow_event_done(r->event);
 	}
 }

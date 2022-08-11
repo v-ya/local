@@ -7,11 +7,9 @@ int main(int argc, const char *argv[])
 	if (args_get(&args, argc, argv))
 	{
 		inst_s *restrict inst;
-		inst = inst_alloc(args.image_path, args.multicalc, args.bgcolor);
+		inst = inst_alloc(args.image_path, args.multicalc, args.bgcolor, !args.shm_disable);
 		if (inst)
 		{
-			if (!args.shm_disable)
-				inst_enable_shm(inst, args.shm_size);
 			if (inst_begin(inst))
 				inst_wait(inst);
 			inst_free(inst);
