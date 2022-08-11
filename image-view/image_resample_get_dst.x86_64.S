@@ -3,7 +3,7 @@
 
 #define offset_src        0x00
 #define offset_dst        0x08
-#define offset_multicalc  0x10
+#define offset_mtask      0x10
 #define offset_d_size     0x18
 #define offset_s_width    0x20
 #define offset_s_height   0x24
@@ -11,8 +11,7 @@
 #define offset_d_height   0x2c
 #define offset_matrix     0x30
 #define offset_bgcolor    0x54
-#define offset_n_mc       0x58
-#define offset_n_block    0x5c
+#define offset_n_block    0x58
 
 // 内部缓存行对齐
 // .p2align 4,,10

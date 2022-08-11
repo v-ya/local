@@ -1,5 +1,5 @@
 #include "image_resample.h"
-#include <multicalc.h>
+#include <yaw.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <alloca.h>
@@ -7,27 +7,30 @@
 
 static void image_resample_free_func(image_resample_s *restrict r)
 {
-	if (r->multicalc)
-		multicalc_free(r->multicalc);
+	if (r->mtask)
+		refer_free(r->mtask);
 	if (r->src)
 		free((void *) r->src);
-	if (r->dst)
-		free(r->dst);
 }
-
-typedef struct image_resample_dst_multicalc_t image_resample_dst_multicalc_t;
-static void image_resample_get_dst_multicalc_func(image_resample_dst_multicalc_t *restrict r);
 
 image_resample_s* image_resample_alloc(uint32_t n_multicalc, uint32_t bgcolor)
 {
 	image_resample_s *restrict r;
+	mtask_param_inst_t param;
+	mtask_param_pipe_t pipe;
 	if ((r = (image_resample_s *) refer_alloz(sizeof(image_resample_s))))
 	{
 		refer_set_free(r, (refer_free_f) image_resample_free_func);
-		if (!n_multicalc || (r->multicalc = multicalc_alloc(n_multicalc, 0)))
+		if (!n_multicalc) n_multicalc = 1;
+		param.task_cache_number = 4096;
+		param.pipe_number = 1;
+		param.pipe_param = &pipe;
+		pipe.core_number = n_multicalc;
+		pipe.queue_input_size = 4096;
+		pipe.queue_interrupt_size = 64;
+		pipe.friendly = 1;
+		if ((r->mtask = mtask_inst_alloc(&param)))
 		{
-			if (r->multicalc)
-				multicalc_set_all_func(r->multicalc, (multicalc_do_f) image_resample_get_dst_multicalc_func);
 			r->matrix[0] = 1;
 			r->matrix[1] = 0;
 			r->matrix[2] = 0;
@@ -38,7 +41,6 @@ image_resample_s* image_resample_alloc(uint32_t n_multicalc, uint32_t bgcolor)
 			r->matrix[7] = 0;
 			r->matrix[8] = 1;
 			r->bgcolor = bgcolor;
-			r->n_mc = n_multicalc;
 			r->mc_have_min_pixels = 65536;
 		}
 	}
@@ -77,59 +79,13 @@ image_resample_s* image_resample_set_src(image_resample_s *restrict r, const uin
 	return NULL;
 }
 
-static image_resample_s* image_resample_need_dst(image_resample_s *restrict r, register uint64_t n)
+image_resample_s* image_resample_set_dst(image_resample_s *restrict r, uint32_t *restrict data, uint32_t width, uint32_t height)
 {
-	uint32_t *restrict p;
-	uint64_t size;
-	if (n <= r->d_size)
-	{
-		label_ok:
-		return r;
-	}
-	--n;
-	n |= 0xff;
-	n |= n >> 32;
-	n |= n >> 16;
-	n |= n >> 8;
-	n |= n >> 4;
-	n |= n >> 2;
-	n |= n >> 1;
-	++n;
-	if ((size = n * sizeof(uint32_t)) && (p = malloc(size)))
-	{
-		if (r->dst)
-			free(r->dst);
-		r->dst = p;
-		r->d_size = n;
-		goto label_ok;
-	}
-	return NULL;
-}
-
-image_resample_s* image_resample_set_dst(image_resample_s *restrict r, uint32_t width, uint32_t height)
-{
-	if (width && height)
-	{
-		if (image_resample_need_dst(r, width * height))
-		{
-			r->d_width = width;
-			r->d_height = height;
-			return r;
-		}
-	}
-	else if (!width && !height)
-	{
-		if (r->dst)
-		{
-			free(r->dst);
-			r->dst = NULL;
-		}
-		r->d_size = 0;
-		r->d_width = 0;
-		r->d_height = 0;
-		return r;
-	}
-	return NULL;
+	r->d_width = width;
+	r->d_height = height;
+	r->d_size = (uint64_t) width * height;
+	r->dst = data;
+	return r;
 }
 
 static float* image_resample_mat3_mul(float r[9], float a[9], float b[9])
@@ -221,66 +177,84 @@ void image_resample_m_reset(image_resample_s *restrict r)
 	}
 }
 
-struct image_resample_dst_multicalc_t {
-	image_resample_s *resample;
+// resample to dst
+
+typedef struct image_resample_dst_task_s {
+	image_resample_s *resample_only_pointer;
 	uintptr_t n;
 	uint32_t x;
 	uint32_t y;
-};
+} image_resample_dst_task_s;
 
 image_resample_s* image_resample_get_dst_subblock(image_resample_s *restrict r, uint32_t x, uint32_t y, uintptr_t n);
 
-static void image_resample_get_dst_multicalc_func(image_resample_dst_multicalc_t *restrict r)
+static void image_resample_dst_task_func(image_resample_dst_task_s *restrict data, mtask_context_t *restrict c)
 {
-	r->resample = image_resample_get_dst_subblock(r->resample, r->x, r->y, r->n);
+	image_resample_get_dst_subblock(data->resample_only_pointer, data->x, data->y, data->n);
+}
+
+static void image_resample_get_dst_push_data(image_resample_s *restrict r)
+{
+	image_resample_dst_task_s *restrict data;
+	uintptr_t nl, np;
+	uint32_t y, rh;
+	if (r->dst && r->d_width && r->d_height)
+	{
+		nl = (r->mc_have_min_pixels + r->d_width - 1) / r->d_width;
+		if (nl)
+		{
+			rh = r->d_height;
+			y = 0;
+			while (rh)
+			{
+				if (nl > rh) nl = rh;
+				np = nl * r->d_width;
+				if ((data = (image_resample_dst_task_s *) refer_alloc(sizeof(image_resample_dst_task_s))))
+				{
+					data->resample_only_pointer = r;
+					data->n = np;
+					data->x = 0;
+					data->y = y;
+					mtask_push_task_nonblock(r->mtask, 0, (mtask_deal_f) image_resample_dst_task_func, data);
+					refer_free(data);
+				}
+				y += nl;
+				rh -= nl;
+			}
+		}
+	}
+}
+
+static void image_resample_dst_semaphore_func(yaw_signal_s *restrict data, mtask_context_t *restrict c)
+{
+	yaw_signal_set(data, 1);
+	yaw_signal_wake(data, ~0);
+}
+
+static image_resample_s* image_resample_get_dst_wait_data(image_resample_s *restrict r)
+{
+	yaw_signal_s *signal;
+	image_resample_s *rr;
+	rr = NULL;
+	if ((signal = yaw_signal_alloc()))
+	{
+		yaw_signal_set(signal, 0);
+		if (mtask_push_semaphore_single(r->mtask, 0, 1, (mtask_deal_f) image_resample_dst_semaphore_func, signal))
+		{
+			mtask_active_pipe(r->mtask, 0);
+			do {
+				yaw_signal_wait(signal, 0);
+			} while (yaw_signal_get(signal) == 0);
+			rr = r;
+		}
+		refer_free(signal);
+	}
+	return rr;
 }
 
 image_resample_s* image_resample_get_dst(image_resample_s *restrict r)
 {
-	uintptr_t pn = r->d_width * r->d_height;
-	if (!r->multicalc || pn <= r->mc_have_min_pixels)
-	{
-		label_mini:
-		return image_resample_get_dst_subblock(r, 0, 0, pn);
-	}
-	else
-	{
-		image_resample_dst_multicalc_t *restrict mcd;
-		uintptr_t L, p;
-		uint32_t i, n;
-		n = r->n_mc + 1;
-		L = (pn + r->n_mc) / n;
-		if (L < r->mc_have_min_pixels)
-			L = r->mc_have_min_pixels;
-		n = (pn + (L - 1)) / L;
-		if (n < 2) goto label_mini;
-		mcd = (image_resample_dst_multicalc_t *) alloca(sizeof(image_resample_dst_multicalc_t) * n);
-		if (!mcd) goto label_mini;
-		p = 0;
-		i = 0;
-		--n;
-		do {
-			if (L > pn) L = pn;
-			mcd[i].resample = r;
-			mcd[i].n = L;
-			mcd[i].x = p % r->d_width;
-			mcd[i].y = p / r->d_width;
-			pn -= L;
-			p += L;
-			if (i < n)
-			{
-				multicalc_set_data(r->multicalc, i, mcd + i);
-				multicalc_set_status(r->multicalc, i, 1);
-			}
-		} while (++i <= n);
-		multicalc_wake(r->multicalc);
-		image_resample_get_dst_multicalc_func(mcd + n);
-		multicalc_wait(r->multicalc);
-		i = 0;
-		do {
-			if (!mcd->resample)
-				r = NULL;
-		} while (++i <= n);
-		return r;
-	}
+	image_resample_get_dst_push_data(r);
+	mtask_active_pipe(r->mtask, 0);
+	return image_resample_get_dst_wait_data(r);
 }

@@ -21,7 +21,7 @@ static args_deal_func(_k, args_t *restrict)
 	uint32_t k;
 	if (!value) return -1;
 	k = strtoul(value, NULL, 0);
-	if (k > 15) k = 15;
+	if (k > 16) k = 16;
 	pri->multicalc = k;
 	++*index;
 	return 0;
@@ -31,15 +31,6 @@ static args_deal_func(_b, args_t *restrict)
 {
 	if (!value) return -1;
 	pri->bgcolor = strtoul(value, NULL, 0);
-	++*index;
-	return 0;
-}
-
-static args_deal_func(_s, args_t *restrict)
-{
-	if (!value) return -1;
-	pri->shm_disable = 0;
-	pri->shm_size = strtoul(value, NULL, 0);
 	++*index;
 	return 0;
 }
@@ -68,10 +59,8 @@ static inline void args_help(const char *restrict exec, uint32_t full)
 		"\t " "[option]              default     range                     info\n"
 		"\t*" "-h/--help [full]                                            print help document\n"
 		"\t*" "[--] <input:image>                                          input image path\n"
-		"\t " "-k/--kernel <kn>      3           [0, 15]                   extra calc kernel\n"
+		"\t " "-k/--kernel <kn>      4           [0, 16]                   multi calc kernel\n"
 		"\t " "-b/--bgcolor <color>  0xff7f7f7f  [0x00000000, 0xffffffff]  background color\n"
-		"\t " "-s/--shm-size <size>  0                                     enable xcb shm and set shm size\n"
-		"\t " "                                                            0 is auto by screen size\n"
 		"\t " "--disable-shm         no                                    disable xcb shm\n"
 		, exec
 	);
@@ -112,7 +101,7 @@ args_t* args_get(args_t *restrict args, int argc, const char *argv[])
 {
 	hashmap_t a;
 	memset(args, 0, sizeof(*args));
-	args->multicalc = 3;
+	args->multicalc = 4;
 	args->bgcolor = 0xff7f7f7f;
 	if (!hashmap_init(&a)) goto label_fail;
 	if (!args_set_command(&a, "--",            (args_deal_f) __)) goto label_fail;
@@ -120,8 +109,6 @@ args_t* args_get(args_t *restrict args, int argc, const char *argv[])
 	if (!args_set_command(&a, "--kernel",      (args_deal_f) _k)) goto label_fail;
 	if (!args_set_command(&a, "-b",            (args_deal_f) _b)) goto label_fail;
 	if (!args_set_command(&a, "--bgcolor",     (args_deal_f) _b)) goto label_fail;
-	if (!args_set_command(&a, "-s",            (args_deal_f) _s)) goto label_fail;
-	if (!args_set_command(&a, "--shm-size",    (args_deal_f) _s)) goto label_fail;
 	if (!args_set_command(&a, "--disable-shm", (args_deal_f) _disable_shm)) goto label_fail;
 	if (!args_set_command(&a, "-h",            (args_deal_f) _h)) goto label_fail;
 	if (!args_set_command(&a, "--help",        (args_deal_f) _h)) goto label_fail;

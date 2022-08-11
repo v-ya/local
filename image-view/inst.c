@@ -250,15 +250,24 @@ static void inst_free_func(inst_s *restrict r)
 
 static void inst_set_title_and_icon(inst_s *restrict r, const char *restrict path)
 {
+	uint32_t *restrict data;
+	uint32_t w, h;
 	// title
 	xwindow_set_title(r->window, path);
 	// icon
-	image_resample_set_dst(r->resample, 64, 64);
-	image_resample_m_reset(r->resample);
-	if (image_resample_get_dst(r->resample))
-		xwindow_set_icon(r->window, r->resample->d_width, r->resample->d_height, r->resample->dst);
-	image_resample_set_dst(r->resample, r->resample->s_width, r->resample->s_height);
-	image_resample_m_reset(r->resample);
+	if ((data = xwindow_image_map(r->ximage, w = 64, h = 64)))
+	{
+		image_resample_set_dst(r->resample, data, w, h);
+		image_resample_m_reset(r->resample);
+		if (image_resample_get_dst(r->resample))
+			xwindow_set_icon(r->window, r->resample->d_width, r->resample->d_height, r->resample->dst);
+	}
+	// reset
+	if ((data = xwindow_image_map(r->ximage, w = r->resample->s_width, h = r->resample->s_height)))
+	{
+		image_resample_set_dst(r->resample, data, w, h);
+		image_resample_m_reset(r->resample);
+	}
 }
 
 inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcolor, uint32_t shm_enable)
@@ -281,10 +290,10 @@ inst_s* inst_alloc(const char *restrict path, uint32_t multicalc, uint32_t bgcol
 					r->event = xwindow_event_alloc(r->window, NULL);
 					if (xwindow_get_screen_size(r->window, &w, &h, NULL, NULL, NULL))
 						r->ximage = (shm_enable?xwindow_image_alloc_shm:xwindow_image_alloc_memory)(r->window, w, h);
-					r->hint_decorations = 1;
-					inst_set_title_and_icon(r, path);
 					if (r->event && r->ximage)
 					{
+						r->hint_decorations = 1;
+						inst_set_title_and_icon(r, path);
 						xwindow_event_register_close(r->event, (xwindow_event_close_f) inst_event_close_func, r);
 						xwindow_event_register_expose(r->event, (xwindow_event_expose_f) inst_event_expose_func, r);
 						xwindow_event_register_key(r->event, (xwindow_event_key_f) inst_event_key_func, r);
@@ -332,15 +341,12 @@ void inst_wait(inst_s *restrict r)
 			yaw_msleep(5);
 		else
 		{
-			if (image_resample_set_dst(r->resample, r->width, r->height))
+			if ((data = xwindow_image_map(r->ximage, r->width, r->height)))
 			{
-				if (image_resample_get_dst(r->resample))
+				if (image_resample_set_dst(r->resample, data, r->width, r->height))
 				{
-					if ((data = xwindow_image_map(r->ximage, r->width, r->height)))
-					{
-						memcpy(data, r->resample->dst, (uintptr_t) r->width * r->height * 4);
+					if (image_resample_get_dst(r->resample))
 						xwindow_image_update_full(r->ximage, 0, 0);
-					}
 				}
 			}
 			r->update = 0;
