@@ -39,7 +39,7 @@ static xwindow_image_s* xwindow_image_memory_update_func(xwindow_image_memory_s 
 				error = xcb_request_check(connection, xcb_put_image_checked(
 					connection, XCB_IMAGE_FORMAT_Z_PIXMAP, xwindow->window, xwindow->gcontext,
 					(uint16_t) width, (uint16_t) nl, (int16_t) x, (int16_t) y,
-					0, xwindow->depth, nb, data + nb));
+					0, xwindow->depth, nb, data));
 				data += nb;
 				y += nl;
 				height -= nl;
