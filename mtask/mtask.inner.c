@@ -23,9 +23,9 @@ struct mtask_input_task_s* mtask_inner_input_need_task(struct mtask_inst_s *rest
 	{
 		refer_set_free(r, (refer_free_f) mtask_input_task_free_func);
 		r->input.type = mtask_type__task;
+		label_okay:
 		r->process.deal = deal_func;
 		r->process.data = refer_save(deal_data);
-		label_okay:
 		return r;
 	}
 	return NULL;
@@ -34,9 +34,12 @@ struct mtask_input_task_s* mtask_inner_input_need_task(struct mtask_inst_s *rest
 void mtask_inner_input_unlink_task(struct mtask_inst_s *restrict mtask, struct mtask_input_task_s *restrict task)
 {
 	queue_s *restrict q;
-	mtask_inner_process_set(&task->process, NULL, NULL);
-	if (!(q = mtask->cache_task) || !q->push(q, task))
-		refer_free(task);
+	if ((q = mtask->cache_task))
+	{
+		mtask_inner_process_set(&task->process, NULL, NULL);
+		q->push(q, task);
+	}
+	refer_free(task);
 }
 
 static inline void mtask_inner_transfer_clear(struct mtask_transfer_t *restrict r)
