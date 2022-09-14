@@ -29,11 +29,13 @@ void finally(void)
 int console_main(uintptr_t argc, const char *const argv[])
 {
 	console_inst_s *restrict inst;
+	console_backup_initial(0);
 	if ((inst = console_inst_alloc(0, 1, 16)))
 	{
 		console_do(console, inst, $mlog);
 		mlog_printf($mlog, "console exited\n");
 		refer_free(inst);
 	}
+	console_backup_resume();
 	return 0;
 }

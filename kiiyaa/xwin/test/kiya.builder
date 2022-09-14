@@ -7,7 +7,6 @@
 [$ "kiya" kiya] "name" @string => "xwin.test"
 
 [kiya "like"]
-	"import.exbuffer" @null
 	"xwin.pool" @null
 	"console.main" @null
 

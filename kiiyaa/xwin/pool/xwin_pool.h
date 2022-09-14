@@ -14,8 +14,7 @@ typedef struct xwin_pool_param_t {
 	int32_t w;
 	int32_t h;
 	uint32_t depth;
-	uint32_t enable_shm;
-	uintptr_t shm_size;
+	uint32_t reserve;
 	uintptr_t events_time_gap_msec;
 	const char *title;
 	const uint32_t *icon_data;
