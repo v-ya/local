@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lmlog -lexbuffer -lvattr -soname ${TARGET}
 
-OBJECT		= console.inst.o console.o command.exit.o command.help.o
+OBJECT		= console.inst.o console.o console.backup.o command.exit.o command.help.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

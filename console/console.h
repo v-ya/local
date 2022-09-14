@@ -27,4 +27,7 @@ void console_delete_command(console_s *restrict console, const char *restrict na
 
 void console_do(console_s *restrict console, console_inst_s *restrict inst, mlog_s *mlog);
 
+int console_backup_initial(int stdin_fd);
+void console_backup_resume(void);
+
 #endif
