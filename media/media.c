@@ -13,17 +13,22 @@ static inline media_s* media_alloc_add_frame(media_s *restrict r, struct media_f
 	if ((id = create_func()))
 	{
 		r = media_initial_add_frame(r, id);
+		if (r) media_verbose(r, "add frame (%s) okay", id->name);
+		else media_warning(r, "add frame (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
+	else media_warning(r, "create frame id (%p) fail", create_func);
 	return NULL;
 }
 
-const media_s* media_alloc(void)
+const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict mlog)
 {
 	media_s *restrict r;
 	if ((r = media_alloc_empty()))
 	{
+		if (loglevel && mlog)
+			media_initial_set_mlog(r, mlog, (uint32_t) loglevel);
 		// register ...
 		if (
 			// audio

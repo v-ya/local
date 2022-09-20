@@ -3,11 +3,20 @@
 
 #include <refer.h>
 
+struct mlog_s;
+
 typedef struct media_s media_s;
 typedef struct media_attr_s media_attr_s;
 typedef struct media_frame_s media_frame_s;
 
-const media_s* media_alloc(void);
+typedef enum media_loglevel_t {
+	media_loglevel_error   = 0x0001,
+	media_loglevel_warning = 0x0002,
+	media_loglevel_info    = 0x0004,
+	media_loglevel_verbose = 0x0008,
+} media_loglevel_t;
+
+const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict mlog);
 
 // attr
 

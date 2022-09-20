@@ -4,7 +4,7 @@ HEADER	= $(wildcard *.h)
 CC	= gcc
 LD	= ld
 CCFLAGS	= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS	= -shared -lrefer -lhashmap -lexbuffer -lvattr -lfsys -soname ${TARGET}
+LDFLAGS	= -shared -lrefer -lhashmap -lexbuffer -lvattr -lmlog -lyaw -lmtask -lfsys -soname ${TARGET}
 
 OBJECT	= media.o $(patsubst %.c, %.o, $(wildcard */*.c))
 
