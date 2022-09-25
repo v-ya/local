@@ -8,6 +8,7 @@ struct mlog_s;
 typedef struct media_s media_s;
 typedef struct media_attr_s media_attr_s;
 typedef struct media_frame_s media_frame_s;
+typedef struct media_container_s media_container_s;
 
 typedef enum media_loglevel_t {
 	media_loglevel_error   = 0x0001,
@@ -38,5 +39,9 @@ media_frame_s* media_create_frame(const media_s *restrict media, const char *res
 media_frame_s* media_create_frame_1d(const media_s *restrict media, const char *restrict frame_name, uintptr_t n);
 media_frame_s* media_create_frame_2d(const media_s *restrict media, const char *restrict frame_name, uintptr_t width, uintptr_t height);
 media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *restrict frame_name, uintptr_t width, uintptr_t height, uintptr_t depth);
+
+// container
+
+media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name);
 
 #endif

@@ -88,8 +88,8 @@ struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *r
 {
 	static const char *const loglevel_error   = media_log_red    "  error" media_log_back;
 	static const char *const loglevel_warning = media_log_yellow "warning" media_log_back;
-	static const char *const loglevel_info    = media_log_aqua   "   info" media_log_back;
-	static const char *const loglevel_verbose = media_log_white  "verbose" media_log_back;
+	static const char *const loglevel_info    = media_log_blue   "   info" media_log_back;
+	static const char *const loglevel_verbose = media_log_aqua   "verbose" media_log_back;
 	media_s *rr;
 	yaw_lock_s *restrict lock;
 	uint64_t tsms_start;

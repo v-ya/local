@@ -4,17 +4,19 @@
 #include <refer.h>
 #include <vattr.h>
 #include "container_id.h"
+#include "media.h"
+#include "io.h"
 #include "attr.h"
-
-struct media_container_inst_s {
-	refer_t pri_data;
-	vattr_s *stream;
-};
 
 struct media_container_s {
 	const struct media_container_id_s *id;
-	struct media_container_inst_s *inst;
+	const struct media_s *media;
+	refer_t pri_data;
+	struct media_io_s *io;
 	struct media_attr_s *attr;
+	vattr_s *stream;
 };
+
+struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
 
 #endif

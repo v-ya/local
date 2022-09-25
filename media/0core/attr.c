@@ -69,43 +69,59 @@ struct media_attr_s* media_attr_alloc(const struct media_attr_s *restrict src)
 	return NULL;
 }
 
-static void media_attr_copy_replace_func(hashmap_vlist_t *restrict vl, hashmap_t **restrict pdst)
+static hashmap_vlist_t* media_attr_link_value(struct media_attr_s *restrict attr, const char *restrict name, const struct media_attr_item_s *restrict value)
 {
-	hashmap_t *restrict hm;
-	if ((hm = *pdst) && vl->name)
+	hashmap_vlist_t *restrict vl;
+	media_attr_judge_f jf;
+	vl = NULL;
+	jf = NULL;
+	if (attr->judge) jf = (media_attr_judge_f) hashmap_get_name(&attr->judge->judge, name);
+	if (!jf || jf(attr, value))
 	{
-		if (hashmap_set_name(hm, vl->name, vl->value, vl->free))
-			refer_save(vl->value);
-		else *pdst = NULL;
+		if ((vl = hashmap_set_name(&attr->attr, name, value, media_attr_free_attr_func)))
+			refer_save(value);
+		else
+		{
+			hashmap_delete_name(&attr->attr, name);
+			if (jf) jf(attr, NULL);
+		}
+	}
+	return vl;
+}
+
+static void media_attr_copy_replace_func(hashmap_vlist_t *restrict vl, struct media_attr_s **restrict pdst)
+{
+	if (*pdst && vl->name)
+	{
+		if (!media_attr_link_value(*pdst, vl->name, (const struct media_attr_item_s *) vl->value))
+			*pdst = NULL;
 	}
 }
 
-static void media_attr_copy_ignore_func(hashmap_vlist_t *restrict vl, hashmap_t **restrict pdst)
+static void media_attr_copy_ignore_func(hashmap_vlist_t *restrict vl, struct media_attr_s **restrict pdst)
 {
-	hashmap_t *restrict hm;
-	if ((hm = *pdst) && vl->name && !hashmap_find_name(hm, vl->name))
+	if (*pdst && vl->name && !hashmap_find_name(&(*pdst)->attr, vl->name))
 	{
-		if (hashmap_set_name(hm, vl->name, vl->value, vl->free))
-			refer_save(vl->value);
-		else *pdst = NULL;
+		if (!media_attr_link_value(*pdst, vl->name, (const struct media_attr_item_s *) vl->value))
+			*pdst = NULL;
 	}
 }
 
 struct media_attr_s* media_attr_copy(struct media_attr_s *restrict dst, const struct media_attr_s *restrict src, enum media_attr_copy_t ctype)
 {
-	hashmap_t *hm;
-	hm = &dst->attr;
+	struct media_attr_s *rr;
+	rr = dst;
 	switch (ctype)
 	{
 		case media_attr_copy__replace:
-			hashmap_call(&src->attr, (hashmap_func_call_f) media_attr_copy_replace_func, &hm);
+			hashmap_call(&src->attr, (hashmap_func_call_f) media_attr_copy_replace_func, &rr);
 			break;
 		case media_attr_copy__ignore:
-			hashmap_call(&src->attr, (hashmap_func_call_f) media_attr_copy_ignore_func, &hm);
+			hashmap_call(&src->attr, (hashmap_func_call_f) media_attr_copy_ignore_func, &rr);
 			break;
 		default: return NULL;
 	}
-	return hm?dst:NULL;
+	return rr;
 }
 
 void media_attr_set_judge(struct media_attr_s *restrict attr, const struct media_attr_judge_s *restrict judge, refer_t judge_inst)
@@ -119,30 +135,29 @@ void media_attr_set_judge(struct media_attr_s *restrict attr, const struct media
 void media_attr_clear(struct media_attr_s *restrict attr)
 {
 	hashmap_clear(&attr->attr);
+	if (attr->judge && attr->judge->clear)
+		attr->judge->clear(attr, NULL);
 }
 
 void media_attr_unset(struct media_attr_s *restrict attr, const char *restrict name)
 {
+	media_attr_judge_f jf;
 	hashmap_delete_name(&attr->attr, name);
+	if (attr->judge && (jf = (media_attr_judge_f) hashmap_get_name(&attr->judge->judge, name)))
+		jf(attr, NULL);
 }
 
 struct media_attr_s* media_attr_set(struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t value)
 {
-	const struct media_attr_judge_s *restrict judge;
 	const struct media_attr_item_s *restrict item;
-	media_attr_judge_f jf;
 	if (name)
 	{
-		if (!(judge = attr->judge) ||
-			!(jf = (media_attr_judge_f) hashmap_get_name(&judge->judge, name)) ||
-			jf(attr, type, value))
+		if ((item = media_attr_item_alloc(type, value)))
 		{
-			if ((item = media_attr_item_alloc(type, value)))
-			{
-				if (hashmap_set_name(&attr->attr, name, item, media_attr_free_attr_func))
-					return attr;
-				refer_free(item);
-			}
+			if (!media_attr_link_value(attr, name, item))
+				attr = NULL;
+			refer_free(item);
+			return attr;
 		}
 	}
 	return NULL;
@@ -170,7 +185,7 @@ static void media_attr_judge_free_func(struct media_attr_judge_s *restrict r)
 struct media_attr_judge_s* media_attr_judge_alloc(void)
 {
 	struct media_attr_judge_s *restrict r;
-	if ((r = (struct media_attr_judge_s *) refer_alloc(sizeof(struct media_attr_judge_s))))
+	if ((r = (struct media_attr_judge_s *) refer_alloz(sizeof(struct media_attr_judge_s))))
 	{
 		if (hashmap_init(&r->judge))
 		{
@@ -184,7 +199,19 @@ struct media_attr_judge_s* media_attr_judge_alloc(void)
 
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_judge_f jf)
 {
-	if (name && jf && hashmap_set_name(&judge->judge, name, jf, NULL))
-		return judge;
+	if (jf)
+	{
+		if (name)
+		{
+			if (hashmap_set_name(&judge->judge, name, jf, NULL))
+				goto label_okay;
+		}
+		else
+		{
+			judge->clear = jf;
+			label_okay:
+			return judge;
+		}
+	}
 	return NULL;
 }

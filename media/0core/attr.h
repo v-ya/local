@@ -30,10 +30,11 @@ struct media_attr_item_s {
 	union media_attr_value_t value;
 };
 
-typedef const struct media_attr_s* (*media_attr_judge_f)(const struct media_attr_s *restrict attr, enum media_attr_type_t type, union media_attr_value_t value);
+typedef const struct media_attr_s* (*media_attr_judge_f)(const struct media_attr_s *restrict attr, const struct media_attr_item_s *restrict value);
 
 struct media_attr_judge_s {
 	hashmap_t judge;
+	media_attr_judge_f clear;
 };
 
 struct media_attr_s {
@@ -49,8 +50,6 @@ void media_attr_clear(struct media_attr_s *restrict attr);
 void media_attr_unset(struct media_attr_s *restrict attr, const char *restrict name);
 struct media_attr_s* media_attr_set(struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t value);
 const struct media_attr_s* media_attr_get(const struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t *restrict value);
-
-struct media_attr_s* media_attr_set_with_judge(struct media_attr_s *restrict attr, const struct media_attr_judge_s *restrict judge, const char *restrict name, refer_t inst, enum media_attr_type_t type, union media_attr_value_t value);
 
 struct media_attr_judge_s* media_attr_judge_alloc(void);
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_judge_f jf);
