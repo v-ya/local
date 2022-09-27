@@ -16,11 +16,11 @@ static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id
 	{
 		r = media_initial_add_frame(r, id);
 		if (r) media_verbose(r, "add frame (%s) okay", id->name);
-		else media_warning(r, "add frame (%s) fail", id->name);
+		else media_error(r, "add frame (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
-	else media_warning(r, "create frame id (%p) fail", create_func);
+	else media_error(r, "create frame id (%p) fail", create_func);
 	return NULL;
 }
 
@@ -31,11 +31,11 @@ static media_s* media_alloc_add_container(media_s *restrict r, struct media_cont
 	{
 		r = media_initial_add_container(r, id);
 		if (r) media_verbose(r, "add container (%s) okay", id->name);
-		else media_warning(r, "add container (%s) fail", id->name);
+		else media_error(r, "add container (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
-	else media_warning(r, "create container id (%p) fail", create_func);
+	else media_error(r, "create container id (%p) fail", create_func);
 	return NULL;
 }
 
@@ -192,5 +192,22 @@ media_container_s* media_create_container(const media_s *restrict media, const c
 	const struct media_container_id_s *restrict id;
 	if (frame_name && (id = (const struct media_container_id_s *) hashmap_get_name(&media->container, frame_name)))
 		return media_container_alloc(media, id);
+	return NULL;
+}
+
+media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict frame_name, const void *data, uintptr_t size)
+{
+	media_container_s *restrict r, *rr;
+	struct media_io_s *restrict io;
+	if ((r = media_create_container(media, frame_name)))
+	{
+		if ((io = media_io_create_memory(data, size)))
+		{
+			rr = media_container_set_io(r, io, media_container_io_input);
+			refer_free(io);
+			if (rr) return r;
+		}
+		refer_free(r);
+	}
 	return NULL;
 }

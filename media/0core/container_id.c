@@ -7,7 +7,7 @@ static void media_container_id_free_func(struct media_container_id_s *restrict r
 	if (r->judge) refer_free(r->judge);
 }
 
-struct media_container_id_s* media_container_id_alloc(const char *restrict name, media_container_initial_judge_f initial, const struct media_container_id_func_t *restrict func)
+struct media_container_id_s* media_container_id_alloc(const char *restrict name, const struct media_container_id_func_t *restrict func)
 {
 	struct media_container_id_s *restrict r;
 	struct media_attr_judge_s *restrict judge;
@@ -16,11 +16,11 @@ struct media_container_id_s* media_container_id_alloc(const char *restrict name,
 		refer_set_free(r, (refer_free_f) media_container_id_free_func);
 		if ((r->name = refer_dump_string(name)))
 		{
-			if (initial)
+			if (func->initial_judge)
 			{
 				if (!(r->judge = judge = media_attr_judge_alloc()))
 					goto label_fail;
-				if (!initial(judge))
+				if (!func->initial_judge(judge))
 					goto label_fail;
 			}
 			memcpy(&r->func, func, sizeof(r->func));

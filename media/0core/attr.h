@@ -54,4 +54,7 @@ const struct media_attr_s* media_attr_get(const struct media_attr_s *restrict at
 struct media_attr_judge_s* media_attr_judge_alloc(void);
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_judge_f jf);
 
+#define media_attr_judge(_type, _name, _func)  media_attr_judge__##_type##__##_name##__##_func
+#define d_media_judge(_type, _name, _func)     const struct media_attr_s* media_attr_judge(_type, _name, _func)(const struct media_attr_s *restrict attr, const struct media_attr_item_s *restrict value)
+
 #endif

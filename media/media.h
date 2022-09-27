@@ -43,5 +43,6 @@ media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *
 // container
 
 media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name);
+media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict frame_name, const void *data, uintptr_t size);
 
 #endif

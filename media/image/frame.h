@@ -2,6 +2,7 @@
 #define _media_image_frame_h_
 
 #include <refer.h>
+#include "../0core/media.h"
 #include "../0core/frame.h"
 #include "../media.frame.h"
 

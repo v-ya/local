@@ -11,5 +11,6 @@ struct media_mlog_data_s {
 };
 
 mlog_s* media_mlog_alloc(mlog_s *restrict mlog, const char *restrict loglevel, uint64_t tsms_start, struct yaw_lock_s *restrict lock);
+void media_mlog_print_rawdata(mlog_s *restrict mlog, const char *restrict name, const void *restrict data, uintptr_t size);
 
 #endif

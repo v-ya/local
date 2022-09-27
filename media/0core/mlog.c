@@ -51,3 +51,43 @@ mlog_s* media_mlog_alloc(mlog_s *restrict mlog, const char *restrict loglevel, u
 	}
 	return r;
 }
+
+static void media_mlog_print_rawdata_line_16(char *restrict hex, char *restrict ascii, const uint8_t *restrict d, uintptr_t n)
+{
+	static const char hex2c[16] = "0123456789abcdef";
+	uintptr_t i;
+	for (i = 0; i < n; ++i)
+	{
+		*hex++ = hex2c[d[i] >> 4];
+		*hex++ = hex2c[d[i] & 15];
+		*hex++ = ' ';
+		*ascii++ = (d[i] >= ' ' && d[i] <= '~')?d[i]:'.';
+	}
+	while (i < 16)
+	{
+		*hex++ = ' ';
+		*hex++ = ' ';
+		*hex++ = ' ';
+		++i;
+	}
+	*hex = 0;
+	*ascii = 0;
+}
+
+void media_mlog_print_rawdata(mlog_s *restrict mlog, const char *restrict name, const void *restrict data, uintptr_t size)
+{
+	const uint8_t *restrict p;
+	uintptr_t n;
+	char hex[64], ascii[32];
+	if (name) mlog_printf(mlog, "%s [%zu]:", name, size);
+	p = (const uint8_t *) data;
+	while (size)
+	{
+		n = 16;
+		if (size < n) n = size;
+		media_mlog_print_rawdata_line_16(hex, ascii, p, n);
+		mlog_printf(mlog, "%s| %s", hex, ascii);
+		p += n;
+		size -= n;
+	}
+}

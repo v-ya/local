@@ -2,6 +2,7 @@
 #define _media_image_container_h_
 
 #include <refer.h>
+#include "../0core/media.h"
 #include "../0core/container.h"
 #include "../media.container.h"
 

@@ -8,6 +8,12 @@
 #include "io.h"
 #include "attr.h"
 
+enum media_container_io_t {
+	media_container_io_none,
+	media_container_io_input,
+	media_container_io_output,
+};
+
 struct media_container_s {
 	const struct media_container_id_s *id;
 	const struct media_s *media;
@@ -15,8 +21,10 @@ struct media_container_s {
 	struct media_io_s *io;
 	struct media_attr_s *attr;
 	vattr_s *stream;
+	enum media_container_io_t iotype;
 };
 
 struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
+struct media_container_s* media_container_set_io(struct media_container_s *restrict container, struct media_io_s *restrict io, enum media_container_io_t iotype);
 
 #endif
