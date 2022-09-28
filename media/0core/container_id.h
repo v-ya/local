@@ -4,10 +4,11 @@
 #include <refer.h>
 #include "attr.h"
 
+struct media_container_id_s;
 struct media_container_s;
 
 typedef struct media_attr_judge_s* (*media_container_initial_judge_f)(struct media_attr_judge_s *restrict judge);
-typedef refer_t (*media_container_create_pri_f)(void);
+typedef refer_t (*media_container_create_pri_f)(const struct media_container_id_s *restrict id);
 typedef struct media_container_s* (*media_container_parse_head_f)(struct media_container_s *restrict c);
 typedef struct media_container_s* (*media_container_parse_tail_f)(struct media_container_s *restrict c);
 typedef struct media_container_s* (*media_container_build_head_f)(struct media_container_s *restrict c);
@@ -28,12 +29,14 @@ struct media_container_id_s {
 	struct media_container_id_func_t func;
 };
 
-struct media_container_id_s* media_container_id_alloc(const char *restrict name, const struct media_container_id_func_t *restrict func);
+void media_container_id_hashmap_free_func(hashmap_vlist_t *restrict vl);
+void media_container_id_free_func(struct media_container_id_s *restrict r);
+struct media_container_id_s* media_container_id_alloc(uintptr_t size, const char *restrict name, const struct media_container_id_func_t *restrict func);
 
 #define media_container_symbol(_tf, _type, _name)            media_container__##_tf##__##_type##__##_name
 
 #define d_media_container__initial_judge(_type, _name)       struct media_attr_judge_s* media_container_symbol(initial_judge, _type, _name)(struct media_attr_judge_s *restrict judge)
-#define d_media_container__create_pri(_type, _name)          refer_t media_container_symbol(create_pri, _type, _name)(void)
+#define d_media_container__create_pri(_type, _name)          refer_t media_container_symbol(create_pri, _type, _name)(const struct media_container_id_s *restrict id)
 #define d_media_container__parse_head(_type, _name)          struct media_container_s* media_container_symbol(parse_head, _type, _name)(struct media_container_s *restrict c)
 #define d_media_container__parse_tail(_type, _name)          struct media_container_s* media_container_symbol(parse_tail, _type, _name)(struct media_container_s *restrict c)
 #define d_media_container__build_head(_type, _name)          struct media_container_s* media_container_symbol(build_head, _type, _name)(struct media_container_s *restrict c)

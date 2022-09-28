@@ -8,6 +8,8 @@
 #include "zarch/frame.h"
 // container
 #include "image/container.h"
+// print
+#include <inttypes.h>
 
 static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id_s* (*create_func)(void))
 {
@@ -57,6 +59,11 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 		refer_free(r);
 	}
 	return NULL;
+}
+
+struct mlog_s* media_get_mlog(const media_s *restrict media, media_loglevel_t loglevel)
+{
+	return media_get_mlog_by_loglevel(media, (uint32_t) loglevel);
 }
 
 // attr
@@ -157,6 +164,53 @@ const media_attr_s* media_attr_get_data(const media_attr_s *restrict attr, const
 	return NULL;
 }
 
+static void media_attr_dump_item(struct mlog_s *restrict mlog, const char *restrict name, const struct media_attr_item_s *restrict item)
+{
+	switch (item->type)
+	{
+		case media_attr_type__int:
+			mlog_printf(mlog, "%s [int]: %" PRId64, name, item->value.av_int);
+			break;
+		case media_attr_type__float:
+			mlog_printf(mlog, "%s [float]: %g", name, item->value.av_float);
+			break;
+		case media_attr_type__string:
+			mlog_printf(mlog, "%s [string]: %s", name, item->value.av_string?item->value.av_string:"(null)");
+			break;
+		case media_attr_type__data:
+			if (item->value.av_data)
+				media_mlog_print_rawdata(mlog, name, item->value.av_data->string, item->value.av_data->length);
+			else media_mlog_print_rawdata(mlog, name, NULL, 0);
+			break;
+		case media_attr_type__ptr:
+			mlog_printf(mlog, "%s [ptr]: %p", name, item->value.av_ptr);
+			break;
+		default:
+			mlog_printf(mlog, "%s [unknow]", name);
+			break;
+	}
+}
+
+void media_attr_dump(const media_attr_s *restrict attr, const media_s *restrict media, media_loglevel_t loglevel, const char *restrict name)
+{
+	struct mlog_s *restrict mlog;
+	if (attr && (mlog = media_get_mlog(media, loglevel)))
+	{
+		const vattr_vlist_t *restrict vl;
+		const vattr_vslot_t *restrict vslot;
+		if (!name)
+		{
+			for (vl = attr->attr->vattr; vl; vl = vl->vattr_next)
+				media_attr_dump_item(mlog, vl->vslot->key, (const struct media_attr_item_s *) vl->value);
+		}
+		else if ((vslot = vattr_get_vslot(attr->attr, name)))
+		{
+			for (vl = vslot->vslot; vl; vl = vl->vslot_next)
+				media_attr_dump_item(mlog, name, (const struct media_attr_item_s *) vl->value);
+		}
+	}
+}
+
 // frame
 
 media_frame_s* media_create_frame(const media_s *restrict media, const char *restrict frame_name, uintptr_t d, const uintptr_t dv[])
@@ -186,6 +240,11 @@ media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *
 }
 
 // container
+
+media_attr_s* media_container_get_attr(const media_container_s *restrict container)
+{
+	return container->attr;
+}
 
 media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name)
 {

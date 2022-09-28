@@ -18,15 +18,19 @@ struct media_container_s* media_container_alloc(const struct media_s *restrict m
 		refer_set_free(r, (refer_free_f) media_container_free_func);
 		r->id = (const struct media_container_id_s *) refer_save(container_id);
 		r->media = (const struct media_s *) refer_save(media);
-		if (container_id->func.create_pri && !(r->pri_data = container_id->func.create_pri()))
+		if (container_id->func.create_pri && !(r->pri_data = container_id->func.create_pri(container_id)))
 			goto label_fail;
 		if (!(r->attr = media_attr_alloc(NULL)))
 			goto label_fail;
-		if (container_id->judge)
-			media_attr_set_judge(r->attr, container_id->judge, r->pri_data);
 		if (!(r->stream = vattr_alloc()))
 			goto label_fail;
 		r->iotype = media_container_io_none;
+		// initial r->attr
+		if (container_id->judge)
+		{
+			media_attr_set_judge(r->attr, container_id->judge, r->pri_data);
+			media_attr_clear(r->attr);
+		}
 		return r;
 		label_fail:
 		refer_free(r);

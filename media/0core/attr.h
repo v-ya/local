@@ -3,6 +3,7 @@
 
 #include <refer.h>
 #include <hashmap.h>
+#include <vattr.h>
 
 enum media_attr_type_t {
 	media_attr_type__int,
@@ -30,7 +31,7 @@ struct media_attr_item_s {
 	union media_attr_value_t value;
 };
 
-typedef const struct media_attr_s* (*media_attr_judge_f)(const struct media_attr_s *restrict attr, const struct media_attr_item_s *restrict value);
+typedef const struct media_attr_s* (*media_attr_judge_f)(const struct media_attr_s *restrict attr, refer_t pri, const struct media_attr_item_s *restrict value);
 
 struct media_attr_judge_s {
 	hashmap_t judge;
@@ -38,14 +39,14 @@ struct media_attr_judge_s {
 };
 
 struct media_attr_s {
-	hashmap_t attr;
+	vattr_s *attr;
 	const struct media_attr_judge_s *judge;
-	refer_t judge_inst;
+	refer_t pri_data;
 };
 
 struct media_attr_s* media_attr_alloc(const struct media_attr_s *restrict src);
 struct media_attr_s* media_attr_copy(struct media_attr_s *restrict dst, const struct media_attr_s *restrict src, enum media_attr_copy_t ctype);
-void media_attr_set_judge(struct media_attr_s *restrict attr, const struct media_attr_judge_s *restrict judge, refer_t judge_inst);
+void media_attr_set_judge(struct media_attr_s *restrict attr, const struct media_attr_judge_s *restrict judge, refer_t pri_data);
 void media_attr_clear(struct media_attr_s *restrict attr);
 void media_attr_unset(struct media_attr_s *restrict attr, const char *restrict name);
 struct media_attr_s* media_attr_set(struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t value);
@@ -54,7 +55,7 @@ const struct media_attr_s* media_attr_get(const struct media_attr_s *restrict at
 struct media_attr_judge_s* media_attr_judge_alloc(void);
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_judge_f jf);
 
-#define media_attr_judge(_type, _name, _func)  media_attr_judge__##_type##__##_name##__##_func
-#define d_media_judge(_type, _name, _func)     const struct media_attr_s* media_attr_judge(_type, _name, _func)(const struct media_attr_s *restrict attr, const struct media_attr_item_s *restrict value)
+#define media_attr_judge(_type, _name, _func)    media_attr_judge__##_type##__##_name##__##_func
+#define d_media_judge(_type, _name, _func, _pt)  const struct media_attr_s* media_attr_judge(_type, _name, _func)(const struct media_attr_s *restrict attr, _pt *restrict pri, const struct media_attr_item_s *restrict value)
 
 #endif

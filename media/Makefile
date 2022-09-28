@@ -3,7 +3,7 @@ HEADER	= $(wildcard *.h)
 
 CC	= gcc
 LD	= ld
-CCFLAGS	= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
+CCFLAGS	= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter -Wno-multichar
 LDFLAGS	= -shared -lrefer -lhashmap -lexbuffer -lvattr -lmlog -lyaw -lmtask -lfsys -soname ${TARGET}
 
 OBJECT	= media.o $(patsubst %.c, %.o, $(wildcard */*.c))

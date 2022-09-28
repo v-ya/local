@@ -11,13 +11,18 @@ typedef struct media_frame_s media_frame_s;
 typedef struct media_container_s media_container_s;
 
 typedef enum media_loglevel_t {
-	media_loglevel_error   = 0x0001,
-	media_loglevel_warning = 0x0002,
-	media_loglevel_info    = 0x0004,
-	media_loglevel_verbose = 0x0008,
+	media_loglevel_bit_error   = 0x0001,
+	media_loglevel_bit_warning = 0x0002,
+	media_loglevel_bit_info    = 0x0004,
+	media_loglevel_bit_verbose = 0x0008,
+	media_loglevel_error       = 0x0001,
+	media_loglevel_warning     = 0x0003,
+	media_loglevel_info        = 0x0007,
+	media_loglevel_verbose     = 0x000f,
 } media_loglevel_t;
 
 const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict mlog);
+struct mlog_s* media_get_mlog(const media_s *restrict media, media_loglevel_t loglevel);
 
 // attr
 
@@ -33,6 +38,8 @@ const media_attr_s* media_attr_get_float(const media_attr_s *restrict attr, cons
 const media_attr_s* media_attr_get_string(const media_attr_s *restrict attr, const char *restrict name, refer_string_t *restrict string);
 const media_attr_s* media_attr_get_data(const media_attr_s *restrict attr, const char *restrict name, refer_nstring_t *restrict data);
 
+void media_attr_dump(const media_attr_s *restrict attr, const media_s *restrict media, media_loglevel_t loglevel, const char *restrict name);
+
 // frame
 
 media_frame_s* media_create_frame(const media_s *restrict media, const char *restrict frame_name, uintptr_t d, const uintptr_t dv[]);
@@ -42,6 +49,7 @@ media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *
 
 // container
 
+media_attr_s* media_container_get_attr(const media_container_s *restrict container);
 media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name);
 media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict frame_name, const void *data, uintptr_t size);
 

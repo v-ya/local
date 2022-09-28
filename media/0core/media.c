@@ -101,7 +101,7 @@ struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *r
 	while (loglevel)
 	{
 		#define d_test(_lv)  \
-			case media_loglevel_##_lv:\
+			case media_loglevel_bit_##_lv:\
 				if (!media_initial_set_mlog_replace(&media->mlog_##_lv, mlog, loglevel_##_lv, tsms_start, lock))\
 					rr = NULL;\
 				break
@@ -119,4 +119,31 @@ struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *r
 	}
 	if (lock) refer_free(lock);
 	return rr;
+}
+
+mlog_s* media_get_mlog_by_loglevel(const struct media_s *restrict media, uint32_t loglevel)
+{
+	mlog_s *restrict mlog;
+	uint32_t test;
+	mlog = NULL;
+	test = 1;
+	while (loglevel)
+	{
+		#define d_test(_lv)  \
+			case media_loglevel_bit_##_lv:\
+				if (media->mlog_##_lv) mlog = media->mlog_##_lv;\
+				break
+		switch (loglevel & test)
+		{
+			d_test(error);
+			d_test(warning);
+			d_test(info);
+			d_test(verbose);
+			default: break;
+		}
+		#undef d_test
+		loglevel &= ~test;
+		test <<= 1;
+	}
+	return mlog;
 }
