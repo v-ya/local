@@ -1,11 +1,6 @@
 #include "container_id.h"
 #include <memory.h>
 
-void media_container_id_hashmap_free_func(hashmap_vlist_t *restrict vl)
-{
-	if (vl->value) refer_free(vl->value);
-}
-
 void media_container_id_free_func(struct media_container_id_s *restrict r)
 {
 	if (r->name) refer_free(r->name);

@@ -29,7 +29,6 @@ struct media_container_id_s {
 	struct media_container_id_func_t func;
 };
 
-void media_container_id_hashmap_free_func(hashmap_vlist_t *restrict vl);
 void media_container_id_free_func(struct media_container_id_s *restrict r);
 struct media_container_id_s* media_container_id_alloc(uintptr_t size, const char *restrict name, const struct media_container_id_func_t *restrict func);
 

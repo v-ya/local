@@ -26,7 +26,7 @@ struct media_s* media_alloc_empty(void)
 	return NULL;
 }
 
-static void media_hashmap_free_refer_func(hashmap_vlist_t *restrict vl)
+void media_hashmap_free_refer_func(hashmap_vlist_t *restrict vl)
 {
 	if (vl->value) refer_free(vl->value);
 }

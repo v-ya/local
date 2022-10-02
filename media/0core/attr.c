@@ -64,17 +64,99 @@ struct media_attr_s* media_attr_alloc(const struct media_attr_s *restrict src)
 	return NULL;
 }
 
+static const struct media_attr_s* media_attr_set_it(const struct media_attr_s *restrict attr, const struct media_attr_judge_item_s *restrict ji, const struct media_attr_item_s *restrict value)
+{
+	if (ji)
+	{
+		if (!value) goto label_fail;
+		switch (ji->need)
+		{
+			case media_attr_judge_need__any: break;
+			case media_attr_judge_need__int:
+				if (value->type == media_attr_type__int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__float:
+				if (value->type == media_attr_type__float)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__string:
+				if (value->type == media_attr_type__string)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__data:
+				if (value->type == media_attr_type__data)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__ptr:
+				if (value->type == media_attr_type__ptr)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__uint32:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (uint32_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__sint32:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (int32_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__uint16:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (uint16_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__sint16:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (int16_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__uint8:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (uint8_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__sint8:
+				if (value->type == media_attr_type__int &&
+					(int64_t) (int8_t) value->value.av_int == value->value.av_int)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__exist_string:
+				if (value->type == media_attr_type__string && value->value.av_string)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__exist_data:
+				if (value->type == media_attr_type__data && value->value.av_data)
+					break;
+				goto label_fail;
+			case media_attr_judge_need__exist_ptr:
+				if (value->type == media_attr_type__ptr && value->value.av_ptr)
+					break;
+				goto label_fail;
+			default: goto label_fail;
+		}
+		return ji->set(attr, attr->pri_data, value);
+	}
+	label_fail:
+	return NULL;
+}
+
+static inline void media_attr_unset_it(const struct media_attr_s *restrict attr, const struct media_attr_judge_item_s *restrict ji)
+{
+	if (ji) ji->unset(attr, attr->pri_data);
+}
+
 static struct media_attr_s* media_attr_link_value(struct media_attr_s *restrict attr, const char *restrict name, const struct media_attr_item_s *restrict value)
 {
-	media_attr_judge_f jf;
-	jf = NULL;
-	if (attr->judge) jf = (media_attr_judge_f) hashmap_get_name(&attr->judge->judge, name);
-	if (!jf || jf(attr, attr->pri_data, value))
+	const struct media_attr_judge_item_s *restrict ji;
+	ji = NULL;
+	if (!attr->judge || media_attr_set_it(attr, ji = (const struct media_attr_judge_item_s *) hashmap_get_name(&attr->judge->judge, name), value))
 	{
 		if (vattr_set(attr->attr, name, value))
 			return attr;
 		vattr_delete(attr->attr, name);
-		if (jf) jf(attr, attr->pri_data, NULL);
+		media_attr_unset_it(attr, ji);
 	}
 	return NULL;
 }
@@ -118,19 +200,26 @@ void media_attr_set_judge(struct media_attr_s *restrict attr, const struct media
 	attr->pri_data = refer_save(pri_data);
 }
 
+static void media_attr_clear_do_func(hashmap_vlist_t *restrict vl, struct media_attr_s *restrict attr)
+{
+	media_attr_unset_it(attr, (const struct media_attr_judge_item_s *) vl->value);
+}
+
 void media_attr_clear(struct media_attr_s *restrict attr)
 {
 	vattr_clear(attr->attr);
-	if (attr->judge && attr->judge->clear)
-		attr->judge->clear(attr, attr->pri_data, NULL);
+	if (attr->judge)
+	{
+		hashmap_call(&attr->judge->judge, (hashmap_func_call_f) media_attr_clear_do_func, attr);
+		if (attr->judge->clear)
+			attr->judge->clear(attr, attr->pri_data);
+	}
 }
 
 void media_attr_unset(struct media_attr_s *restrict attr, const char *restrict name)
 {
-	media_attr_judge_f jf;
 	vattr_delete(attr->attr, name);
-	if (attr->judge && (jf = (media_attr_judge_f) hashmap_get_name(&attr->judge->judge, name)))
-		jf(attr, attr->pri_data, NULL);
+	if (attr->judge) media_attr_unset_it(attr, (const struct media_attr_judge_item_s *) hashmap_get_name(&attr->judge->judge, name));
 }
 
 struct media_attr_s* media_attr_set(struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t value)
@@ -182,21 +271,27 @@ struct media_attr_judge_s* media_attr_judge_alloc(void)
 	return NULL;
 }
 
-struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_judge_f jf)
+#include "media.h"
+
+struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_set_f sf, media_attr_unset_f uf, enum media_attr_judge_need_t need)
 {
-	if (jf)
+	struct media_attr_judge_item_s *restrict item;
+	if (name && sf && uf)
 	{
-		if (name)
+		if ((item = (struct media_attr_judge_item_s *) refer_alloc(sizeof(struct media_attr_judge_item_s))))
 		{
-			if (hashmap_set_name(&judge->judge, name, jf, NULL))
-				goto label_okay;
-		}
-		else
-		{
-			judge->clear = jf;
-			label_okay:
-			return judge;
+			item->set = sf;
+			item->unset = uf;
+			item->need = need;
+			if (hashmap_set_name(&judge->judge, name, item, media_hashmap_free_refer_func))
+				return judge;
+			refer_free(item);
 		}
 	}
 	return NULL;
+}
+
+void media_attr_judge_set_extra_clear(struct media_attr_judge_s *restrict judge, media_attr_unset_f uf)
+{
+	judge->clear = uf;
 }

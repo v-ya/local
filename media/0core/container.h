@@ -14,6 +14,12 @@ enum media_container_io_t {
 	media_container_io_output,
 };
 
+enum media_container_step_t {
+	media_container_step_none,
+	media_container_step_head,
+	media_container_step_tail,
+};
+
 struct media_container_s {
 	const struct media_container_id_s *id;
 	const struct media_s *media;
@@ -22,9 +28,11 @@ struct media_container_s {
 	struct media_attr_s *attr;
 	vattr_s *stream;
 	enum media_container_io_t iotype;
+	enum media_container_step_t step;
 };
 
 struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
+struct media_container_s* media_container_done_step(struct media_container_s *restrict container, enum media_container_step_t step);
 struct media_container_s* media_container_set_io(struct media_container_s *restrict container, struct media_io_s *restrict io, enum media_container_io_t iotype);
 
 #endif

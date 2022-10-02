@@ -5,6 +5,7 @@
 #include "../0core/media.h"
 #include "../0core/container.h"
 #include "../media.container.h"
+#include "../media.h"
 
 struct media_container_id_s* media_container_create_image_bmp(void);
 
