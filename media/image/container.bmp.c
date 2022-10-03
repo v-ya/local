@@ -12,13 +12,13 @@ struct media_container_pri_bmp_s {
 	uint32_t magic;
 	uint32_t version;
 	uint32_t pixel_offset;
+	uint32_t image_size;
 	// info ...
 	int32_t width;
 	int32_t height;
 	uint16_t color_plane;
 	uint16_t bpp;
-	uint32_t compression_method;
-	uint32_t image_size;
+	uint32_t compression;
 	uint32_t xppm;
 	uint32_t yppm;
 	uint32_t color_palette;
@@ -68,6 +68,7 @@ struct mi_bmp_info_40_t {
 static d_media_attr_unset(image, bmp, , struct media_container_pri_bmp_s)
 {
 	pri->pixel_offset = 0;
+	pri->image_size = 0;
 }
 static d_media_attr_set(image, bmp, magic, struct media_container_pri_bmp_s)
 {
@@ -144,10 +145,10 @@ static d_media_attr_set(image, bmp, bpp, struct media_container_pri_bmp_s)
 	uint32_t bpp;
 	switch ((bpp = (uint32_t) value->value.av_int))
 	{
-		case 1:
-		case 4:
-		case 8:
-		case 16:
+		// case 1:
+		// case 4:
+		// case 8:
+		// case 16:
 		case 24:
 		case 32:
 			pri->bpp = bpp;
@@ -159,12 +160,57 @@ static d_media_attr_unset(image, bmp, bpp, struct media_container_pri_bmp_s)
 {
 	pri->bpp = 32;
 }
-	// uint32_t compression_method;  // 0(RGB), 1(RLE8), 2(RLE4), 3(BITFIELDS), 4(JPEG), 5(PNG), 6(ALPHABITFIELDS), 11(CMYK), 12(CMYKRLE8), 13(CMYKRLE4)
-	// uint32_t image_size;          // size of the raw bitmap data (if RGB, image_size = 0)
-	// uint32_t xppm;
-	// uint32_t yppm;
-	// uint32_t color_palette;       // 0 and 2^n
-	// uint32_t used_color;          // 0 is every color
+static d_media_attr_set(image, bmp, compression, struct media_container_pri_bmp_s)
+{
+	uint32_t compression;
+	switch ((compression = (uint32_t) value->value.av_int))
+	{
+		case 0: // RGB
+			pri->compression = compression;
+			return attr;
+		default: return NULL;
+	}
+}
+static d_media_attr_unset(image, bmp, compression, struct media_container_pri_bmp_s)
+{
+	pri->compression = 0;
+}
+static d_media_attr_set(image, bmp, xppm, struct media_container_pri_bmp_s)
+{
+	pri->xppm = (int32_t) value->value.av_int;
+	return attr;
+}
+static d_media_attr_unset(image, bmp, xppm, struct media_container_pri_bmp_s)
+{
+	pri->xppm = 0;
+}
+static d_media_attr_set(image, bmp, yppm, struct media_container_pri_bmp_s)
+{
+	pri->yppm = (int32_t) value->value.av_int;
+	return attr;
+}
+static d_media_attr_unset(image, bmp, yppm, struct media_container_pri_bmp_s)
+{
+	pri->yppm = 0;
+}
+static d_media_attr_set(image, bmp, color_palette, struct media_container_pri_bmp_s)
+{
+	pri->color_palette = (int32_t) value->value.av_int;
+	return attr;
+}
+static d_media_attr_unset(image, bmp, color_palette, struct media_container_pri_bmp_s)
+{
+	pri->color_palette = 0;
+}
+static d_media_attr_set(image, bmp, used_color, struct media_container_pri_bmp_s)
+{
+	pri->used_color = (int32_t) value->value.av_int;
+	return attr;
+}
+static d_media_attr_unset(image, bmp, used_color, struct media_container_pri_bmp_s)
+{
+	pri->used_color = 0;
+}
 
 static d_media_container__initial_judge(image, bmp)
 {
@@ -174,7 +220,12 @@ static d_media_container__initial_judge(image, bmp)
 		d_media_attr_judge_add(judge, image, bmp, width, media_nai_width, sint32) &&
 		d_media_attr_judge_add(judge, image, bmp, height, media_nai_height, sint32) &&
 		d_media_attr_judge_add(judge, image, bmp, color_plane, media_nai_bmp_color_plane, uint32) &&
-		d_media_attr_judge_add(judge, image, bmp, bpp, media_nai_bpp, uint32)
+		d_media_attr_judge_add(judge, image, bmp, bpp, media_nai_bpp, uint32) &&
+		d_media_attr_judge_add(judge, image, bmp, compression, media_nai_bmp_compression, uint32) &&
+		d_media_attr_judge_add(judge, image, bmp, xppm, media_nai_bmp_xppm, uint32) &&
+		d_media_attr_judge_add(judge, image, bmp, yppm, media_nai_bmp_yppm, uint32) &&
+		d_media_attr_judge_add(judge, image, bmp, color_palette, media_nai_bmp_color_palette, uint32) &&
+		d_media_attr_judge_add(judge, image, bmp, used_color, media_nai_bmp_used_color, uint32)
 	) return judge;
 	return NULL;
 }
@@ -204,26 +255,32 @@ static struct media_container_s* media_container_bmp_parse_info_12(struct media_
 	struct mi_bmp_info_12_t info;
 	if (media_io_read(c->io, &info, sizeof(info)) == sizeof(info))
 	{
-		media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_12_t", &info, sizeof(info));
-		if (media_attr_set_int(c->attr, media_nai_width, info.width) &&
-			media_attr_set_int(c->attr, media_nai_height, info.height) &&
-			media_attr_set_int(c->attr, media_nai_bmp_color_plane, info.color_plane) &&
-			media_attr_set_int(c->attr, media_nai_bpp, info.bpp)
+		// media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_12_t", &info, sizeof(info));
+		if (media_attr_set_int(c->attr, media_nai_width, media_n2le_16(info.width)) &&
+			media_attr_set_int(c->attr, media_nai_height, media_n2le_16(info.height)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_color_plane, media_n2le_16(info.color_plane)) &&
+			media_attr_set_int(c->attr, media_nai_bpp, media_n2le_16(info.bpp))
 			) return c;
 	}
 	return NULL;
 }
 
-static struct media_container_s* media_container_bmp_parse_info_40(struct media_container_s *restrict c)
+static struct media_container_s* media_container_bmp_parse_info_40(struct media_container_s *restrict c, struct media_container_pri_bmp_s *restrict pri)
 {
 	struct mi_bmp_info_40_t info;
 	if (media_io_read(c->io, &info, sizeof(info)) == sizeof(info))
 	{
-		media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_40_t", &info, sizeof(info));
-		if (media_attr_set_int(c->attr, media_nai_width, info.width) &&
-			media_attr_set_int(c->attr, media_nai_height, info.height) &&
-			media_attr_set_int(c->attr, media_nai_bmp_color_plane, info.color_plane) &&
-			media_attr_set_int(c->attr, media_nai_bpp, info.bpp)
+		// media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_40_t", &info, sizeof(info));
+		pri->image_size = media_n2le_32(info.image_size);
+		if (media_attr_set_int(c->attr, media_nai_width, media_n2le_32(info.width)) &&
+			media_attr_set_int(c->attr, media_nai_height, media_n2le_32(info.height)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_color_plane, media_n2le_16(info.color_plane)) &&
+			media_attr_set_int(c->attr, media_nai_bpp, media_n2le_16(info.bpp)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_compression, media_n2le_32(info.compression_method)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_xppm, media_n2le_32(info.xppm)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_yppm, media_n2le_32(info.yppm)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_color_palette, media_n2le_32(info.color_palette)) &&
+			media_attr_set_int(c->attr, media_nai_bmp_used_color, media_n2le_32(info.used_color))
 			) return c;
 	}
 	return NULL;
@@ -242,11 +299,10 @@ static d_media_container__parse_head(image, bmp)
 	m = c->media;
 	io = c->io;
 	pri = (struct media_container_pri_bmp_s *) c->pri_data;
-	media_verbose(m, "image/bmp parse head ...");
 	// get bmp header
 	if (media_io_read(io, &bmp_header, sizeof(bmp_header)) != sizeof(bmp_header))
 		goto label_fail;
-	media_mlog_print_rawdata(m->mlog_verbose, "bmp-header", &bmp_header, sizeof(bmp_header));
+	// media_mlog_print_rawdata(m->mlog_verbose, "bmp-header", &bmp_header, sizeof(bmp_header));
 	if (!(magic = (refer_string_t) hashmap_get_head(&id->magic, (uint64_t) bmp_header.magic)))
 		goto label_fail;
 	if (!media_attr_refer_string(c->attr, media_nas_bmp_magic, magic))
@@ -259,7 +315,7 @@ static d_media_container__parse_head(image, bmp)
 		goto label_fail;
 	if (media_io_read(io, &version, sizeof(version)) != sizeof(version))
 		goto label_fail;
-	media_verbose(m, "version: %u", version);
+	version = media_n2le_32(version);
 	if (!media_attr_set_int(c->attr, media_nai_bmp_version, version))
 		goto label_fail;
 	// get bmp info
@@ -271,10 +327,12 @@ static d_media_container__parse_head(image, bmp)
 			if (media_container_bmp_parse_info_12(c)) break;
 			goto label_fail;
 		case 40:
-			if (media_container_bmp_parse_info_40(c)) break;
+			if (media_container_bmp_parse_info_40(c, pri)) break;
 			goto label_fail;
 		default: goto label_fail;
 	}
+	// get bits-mask or color-table
+	// config stream
 	return c;
 	label_fail:
 	media_warning(m, "image/bmp parse head ... fail");
