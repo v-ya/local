@@ -271,6 +271,18 @@ struct media_attr_judge_s* media_attr_judge_alloc(void)
 	return NULL;
 }
 
+struct media_attr_judge_s* media_attr_judge_create(media_attr_judge_initial_f initial)
+{
+	struct media_attr_judge_s *restrict r;
+	if (initial && (r = media_attr_judge_alloc()))
+	{
+		if (initial(r))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
 #include "media.h"
 
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_set_f sf, media_attr_unset_f uf, enum media_attr_judge_need_t need)

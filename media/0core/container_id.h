@@ -7,7 +7,6 @@
 struct media_container_id_s;
 struct media_container_s;
 
-typedef struct media_attr_judge_s* (*media_container_initial_judge_f)(struct media_attr_judge_s *restrict judge);
 typedef refer_t (*media_container_create_pri_f)(const struct media_container_id_s *restrict id);
 typedef struct media_container_s* (*media_container_parse_head_f)(struct media_container_s *restrict c);
 typedef struct media_container_s* (*media_container_parse_tail_f)(struct media_container_s *restrict c);
@@ -15,7 +14,7 @@ typedef struct media_container_s* (*media_container_build_head_f)(struct media_c
 typedef struct media_container_s* (*media_container_build_tail_f)(struct media_container_s *restrict c);
 
 struct media_container_id_func_t {
-	media_container_initial_judge_f initial_judge;
+	media_attr_judge_initial_f initial_judge;
 	media_container_create_pri_f create_pri;
 	media_container_parse_head_f parse_head;
 	media_container_parse_tail_f parse_tail;

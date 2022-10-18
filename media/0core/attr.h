@@ -51,6 +51,7 @@ struct media_attr_item_s {
 
 typedef const struct media_attr_s* (*media_attr_set_f)(const struct media_attr_s *restrict attr, refer_t pri, const struct media_attr_item_s *restrict value);
 typedef void (*media_attr_unset_f)(const struct media_attr_s *restrict attr, refer_t pri);
+typedef struct media_attr_judge_s* (*media_attr_judge_initial_f)(struct media_attr_judge_s *restrict judge);
 
 struct media_attr_judge_item_s {
 	media_attr_set_f set;
@@ -78,6 +79,8 @@ struct media_attr_s* media_attr_set(struct media_attr_s *restrict attr, const ch
 const struct media_attr_s* media_attr_get(const struct media_attr_s *restrict attr, const char *restrict name, enum media_attr_type_t type, union media_attr_value_t *restrict value);
 
 struct media_attr_judge_s* media_attr_judge_alloc(void);
+struct media_attr_judge_s* media_attr_judge_create(media_attr_judge_initial_f initial);
+
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_set_f sf, media_attr_unset_f uf, enum media_attr_judge_need_t need);
 void media_attr_judge_set_extra_clear(struct media_attr_judge_s *restrict judge, media_attr_unset_f uf);
 

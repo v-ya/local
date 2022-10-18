@@ -3,11 +3,14 @@
 #include "0core/frame.h"
 #include "0core/media.h"
 #include "media.frame.h"
+#include "media.container.h"
+#include "media.stream.h"
 // frame
 #include "image/frame.h"
 #include "zarch/frame.h"
 // container
 #include "image/container.h"
+// stream
 // print
 #include <inttypes.h>
 
@@ -48,14 +51,20 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 	{
 		if (loglevel && mlog)
 			media_initial_set_mlog(r, mlog, (uint32_t) loglevel);
-		// register ... audio image video zarch
+		// register ...
 		if (
+			// stream type
+			media_initial_add_string(r, media_st_audio) &&
+			media_initial_add_string(r, media_st_image) &&
+			media_initial_add_string(r, media_st_video) &&
+			media_initial_add_string(r, media_st_zarch) &&
 			// frame
 			media_alloc_add_frame(r, media_frame_create_image_bgra32) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// container
-			media_alloc_add_container(r, media_container_create_image_bmp)
-		) return r;
+			media_alloc_add_container(r, media_container_create_image_bmp) &&
+			// stream
+		1) return r;
 		refer_free(r);
 	}
 	return NULL;
