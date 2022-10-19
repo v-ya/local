@@ -122,18 +122,6 @@ static const struct media_attr_s* media_attr_set_it(const struct media_attr_s *r
 					(int64_t) (int8_t) value->value.av_int == value->value.av_int)
 					break;
 				goto label_fail;
-			case media_attr_judge_need__exist_string:
-				if (value->type == media_attr_type__string && value->value.av_string)
-					break;
-				goto label_fail;
-			case media_attr_judge_need__exist_data:
-				if (value->type == media_attr_type__data && value->value.av_data)
-					break;
-				goto label_fail;
-			case media_attr_judge_need__exist_ptr:
-				if (value->type == media_attr_type__ptr && value->value.av_ptr)
-					break;
-				goto label_fail;
 			default: goto label_fail;
 		}
 		return ji->set(attr, attr->pri_data, value);
@@ -150,6 +138,16 @@ static inline void media_attr_unset_it(const struct media_attr_s *restrict attr,
 static struct media_attr_s* media_attr_link_value(struct media_attr_s *restrict attr, const char *restrict name, const struct media_attr_item_s *restrict value)
 {
 	const struct media_attr_judge_item_s *restrict ji;
+	switch (value->type)
+	{
+		case media_attr_type__string:
+		case media_attr_type__data:
+		case media_attr_type__ptr:
+			if (!value->value.av_ptr)
+				goto label_fail;
+			break;
+		default: break;
+	}
 	ji = NULL;
 	if (!attr->judge || media_attr_set_it(attr, ji = (const struct media_attr_judge_item_s *) hashmap_get_name(&attr->judge->judge, name), value))
 	{
@@ -158,6 +156,7 @@ static struct media_attr_s* media_attr_link_value(struct media_attr_s *restrict 
 		vattr_delete(attr->attr, name);
 		media_attr_unset_it(attr, ji);
 	}
+	label_fail:
 	return NULL;
 }
 

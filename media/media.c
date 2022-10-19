@@ -117,14 +117,14 @@ media_attr_s* media_attr_set_data(media_attr_s *restrict attr, const char *restr
 
 media_attr_s* media_attr_refer_string(media_attr_s *restrict attr, const char *restrict name, refer_string_t string)
 {
-	if (attr && name)
+	if (attr && name && string)
 		return media_attr_set(attr, name, media_attr_type__string, (union media_attr_value_t) {.av_string = string});
 	return NULL;
 }
 
 media_attr_s* media_attr_refer_data(media_attr_s *restrict attr, const char *restrict name, refer_nstring_t data)
 {
-	if (attr && name)
+	if (attr && name && data)
 		return media_attr_set(attr, name, media_attr_type__data, (union media_attr_value_t) {.av_data = data});
 	return NULL;
 }
@@ -184,12 +184,10 @@ static void media_attr_dump_item(struct mlog_s *restrict mlog, const char *restr
 			mlog_printf(mlog, "%s [float]: %g", name, item->value.av_float);
 			break;
 		case media_attr_type__string:
-			mlog_printf(mlog, "%s [string]: %s", name, item->value.av_string?item->value.av_string:"(null)");
+			mlog_printf(mlog, "%s [string]: %s", name, item->value.av_string);
 			break;
 		case media_attr_type__data:
-			if (item->value.av_data)
-				media_mlog_print_rawdata(mlog, name, item->value.av_data->string, item->value.av_data->length);
-			else media_mlog_print_rawdata(mlog, name, NULL, 0);
+			media_mlog_print_rawdata(mlog, name, item->value.av_data->string, item->value.av_data->length);
 			break;
 		case media_attr_type__ptr:
 			mlog_printf(mlog, "%s [ptr]: %p", name, item->value.av_ptr);

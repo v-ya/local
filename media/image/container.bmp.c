@@ -215,7 +215,7 @@ static d_media_attr_unset(image, bmp, used_color, struct media_container_pri_bmp
 static d_media_container__initial_judge(image, bmp)
 {
 	media_attr_judge_set_extra_clear(judge, (media_attr_unset_f) media_attr_symbol(unset, image, bmp, ));
-	if (d_media_attr_judge_add(judge, image, bmp, magic, media_nas_bmp_magic, exist_string) &&
+	if (d_media_attr_judge_add(judge, image, bmp, magic, media_nas_bmp_magic, string) &&
 		d_media_attr_judge_add(judge, image, bmp, version, media_nai_bmp_version, uint32) &&
 		d_media_attr_judge_add(judge, image, bmp, width, media_nai_width, sint32) &&
 		d_media_attr_judge_add(judge, image, bmp, height, media_nai_height, sint32) &&

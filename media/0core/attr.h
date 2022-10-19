@@ -31,9 +31,6 @@ enum media_attr_judge_need_t {
 	media_attr_judge_need__sint16,
 	media_attr_judge_need__uint8,
 	media_attr_judge_need__sint8,
-	media_attr_judge_need__exist_string,
-	media_attr_judge_need__exist_data,
-	media_attr_judge_need__exist_ptr,
 };
 
 union media_attr_value_t {
