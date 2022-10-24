@@ -6,4 +6,6 @@
 #define media_st_video  "st/video"
 #define media_st_zarch  "st/zarch"
 
+#define media_ns_oz_bgra32  "si/oz/bgra32"
+
 #endif

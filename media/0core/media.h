@@ -2,6 +2,7 @@
 #define _media_core_media_h_
 
 #include <refer.h>
+#include "stack_id.h"
 #include "frame_id.h"
 #include "stream_id.h"
 #include "container_id.h"
@@ -10,6 +11,7 @@
 
 struct media_s {
 	hashmap_t string;
+	hashmap_t stack;
 	hashmap_t frame;
 	hashmap_t stream;
 	hashmap_t container;
@@ -24,6 +26,7 @@ struct media_s* media_alloc_empty(void);
 void media_hashmap_free_refer_func(hashmap_vlist_t *restrict vl);
 
 struct media_s* media_initial_add_string(struct media_s *restrict media, const char *restrict string);
+struct media_s* media_initial_add_stack(struct media_s *restrict media, const struct media_stack_id_s *restrict stack_id);
 struct media_s* media_initial_add_frame(struct media_s *restrict media, const struct media_frame_id_s *restrict frame_id);
 struct media_s* media_initial_add_stream(struct media_s *restrict media, const struct media_stream_id_s *restrict stream_id);
 struct media_s* media_initial_add_container(struct media_s *restrict media, const struct media_container_id_s *restrict container_id);

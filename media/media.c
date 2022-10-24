@@ -11,8 +11,24 @@
 // container
 #include "image/container.h"
 // stream
+#include "image/stream.h"
 // print
 #include <inttypes.h>
+
+static media_s* media_alloc_add_stack(media_s *restrict r, media_stack_layout_initial_f initial_func)
+{
+	struct media_stack_id_s *restrict id;
+	if ((id = media_stack_id_alloc(initial_func)))
+	{
+		r = media_initial_add_stack(r, id);
+		if (r) media_verbose(r, "add stack (%s) okay", id->name);
+		else media_error(r, "add stack (%s) fail", id->name);
+		refer_free(id);
+		return r;
+	}
+	else media_error(r, "create stack id (%p) fail", initial_func);
+	return NULL;
+}
 
 static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id_s* (*create_func)(void))
 {
@@ -44,6 +60,21 @@ static media_s* media_alloc_add_container(media_s *restrict r, struct media_cont
 	return NULL;
 }
 
+static media_s* media_alloc_add_stream(media_s *restrict r, struct media_stream_id_s* (*create_func)(const media_s *restrict media))
+{
+	struct media_stream_id_s *restrict id;
+	if ((id = create_func(r)))
+	{
+		r = media_initial_add_stream(r, id);
+		if (r) media_verbose(r, "add stream (%s) okay", id->name);
+		else media_error(r, "add stream (%s) fail", id->name);
+		refer_free(id);
+		return r;
+	}
+	else media_error(r, "create stream id (%p) fail", create_func);
+	return NULL;
+}
+
 const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict mlog)
 {
 	media_s *restrict r;
@@ -58,12 +89,15 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_initial_add_string(r, media_st_image) &&
 			media_initial_add_string(r, media_st_video) &&
 			media_initial_add_string(r, media_st_zarch) &&
+			// stack layout
+			media_alloc_add_stack(r, media_stack_layout_initial__oz) &&
 			// frame
 			media_alloc_add_frame(r, media_frame_create_image_bgra32) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
 			// stream
+			media_alloc_add_stream(r, media_stream_create_image_oz_bgra32) &&
 		1) return r;
 		refer_free(r);
 	}

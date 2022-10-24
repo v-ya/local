@@ -3,6 +3,7 @@
 static void media_free_func(struct media_s *restrict r)
 {
 	hashmap_uini(&r->string);
+	hashmap_uini(&r->stack);
 	hashmap_uini(&r->frame);
 	hashmap_uini(&r->stream);
 	hashmap_uini(&r->container);
@@ -19,6 +20,7 @@ struct media_s* media_alloc_empty(void)
 	{
 		refer_set_free(r, (refer_free_f) media_free_func);
 		if (hashmap_init(&r->string) &&
+			hashmap_init(&r->stack) &&
 			hashmap_init(&r->frame) &&
 			hashmap_init(&r->stream) &&
 			hashmap_init(&r->container))
@@ -50,6 +52,15 @@ struct media_s* media_initial_add_string(struct media_s *restrict media, const c
 		refer_free(rs);
 		return media;
 	}
+	return NULL;
+}
+
+struct media_s* media_initial_add_stack(struct media_s *restrict media, const struct media_stack_id_s *restrict stack_id)
+{
+	refer_string_t name;
+	if (stack_id && (name = stack_id->name) && media_initial_hashmap_add_refer(&media->string, name, name) &&
+		media_initial_hashmap_add_refer(&media->stack, name, stack_id))
+		return media;
 	return NULL;
 }
 

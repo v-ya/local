@@ -7,19 +7,24 @@ static void media_stack_free_func(struct media_stack_s *restrict r)
 	exbuffer_uini(&r->stack);
 }
 
-struct media_stack_s* media_stack_alloc(uintptr_t stack_size, uintptr_t stack_align, media_stack_copy_f copy, media_stack_clear_f clear)
+struct media_stack_s* media_stack_alloc(const struct media_stack_param_t *restrict param)
 {
 	struct media_stack_s *restrict r;
-	stack_align = (stack_align > 1)?((stack_size + stack_size - 1) / stack_size * stack_size):stack_size;
-	if (stack_size && stack_align && (r = (struct media_stack_s *) refer_alloz(sizeof(struct media_stack_s))))
+	uintptr_t size_block;
+	uintptr_t size_used;
+	size_block = param->stack_align;
+	size_used = param->stack_size;
+	size_block = (size_block > 1)?((size_used + size_block - 1) / size_block * size_block):size_used;
+	if (size_used && size_block && (r = (struct media_stack_s *) refer_alloz(sizeof(struct media_stack_s))))
 	{
 		if (exbuffer_init(&r->stack, 0))
 		{
 			refer_set_free(r, (refer_free_f) media_stack_free_func);
-			r->copy = copy;
-			r->clear = clear;
-			r->size_block = stack_align;
-			r->size_used = stack_size;
+			r->copy = param->copy;
+			r->clear = param->clear;
+			r->size_block = size_block;
+			r->size_used = size_used;
+			r->layout_magic = param->layout_magic;
 			return r;
 		}
 		refer_free(r);
