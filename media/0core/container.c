@@ -1,8 +1,7 @@
 #include "container.h"
 
-static void media_container_free_func(struct media_container_s *restrict r)
+static void media_container_inner_free_func(struct media_container_inner_s *restrict r)
 {
-	if (r->stream) refer_free(r->stream);
 	if (r->attr) refer_free(r->attr);
 	if (r->io) refer_free(r->io);
 	if (r->pri_data) refer_free(r->pri_data);
@@ -10,19 +9,17 @@ static void media_container_free_func(struct media_container_s *restrict r)
 	if (r->id) refer_free(r->id);
 }
 
-struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id)
+static struct media_container_inner_s* media_container_inner_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id)
 {
-	struct media_container_s *restrict r;
-	if ((r = (struct media_container_s *) refer_alloz(sizeof(struct media_container_s))))
+	struct media_container_inner_s *restrict r;
+	if ((r = (struct media_container_inner_s *) refer_alloz(sizeof(struct media_container_inner_s))))
 	{
-		refer_set_free(r, (refer_free_f) media_container_free_func);
+		refer_set_free(r, (refer_free_f) media_container_inner_free_func);
 		r->id = (const struct media_container_id_s *) refer_save(container_id);
 		r->media = (const struct media_s *) refer_save(media);
 		if (container_id->func.create_pri && !(r->pri_data = container_id->func.create_pri(container_id)))
 			goto label_fail;
 		if (!(r->attr = media_attr_alloc(NULL)))
-			goto label_fail;
-		if (!(r->stream = vattr_alloc()))
 			goto label_fail;
 		r->iotype = media_container_io_none;
 		// initial r->attr
@@ -38,16 +35,38 @@ struct media_container_s* media_container_alloc(const struct media_s *restrict m
 	return NULL;
 }
 
+static void media_container_free_func(struct media_container_s *restrict r)
+{
+	if (r->stream) refer_free(r->stream);
+	if (r->inner) refer_free(r->inner);
+}
+
+struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id)
+{
+	struct media_container_s *restrict r;
+	if ((r = (struct media_container_s *) refer_alloz(sizeof(struct media_container_s))))
+	{
+		refer_set_free(r, (refer_free_f) media_container_free_func);
+		if ((r->inner = media_container_inner_alloc(media, container_id)) &&
+			(r->stream = vattr_alloc()))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
 struct media_container_s* media_container_done_step(struct media_container_s *restrict container, enum media_container_step_t step)
 {
+	struct media_container_inner_s *restrict inner;
 	const struct media_container_id_s *restrict id;
 	struct media_io_s *restrict io;
 	enum media_container_step_t step_curr;
-	id = container->id;
-	if ((io = container->io))
+	inner = container->inner;
+	id = inner->id;
+	if ((io = inner->io))
 	{
-		step_curr = container->step;
-		switch (container->iotype)
+		step_curr = inner->step;
+		switch (inner->iotype)
 		{
 			case media_container_io_input:
 				if (step_curr == media_container_step_none && step > media_container_step_none)
@@ -62,7 +81,7 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 						goto label_fail;
 					step_curr = media_container_step_tail;
 				}
-				container->step = step_curr;
+				inner->step = step_curr;
 				return container;
 			case media_container_io_output:
 				if (step_curr == media_container_step_none && step > media_container_step_none)
@@ -77,11 +96,11 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 						goto label_fail;
 					step_curr = media_container_step_tail;
 				}
-				container->step = step_curr;
+				inner->step = step_curr;
 				return container;
 			default:
 				label_fail:
-				container->step = step_curr;
+				inner->step = step_curr;
 				break;
 		}
 	}
@@ -90,20 +109,22 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 
 struct media_container_s* media_container_set_io(struct media_container_s *restrict container, struct media_io_s *restrict io, enum media_container_io_t iotype)
 {
+	struct media_container_inner_s *restrict inner;
 	vattr_clear(container->stream);
-	if (container->io)
+	inner = container->inner;
+	if (inner->io)
 	{
-		if (container->iotype == media_container_io_output)
+		if (inner->iotype == media_container_io_output)
 			media_container_done_step(container, media_container_step_tail);
-		refer_free(container->io);
-		container->io = NULL;
-		container->iotype = media_container_io_none;
-		container->step = media_container_step_none;
+		refer_free(inner->io);
+		inner->io = NULL;
+		inner->iotype = media_container_io_none;
+		inner->step = media_container_step_none;
 	}
 	if (io)
 	{
-		container->io = (struct media_io_s *) refer_save(io);
-		container->iotype = iotype;
+		inner->io = (struct media_io_s *) refer_save(io);
+		inner->iotype = iotype;
 		if (iotype == media_container_io_input)
 		{
 			if (!media_container_done_step(container, media_container_step_head))

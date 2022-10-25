@@ -32,6 +32,5 @@ struct media_stack_s* media_stack_push(struct media_stack_s *restrict stack, con
 void media_stack_pop(struct media_stack_s *restrict stack);
 struct media_stack_s* media_stack_set_index(struct media_stack_s *restrict stack, uintptr_t index);
 const void* media_stack_get(struct media_stack_s *restrict stack, uintptr_t index);
-const void* media_stack_get_and_next(struct media_stack_s *restrict stack);
 
 #endif

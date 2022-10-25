@@ -81,7 +81,7 @@ void media_stack_pop(struct media_stack_s *restrict stack)
 
 struct media_stack_s* media_stack_set_index(struct media_stack_s *restrict stack, uintptr_t index)
 {
-	if (index < stack->stack_number)
+	if (index <= stack->stack_number)
 	{
 		stack->stack_index = index;
 		return stack;
@@ -93,16 +93,5 @@ const void* media_stack_get(struct media_stack_s *restrict stack, uintptr_t inde
 {
 	if (index < stack->stack_number)
 		return stack->stack.data + stack->size_block * index;
-	return NULL;
-}
-
-const void* media_stack_get_and_next(struct media_stack_s *restrict stack)
-{
-	uintptr_t i;
-	if ((i = stack->stack_index) < stack->stack_number)
-	{
-		stack->stack_index = i + 1;
-		return stack->stack.data + stack->size_block * i;
-	}
 	return NULL;
 }

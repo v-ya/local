@@ -20,15 +20,19 @@ enum media_container_step_t {
 	media_container_step_tail,
 };
 
-struct media_container_s {
+struct media_container_inner_s {
 	const struct media_container_id_s *id;
 	const struct media_s *media;
 	refer_t pri_data;
 	struct media_io_s *io;
 	struct media_attr_s *attr;
-	vattr_s *stream;
 	enum media_container_io_t iotype;
 	enum media_container_step_t step;
+};
+
+struct media_container_s {
+	struct media_container_inner_s *inner;
+	vattr_s *stream;
 };
 
 struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id);

@@ -81,10 +81,10 @@ struct media_attr_judge_s* media_attr_judge_create(media_attr_judge_initial_f in
 struct media_attr_judge_s* media_attr_judge_set(struct media_attr_judge_s *restrict judge, const char *restrict name, media_attr_set_f sf, media_attr_unset_f uf, enum media_attr_judge_need_t need);
 void media_attr_judge_set_extra_clear(struct media_attr_judge_s *restrict judge, media_attr_unset_f uf);
 
-#define media_attr_symbol(_tf, _type, _name, _func)   media_attr__##_tf##__##_type##__##_name##__##_func
-#define d_media_attr_set(_type, _name, _func, _pt)    const struct media_attr_s* media_attr_symbol(set, _type, _name, _func)(const struct media_attr_s *restrict attr, _pt *restrict pri, const struct media_attr_item_s *restrict value)
-#define d_media_attr_unset(_type, _name, _func, _pt)  void media_attr_symbol(unset, _type, _name, _func)(const struct media_attr_s *restrict attr, _pt *restrict pri)
+#define media_attr_symbol(_tf, _name, _func)   media_attr__##_tf##__##_name##__##_func
+#define d_media_attr_set(_name, _func, _pt)    const struct media_attr_s* media_attr_symbol(set, _name, _func)(const struct media_attr_s *restrict attr, _pt *restrict pri, const struct media_attr_item_s *restrict value)
+#define d_media_attr_unset(_name, _func, _pt)  void media_attr_symbol(unset, _name, _func)(const struct media_attr_s *restrict attr, _pt *restrict pri)
 
-#define d_media_attr_judge_add(_judge, _type, _name, _func, _qn, _need) media_attr_judge_set(_judge, _qn, (media_attr_set_f) media_attr_symbol(set, _type, _name, _func), (media_attr_unset_f) media_attr_symbol(unset, _type, _name, _func), media_attr_judge_need__##_need)
+#define d_media_attr_judge_add(_judge, _name, _func, _qn, _need) media_attr_judge_set(_judge, _qn, (media_attr_set_f) media_attr_symbol(set, _name, _func), (media_attr_unset_f) media_attr_symbol(unset, _name, _func), media_attr_judge_need__##_need)
 
 #endif
