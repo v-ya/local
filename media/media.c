@@ -234,7 +234,7 @@ void media_attr_dump(const media_attr_s *restrict attr, const media_s *restrict 
 
 // frame
 
-media_frame_s* media_create_frame(const media_s *restrict media, const char *restrict frame_name, uintptr_t d, const uintptr_t dv[])
+media_frame_s* media_create_frame(const media_s *restrict media, const char *restrict frame_name, uintptr_t d, const uintptr_t *restrict dv)
 {
 	const struct media_frame_id_s *restrict id;
 	if (frame_name && (id = (const struct media_frame_id_s *) hashmap_get_name(&media->frame, frame_name)))

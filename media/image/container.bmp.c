@@ -30,6 +30,7 @@ struct media_container_id_s* media_container_create_image_bmp(const struct media
 	{
 		refer_set_free(r, (refer_free_f) media_container_id_bmp_free_func);
 		if (hashmap_init(&r->magic) &&
+			media_stream_symbol(spec_append, bmp)(r->id.stream_spec, media) &&
 			media_container_id_bmp_initial_magic(r, "BM") && // Windows 3.1x, 95, NT, ... etc.
 			media_container_id_bmp_initial_magic(r, "BA") && // OS/2 struct Bitmap Array
 			media_container_id_bmp_initial_magic(r, "CI") && // OS/2 struct Color Icon

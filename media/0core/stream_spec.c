@@ -14,9 +14,9 @@ static struct media_stream_spec_s* media_stream_spec_create_used_judge(const str
 	if ((r = (struct media_stream_spec_s *) refer_alloz(sizeof(struct media_stream_spec_s))))
 	{
 		refer_set_free(r, (refer_free_f) media_stream_spec_free_func);
-		if ((r->stream_type = (refer_string_t) media_get_string(media, param->stream_type)) &&
-			(r->frame_id_name = (refer_string_t) media_get_string(media, param->frame_id_name)) &&
-			(r->stack_layout = (refer_string_t) media_get_string(media, param->stack_layout)))
+		if ((r->stream_type = media_save_string(media, param->stream_type)) &&
+			(r->frame_id_name = media_save_string(media, param->frame_id_name)) &&
+			(r->stack_layout = media_save_string(media, param->stack_layout)))
 		{
 			if (judge) r->judge = (const struct media_attr_judge_s *) refer_save(judge);
 			else if (param->initial_judge && !(r->judge = media_attr_judge_create(param->initial_judge)))

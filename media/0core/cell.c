@@ -15,7 +15,7 @@ struct media_cell_info_t* media_cell_info_initial(struct media_cell_info_t *rest
 	return NULL;
 }
 
-struct media_cell_t* media_cell_set(struct media_cell_t *restrict cell, const struct media_cell_info_t *restrict info, uintptr_t cell_size, uintptr_t dimension)
+uintptr_t media_cell_set(struct media_cell_t *restrict cell, const struct media_cell_info_t *restrict info, uintptr_t cell_size, uintptr_t dimension)
 {
 	uintptr_t size;
 	cell_size = (cell_size + info->cell_addend + info->cell_align - 1) / info->cell_align;
@@ -25,5 +25,5 @@ struct media_cell_t* media_cell_set(struct media_cell_t *restrict cell, const st
 	cell->cell_size = cell_size;
 	cell->used_size = (size + info->size_align - 1) / info->size_align;
 	cell->skip_size = cell->used_size - size;
-	return size?cell:NULL;
+	return cell->used_size;
 }

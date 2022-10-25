@@ -15,6 +15,6 @@ struct media_frame_id_s {
 struct media_frame_id_s* media_frame_id_alloc(const char *restrict name, uintptr_t channel, uintptr_t dimension);
 struct media_frame_id_s* media_frame_id_initial(struct media_frame_id_s *restrict frame_id, uintptr_t channel, uintptr_t dimension, uintptr_t cell_addend, uintptr_t cell_align, uintptr_t dimension_addend, uintptr_t dimension_multiplier, uintptr_t dimension_divisor, uintptr_t size_align);
 
-struct media_channel_s* media_frame_id_create_channel(const struct media_frame_id_s *restrict frame_id, uintptr_t channel, uintptr_t dimension, const uintptr_t dimension_value[]);
+const struct media_cell_info_t* media_frame_id_get_cells(const struct media_frame_id_s *restrict frame_id, uintptr_t channel, uintptr_t dimension);
 
 #endif

@@ -31,7 +31,8 @@ struct media_s* media_initial_add_container(struct media_s *restrict media, cons
 struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *restrict mlog, uint32_t loglevel);
 mlog_s* media_get_mlog_by_loglevel(const struct media_s *restrict media, uint32_t loglevel);
 
-#define media_get_string(_media, _s)  ((refer_string_t) hashmap_get_name(&(_media)->string, _s))
+#define media_get_string(_media, _s)   ((refer_string_t) hashmap_get_name(&(_media)->string, _s))
+#define media_save_string(_media, _s)  ((refer_string_t) refer_save(hashmap_get_name(&(_media)->string, _s)))
 
 #define media_error(_media, _format, ...)   (void) ((_media)->mlog_error   && mlog_printf((_media)->mlog_error,   _format, ##__VA_ARGS__))
 #define media_warning(_media, _format, ...) (void) ((_media)->mlog_warning && mlog_printf((_media)->mlog_warning, _format, ##__VA_ARGS__))

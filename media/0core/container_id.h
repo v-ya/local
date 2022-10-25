@@ -25,7 +25,7 @@ struct media_container_id_func_t {
 
 struct media_container_id_s {
 	refer_string_t name;
-	const vattr_s *stream_spec;
+	vattr_s *stream_spec;
 	const struct media_attr_judge_s *judge;
 	struct media_container_id_func_t func;
 };

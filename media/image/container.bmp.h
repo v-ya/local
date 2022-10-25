@@ -75,4 +75,6 @@ d_media_container__parse_head(bmp);
 
 // stream
 
+d_media_stream__spec_append(bmp);
+
 #endif

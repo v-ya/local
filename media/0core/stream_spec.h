@@ -49,5 +49,6 @@ vattr_s* media_stream_spec_append(vattr_s *restrict stream_spec, const struct me
 #define d_media_stream__append_pre(_name)     struct media_container_s* media_stream_symbol(append_pre, _name)(struct media_container_s *restrict c, struct media_stream_s *restrict s)
 #define d_media_stream__read_frame(_name)     struct media_frame_s* media_stream_symbol(read_frame, _name)(const struct media_stream_s *restrict s, struct media_frame_s *restrict frame)
 #define d_media_stream__write_frame(_name)    struct media_stream_s* media_stream_symbol(write_frame, _name)(struct media_stream_s *restrict s, const struct media_frame_s *restrict frame)
+#define d_media_stream__spec_append(_name)    vattr_s* media_stream_symbol(spec_append, _name)(vattr_s *restrict stream_spec, const struct media_s *restrict media)
 
 #endif

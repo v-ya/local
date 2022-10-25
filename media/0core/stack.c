@@ -89,7 +89,7 @@ struct media_stack_s* media_stack_set_index(struct media_stack_s *restrict stack
 	return NULL;
 }
 
-const void* media_stack_get(struct media_stack_s *restrict stack, uintptr_t index)
+const void* media_stack_get(const struct media_stack_s *restrict stack, uintptr_t index)
 {
 	if (index < stack->stack_number)
 		return stack->stack.data + stack->size_block * index;
