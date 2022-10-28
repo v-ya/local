@@ -31,8 +31,14 @@ struct media_s* media_initial_add_container(struct media_s *restrict media, cons
 struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *restrict mlog, uint32_t loglevel);
 mlog_s* media_get_mlog_by_loglevel(const struct media_s *restrict media, uint32_t loglevel);
 
-#define media_get_string(_media, _s)   ((refer_string_t) hashmap_get_name(&(_media)->string, _s))
-#define media_save_string(_media, _s)  ((refer_string_t) refer_save(hashmap_get_name(&(_media)->string, _s)))
+#define media_get_string(_media, _s)       ((refer_string_t) hashmap_get_name(&(_media)->string, _s))
+#define media_save_string(_media, _s)      ((refer_string_t) refer_save(hashmap_get_name(&(_media)->string, _s)))
+#define media_get_stack(_media, _id)       ((const struct media_stack_id_s *) hashmap_get_name(&(_media)->stack, _id))
+#define media_save_stack(_media, _id)      ((const struct media_stack_id_s *) refer_save(hashmap_get_name(&(_media)->stack, _id)))
+#define media_get_frame(_media, _id)       ((const struct media_frame_id_s *) hashmap_get_name(&(_media)->frame, _id))
+#define media_save_frame(_media, _id)      ((const struct media_frame_id_s *) refer_save(hashmap_get_name(&(_media)->frame, _id)))
+#define media_get_container(_media, _id)   ((const struct media_container_id_s *) hashmap_get_name(&(_media)->container, _id))
+#define media_save_container(_media, _id)  ((const struct media_container_id_s *) refer_save(hashmap_get_name(&(_media)->container, _id)))
 
 #define media_error(_media, _format, ...)   (void) ((_media)->mlog_error   && mlog_printf((_media)->mlog_error,   _format, ##__VA_ARGS__))
 #define media_warning(_media, _format, ...) (void) ((_media)->mlog_warning && mlog_printf((_media)->mlog_warning, _format, ##__VA_ARGS__))

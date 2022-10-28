@@ -35,8 +35,13 @@ struct media_container_s {
 	vattr_s *stream;
 };
 
+struct media_stream_s;
+
 struct media_container_s* media_container_alloc(const struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
 struct media_container_s* media_container_done_step(struct media_container_s *restrict container, enum media_container_step_t step);
 struct media_container_s* media_container_set_io(struct media_container_s *restrict container, struct media_io_s *restrict io, enum media_container_io_t iotype);
+
+struct media_stream_s* media_container_new_stream(struct media_container_s *restrict container, const char *restrict stream_type, const char *restrict frame_name);
+struct media_stream_s* media_container_find_stream(const struct media_container_s *restrict container, const char *restrict stream_type, uintptr_t index);
 
 #endif

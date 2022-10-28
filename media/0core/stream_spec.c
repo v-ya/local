@@ -3,8 +3,8 @@
 static void media_stream_spec_free_func(struct media_stream_spec_s *restrict r)
 {
 	if (r->stream_type) refer_free(r->stream_type);
-	if (r->frame_id_name) refer_free(r->frame_id_name);
 	if (r->stack_layout) refer_free(r->stack_layout);
+	if (r->frame_id_name) refer_free(r->frame_id_name);
 	if (r->judge) refer_free(r->judge);
 }
 
@@ -15,8 +15,8 @@ static struct media_stream_spec_s* media_stream_spec_create_used_judge(const str
 	{
 		refer_set_free(r, (refer_free_f) media_stream_spec_free_func);
 		if ((r->stream_type = media_save_string(media, param->stream_type)) &&
-			(r->frame_id_name = media_save_string(media, param->frame_id_name)) &&
-			(r->stack_layout = media_save_string(media, param->stack_layout)))
+			(r->stack_layout = media_save_string(media, param->stack_layout)) &&
+			(r->frame_id_name = media_save_string(media, param->frame_id_name)))
 		{
 			if (judge) r->judge = (const struct media_attr_judge_s *) refer_save(judge);
 			else if (param->initial_judge && !(r->judge = media_attr_judge_create(param->initial_judge)))

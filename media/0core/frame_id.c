@@ -1,8 +1,18 @@
 #include "frame_id.h"
+#include <string.h>
 
 static void media_frame_id_free_func(struct media_frame_id_s *restrict r)
 {
 	if (r->name) refer_free(r->name);
+	if (r->compat) refer_free(r->compat);
+}
+
+static refer_string_t media_frame_id_dump_compat(refer_string_t name)
+{
+	const char *restrict compat_endptr;
+	if ((compat_endptr = strchr(name, ';')))
+		return refer_dump_string_with_length(name, (uintptr_t) compat_endptr - (uintptr_t) name);
+	return (refer_string_t) refer_save(name);
 }
 
 struct media_frame_id_s* media_frame_id_alloc(const char *restrict name, uintptr_t channel, uintptr_t dimension)
@@ -13,7 +23,8 @@ struct media_frame_id_s* media_frame_id_alloc(const char *restrict name, uintptr
 		sizeof(struct media_frame_id_s) + sizeof(struct media_cell_info_t) * n)))
 	{
 		refer_set_free(r, (refer_free_f) media_frame_id_free_func);
-		if ((r->name = refer_dump_string(name)))
+		if ((r->name = refer_dump_string(name)) &&
+			(r->compat = media_frame_id_dump_compat(r->name)))
 		{
 			r->channel = channel;
 			r->dimension = dimension;

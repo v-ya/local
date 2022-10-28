@@ -15,10 +15,12 @@ struct media_container_pri_bmp_s {
 	uint32_t pixel_offset;
 	uint32_t image_size;
 	// info ...
-	int32_t width;
-	int32_t height;
-	uint16_t color_plane;
-	uint16_t bpp;
+	uint32_t width;
+	uint32_t height;
+	int32_t width_signed;
+	int32_t height_signed;
+	uint32_t color_plane;
+	uint32_t bpp;
 	uint32_t compression;
 	uint32_t xppm;
 	uint32_t yppm;

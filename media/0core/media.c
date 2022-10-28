@@ -40,6 +40,14 @@ static refer_t media_initial_hashmap_add_refer(hashmap_t *restrict hm, const cha
 	return NULL;
 }
 
+static refer_t media_initial_hashmap_add_refer_exist_ignore(hashmap_t *restrict hm, const char *restrict name, refer_t value)
+{
+	hashmap_vlist_t *restrict vl;
+	if ((vl = hashmap_find_name(hm, name)) || ((vl = hashmap_set_name(hm, name, value, media_hashmap_free_refer_func)) && refer_save(value)))
+		return (refer_t) vl->value;
+	return NULL;
+}
+
 struct media_s* media_initial_add_string(struct media_s *restrict media, const char *restrict string)
 {
 	refer_string_t rs;
@@ -66,6 +74,7 @@ struct media_s* media_initial_add_frame(struct media_s *restrict media, const st
 {
 	refer_string_t name;
 	if (frame_id && (name = frame_id->name) && media_initial_hashmap_add_refer(&media->string, name, name) &&
+		media_initial_hashmap_add_refer_exist_ignore(&media->string, frame_id->compat, frame_id->compat) &&
 		media_initial_hashmap_add_refer(&media->frame, name, frame_id))
 		return media;
 	return NULL;

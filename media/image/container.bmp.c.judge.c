@@ -48,21 +48,25 @@ static d_media_attr_unset(bmp, version, struct media_container_pri_bmp_s)
 }
 static d_media_attr_set(bmp, width, struct media_container_pri_bmp_s)
 {
-	pri->width = (int32_t) value->value.av_int;
+	pri->width_signed = (int32_t) value->value.av_int;
+	pri->width = (uint32_t) ((pri->width_signed >= 0)?pri->width_signed:-pri->width_signed);
 	return attr;
 }
 static d_media_attr_unset(bmp, width, struct media_container_pri_bmp_s)
 {
 	pri->width = 0;
+	pri->width_signed = 0;
 }
 static d_media_attr_set(bmp, height, struct media_container_pri_bmp_s)
 {
-	pri->height = (int32_t) value->value.av_int;
+	pri->height_signed = (int32_t) value->value.av_int;
+	pri->height = (uint32_t) ((pri->height_signed >= 0)?pri->height_signed:-pri->height_signed);
 	return attr;
 }
 static d_media_attr_unset(bmp, height, struct media_container_pri_bmp_s)
 {
 	pri->height = 0;
+	pri->height_signed = 0;
 }
 static d_media_attr_set(bmp, color_plane, struct media_container_pri_bmp_s)
 {
@@ -93,7 +97,7 @@ static d_media_attr_set(bmp, bpp, struct media_container_pri_bmp_s)
 }
 static d_media_attr_unset(bmp, bpp, struct media_container_pri_bmp_s)
 {
-	pri->bpp = 32;
+	pri->bpp = 24;
 }
 static d_media_attr_set(bmp, compression, struct media_container_pri_bmp_s)
 {

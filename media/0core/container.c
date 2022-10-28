@@ -1,4 +1,5 @@
 #include "container.h"
+#include "stream.h"
 
 static void media_container_inner_free_func(struct media_container_inner_s *restrict r)
 {
@@ -134,4 +135,47 @@ struct media_container_s* media_container_set_io(struct media_container_s *restr
 	return container;
 	label_fail:
 	return NULL;
+}
+
+struct media_stream_s* media_container_new_stream(struct media_container_s *restrict container, const char *restrict stream_type, const char *restrict frame_name)
+{
+	struct media_container_inner_s *restrict inner;
+	const struct media_stream_spec_s *restrict spec;
+	struct media_stream_s *restrict stream;
+	inner = container->inner;
+	if ((spec = media_container_id_get_spec(inner->id, stream_type, frame_name)) &&
+		(stream = media_stream_alloc(spec, container)))
+	{
+		if ((spec->append_pre && !spec->append_pre(container, stream)) ||
+			!vattr_insert_tail(container->stream, spec->stream_type, stream))
+			container = NULL;
+		refer_free(stream);
+		return container?stream:NULL;
+	}
+	return NULL;
+}
+
+struct media_stream_s* media_container_find_stream(const struct media_container_s *restrict container, const char *restrict stream_type, uintptr_t index)
+{
+	const vattr_vlist_t *restrict vl;
+	if (stream_type)
+	{
+		vl = vattr_get_vlist_first(container->stream, stream_type);
+		while (vl && index)
+		{
+			vl = vl->vslot_next;
+			index -= 1;
+		}
+	}
+	else
+	{
+		
+		vl = vattr_first(container->stream);
+		while (vl && index)
+		{
+			vl = vl->vattr_next;
+			index -= 1;
+		}
+	}
+	return vl?(struct media_stream_s *) vl->value:NULL;
 }

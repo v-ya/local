@@ -1,5 +1,6 @@
 #include "container_id.h"
-#include <memory.h>
+#include "stream_spec.h"
+#include <string.h>
 
 void media_container_id_free_func(struct media_container_id_s *restrict r)
 {
@@ -24,6 +25,24 @@ struct media_container_id_s* media_container_id_alloc(uintptr_t size, const char
 			}
 		}
 		refer_free(r);
+	}
+	return NULL;
+}
+
+const struct media_stream_spec_s* media_container_id_get_spec(const struct media_container_id_s *restrict id, const char *restrict stream_type, const char *restrict frame_name)
+{
+	const struct media_stream_spec_s *restrict spec;
+	const vattr_vlist_t *restrict vl;
+	if (stream_type)
+	{
+		vl = vattr_get_vlist_first(id->stream_spec, stream_type);
+		while (vl)
+		{
+			spec = (const struct media_stream_spec_s *) vl->value;
+			if (!frame_name || !strcmp(spec->frame_id_name, frame_name))
+				return spec;
+			vl = vl->vslot_next;
+		}
 	}
 	return NULL;
 }

@@ -43,8 +43,10 @@ d_media_container__parse_head(bmp)
 	const struct media_container_id_bmp_s *restrict id;
 	const struct media_s *restrict m;
 	struct media_io_s *restrict io;
+	struct media_stream_s *restrict st;
 	struct media_container_pri_bmp_s *restrict pri;
 	struct mi_bmp_header_t bmp_header;
+	struct media_stack__oz_t oz;
 	refer_string_t magic;
 	uint32_t offset, size, version;
 	ci = c->inner;
@@ -86,7 +88,22 @@ d_media_container__parse_head(bmp)
 	}
 	// get bits-mask or color-table
 	// config stream
-	return c;
+	st = NULL;
+	oz.offset = (uint64_t) pri->pixel_offset;
+	oz.size = (uintptr_t) pri->image_size;
+	if (pri->compression == 0)
+	{
+		if (!oz.size) oz.size = (((uintptr_t) pri->bpp * pri->width + 31) / 32 * 4) * pri->height;
+		switch (pri->bpp)
+		{
+			case 24: st = media_container_new_stream(c, media_st_image, media_nf_bgr24_p4); break;
+			case 32: st = media_container_new_stream(c, media_st_image, media_nf_bgra32); break;
+			default: break;
+		}
+	}
+	media_verbose(m, "compression: %u, bpp: %u, st: ... %p", pri->compression, pri->bpp, st);
+	if (st && media_stack_push(st->stack, &oz))
+		return c;
 	label_fail:
 	media_warning(m, "image/bmp parse head ... fail");
 	return NULL;

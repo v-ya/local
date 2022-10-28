@@ -30,8 +30,12 @@ struct media_container_id_s {
 	struct media_container_id_func_t func;
 };
 
+struct media_stream_spec_s;
+
 void media_container_id_free_func(struct media_container_id_s *restrict r);
 struct media_container_id_s* media_container_id_alloc(uintptr_t size, const char *restrict name, const struct media_container_id_func_t *restrict func);
+
+const struct media_stream_spec_s* media_container_id_get_spec(const struct media_container_id_s *restrict id, const char *restrict stream_type, const char *restrict frame_name);
 
 #define media_container_symbol(_tf, _name)            media_container__##_tf##__##_name
 

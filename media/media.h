@@ -8,6 +8,7 @@ struct mlog_s;
 typedef struct media_s media_s;
 typedef struct media_attr_s media_attr_s;
 typedef struct media_frame_s media_frame_s;
+typedef struct media_stream_s media_stream_s;
 typedef struct media_container_s media_container_s;
 
 typedef enum media_loglevel_t {
@@ -50,7 +51,15 @@ media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *
 // container
 
 media_attr_s* media_container_get_attr(const media_container_s *restrict container);
-media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name);
-media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict frame_name, const void *data, uintptr_t size);
+media_container_s* media_create_container(const media_s *restrict media, const char *restrict container_name);
+media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict container_name, const void *data, uintptr_t size);
+struct media_stream_s* media_container_new_stream(struct media_container_s *restrict container, const char *restrict stream_type, const char *restrict frame_name);
+struct media_stream_s* media_container_find_stream(const struct media_container_s *restrict container, const char *restrict stream_type, uintptr_t index);
+
+// stream
+
+struct media_frame_s* media_stream_create_frame(struct media_stream_s *restrict stream);
+struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame, uintptr_t index);
+struct media_frame_s* media_stream_read_frame(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame);
 
 #endif

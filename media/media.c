@@ -75,6 +75,7 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_stack(r, media_stack_layout_initial__oz) &&
 			// frame
 			media_alloc_add_frame(r, media_frame_create_image_bgra32) &&
+			media_alloc_add_frame(r, media_frame_create_image_bgr24_p4) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
@@ -237,7 +238,7 @@ void media_attr_dump(const media_attr_s *restrict attr, const media_s *restrict 
 media_frame_s* media_create_frame(const media_s *restrict media, const char *restrict frame_name, uintptr_t d, const uintptr_t *restrict dv)
 {
 	const struct media_frame_id_s *restrict id;
-	if (frame_name && (id = (const struct media_frame_id_s *) hashmap_get_name(&media->frame, frame_name)))
+	if (frame_name && (id = media_get_frame(media, frame_name)))
 		return media_frame_alloc(id, d, dv);
 	return NULL;
 }
@@ -267,19 +268,19 @@ media_attr_s* media_container_get_attr(const media_container_s *restrict contain
 	return container->inner->attr;
 }
 
-media_container_s* media_create_container(const media_s *restrict media, const char *restrict frame_name)
+media_container_s* media_create_container(const media_s *restrict media, const char *restrict container_name)
 {
 	const struct media_container_id_s *restrict id;
-	if (frame_name && (id = (const struct media_container_id_s *) hashmap_get_name(&media->container, frame_name)))
+	if (container_name && (id = media_get_container(media, container_name)))
 		return media_container_alloc(media, id);
 	return NULL;
 }
 
-media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict frame_name, const void *data, uintptr_t size)
+media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict container_name, const void *data, uintptr_t size)
 {
 	media_container_s *restrict r, *rr;
 	struct media_io_s *restrict io;
-	if ((r = media_create_container(media, frame_name)))
+	if ((r = media_create_container(media, container_name)))
 	{
 		if ((io = media_io_create_memory(data, size)))
 		{

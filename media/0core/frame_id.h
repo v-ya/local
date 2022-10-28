@@ -7,6 +7,7 @@
 
 struct media_frame_id_s {
 	refer_string_t name;
+	refer_string_t compat;
 	uintptr_t channel;
 	uintptr_t dimension;
 	struct media_cell_info_t cell[];
