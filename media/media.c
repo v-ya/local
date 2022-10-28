@@ -268,6 +268,21 @@ media_attr_s* media_container_get_attr(const media_container_s *restrict contain
 	return container->inner->attr;
 }
 
+media_io_s* media_container_get_io(const media_container_s *restrict container)
+{
+	return container->inner->io;
+}
+
+media_container_s* media_container_set_input(media_container_s *restrict container, media_io_s *restrict io)
+{
+	return media_container_set_io(container, io, media_container_io_input);
+}
+
+media_container_s* media_container_set_output(media_container_s *restrict container, media_io_s *restrict io)
+{
+	return media_container_set_io(container, io, media_container_io_output);
+}
+
 media_container_s* media_create_container(const media_s *restrict media, const char *restrict container_name)
 {
 	const struct media_container_id_s *restrict id;
@@ -276,19 +291,107 @@ media_container_s* media_create_container(const media_s *restrict media, const c
 	return NULL;
 }
 
-media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict container_name, const void *data, uintptr_t size)
+media_container_s* media_create_input(const media_s *restrict media, const char *restrict container_name, media_io_s *restrict io)
 {
-	media_container_s *restrict r, *rr;
-	struct media_io_s *restrict io;
+	media_container_s *restrict r;
 	if ((r = media_create_container(media, container_name)))
 	{
-		if ((io = media_io_create_memory(data, size)))
-		{
-			rr = media_container_set_io(r, io, media_container_io_input);
-			refer_free(io);
-			if (rr) return r;
-		}
+		if (media_container_set_io(r, io, media_container_io_input))
+			return r;
 		refer_free(r);
 	}
 	return NULL;
+}
+
+media_container_s* media_create_output(const media_s *restrict media, const char *restrict container_name, media_io_s *restrict io)
+{
+	media_container_s *restrict r;
+	if ((r = media_create_container(media, container_name)))
+	{
+		if (media_container_set_io(r, io, media_container_io_output))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+media_container_s* media_create_input_by_memory(const media_s *restrict media, const char *restrict container_name, const void *data, uintptr_t size)
+{
+	media_container_s *restrict r;
+	media_io_s *restrict io;
+	r = NULL;
+	if ((io = media_io_create_memory(data, size)))
+	{
+		r = media_create_input(media, container_name, io);
+		refer_free(io);
+	}
+	return r;
+}
+
+media_container_s* media_create_output_by_memory(const media_s *restrict media, const char *restrict container_name)
+{
+	media_container_s *restrict r;
+	media_io_s *restrict io;
+	r = NULL;
+	if ((io = media_io_create_memory(NULL, 0)))
+	{
+		r = media_create_output(media, container_name, io);
+		refer_free(io);
+	}
+	return r;
+}
+
+media_container_s* media_create_input_by_path(const media_s *restrict media, const char *restrict container_name, const char *restrict path)
+{
+	media_container_s *restrict r;
+	media_io_s *restrict io;
+	r = NULL;
+	if ((io = media_io_create_fsys(path, fsys_file_flag_read, 0, 0)))
+	{
+		r = media_create_input(media, container_name, io);
+		refer_free(io);
+	}
+	return r;
+}
+
+media_container_s* media_create_output_by_path(const media_s *restrict media, const char *restrict container_name, const char *restrict path)
+{
+	media_container_s *restrict r;
+	media_io_s *restrict io;
+	r = NULL;
+	if ((io = media_io_create_fsys(path, fsys_file_flag_write | fsys_file_flag_truncate, 0, 0)))
+	{
+		r = media_create_output(media, container_name, io);
+		refer_free(io);
+	}
+	return r;
+}
+
+// stream
+
+// io
+
+uint64_t media_io_get_size(struct media_io_s *restrict io)
+{
+	return media_io_size(io);
+}
+uint64_t media_io_get_offset(struct media_io_s *restrict io)
+{
+	return media_io_offset(io, NULL);
+}
+uint64_t media_io_set_offset(struct media_io_s *restrict io, uint64_t offset)
+{
+	return media_io_offset(io, &offset);
+}
+uintptr_t media_io_read_data(struct media_io_s *restrict io, void *data, uintptr_t size)
+{
+	return media_io_read(io, data, size);
+}
+uintptr_t media_io_write_data(struct media_io_s *restrict io, const void *data, uintptr_t size)
+{
+	return media_io_write(io, data, size);
+}
+void* media_io_map_data(struct media_io_s *restrict io, uintptr_t *restrict rsize)
+{
+	return media_io_map(io, rsize);
 }

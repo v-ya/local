@@ -2,6 +2,7 @@
 #define _media_core_io_h_
 
 #include <refer.h>
+#include <fsys.h>
 
 struct media_io_s;
 
@@ -41,5 +42,7 @@ static inline void* media_io_map(struct media_io_s *restrict io, uintptr_t *rest
 }
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size);
+struct media_io_s* media_io_create_memory_const(const void *restrict data, uintptr_t size, refer_t data_source);
+struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_flag_t flag, uintptr_t cache_number, uintptr_t cache_size);
 
 #endif
