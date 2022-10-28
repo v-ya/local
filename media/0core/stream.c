@@ -54,7 +54,7 @@ struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *re
 	struct media_container_inner_s *restrict inner;
 	spec = stream->spec;
 	inner = stream->inner;
-	if (inner->io && inner->iotype == media_container_io_input && frame->id == stream->frame_id && spec->read_frame)
+	if (inner->io && frame->id == stream->frame_id && spec->read_frame)
 		return spec->read_frame(stream, frame, index);
 	return NULL;
 }
@@ -65,4 +65,17 @@ struct media_frame_s* media_stream_read_frame(struct media_stream_s *restrict st
 	if ((frame = media_stream_read_frame_by_index(stream, frame, index = stream->stack->stack_index)))
 		media_stack_set_index(stream->stack, index + 1);
 	return frame;
+}
+
+struct media_stream_s* media_stream_write_frame(struct media_stream_s *restrict stream, const struct media_frame_s *restrict frame)
+{
+	const struct media_stream_spec_s *restrict spec;
+	struct media_container_inner_s *restrict inner;
+	spec = stream->spec;
+	inner = stream->inner;
+	if (inner->io && inner->iotype == media_container_io_output &&
+		inner->step == media_container_step_head &&
+		frame->id == stream->frame_id && spec->read_frame)
+		return spec->write_frame(stream, frame);
+	return NULL;
 }

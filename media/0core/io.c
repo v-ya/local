@@ -61,6 +61,10 @@ static void* media_io_map__memory(struct media_io_memory_s *restrict io, uintptr
 	if (rsize) *rsize = io->buffer.used;
 	return io->buffer.data;
 }
+static struct media_io_s* media_io_sync__memory(struct media_io_memory_s *restrict io)
+{
+	return &io->io;
+}
 
 // memory const
 
@@ -100,6 +104,10 @@ static uintptr_t media_io_write__memory_const(struct media_io_memory_const_s *re
 static void* media_io_map__memory_const(struct media_io_memory_const_s *restrict io, uintptr_t *restrict rsize)
 {
 	return NULL;
+}
+static struct media_io_s* media_io_sync__memory_const(struct media_io_memory_const_s *restrict io)
+{
+	return &io->io;
 }
 
 // fsys
@@ -142,6 +150,19 @@ static struct media_io_fsys_s* media_io_fsys__clean_cache(struct media_io_fsys_s
 		return r;
 	}
 	return NULL;
+}
+static struct media_io_fsys_s* media_io_fsys__clean_all_cache(struct media_io_fsys_s *restrict r)
+{
+	struct media_io_fsys_pri_cache_s *restrict c;
+	uintptr_t i, n;
+	c = r->cache;
+	n = r->cache_number;
+	for (i = 0; i < n; ++i)
+	{
+		if (c[i].used && c[i].dirty && !media_io_fsys__clean_cache(r, c + i))
+			r = NULL;
+	}
+	return r;
 }
 static uintptr_t media_io_fsys__touch_cache(struct media_io_fsys_s *restrict r, uint8_t *restrict p, uintptr_t n)
 {
@@ -233,9 +254,7 @@ static uintptr_t media_io_fsys__fixed_cache(struct media_io_fsys_s *restrict r, 
 
 static void media_io_free__fsys(struct media_io_fsys_s *restrict io)
 {
-	uintptr_t i, n;
-	for (i = 0, n = io->cache_number; i < n; ++i)
-		media_io_fsys__clean_cache(io, io->cache + i);
+	media_io_fsys__clean_all_cache(io);
 	if (io->fp) refer_free(io->fp);
 	if (io->cache_data) refer_free(io->cache_data);
 }
@@ -275,6 +294,10 @@ static void* media_io_map__fsys(struct media_io_fsys_s *restrict io, uintptr_t *
 {
 	return NULL;
 }
+static struct media_io_s* media_io_sync__fsys(struct media_io_fsys_s *restrict io)
+{
+	return &media_io_fsys__clean_all_cache(io)->io;
+}
 
 // interface
 
@@ -284,6 +307,7 @@ static void* media_io_map__fsys(struct media_io_fsys_s *restrict io, uintptr_t *
 	(_r)->io.read = (media_io_read_f) media_io_read__##_name;\
 	(_r)->io.write = (media_io_write_f) media_io_write__##_name;\
 	(_r)->io.map = (media_io_map_f) media_io_map__##_name;\
+	(_r)->io.sync = (media_io_sync_f) media_io_sync__##_name;\
 	refer_set_free(_r, (refer_free_f) media_io_free__##_name)
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size)

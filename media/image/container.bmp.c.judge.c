@@ -150,6 +150,19 @@ static d_media_attr_unset(bmp, used_color, struct media_container_pri_bmp_s)
 {
 	pri->used_color = 0;
 }
+static d_media_attr_set(bmp, pixels_align, struct media_container_pri_bmp_s)
+{
+	if (value->value.av_int >= 1 && value->value.av_int <= 16)
+	{
+		pri->pixels_align = (uint32_t) value->value.av_int;
+		return attr;
+	}
+	return NULL;
+}
+static d_media_attr_unset(bmp, pixels_align, struct media_container_pri_bmp_s)
+{
+	pri->pixels_align = 4;
+}
 
 d_media_container__initial_judge(bmp)
 {
@@ -164,7 +177,8 @@ d_media_container__initial_judge(bmp)
 		d_media_attr_judge_add(judge, bmp, xppm, media_nai_bmp_xppm, uint32) &&
 		d_media_attr_judge_add(judge, bmp, yppm, media_nai_bmp_yppm, uint32) &&
 		d_media_attr_judge_add(judge, bmp, color_palette, media_nai_bmp_color_palette, uint32) &&
-		d_media_attr_judge_add(judge, bmp, used_color, media_nai_bmp_used_color, uint32)
+		d_media_attr_judge_add(judge, bmp, used_color, media_nai_bmp_used_color, uint32) &&
+		d_media_attr_judge_add(judge, bmp, pixels_align, media_nai_bmp_pixels_align, uint32)
 	) return judge;
 	return NULL;
 }

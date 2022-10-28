@@ -15,5 +15,6 @@
 #define media_nai_bmp_yppm           "bmp.yppm"           // y: pixel per metre
 #define media_nai_bmp_color_palette  "bmp.color_palette"  // 0 and 2^n
 #define media_nai_bmp_used_color     "bmp.used_color"     // 0 is every color
+#define media_nai_bmp_pixels_align   "bmp.pixels_align"   // [1, 16]
 
 #endif

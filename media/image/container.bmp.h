@@ -26,6 +26,7 @@ struct media_container_pri_bmp_s {
 	uint32_t yppm;
 	uint32_t color_palette;
 	uint32_t used_color;
+	uint32_t pixels_align;
 };
 
 // packed
@@ -71,9 +72,9 @@ struct mi_bmp_info_40_t {
 d_media_container__initial_judge(bmp);
 d_media_container__create_pri(bmp);
 d_media_container__parse_head(bmp);
-#define media_container__parse_tail__bmp NULL
-#define media_container__build_head__bmp NULL
-#define media_container__build_tail__bmp NULL
+d_media_container__parse_tail(bmp);
+d_media_container__build_head(bmp);
+d_media_container__build_tail(bmp);
 
 // stream
 

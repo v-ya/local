@@ -1,12 +1,38 @@
 #include "container.bmp.h"
 #include "../0core/endian.h"
 
+static struct media_container_inner_s* media_container_bmp_parse_header(struct media_container_inner_s *restrict ci)
+{
+	const struct media_container_id_bmp_s *restrict id;
+	struct media_container_pri_bmp_s *restrict pri;
+	struct mi_bmp_header_t bmp_header;
+	refer_string_t magic;
+	uint32_t version;
+	id = (const struct media_container_id_bmp_s *) ci->id;
+	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
+	if (media_io_read(ci->io, &bmp_header, sizeof(bmp_header)) != sizeof(bmp_header))
+		goto label_fail;
+	if (!(magic = (refer_string_t) hashmap_get_head(&id->magic, (uint64_t) bmp_header.magic)))
+		goto label_fail;
+	if (!media_attr_refer_string(ci->attr, media_nas_bmp_magic, magic))
+		goto label_fail;
+	pri->pixel_offset = media_n2le_32(bmp_header.pixel_offset);
+	if (media_io_read(ci->io, &version, sizeof(version)) != sizeof(version))
+		goto label_fail;
+	version = media_n2le_32(version);
+	if (!media_attr_set_int(ci->attr, media_nai_bmp_version, version))
+		goto label_fail;
+	return ci;
+	label_fail:
+	return NULL;
+}
+
 static struct media_container_inner_s* media_container_bmp_parse_info_12(struct media_container_inner_s *restrict ci)
 {
 	struct mi_bmp_info_12_t info;
 	if (media_io_read(ci->io, &info, sizeof(info)) == sizeof(info))
 	{
-		// media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_12_t", &info, sizeof(info));
+		// media_mlog_print_rawdata(ci->media->mlog_verbose, "mi_bmp_info_12_t", &info, sizeof(info));
 		if (media_attr_set_int(ci->attr, media_nai_width, media_n2le_16(info.width)) &&
 			media_attr_set_int(ci->attr, media_nai_height, media_n2le_16(info.height)) &&
 			media_attr_set_int(ci->attr, media_nai_bmp_color_plane, media_n2le_16(info.color_plane)) &&
@@ -21,7 +47,7 @@ static struct media_container_inner_s* media_container_bmp_parse_info_40(struct 
 	struct mi_bmp_info_40_t info;
 	if (media_io_read(ci->io, &info, sizeof(info)) == sizeof(info))
 	{
-		// media_mlog_print_rawdata(c->media->mlog_verbose, "mi_bmp_info_40_t", &info, sizeof(info));
+		// media_mlog_print_rawdata(ci->media->mlog_verbose, "mi_bmp_info_40_t", &info, sizeof(info));
 		pri->image_size = media_n2le_32(info.image_size);
 		if (media_attr_set_int(ci->attr, media_nai_width, media_n2le_32(info.width)) &&
 			media_attr_set_int(ci->attr, media_nai_height, media_n2le_32(info.height)) &&
@@ -37,57 +63,41 @@ static struct media_container_inner_s* media_container_bmp_parse_info_40(struct 
 	return NULL;
 }
 
+static struct media_container_inner_s* media_container_bmp_parse_info(struct media_container_inner_s *restrict ci)
+{
+	struct media_container_pri_bmp_s *restrict pri;
+	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
+	switch (pri->version)
+	{
+		case 12: return media_container_bmp_parse_info_12(ci);
+		case 40: return media_container_bmp_parse_info_40(ci, pri);
+		default: return NULL;
+	}
+}
+
 d_media_container__parse_head(bmp)
 {
 	struct media_container_inner_s *restrict ci;
-	const struct media_container_id_bmp_s *restrict id;
-	const struct media_s *restrict m;
-	struct media_io_s *restrict io;
-	struct media_stream_s *restrict st;
-	struct media_container_pri_bmp_s *restrict pri;
-	struct mi_bmp_header_t bmp_header;
-	struct media_stack__oz_t oz;
-	refer_string_t magic;
-	uint32_t offset, size, version;
 	ci = c->inner;
-	id = (const struct media_container_id_bmp_s *) ci->id;
-	m = ci->media;
-	io = ci->io;
-	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
-	// get bmp header
-	if (media_io_read(io, &bmp_header, sizeof(bmp_header)) != sizeof(bmp_header))
+	if (!media_container_bmp_parse_header(ci))
 		goto label_fail;
-	// media_mlog_print_rawdata(m->mlog_verbose, "bmp-header", &bmp_header, sizeof(bmp_header));
-	if (!(magic = (refer_string_t) hashmap_get_head(&id->magic, (uint64_t) bmp_header.magic)))
+	if (!media_container_bmp_parse_info(ci))
 		goto label_fail;
-	if (!media_attr_refer_string(ci->attr, media_nas_bmp_magic, magic))
-		goto label_fail;
-	offset = sizeof(bmp_header);
-	size = media_n2le_32(bmp_header.bmp_file_size);
-	pri->pixel_offset = media_n2le_32(bmp_header.pixel_offset);
-	// get bmp info size
-	if ((offset + sizeof(version)) > size)
-		goto label_fail;
-	if (media_io_read(io, &version, sizeof(version)) != sizeof(version))
-		goto label_fail;
-	version = media_n2le_32(version);
-	if (!media_attr_set_int(ci->attr, media_nai_bmp_version, version))
-		goto label_fail;
-	// get bmp info
-	if ((offset += version) > size)
-		goto label_fail;
-	switch (version)
-	{
-		case 12:
-			if (media_container_bmp_parse_info_12(ci)) break;
-			goto label_fail;
-		case 40:
-			if (media_container_bmp_parse_info_40(ci, pri)) break;
-			goto label_fail;
-		default: goto label_fail;
-	}
 	// get bits-mask or color-table
-	// config stream
+	return c;
+	label_fail:
+	media_warning(ci->media, "image/bmp parse head ... fail");
+	return NULL;
+}
+
+d_media_container__parse_tail(bmp)
+{
+	struct media_container_inner_s *restrict ci;
+	struct media_container_pri_bmp_s *restrict pri;
+	struct media_stream_s *restrict st;
+	struct media_stack__oz_t oz;
+	ci = c->inner;
+	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
 	st = NULL;
 	oz.offset = (uint64_t) pri->pixel_offset;
 	oz.size = (uintptr_t) pri->image_size;
@@ -101,10 +111,8 @@ d_media_container__parse_head(bmp)
 			default: break;
 		}
 	}
-	media_verbose(m, "compression: %u, bpp: %u, st: ... %p", pri->compression, pri->bpp, st);
 	if (st && media_stack_push(st->stack, &oz))
 		return c;
-	label_fail:
-	media_warning(m, "image/bmp parse head ... fail");
+	media_warning(ci->media, "image/bmp parse tail ... fail");
 	return NULL;
 }

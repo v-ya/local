@@ -49,11 +49,15 @@ media_frame_s* media_create_frame(const media_s *restrict media, const char *res
 media_frame_s* media_create_frame_1d(const media_s *restrict media, const char *restrict frame_name, uintptr_t n);
 media_frame_s* media_create_frame_2d(const media_s *restrict media, const char *restrict frame_name, uintptr_t width, uintptr_t height);
 media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *restrict frame_name, uintptr_t width, uintptr_t height, uintptr_t depth);
+refer_string_t media_frame_get_name(const media_frame_s *restrict frame);
+refer_string_t media_frame_get_compat(const media_frame_s *restrict frame);
 
 // container
 
 media_attr_s* media_container_get_attr(const media_container_s *restrict container);
 media_io_s* media_container_get_io(const media_container_s *restrict container);
+media_container_s* media_container_write_head(media_container_s *restrict container);
+media_container_s* media_container_write_tail(media_container_s *restrict container);
 media_container_s* media_container_set_input(media_container_s *restrict container, media_io_s *restrict io);
 media_container_s* media_container_set_output(media_container_s *restrict container, media_io_s *restrict io);
 media_container_s* media_create_container(const media_s *restrict media, const char *restrict container_name);
@@ -64,26 +68,31 @@ media_container_s* media_create_output_by_memory(const media_s *restrict media, 
 media_container_s* media_create_input_by_path(const media_s *restrict media, const char *restrict container_name, const char *restrict path);
 media_container_s* media_create_output_by_path(const media_s *restrict media, const char *restrict container_name, const char *restrict path);
 
+// don't free `media_container_new_stream` return value
 struct media_stream_s* media_container_new_stream(struct media_container_s *restrict container, const char *restrict stream_type, const char *restrict frame_name);
 struct media_stream_s* media_container_find_stream(const struct media_container_s *restrict container, const char *restrict stream_type, uintptr_t index);
 
 // stream
 
+refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream);
+
 struct media_frame_s* media_stream_create_frame(struct media_stream_s *restrict stream);
 struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame, uintptr_t index);
 struct media_frame_s* media_stream_read_frame(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame);
+struct media_stream_s* media_stream_write_frame(struct media_stream_s *restrict stream, const struct media_frame_s *restrict frame);
 
 // io
+
+uint64_t media_io_get_size(media_io_s *restrict io);
+uint64_t media_io_get_offset(media_io_s *restrict io);
+uint64_t media_io_set_offset(media_io_s *restrict io, uint64_t offset);
+uintptr_t media_io_read_data(media_io_s *restrict io, void *data, uintptr_t size);
+uintptr_t media_io_write_data(media_io_s *restrict io, const void *data, uintptr_t size);
+void* media_io_map_data(media_io_s *restrict io, uintptr_t *restrict rsize);
+media_io_s* media_io_sync_data(media_io_s *restrict io);
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size);
 struct media_io_s* media_io_create_memory_const(const void *restrict data, uintptr_t size, refer_t data_source);
 struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_flag_t flag, uintptr_t cache_number, uintptr_t cache_size);
-
-uint64_t media_io_get_size(struct media_io_s *restrict io);
-uint64_t media_io_get_offset(struct media_io_s *restrict io);
-uint64_t media_io_set_offset(struct media_io_s *restrict io, uint64_t offset);
-uintptr_t media_io_read_data(struct media_io_s *restrict io, void *data, uintptr_t size);
-uintptr_t media_io_write_data(struct media_io_s *restrict io, const void *data, uintptr_t size);
-void* media_io_map_data(struct media_io_s *restrict io, uintptr_t *restrict rsize);
 
 #endif

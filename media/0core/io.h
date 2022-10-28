@@ -11,6 +11,7 @@ typedef uint64_t (*media_io_offset_f)(struct media_io_s *restrict io, const uint
 typedef uintptr_t (*media_io_read_f)(struct media_io_s *restrict io, void *data, uintptr_t size);
 typedef uintptr_t (*media_io_write_f)(struct media_io_s *restrict io, const void *data, uintptr_t size);
 typedef void* (*media_io_map_f)(struct media_io_s *restrict io, uintptr_t *restrict rsize);
+typedef struct media_io_s* (*media_io_sync_f)(struct media_io_s *restrict io);
 
 struct media_io_s {
 	media_io_size_f size;
@@ -18,6 +19,7 @@ struct media_io_s {
 	media_io_read_f read;
 	media_io_write_f write;
 	media_io_map_f map;
+	media_io_sync_f sync;
 };
 
 static inline uint64_t media_io_size(struct media_io_s *restrict io)
@@ -39,6 +41,10 @@ static inline uintptr_t media_io_write(struct media_io_s *restrict io, const voi
 static inline void* media_io_map(struct media_io_s *restrict io, uintptr_t *restrict rsize)
 {
 	return io->map(io, rsize);
+}
+static inline struct media_io_s* media_io_sync(struct media_io_s *restrict io)
+{
+	return io->sync(io);
 }
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size);

@@ -60,11 +60,10 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 {
 	struct media_container_inner_s *restrict inner;
 	const struct media_container_id_s *restrict id;
-	struct media_io_s *restrict io;
 	enum media_container_step_t step_curr;
 	inner = container->inner;
 	id = inner->id;
-	if ((io = inner->io))
+	if (inner->io)
 	{
 		step_curr = inner->step;
 		switch (inner->iotype)
@@ -94,6 +93,8 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 				if (step_curr == media_container_step_head && step > media_container_step_head)
 				{
 					if (id->func.build_tail && !id->func.build_tail(container))
+						goto label_fail;
+					if (!media_io_sync(inner->io))
 						goto label_fail;
 					step_curr = media_container_step_tail;
 				}
@@ -126,15 +127,8 @@ struct media_container_s* media_container_set_io(struct media_container_s *restr
 	{
 		inner->io = (struct media_io_s *) refer_save(io);
 		inner->iotype = iotype;
-		if (iotype == media_container_io_input)
-		{
-			if (!media_container_done_step(container, media_container_step_head))
-				goto label_fail;
-		}
 	}
 	return container;
-	label_fail:
-	return NULL;
 }
 
 struct media_stream_s* media_container_new_stream(struct media_container_s *restrict container, const char *restrict stream_type, const char *restrict frame_name)

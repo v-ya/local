@@ -24,5 +24,6 @@ struct media_stream_s* media_stream_alloc(const struct media_stream_spec_s *rest
 struct media_frame_s* media_stream_create_frame(struct media_stream_s *restrict stream);
 struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame, uintptr_t index);
 struct media_frame_s* media_stream_read_frame(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame);
+struct media_stream_s* media_stream_write_frame(struct media_stream_s *restrict stream, const struct media_frame_s *restrict frame);
 
 #endif

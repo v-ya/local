@@ -261,6 +261,16 @@ media_frame_s* media_create_frame_3d(const media_s *restrict media, const char *
 	return media_create_frame(media, frame_name, 3, dv);
 }
 
+refer_string_t media_frame_get_name(const media_frame_s *restrict frame)
+{
+	return frame->id->name;
+}
+
+refer_string_t media_frame_get_compat(const media_frame_s *restrict frame)
+{
+	return frame->id->compat;
+}
+
 // container
 
 media_attr_s* media_container_get_attr(const media_container_s *restrict container)
@@ -273,9 +283,21 @@ media_io_s* media_container_get_io(const media_container_s *restrict container)
 	return container->inner->io;
 }
 
+media_container_s* media_container_write_head(media_container_s *restrict container)
+{
+	return media_container_done_step(container, media_container_step_head);
+}
+
+media_container_s* media_container_write_tail(media_container_s *restrict container)
+{
+	return media_container_done_step(container, media_container_step_tail);
+}
+
 media_container_s* media_container_set_input(media_container_s *restrict container, media_io_s *restrict io)
 {
-	return media_container_set_io(container, io, media_container_io_input);
+	if (media_container_set_io(container, io, media_container_io_input))
+		return media_container_done_step(container, media_container_step_tail);
+	return NULL;
 }
 
 media_container_s* media_container_set_output(media_container_s *restrict container, media_io_s *restrict io)
@@ -296,7 +318,7 @@ media_container_s* media_create_input(const media_s *restrict media, const char 
 	media_container_s *restrict r;
 	if ((r = media_create_container(media, container_name)))
 	{
-		if (media_container_set_io(r, io, media_container_io_input))
+		if (media_container_set_input(r, io))
 			return r;
 		refer_free(r);
 	}
@@ -308,7 +330,7 @@ media_container_s* media_create_output(const media_s *restrict media, const char
 	media_container_s *restrict r;
 	if ((r = media_create_container(media, container_name)))
 	{
-		if (media_container_set_io(r, io, media_container_io_output))
+		if (media_container_set_output(r, io))
 			return r;
 		refer_free(r);
 	}
@@ -359,7 +381,7 @@ media_container_s* media_create_output_by_path(const media_s *restrict media, co
 	media_container_s *restrict r;
 	media_io_s *restrict io;
 	r = NULL;
-	if ((io = media_io_create_fsys(path, fsys_file_flag_write | fsys_file_flag_truncate, 0, 0)))
+	if ((io = media_io_create_fsys(path, fsys_file_flag_read | fsys_file_flag_write | fsys_file_flag_create | fsys_file_flag_truncate, 0, 0)))
 	{
 		r = media_create_output(media, container_name, io);
 		refer_free(io);
@@ -369,29 +391,38 @@ media_container_s* media_create_output_by_path(const media_s *restrict media, co
 
 // stream
 
+refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream)
+{
+	return stream->frame_id->name;
+}
+
 // io
 
-uint64_t media_io_get_size(struct media_io_s *restrict io)
+uint64_t media_io_get_size(media_io_s *restrict io)
 {
 	return media_io_size(io);
 }
-uint64_t media_io_get_offset(struct media_io_s *restrict io)
+uint64_t media_io_get_offset(media_io_s *restrict io)
 {
 	return media_io_offset(io, NULL);
 }
-uint64_t media_io_set_offset(struct media_io_s *restrict io, uint64_t offset)
+uint64_t media_io_set_offset(media_io_s *restrict io, uint64_t offset)
 {
 	return media_io_offset(io, &offset);
 }
-uintptr_t media_io_read_data(struct media_io_s *restrict io, void *data, uintptr_t size)
+uintptr_t media_io_read_data(media_io_s *restrict io, void *data, uintptr_t size)
 {
 	return media_io_read(io, data, size);
 }
-uintptr_t media_io_write_data(struct media_io_s *restrict io, const void *data, uintptr_t size)
+uintptr_t media_io_write_data(media_io_s *restrict io, const void *data, uintptr_t size)
 {
 	return media_io_write(io, data, size);
 }
-void* media_io_map_data(struct media_io_s *restrict io, uintptr_t *restrict rsize)
+void* media_io_map_data(media_io_s *restrict io, uintptr_t *restrict rsize)
 {
 	return media_io_map(io, rsize);
+}
+media_io_s* media_io_sync_data(media_io_s *restrict io)
+{
+	return media_io_sync(io);
 }
