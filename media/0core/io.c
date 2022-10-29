@@ -65,6 +65,18 @@ static struct media_io_s* media_io_sync__memory(struct media_io_memory_s *restri
 {
 	return &io->io;
 }
+static void* media_io_scan__memory(struct media_io_memory_s *restrict io, media_io_user_scan_f uscan, void *restrict pri)
+{
+	uintptr_t offset, size;
+	if (io->offset < io->buffer.used)
+	{
+		offset = io->offset;
+		size = io->buffer.used - io->offset;
+		io->offset = io->buffer.used;
+		return uscan(pri, offset, io->buffer.data + offset, size);
+	}
+	return NULL;
+}
 
 // memory const
 
@@ -108,6 +120,18 @@ static void* media_io_map__memory_const(struct media_io_memory_const_s *restrict
 static struct media_io_s* media_io_sync__memory_const(struct media_io_memory_const_s *restrict io)
 {
 	return &io->io;
+}
+static void* media_io_scan__memory_const(struct media_io_memory_const_s *restrict io, media_io_user_scan_f uscan, void *restrict pri)
+{
+	uintptr_t offset, size;
+	if (io->offset < io->size)
+	{
+		offset = io->offset;
+		size = io->size - io->offset;
+		io->offset = io->size;
+		return uscan(pri, offset, io->data + offset, size);
+	}
+	return NULL;
 }
 
 // fsys
@@ -164,7 +188,7 @@ static struct media_io_fsys_s* media_io_fsys__clean_all_cache(struct media_io_fs
 	}
 	return r;
 }
-static uintptr_t media_io_fsys__touch_cache(struct media_io_fsys_s *restrict r, uint8_t *restrict p, uintptr_t n)
+static const uint8_t* media_io_fsys__fetch_cache(struct media_io_fsys_s *restrict r, uintptr_t n, uintptr_t *restrict rn)
 {
 	struct media_io_fsys_pri_cache_s *restrict c;
 	uint64_t cache_id, cache_offset, roffset;
@@ -180,10 +204,10 @@ static uintptr_t media_io_fsys__touch_cache(struct media_io_fsys_s *restrict r, 
 		{
 			if ((rsize = c->size - cpos) > n)
 				rsize = n;
-			memcpy(p, c->data + cpos, rsize);
 			r->offset += rsize;
 			media_io_fsys__recache(r);
-			return rsize;
+			*rn = rsize;
+			return c->data + cpos;
 		}
 	}
 	else if (r->offset <= r->size)
@@ -199,7 +223,8 @@ static uintptr_t media_io_fsys__touch_cache(struct media_io_fsys_s *restrict r, 
 			goto label_hit;
 		c->used = 0;
 	}
-	return 0;
+	*rn = 0;
+	return NULL;
 }
 static uintptr_t media_io_fsys__fixed_cache(struct media_io_fsys_s *restrict r, const uint8_t *restrict p, uintptr_t n)
 {
@@ -268,10 +293,12 @@ static uint64_t media_io_offset__fsys(struct media_io_fsys_s *restrict io, const
 }
 static uintptr_t media_io_read__fsys(struct media_io_fsys_s *restrict io, void *data, uintptr_t size)
 {
+	const uint8_t *restrict p;
 	uintptr_t n, sn;
 	sn = 0;
-	while ((n = media_io_fsys__touch_cache(io, (uint8_t *) data, size)))
+	while (size && (p = media_io_fsys__fetch_cache(io, size, &n)))
 	{
+		memcpy(data, p, n);
 		data = (uint8_t *) data + n;
 		size -= n;
 		sn += n;
@@ -298,6 +325,19 @@ static struct media_io_s* media_io_sync__fsys(struct media_io_fsys_s *restrict i
 {
 	return &media_io_fsys__clean_all_cache(io)->io;
 }
+static void* media_io_scan__fsys(struct media_io_fsys_s *restrict io, media_io_user_scan_f uscan, void *restrict pri)
+{
+	const uint8_t *restrict p;
+	uintptr_t n;
+	uint64_t pos;
+	void *r;
+	while ((pos = io->offset, p = media_io_fsys__fetch_cache(io, io->cache_size, &n)))
+	{
+		if ((r = uscan(pri, pos, p, n)))
+			return r;
+	}
+	return NULL;
+}
 
 // interface
 
@@ -308,6 +348,7 @@ static struct media_io_s* media_io_sync__fsys(struct media_io_fsys_s *restrict i
 	(_r)->io.write = (media_io_write_f) media_io_write__##_name;\
 	(_r)->io.map = (media_io_map_f) media_io_map__##_name;\
 	(_r)->io.sync = (media_io_sync_f) media_io_sync__##_name;\
+	(_r)->io.scan = (media_io_scan_f) media_io_scan__##_name;\
 	refer_set_free(_r, (refer_free_f) media_io_free__##_name)
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size)

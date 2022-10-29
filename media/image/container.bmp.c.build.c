@@ -1,5 +1,4 @@
 #include "container.bmp.h"
-#include "../0core/endian.h"
 
 static struct media_container_inner_s* media_container_bmp_build_header(struct media_container_inner_s *restrict ci, uint32_t bmp_file_size, uint32_t pixel_offset)
 {

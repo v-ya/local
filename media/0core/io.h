@@ -6,12 +6,15 @@
 
 struct media_io_s;
 
+typedef void* (*media_io_user_scan_f)(void *restrict pri, uint64_t offset, const void *restrict data, uintptr_t size);
+
 typedef uint64_t (*media_io_size_f)(struct media_io_s *restrict io);
 typedef uint64_t (*media_io_offset_f)(struct media_io_s *restrict io, const uint64_t *restrict offset);
 typedef uintptr_t (*media_io_read_f)(struct media_io_s *restrict io, void *data, uintptr_t size);
 typedef uintptr_t (*media_io_write_f)(struct media_io_s *restrict io, const void *data, uintptr_t size);
 typedef void* (*media_io_map_f)(struct media_io_s *restrict io, uintptr_t *restrict rsize);
 typedef struct media_io_s* (*media_io_sync_f)(struct media_io_s *restrict io);
+typedef void* (*media_io_scan_f)(struct media_io_s *restrict io, media_io_user_scan_f uscan, void *restrict pri);
 
 struct media_io_s {
 	media_io_size_f size;
@@ -20,6 +23,7 @@ struct media_io_s {
 	media_io_write_f write;
 	media_io_map_f map;
 	media_io_sync_f sync;
+	media_io_scan_f scan;
 };
 
 static inline uint64_t media_io_size(struct media_io_s *restrict io)
@@ -46,11 +50,15 @@ static inline struct media_io_s* media_io_sync(struct media_io_s *restrict io)
 {
 	return io->sync(io);
 }
+static inline void* media_io_scan(struct media_io_s *restrict io, media_io_user_scan_f uscan, void *restrict pri)
+{
+	return io->scan(io, uscan, pri);
+}
 
 struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr_t pre_size);
 struct media_io_s* media_io_create_memory_const(const void *restrict data, uintptr_t size, refer_t data_source);
 struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_flag_t flag, uintptr_t cache_number, uintptr_t cache_size);
 
-struct media_io_s* media_io_inner_padding_align(struct media_io_s *restrict io, uint64_t offset, uintptr_t align);
+struct media_io_s* media_io_inner_padding_align(struct media_io_s *restrict io, uint64_t offset, uintptr_t align, uint8_t value);
 
 #endif

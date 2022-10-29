@@ -6,7 +6,8 @@
 #define media_st_video  "st/video"
 #define media_st_zarch  "st/zarch"
 
-#define media_nc_bmp  "ci/bmp"
-#define media_nc_png  "ci/png"
+#define media_nc_bmp   "ci/bmp"
+#define media_nc_jpeg  "ci/jpeg"
+#define media_nc_png   "ci/png"
 
 #endif

@@ -68,7 +68,7 @@ static d_media_stream__write_frame(bmp_oz)
 		if (!pri->width) media_attr_set_int(ci->attr, media_nai_width, (int64_t) w);
 		if (!pri->height) media_attr_set_int(ci->attr, media_nai_height, (int64_t) h);
 		if ((uintptr_t) pri->width == w && (uintptr_t) pri->height == h &&
-			media_io_inner_padding_align(ci->io, 0, (uintptr_t) pri->pixels_align))
+			media_io_inner_padding_align(ci->io, 0, (uintptr_t) pri->pixels_align, 0))
 		{
 			oz.offset = media_io_offset(ci->io, NULL);
 			oz.size = ch->size;

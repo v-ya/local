@@ -15,11 +15,12 @@
 static media_s* media_alloc_add_stack(media_s *restrict r, media_stack_layout_initial_f initial_func)
 {
 	struct media_stack_id_s *restrict id;
+	media_s *restrict m;
 	if ((id = media_stack_id_alloc(initial_func)))
 	{
-		r = media_initial_add_stack(r, id);
-		if (r) media_verbose(r, "add stack (%s) okay", id->name);
-		else media_error(r, "add stack (%s) fail", id->name);
+		r = media_initial_add_stack(m = r, id);
+		if (r) media_verbose(m, "add stack (%s) okay", id->name);
+		else media_error(m, "add stack (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
@@ -30,11 +31,12 @@ static media_s* media_alloc_add_stack(media_s *restrict r, media_stack_layout_in
 static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id_s* (*create_func)(void))
 {
 	struct media_frame_id_s *restrict id;
+	media_s *restrict m;
 	if ((id = create_func()))
 	{
-		r = media_initial_add_frame(r, id);
-		if (r) media_verbose(r, "add frame (%s) okay", id->name);
-		else media_error(r, "add frame (%s) fail", id->name);
+		r = media_initial_add_frame(m = r, id);
+		if (r) media_verbose(m, "add frame (%s) okay", id->name);
+		else media_error(m, "add frame (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
@@ -45,11 +47,12 @@ static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id
 static media_s* media_alloc_add_container(media_s *restrict r, struct media_container_id_s* (*create_func)(const struct media_s *restrict media))
 {
 	struct media_container_id_s *restrict id;
+	media_s *restrict m;
 	if ((id = create_func(r)))
 	{
-		r = media_initial_add_container(r, id);
-		if (r) media_verbose(r, "add container (%s) okay", id->name);
-		else media_error(r, "add container (%s) fail", id->name);
+		r = media_initial_add_container(m = r, id);
+		if (r) media_verbose(m, "add container (%s) okay", id->name);
+		else media_error(m, "add container (%s) fail", id->name);
 		refer_free(id);
 		return r;
 	}
@@ -79,6 +82,7 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
+			media_alloc_add_container(r, media_container_create_image_jpeg) &&
 		1) return r;
 		refer_free(r);
 	}

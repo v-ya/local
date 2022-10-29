@@ -112,6 +112,7 @@ struct media_container_s* media_container_done_step(struct media_container_s *re
 struct media_container_s* media_container_set_io(struct media_container_s *restrict container, struct media_io_s *restrict io, enum media_container_io_t iotype)
 {
 	struct media_container_inner_s *restrict inner;
+	uint64_t offset;
 	vattr_clear(container->stream);
 	inner = container->inner;
 	if (inner->io)
@@ -125,6 +126,8 @@ struct media_container_s* media_container_set_io(struct media_container_s *restr
 	}
 	if (io)
 	{
+		offset = 0;
+		media_io_offset(io, &offset);
 		inner->io = (struct media_io_s *) refer_save(io);
 		inner->iotype = iotype;
 	}

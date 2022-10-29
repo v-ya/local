@@ -5,12 +5,14 @@
 #include "../0core/media.h"
 #include "../0core/stream.h"
 #include "../0core/container.h"
+#include "../0core/endian.h"
 #include "../media.container.h"
 #include "../media.frame.h"
 #include "../media.attr.h"
 #include "../media.h"
 
 struct media_container_id_s* media_container_create_image_bmp(const struct media_s *restrict media);
+struct media_container_id_s* media_container_create_image_jpeg(const struct media_s *restrict media);
 
 // inner
 
