@@ -37,16 +37,12 @@ static d_media_stream__read_frame(bmp_oz)
 	const struct media_stack_s *restrict stack;
 	const struct media_stack__oz_t *restrict sp;
 	struct media_io_s *restrict io;
-	uintptr_t image_size[2];
 	pri = (const struct media_container_pri_bmp_s *) s->inner->pri_data;
 	stack = s->stack;
-	image_size[0] = (uintptr_t) pri->width;
-	image_size[1] = (uintptr_t) pri->height;
-	if (media_frame_test_dimension(frame, 2, image_size) || media_frame_set_dimension(frame, 2, image_size))
+	if (media_container_inner_iframe_touch_data(frame, (uintptr_t) pri->width, (uintptr_t) pri->height))
 	{
 		if ((sp = (const struct media_stack__oz_t *) media_stack_get(stack, index)) &&
-			frame->channel_chip[0]->size == sp->size &&
-			media_frame_touch_data(frame))
+			frame->channel_chip[0]->size == sp->size)
 		{
 			io = s->inner->io;
 			if (media_io_offset(io, &sp->offset) == sp->offset &&
@@ -59,38 +55,29 @@ static d_media_stream__read_frame(bmp_oz)
 
 static d_media_stream__write_frame(bmp_oz)
 {
-	static const uint8_t pixels_padding[16];
 	volatile struct media_container_pri_bmp_s *pri;
 	const struct media_channel_s *restrict ch;
-	struct media_container_inner_s *ci;
+	struct media_container_inner_s *restrict ci;
 	struct media_stack__oz_t oz;
-	uintptr_t w, h, need_padding;
+	uintptr_t w, h;
 	ci = s->inner;
 	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
 	ch = frame->channel_chip[0];
-	if (!s->stack->stack_number)
+	if (!s->stack->stack_number && (w = frame->dv[0]) && (h = frame->dv[1]))
 	{
-		w = ch->cell[0].cell_number;
-		h = ch->cell[1].cell_number;
 		if (!pri->width) media_attr_set_int(ci->attr, media_nai_width, (int64_t) w);
 		if (!pri->height) media_attr_set_int(ci->attr, media_nai_height, (int64_t) h);
-		if ((uintptr_t) pri->width == w && (uintptr_t) pri->height == h)
+		if ((uintptr_t) pri->width == w && (uintptr_t) pri->height == h &&
+			media_io_inner_padding_align(ci->io, 0, (uintptr_t) pri->pixels_align))
 		{
-			if (!(need_padding = pri->pixels_align))
-				need_padding = 1;
-			need_padding = (need_padding - media_io_offset(ci->io, NULL) % need_padding) % need_padding;
-			need_padding &= 0x0f;
-			if (!need_padding || media_io_write(ci->io, pixels_padding, need_padding) == need_padding)
+			oz.offset = media_io_offset(ci->io, NULL);
+			oz.size = ch->size;
+			if (media_io_write(ci->io, ch->data, oz.size) == oz.size &&
+				media_stack_push(s->stack, &oz))
 			{
-				oz.offset = media_io_offset(ci->io, NULL);
-				oz.size = ch->size;
-				if (media_io_write(ci->io, ch->data, oz.size) == oz.size &&
-					media_stack_push(s->stack, &oz))
-				{
-					pri->pixel_offset = (uint32_t) oz.offset;
-					pri->image_size = (uint32_t) oz.size;
-					return s;
-				}
+				pri->pixel_offset = (uint32_t) oz.offset;
+				pri->image_size = (uint32_t) oz.size;
+				return s;
 			}
 		}
 	}

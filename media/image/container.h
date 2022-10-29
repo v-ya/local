@@ -12,4 +12,8 @@
 
 struct media_container_id_s* media_container_create_image_bmp(const struct media_s *restrict media);
 
+// inner
+
+struct media_frame_s* media_container_inner_iframe_touch_data(struct media_frame_s *restrict frame, uintptr_t width, uintptr_t height);
+
 #endif

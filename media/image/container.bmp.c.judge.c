@@ -48,9 +48,13 @@ static d_media_attr_unset(bmp, version, struct media_container_pri_bmp_s)
 }
 static d_media_attr_set(bmp, width, struct media_container_pri_bmp_s)
 {
-	pri->width_signed = (int32_t) value->value.av_int;
-	pri->width = (uint32_t) ((pri->width_signed >= 0)?pri->width_signed:-pri->width_signed);
-	return attr;
+	if (value->value.av_int >= 0)
+	{
+		pri->width_signed = (int32_t) value->value.av_int;
+		pri->width = (uint32_t) ((pri->width_signed >= 0)?pri->width_signed:-pri->width_signed);
+		return attr;
+	}
+	return NULL;
 }
 static d_media_attr_unset(bmp, width, struct media_container_pri_bmp_s)
 {

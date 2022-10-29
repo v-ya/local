@@ -51,4 +51,6 @@ struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr
 struct media_io_s* media_io_create_memory_const(const void *restrict data, uintptr_t size, refer_t data_source);
 struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_flag_t flag, uintptr_t cache_number, uintptr_t cache_size);
 
+struct media_io_s* media_io_inner_padding_align(struct media_io_s *restrict io, uint64_t offset, uintptr_t align);
+
 #endif

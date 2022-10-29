@@ -1,4 +1,5 @@
 #include "frame.h"
+#include <memory.h>
 
 static void media_frame_free_func(struct media_frame_s *restrict r)
 {
@@ -16,12 +17,16 @@ struct media_frame_s* media_frame_alloc(const struct media_frame_id_s *restrict 
 {
 	struct media_frame_s *restrict r;
 	const struct media_cell_info_t *restrict cell;
-	uintptr_t i, channel;
-	if (frame_id->dimension == dimension && (r = (struct media_frame_s *) refer_alloz(
-		sizeof(struct media_frame_s) + sizeof(struct media_channel_s *) * (channel = frame_id->channel))))
+	uintptr_t i, channel, size;
+	channel = frame_id->channel;
+	size = sizeof(struct media_frame_s) + sizeof(struct media_channel_s *) * (channel = frame_id->channel) + sizeof(uintptr_t) * frame_id->dimension;
+	if (frame_id->dimension == dimension && (r = (struct media_frame_s *) refer_alloz(size)))
 	{
 		refer_set_free(r, (refer_free_f) media_frame_free_func);
 		r->id = (const struct media_frame_id_s *) refer_save(frame_id);
+		r->dv = (uintptr_t *) (r->channel_chip + channel);
+		if (dimension_value)
+			memcpy(r->dv, dimension_value, sizeof(uintptr_t) * dimension);
 		r->channel = channel;
 		for (i = 0; i < channel; ++i)
 		{
@@ -46,6 +51,7 @@ struct media_frame_s* media_frame_set_dimension(struct media_frame_s *restrict f
 	frame_id = frame->id;
 	if (frame_id->dimension == dimension)
 	{
+		memset(frame->dv, 0, sizeof(uintptr_t) * dimension);
 		channel_chip = frame->channel_chip;
 		channel = frame->channel;
 		for (i = 0; i < channel; ++i)
@@ -56,6 +62,8 @@ struct media_frame_s* media_frame_set_dimension(struct media_frame_s *restrict f
 			if (!media_channel_set_dimension(channel_chip[i], dimension, cell, dimension_value))
 				frame = NULL;
 		}
+		if (frame && dimension_value)
+			memcpy(frame->dv, dimension_value, sizeof(uintptr_t) * dimension);
 		return frame;
 	}
 	return NULL;
@@ -63,18 +71,11 @@ struct media_frame_s* media_frame_set_dimension(struct media_frame_s *restrict f
 
 struct media_frame_s* media_frame_test_dimension(struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value)
 {
-	uintptr_t i, channel;
 	if (frame->id->dimension == dimension)
 	{
-		channel = frame->channel;
-		for (i = 0; i < channel; ++i)
-		{
-			if (!media_channel_test_dimension(frame->channel_chip[i], dimension, dimension_value))
-				goto label_fail;
-		}
-		return frame;
+		if (!dimension_value || !memcpy(frame->dv, dimension_value, sizeof(uintptr_t) * dimension))
+			return frame;
 	}
-	label_fail:
 	return NULL;
 }
 

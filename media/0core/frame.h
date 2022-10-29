@@ -10,6 +10,7 @@
 struct media_frame_s {
 	const struct media_frame_id_s *id;
 	struct media_attr_s *attr;
+	uintptr_t *restrict dv;
 	uintptr_t channel;
 	struct media_channel_s *channel_chip[];
 };
