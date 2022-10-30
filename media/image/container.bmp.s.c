@@ -37,9 +37,13 @@ static d_media_stream__read_frame(bmp_oz)
 	const struct media_stack_s *restrict stack;
 	const struct media_stack__oz_t *restrict sp;
 	struct media_io_s *restrict io;
+	uintptr_t image_size[2];
 	pri = (const struct media_container_pri_bmp_s *) s->inner->pri_data;
 	stack = s->stack;
-	if (media_container_inner_iframe_touch_data(frame, (uintptr_t) pri->width, (uintptr_t) pri->height))
+	image_size[0] = (uintptr_t) pri->width;
+	image_size[1] = (uintptr_t) pri->height;
+	if (media_frame_set_dimension(frame, 2, image_size) &&
+		media_frame_touch_data(frame))
 	{
 		if ((sp = (const struct media_stack__oz_t *) media_stack_get(stack, index)) &&
 			frame->channel_chip[0]->size == sp->size)

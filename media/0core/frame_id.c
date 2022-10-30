@@ -31,9 +31,8 @@ struct media_frame_id_s* media_frame_id_alloc(const char *restrict name, uintptr
 			while (n)
 			{
 				--n;
-				r->cell[n].cell_align = 1;
+				r->cell[n].cellsize_divisor = 1;
 				r->cell[n].dimension_divisor = 1;
-				r->cell[n].size_align = 1;
 			}
 			return r;
 		}
@@ -42,18 +41,26 @@ struct media_frame_id_s* media_frame_id_alloc(const char *restrict name, uintptr
 	return NULL;
 }
 
-struct media_frame_id_s* media_frame_id_initial(struct media_frame_id_s *restrict frame_id, uintptr_t channel, uintptr_t dimension, uintptr_t cell_addend, uintptr_t cell_align, uintptr_t dimension_addend, uintptr_t dimension_multiplier, uintptr_t dimension_divisor, uintptr_t size_align)
+struct media_frame_id_s* media_frame_id_initial(struct media_frame_id_s *restrict frame_id, uintptr_t channel_index, uintptr_t dimension, const struct media_cell_info_t *restrict params)
 {
-	if (channel < frame_id->channel && dimension < frame_id->dimension &&
-		media_cell_info_initial(&frame_id->cell[channel * frame_id->dimension + dimension],
-			cell_addend, cell_align, dimension_addend, dimension_multiplier, dimension_divisor, size_align))
+	struct media_cell_info_t *restrict ci;
+	if (channel_index < frame_id->channel && dimension == frame_id->dimension)
+	{
+		ci = &frame_id->cell[channel_index * frame_id->dimension];
+		for (channel_index = 0; channel_index < dimension; ++channel_index)
+		{
+			if (!media_cell_info_initial(ci + channel_index, params + channel_index))
+				goto label_fail;
+		}
 		return frame_id;
+	}
+	label_fail:
 	return NULL;
 }
 
-const struct media_cell_info_t* media_frame_id_get_cells(const struct media_frame_id_s *restrict frame_id, uintptr_t channel, uintptr_t dimension)
+const struct media_cell_info_t* media_frame_id_get_cells(const struct media_frame_id_s *restrict frame_id, uintptr_t channel_index, uintptr_t dimension)
 {
-	if (channel < frame_id->channel && dimension == frame_id->dimension)
-		return &frame_id->cell[channel * dimension];
+	if (channel_index < frame_id->channel && dimension == frame_id->dimension)
+		return &frame_id->cell[channel_index * dimension];
 	return NULL;
 }

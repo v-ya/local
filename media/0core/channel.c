@@ -26,7 +26,7 @@ struct media_channel_s* media_channel_set_dimension(struct media_channel_s *rest
 	if (channel->dimension == dimension)
 	{
 		for (i = cell_size = 0; i < dimension; ++i)
-			cell_size = media_cell_set((struct media_cell_t *) channel->cell + i, cell + i, cell_size, dimension_value?dimension_value[i]:0);
+			cell_size = media_cell_set(channel->cell + i, cell + i, cell_size, dimension_value?dimension_value[i]:0);
 		channel->size = cell_size;
 		return channel;
 	}

@@ -59,6 +59,7 @@ static struct media_container_inner_s* media_container_jpeg_parse_dump(struct me
 			goto label_fail;
 		switch (data.type)
 		{
+			case mi_jpeg_segment_type__tem:
 			case mi_jpeg_segment_type__rst0:
 			case mi_jpeg_segment_type__rst1:
 			case mi_jpeg_segment_type__rst2:

@@ -9,7 +9,7 @@ struct media_channel_s {
 	uintptr_t size;
 	refer_t data_source;
 	uintptr_t dimension;
-	const struct media_cell_t cell[];
+	struct media_cell_t cell[];
 };
 
 struct media_channel_s* media_channel_alloc(uintptr_t dimension, const struct media_cell_info_t cell[], const uintptr_t *restrict dimension_value);
