@@ -44,7 +44,23 @@ void jpeg_parser_print_rawdata(mlog_s *restrict mlog, const char *restrict name,
 
 // segment parser ...
 
-#define jpeg_parser_segment__soi  NULL
-#define jpeg_parser_segment__eoi  NULL
+jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
+#define jpeg_parser_segment__sof0   jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof1   jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof2   jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof3   jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof9   jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof10  jpeg_parser_segment__sof
+#define jpeg_parser_segment__sof11  jpeg_parser_segment__sof
+#define jpeg_parser_segment__rst0   NULL
+#define jpeg_parser_segment__rst1   NULL
+#define jpeg_parser_segment__rst2   NULL
+#define jpeg_parser_segment__rst3   NULL
+#define jpeg_parser_segment__rst4   NULL
+#define jpeg_parser_segment__rst5   NULL
+#define jpeg_parser_segment__rst6   NULL
+#define jpeg_parser_segment__rst7   NULL
+#define jpeg_parser_segment__soi    NULL
+#define jpeg_parser_segment__eoi    NULL
 
 #endif

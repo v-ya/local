@@ -43,6 +43,7 @@ jpeg_parser_target_t* jpeg_parser_get_segment_length(jpeg_parser_target_t *restr
 {
 	switch (type)
 	{
+		case jpeg_segment_type__tem:
 		case jpeg_segment_type__rst0:
 		case jpeg_segment_type__rst1:
 		case jpeg_segment_type__rst2:
