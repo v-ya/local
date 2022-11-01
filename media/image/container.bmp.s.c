@@ -11,8 +11,8 @@ static struct media_container_s* media_container_bmp_set_bits_per_pixels(struct 
 {
 	struct media_container_inner_s *restrict ci;
 	ci = c->inner;
-	if (media_attr_set_int(ci->attr, media_nai_bpp, value) &&
-		media_attr_set_int(ci->attr, media_nai_bmp_compression, 0))
+	if (media_attr_set_int(ci->attr, media_naci_bpp, value) &&
+		media_attr_set_int(ci->attr, media_naci_bmp_compression, 0))
 		return c;
 	return NULL;
 }
@@ -69,8 +69,8 @@ static d_media_stream__write_frame(bmp_oz)
 	ch = frame->channel_chip[0];
 	if (!s->stack->stack_number && (w = frame->dv[0]) && (h = frame->dv[1]))
 	{
-		if (!pri->width) media_attr_set_int(ci->attr, media_nai_width, (int64_t) w);
-		if (!pri->height) media_attr_set_int(ci->attr, media_nai_height, (int64_t) h);
+		if (!pri->width) media_attr_set_int(ci->attr, media_naci_width, (int64_t) w);
+		if (!pri->height) media_attr_set_int(ci->attr, media_naci_height, (int64_t) h);
 		if ((uintptr_t) pri->width == w && (uintptr_t) pri->height == h &&
 			media_io_inner_padding_align(ci->io, 0, (uintptr_t) pri->pixels_align, 0))
 		{

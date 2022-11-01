@@ -12,6 +12,7 @@ typedef struct media_attr_s media_attr_s;
 typedef struct media_frame_s media_frame_s;
 typedef struct media_stream_s media_stream_s;
 typedef struct media_container_s media_container_s;
+typedef struct media_transform_s media_transform_s;
 
 typedef enum media_loglevel_t {
 	media_loglevel_bit_error   = 0x0001,

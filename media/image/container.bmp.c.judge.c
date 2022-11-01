@@ -171,18 +171,18 @@ static d_media_attr_unset(bmp, pixels_align, struct media_container_pri_bmp_s)
 d_media_container__initial_judge(bmp)
 {
 	media_attr_judge_set_extra_clear(judge, (media_attr_unset_f) media_attr_symbol(unset, bmp, ));
-	if (d_media_attr_judge_add(judge, bmp, magic, media_nas_bmp_magic, string) &&
-		d_media_attr_judge_add(judge, bmp, version, media_nai_bmp_version, uint32) &&
-		d_media_attr_judge_add(judge, bmp, width, media_nai_width, sint32) &&
-		d_media_attr_judge_add(judge, bmp, height, media_nai_height, sint32) &&
-		d_media_attr_judge_add(judge, bmp, color_plane, media_nai_bmp_color_plane, uint32) &&
-		d_media_attr_judge_add(judge, bmp, bpp, media_nai_bpp, uint32) &&
-		d_media_attr_judge_add(judge, bmp, compression, media_nai_bmp_compression, uint32) &&
-		d_media_attr_judge_add(judge, bmp, xppm, media_nai_bmp_xppm, uint32) &&
-		d_media_attr_judge_add(judge, bmp, yppm, media_nai_bmp_yppm, uint32) &&
-		d_media_attr_judge_add(judge, bmp, color_palette, media_nai_bmp_color_palette, uint32) &&
-		d_media_attr_judge_add(judge, bmp, used_color, media_nai_bmp_used_color, uint32) &&
-		d_media_attr_judge_add(judge, bmp, pixels_align, media_nai_bmp_pixels_align, uint32)
+	if (d_media_attr_judge_add(judge, bmp, magic, media_nacs_bmp_magic, string) &&
+		d_media_attr_judge_add(judge, bmp, version, media_naci_bmp_version, uint32) &&
+		d_media_attr_judge_add(judge, bmp, width, media_naci_width, sint32) &&
+		d_media_attr_judge_add(judge, bmp, height, media_naci_height, sint32) &&
+		d_media_attr_judge_add(judge, bmp, color_plane, media_naci_bmp_color_plane, uint32) &&
+		d_media_attr_judge_add(judge, bmp, bpp, media_naci_bpp, uint32) &&
+		d_media_attr_judge_add(judge, bmp, compression, media_naci_bmp_compression, uint32) &&
+		d_media_attr_judge_add(judge, bmp, xppm, media_naci_bmp_xppm, uint32) &&
+		d_media_attr_judge_add(judge, bmp, yppm, media_naci_bmp_yppm, uint32) &&
+		d_media_attr_judge_add(judge, bmp, color_palette, media_naci_bmp_color_palette, uint32) &&
+		d_media_attr_judge_add(judge, bmp, used_color, media_naci_bmp_used_color, uint32) &&
+		d_media_attr_judge_add(judge, bmp, pixels_align, media_naci_bmp_pixels_align, uint32)
 	) return judge;
 	return NULL;
 }

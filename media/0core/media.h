@@ -25,7 +25,7 @@ void media_hashmap_free_refer_func(hashmap_vlist_t *restrict vl);
 
 struct media_s* media_initial_add_string(struct media_s *restrict media, const char *restrict string);
 struct media_s* media_initial_add_stack(struct media_s *restrict media, const struct media_stack_id_s *restrict stack_id);
-struct media_s* media_initial_add_frame(struct media_s *restrict media, const struct media_frame_id_s *restrict frame_id);
+struct media_s* media_initial_add_frame(struct media_s *restrict media, struct media_frame_id_s *restrict frame_id);
 struct media_s* media_initial_add_container(struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
 
 struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *restrict mlog, uint32_t loglevel);

@@ -7,6 +7,7 @@
 #include "../media.frame.h"
 
 struct media_frame_id_s* media_frame_create_image_bgra32(void);
+struct media_frame_id_s* media_frame_create_image_bgr24(void);
 struct media_frame_id_s* media_frame_create_image_bgr24_p4(void);
 
 #endif

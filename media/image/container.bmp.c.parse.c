@@ -13,13 +13,13 @@ static struct media_container_inner_s* media_container_bmp_parse_header(struct m
 		goto label_fail;
 	if (!(magic = (refer_string_t) hashmap_get_head(&id->magic, (uint64_t) bmp_header.magic)))
 		goto label_fail;
-	if (!media_attr_refer_string(ci->attr, media_nas_bmp_magic, magic))
+	if (!media_attr_refer_string(ci->attr, media_nacs_bmp_magic, magic))
 		goto label_fail;
 	pri->pixel_offset = media_n2le_32(bmp_header.pixel_offset);
 	if (media_io_read(ci->io, &version, sizeof(version)) != sizeof(version))
 		goto label_fail;
 	version = media_n2le_32(version);
-	if (!media_attr_set_int(ci->attr, media_nai_bmp_version, version))
+	if (!media_attr_set_int(ci->attr, media_naci_bmp_version, version))
 		goto label_fail;
 	return ci;
 	label_fail:
@@ -32,10 +32,10 @@ static struct media_container_inner_s* media_container_bmp_parse_info_12(struct 
 	if (media_io_read(ci->io, &info, sizeof(info)) == sizeof(info))
 	{
 		// media_mlog_print_rawdata(ci->media->mlog_verbose, "mi_bmp_info_12_t", &info, sizeof(info));
-		if (media_attr_set_int(ci->attr, media_nai_width, media_n2le_16(info.width)) &&
-			media_attr_set_int(ci->attr, media_nai_height, media_n2le_16(info.height)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_color_plane, media_n2le_16(info.color_plane)) &&
-			media_attr_set_int(ci->attr, media_nai_bpp, media_n2le_16(info.bpp))
+		if (media_attr_set_int(ci->attr, media_naci_width, media_n2le_16(info.width)) &&
+			media_attr_set_int(ci->attr, media_naci_height, media_n2le_16(info.height)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_color_plane, media_n2le_16(info.color_plane)) &&
+			media_attr_set_int(ci->attr, media_naci_bpp, media_n2le_16(info.bpp))
 			) return ci;
 	}
 	return NULL;
@@ -48,15 +48,15 @@ static struct media_container_inner_s* media_container_bmp_parse_info_40(struct 
 	{
 		// media_mlog_print_rawdata(ci->media->mlog_verbose, "mi_bmp_info_40_t", &info, sizeof(info));
 		pri->image_size = media_n2le_32(info.image_size);
-		if (media_attr_set_int(ci->attr, media_nai_width, media_n2le_32(info.width)) &&
-			media_attr_set_int(ci->attr, media_nai_height, media_n2le_32(info.height)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_color_plane, media_n2le_16(info.color_plane)) &&
-			media_attr_set_int(ci->attr, media_nai_bpp, media_n2le_16(info.bpp)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_compression, media_n2le_32(info.compression_method)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_xppm, media_n2le_32(info.xppm)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_yppm, media_n2le_32(info.yppm)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_color_palette, media_n2le_32(info.color_palette)) &&
-			media_attr_set_int(ci->attr, media_nai_bmp_used_color, media_n2le_32(info.used_color))
+		if (media_attr_set_int(ci->attr, media_naci_width, media_n2le_32(info.width)) &&
+			media_attr_set_int(ci->attr, media_naci_height, media_n2le_32(info.height)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_color_plane, media_n2le_16(info.color_plane)) &&
+			media_attr_set_int(ci->attr, media_naci_bpp, media_n2le_16(info.bpp)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_compression, media_n2le_32(info.compression_method)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_xppm, media_n2le_32(info.xppm)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_yppm, media_n2le_32(info.yppm)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_color_palette, media_n2le_32(info.color_palette)) &&
+			media_attr_set_int(ci->attr, media_naci_bmp_used_color, media_n2le_32(info.used_color))
 			) return ci;
 	}
 	return NULL;

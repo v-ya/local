@@ -1,4 +1,6 @@
 #include "media.h"
+#include <string.h>
+#include <alloca.h>
 
 static void media_free_func(struct media_s *restrict r)
 {
@@ -40,14 +42,6 @@ static refer_t media_initial_hashmap_add_refer(hashmap_t *restrict hm, const cha
 	return NULL;
 }
 
-static refer_t media_initial_hashmap_add_refer_exist_ignore(hashmap_t *restrict hm, const char *restrict name, refer_t value)
-{
-	hashmap_vlist_t *restrict vl;
-	if ((vl = hashmap_find_name(hm, name)) || ((vl = hashmap_set_name(hm, name, value, media_hashmap_free_refer_func)) && refer_save(value)))
-		return (refer_t) vl->value;
-	return NULL;
-}
-
 struct media_s* media_initial_add_string(struct media_s *restrict media, const char *restrict string)
 {
 	refer_string_t rs;
@@ -70,11 +64,30 @@ struct media_s* media_initial_add_stack(struct media_s *restrict media, const st
 	return NULL;
 }
 
-struct media_s* media_initial_add_frame(struct media_s *restrict media, const struct media_frame_id_s *restrict frame_id)
+static refer_string_t media_initial_add_frame_initial_compat(struct media_s *restrict media, struct media_frame_id_s *restrict frame_id, refer_string_t name)
+{
+	const char *restrict compat_endptr;
+	char *restrict compat_cache;
+	uintptr_t length;
+	if (!frame_id->compat)
+	{
+		if (!(compat_endptr = strchr(name, ';')))
+			frame_id->compat = (refer_string_t) refer_save(name);
+		else if ((compat_cache = (char *) alloca((length = (uintptr_t) compat_endptr - (uintptr_t) name) + 1)))
+		{
+			((char *) memcpy(compat_cache, name, length))[length] = 0;
+			frame_id->compat = media_save_string(media, compat_cache);
+		}
+		return frame_id->compat;
+	}
+	return NULL;
+}
+
+struct media_s* media_initial_add_frame(struct media_s *restrict media, struct media_frame_id_s *restrict frame_id)
 {
 	refer_string_t name;
 	if (frame_id && (name = frame_id->name) && media_initial_hashmap_add_refer(&media->string, name, name) &&
-		media_initial_hashmap_add_refer_exist_ignore(&media->string, frame_id->compat, frame_id->compat) &&
+		media_initial_add_frame_initial_compat(media, frame_id, name) &&
 		media_initial_hashmap_add_refer(&media->frame, name, frame_id))
 		return media;
 	return NULL;

@@ -1,20 +1,26 @@
 #ifndef _media_attr_h_
 #define _media_attr_h_
 
-#define media_nai_width   ".width"
-#define media_nai_height  ".height"
-#define media_nai_bpp     ".bpp"     // bits per pixel
+// container
 
-// image bmp
+#define media_naci_width   "c.width"
+#define media_naci_height  "c.height"
+#define media_naci_bpp     "c.bpp"     // bits per pixel
 
-#define media_nas_bmp_magic          "bmp.magic"          // "BM", "BA", "CI", "CP", "IC", "PT"
-#define media_nai_bmp_version        "bmp.version"        // 12, 16, 40, 52, 56, 64, 108, 124
-#define media_nai_bmp_color_plane    "bmp.color_plane"    // 1
-#define media_nai_bmp_compression    "bmp.compression"    // 0(RGB), 1(RLE8), 2(RLE4), 3(BITFIELDS), 4(JPEG), 5(PNG), 6(ALPHABITFIELDS), 11(CMYK), 12(CMYKRLE8), 13(CMYKRLE4)
-#define media_nai_bmp_xppm           "bmp.xppm"           // x: pixel per metre
-#define media_nai_bmp_yppm           "bmp.yppm"           // y: pixel per metre
-#define media_nai_bmp_color_palette  "bmp.color_palette"  // 0 and 2^n
-#define media_nai_bmp_used_color     "bmp.used_color"     // 0 is every color
-#define media_nai_bmp_pixels_align   "bmp.pixels_align"   // [1, 16]
+#define media_nacs_bmp_magic          "c.bmp.magic"          // "BM", "BA", "CI", "CP", "IC", "PT"
+#define media_naci_bmp_version        "c.bmp.version"        // 12, 16, 40, 52, 56, 64, 108, 124
+#define media_naci_bmp_color_plane    "c.bmp.color_plane"    // 1
+#define media_naci_bmp_compression    "c.bmp.compression"    // 0(RGB), 1(RLE8), 2(RLE4), 3(BITFIELDS), 4(JPEG), 5(PNG), 6(ALPHABITFIELDS), 11(CMYK), 12(CMYKRLE8), 13(CMYKRLE4)
+#define media_naci_bmp_xppm           "c.bmp.xppm"           // x: pixel per metre
+#define media_naci_bmp_yppm           "c.bmp.yppm"           // y: pixel per metre
+#define media_naci_bmp_color_palette  "c.bmp.color_palette"  // 0 and 2^n
+#define media_naci_bmp_used_color     "c.bmp.used_color"     // 0 is every color
+#define media_naci_bmp_pixels_align   "c.bmp.pixels_align"   // [1, 16]
+
+// stream
+
+// frame
+
+// transform
 
 #endif
