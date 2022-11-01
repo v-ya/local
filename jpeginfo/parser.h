@@ -41,9 +41,13 @@ jpeg_parser_s* jpeg_parser_add_segment(jpeg_parser_s *restrict p, enum jpeg_segm
 const jpeg_parser_segment_s* jpeg_parser_get_segment(jpeg_parser_s *restrict p, enum jpeg_segment_type_t type);
 
 void jpeg_parser_print_rawdata(mlog_s *restrict mlog, const char *restrict name, const void *restrict data, uintptr_t size);
+void jpeg_parser_print_mat_u8(mlog_s *restrict mlog, const uint8_t *restrict p, uintptr_t row, uintptr_t col);
+void jpeg_parser_print_mat_u16(mlog_s *restrict mlog, const uint16_t *restrict p, uintptr_t row, uintptr_t col);
+void jpeg_parser_print_mat_x8(mlog_s *restrict mlog, const uint8_t *restrict p, uintptr_t row, uintptr_t col);
 
 // segment parser ...
 
+jpeg_parser_s* jpeg_parser_segment__dht(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
 jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
 #define jpeg_parser_segment__sof0   jpeg_parser_segment__sof
 #define jpeg_parser_segment__sof1   jpeg_parser_segment__sof
@@ -62,5 +66,13 @@ jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_t
 #define jpeg_parser_segment__rst7   NULL
 #define jpeg_parser_segment__soi    NULL
 #define jpeg_parser_segment__eoi    NULL
+jpeg_parser_s* jpeg_parser_segment__sos(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
+jpeg_parser_s* jpeg_parser_segment__dqt(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
+
+// inner marco
+
+#define parser_debits_4l(_v)      (_v & 0xf)
+#define parser_debits_4h(_v)      ((_v >> 4) & 0xf)
+#define parser_debits_be_4_4(_v)  parser_debits_4h(_v), parser_debits_4l(_v)
 
 #endif

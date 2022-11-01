@@ -10,7 +10,7 @@ struct jpeg_segment_sof_t {
 	uint8_t sample_bits;
 	uint16_t height;
 	uint16_t width;
-	uint8_t channels;
+	uint8_t channel_number;
 	struct jpeg_segment_sof_channel_t c[];
 } __attribute__ ((packed));
 
@@ -21,19 +21,24 @@ jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_t
 	if (size >= sizeof(struct jpeg_segment_sof_t))
 	{
 		d = (const struct jpeg_segment_sof_t *) (t->data + t->pos);
-		t->pos += size;
-		mlog_printf(p->m, "sample bits: %u\n", d->sample_bits);
-		mlog_printf(p->m, "frame size:  %ux%u\n", bits_n2be_16(d->width), bits_n2be_16(d->height));
-		mlog_printf(p->m, "channels:    %u\n", d->channels);
-		n = (size - sizeof(struct jpeg_segment_sof_t)) / sizeof(struct jpeg_segment_sof_channel_t);
-		if (n > (uintptr_t) d->channels) n = (uintptr_t) d->channels;
+		mlog_printf(p->m, "sample_bits:    %u\n", d->sample_bits);
+		mlog_printf(p->m, "frame_size:     %ux%u\n", bits_n2be_16(d->width), bits_n2be_16(d->height));
+		mlog_printf(p->m, "channel_number: %u\n", d->channel_number);
+		t->pos += sizeof(struct jpeg_segment_sof_t);
+		size -= sizeof(struct jpeg_segment_sof_t);
+		n = (uintptr_t) d->channel_number;
+		i = size / sizeof(struct jpeg_segment_sof_channel_t);
+		if (n > i) n = i;
 		for (i = 0; i < n; ++i)
 		{
 			mlog_printf(p->m, "c[%zu].channel_id:            %u\n", i, d->c[i].channel_id);
-			mlog_printf(p->m, "c[%zu].hv_per_mcu:            %ux%u\n", i, (d->c[i].hv_per_mcu >> 4) & 0xf, d->c[i].hv_per_mcu & 0xf);
+			mlog_printf(p->m, "c[%zu].hv_per_mcu:            %ux%u\n", i, parser_debits_be_4_4(d->c[i].hv_per_mcu));
 			mlog_printf(p->m, "c[%zu].quantization_table_id: %u\n", i, d->c[i].quantization_table_id);
+			t->pos += sizeof(struct jpeg_segment_sof_channel_t);
+			size -= sizeof(struct jpeg_segment_sof_channel_t);
 		}
-		return p;
+		if (i == (uintptr_t) d->channel_number)
+			return p;
 	}
 	return NULL;
 }

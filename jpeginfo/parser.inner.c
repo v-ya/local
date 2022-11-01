@@ -158,3 +158,42 @@ void jpeg_parser_print_rawdata(mlog_s *restrict mlog, const char *restrict name,
 		size -= n;
 	}
 }
+
+void jpeg_parser_print_mat_u8(mlog_s *restrict mlog, const uint8_t *restrict p, uintptr_t row, uintptr_t col)
+{
+	uintptr_t i, j;
+	if (row && col)
+	{
+		for (i = j = 0, row *= col; i < row; ++i)
+		{
+			if (++j >= col) j = 0;
+			mlog_printf(mlog, "%3u%s", p[i], j?", ":"\n");
+		}
+	}
+}
+
+void jpeg_parser_print_mat_u16(mlog_s *restrict mlog, const uint16_t *restrict p, uintptr_t row, uintptr_t col)
+{
+	uintptr_t i, j;
+	if (row && col)
+	{
+		for (i = j = 0, row *= col; i < row; ++i)
+		{
+			if (++j >= col) j = 0;
+			mlog_printf(mlog, "%5u%s", p[i], j?", ":"\n");
+		}
+	}
+}
+
+void jpeg_parser_print_mat_x8(mlog_s *restrict mlog, const uint8_t *restrict p, uintptr_t row, uintptr_t col)
+{
+	uintptr_t i, j;
+	if (row && col)
+	{
+		for (i = j = 0, row *= col; i < row; ++i)
+		{
+			if (++j >= col) j = 0;
+			mlog_printf(mlog, "%02x%s", p[i], j?", ":"\n");
+		}
+	}
+}

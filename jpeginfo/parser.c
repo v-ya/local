@@ -18,6 +18,7 @@ jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td)
 		if (
 			hashmap_init(&r->type2parser) &&
 			#define d_sp(_name, _desc)  jpeg_parser_add_segment(r, jpeg_segment_type__##_name, #_name, _desc, jpeg_parser_segment__##_name)
+			d_sp(dht,   "define huffman table(s)") &&
 			d_sp(sof0,  "start of frame (non-differential, huffman coding) (baseline DCT)") &&
 			d_sp(sof1,  "start of frame (non-differential, huffman coding) (extended sequential DCT)") &&
 			d_sp(sof2,  "start of frame (non-differential, huffman coding) (progressive DCT)") &&
@@ -25,16 +26,18 @@ jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td)
 			d_sp(sof9,  "start of frame (non-differential, arithmetic coding) (extended sequential DCT)") &&
 			d_sp(sof10, "start of frame (non-differential, arithmetic coding) (progressive DCT)") &&
 			d_sp(sof11, "start of frame (non-differential, arithmetic coding) (lossless (sequential))") &&
-			d_sp(rst0,  "restart marker 0") &&
-			d_sp(rst1,  "restart marker 1") &&
-			d_sp(rst2,  "restart marker 2") &&
-			d_sp(rst3,  "restart marker 3") &&
-			d_sp(rst4,  "restart marker 4") &&
-			d_sp(rst5,  "restart marker 5") &&
-			d_sp(rst6,  "restart marker 6") &&
-			d_sp(rst7,  "restart marker 7") &&
-			d_sp(soi,   "start of image") &&
-			d_sp(eoi,   "end of image") &&
+			d_sp(rst0,  "* restart marker 0") &&
+			d_sp(rst1,  "* restart marker 1") &&
+			d_sp(rst2,  "* restart marker 2") &&
+			d_sp(rst3,  "* restart marker 3") &&
+			d_sp(rst4,  "* restart marker 4") &&
+			d_sp(rst5,  "* restart marker 5") &&
+			d_sp(rst6,  "* restart marker 6") &&
+			d_sp(rst7,  "* restart marker 7") &&
+			d_sp(soi,   "* start of image") &&
+			d_sp(eoi,   "* end of image") &&
+			d_sp(sos,   "start of scan") &&
+			d_sp(dqt,   "define quantization table(s)") &&
 			#undef d_sp
 		1) return r;
 		refer_free(r);
@@ -78,11 +81,16 @@ void jpeg_parser_done(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict 
 			if (length)
 			{
 				tmlog_add(p->td, 1);
-				if (seg && seg->parse && seg->parse(p, t, length))
-					length = 0;
-				else jpeg_parser_print_rawdata(p->m, name, t->data + data_pos, length);
+				if (seg && seg->parse && !seg->parse(p, t, length))
+					mlog_printf(p->m, "!! (%s) parse fail !!\n", name);
+				if (t->pos < data_pos + length)
+				{
+					length = data_pos + length - t->pos;
+					mlog_printf(p->m, "@(%8zu)+%zu ignore ...\n", t->pos, length);
+					jpeg_parser_print_rawdata(p->m, NULL, t->data + t->pos, length);
+					t->pos += length;
+				}
 				tmlog_sub(p->td, 1);
-				if (length) t->pos = data_pos + length;
 			}
 		}
 		else mlog_printf(p->m, "@(%8zu)+? [error] %02x (%s): %s\n", this_pos, type, name, desc);
