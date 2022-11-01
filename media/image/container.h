@@ -5,7 +5,7 @@
 #include "../0core/media.h"
 #include "../0core/stream.h"
 #include "../0core/container.h"
-#include "../0core/endian.h"
+#include "../0bits/bits.h"
 #include "../media.container.h"
 #include "../media.frame.h"
 #include "../media.attr.h"

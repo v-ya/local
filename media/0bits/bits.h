@@ -1,7 +1,7 @@
-#ifndef _media_core_endian_h_
-#define _media_core_endian_h_
+#ifndef _media_bits_bits_h_
+#define _media_bits_bits_h_
 
-#include <stdint.h>
+#include <refer.h>
 
 #define media_bswap16(_v)  __builtin_bswap16(_v)
 #define media_bswap32(_v)  __builtin_bswap32(_v)
