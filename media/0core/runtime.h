@@ -3,12 +3,9 @@
 
 #include "../0bits/atomic.h"
 #include "media.h"
-#include <queue/queue.h>
-#include <mtask.h>
-#include <yaw.h>
 
 enum media_runtime_status_t {
-	media_runtime_status__none,
+	media_runtime_status__wait,
 	media_runtime_status__running,
 	media_runtime_status__cancel,
 	media_runtime_status__done,
@@ -16,7 +13,6 @@ enum media_runtime_status_t {
 
 enum media_runtime_result_t {
 	media_runtime_result__none,
-	media_runtime_result__cancel,
 	media_runtime_result__fail,
 	media_runtime_result__okay,
 };
@@ -54,6 +50,7 @@ uintptr_t media_runtime_unit_core_number(struct media_runtime_s *restrict runtim
 struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_param_t *restrict up, refer_t data, const void *restrict param);
 
 struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, uintptr_t step_number, const struct media_runtime_task_step_t *restrict steps, const struct media_runtime_task_done_t *restrict done);
+struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task_s *restrict task);
 struct media_runtime_task_s* media_runtime_task_is_finish(struct media_runtime_task_s *restrict task);
 struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_task_s *restrict task, uintptr_t usec);
 void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
