@@ -98,4 +98,15 @@ struct media_io_s* media_io_create_memory(const void *restrict pre_data, uintptr
 struct media_io_s* media_io_create_memory_const(const void *restrict data, uintptr_t size, refer_t data_source);
 struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_flag_t flag, uintptr_t cache_number, uintptr_t cache_size);
 
+// runtime
+
+struct media_runtime_s* media_runtime_alloc(uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly);
+void media_runtime_stop(struct media_runtime_s *restrict runtime);
+
+struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task_s *restrict task);
+const struct media_runtime_task_s* media_runtime_task_is_finish(const struct media_runtime_task_s *restrict task);
+const struct media_runtime_task_s* media_runtime_task_is_okay(const struct media_runtime_task_s *restrict task);
+struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_task_s *restrict task, uintptr_t usec);
+void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
+
 #endif

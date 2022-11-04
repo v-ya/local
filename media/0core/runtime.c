@@ -412,11 +412,18 @@ struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task
 	return NULL;
 }
 
-struct media_runtime_task_s* media_runtime_task_is_finish(struct media_runtime_task_s *restrict task)
+const struct media_runtime_task_s* media_runtime_task_is_finish(const struct media_runtime_task_s *restrict task)
 {
 	yaw_signal_s *restrict s;
 	s = task->signal;
 	return yaw_signal_get(s)?task:NULL;
+}
+
+const struct media_runtime_task_s* media_runtime_task_is_okay(const struct media_runtime_task_s *restrict task)
+{
+	if (task->status == media_runtime_status__done && task->result == media_runtime_result__okay)
+		return task;
+	return NULL;
 }
 
 struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_task_s *restrict task, uintptr_t usec)
@@ -436,12 +443,12 @@ void media_runtime_task_wait(struct media_runtime_task_s *restrict task)
 		yaw_signal_wait(s, 0);
 }
 
-enum media_runtime_status_t media_runtime_get_status(struct media_runtime_task_s *restrict task)
+enum media_runtime_status_t media_runtime_get_status(const struct media_runtime_task_s *restrict task)
 {
 	return (enum media_runtime_status_t) task->status;
 }
 
-enum media_runtime_result_t media_runtime_get_result(struct media_runtime_task_s *restrict task)
+enum media_runtime_result_t media_runtime_get_result(const struct media_runtime_task_s *restrict task)
 {
 	return (enum media_runtime_result_t) task->result;
 }

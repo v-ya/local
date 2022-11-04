@@ -51,10 +51,11 @@ struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_
 
 struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, uintptr_t step_number, const struct media_runtime_task_step_t *restrict steps, const struct media_runtime_task_done_t *restrict done);
 struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task_s *restrict task);
-struct media_runtime_task_s* media_runtime_task_is_finish(struct media_runtime_task_s *restrict task);
+const struct media_runtime_task_s* media_runtime_task_is_finish(const struct media_runtime_task_s *restrict task);
+const struct media_runtime_task_s* media_runtime_task_is_okay(const struct media_runtime_task_s *restrict task);
 struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_task_s *restrict task, uintptr_t usec);
 void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
-enum media_runtime_status_t media_runtime_get_status(struct media_runtime_task_s *restrict task);
-enum media_runtime_result_t media_runtime_get_result(struct media_runtime_task_s *restrict task);
+enum media_runtime_status_t media_runtime_get_status(const struct media_runtime_task_s *restrict task);
+enum media_runtime_result_t media_runtime_get_result(const struct media_runtime_task_s *restrict task);
 
 #endif

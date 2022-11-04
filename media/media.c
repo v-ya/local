@@ -2,6 +2,7 @@
 #include "0core/attr.h"
 #include "0core/frame.h"
 #include "0core/media.h"
+#include "0core/runtime.h"
 #include "media.frame.h"
 #include "media.container.h"
 // frame
