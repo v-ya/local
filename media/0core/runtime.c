@@ -47,7 +47,6 @@ struct media_runtime_unit_context_s {
 struct media_runtime_unit_s {
 	struct media_runtime_unit_context_s *context;
 	media_runtime_deal_f deal;
-	refer_t inst;
 	refer_t data;
 	uint8_t param[];
 };
@@ -81,8 +80,9 @@ static void media_runtime_task_free_func(struct media_runtime_task_s *restrict r
 	if (r->done.pri) refer_free(r->done.pri);
 	for (uintptr_t i = 0, n = r->step_max; i < n; ++i)
 	{
-		if (r->step[i].pri)
-			refer_free(r->step[i].pri);
+		if (r->step[i].pri) refer_free(r->step[i].pri);
+		if (r->step[i].src) refer_free(r->step[i].src);
+		if (r->step[i].dst) refer_free(r->step[i].dst);
 	}
 }
 
@@ -108,6 +108,8 @@ static struct media_runtime_task_s* media_runtime_task_alloc(uintptr_t step_numb
 				if (!(r->step[i].emit = steps[i].emit))
 					goto label_fail;
 				r->step[i].pri = refer_save(steps[i].pri);
+				r->step[i].src = refer_save(steps[i].src);
+				r->step[i].dst = refer_save(steps[i].dst);
 			}
 			return r;
 		}
@@ -156,11 +158,10 @@ static struct media_runtime_unit_context_s* media_runtime_unit_context_alloc(str
 static void media_runtime_unit_free_func(struct media_runtime_unit_s *restrict r)
 {
 	if (r->context) refer_free(r->context);
-	if (r->inst) refer_free(r->inst);
 	if (r->data) refer_free(r->data);
 }
 
-static struct media_runtime_unit_s* media_runtime_unit_alloc(const struct media_runtime_unit_param_t *restrict up, refer_t data, const void *restrict param)
+static struct media_runtime_unit_s* media_runtime_unit_alloc(const struct media_runtime_unit_param_t *restrict up, const void *restrict param, refer_t data)
 {
 	struct media_runtime_unit_s *restrict r;
 	if (up->context && up->deal && (r = (struct media_runtime_unit_s *) refer_alloc(
@@ -168,9 +169,9 @@ static struct media_runtime_unit_s* media_runtime_unit_alloc(const struct media_
 	{
 		r->context = (struct media_runtime_unit_context_s *) refer_save(up->context);
 		r->deal = up->deal;
-		r->inst = refer_save(up->inst);
 		r->data = refer_save(data);
-		memcpy(r->param, param, up->param_size);
+		if (up->param_size)
+			memcpy(r->param, param, up->param_size);
 		refer_set_free(r, (refer_free_f) media_runtime_unit_free_func);
 		return r;
 	}
@@ -181,7 +182,7 @@ static void media_runtime_unit_deal(struct media_runtime_unit_s *restrict unit, 
 {
 	struct media_runtime_unit_context_s *restrict uc;
 	uc = unit->context;
-	if (!unit->deal(unit->inst, unit->data, unit->param))
+	if (!unit->deal(unit->param, unit->data))
 	{
 		m_task_result(uc->task, none, fail);
 		m_task_status(uc->task, running, cancel);
@@ -194,7 +195,7 @@ static void media_runtime_unit_deal(struct media_runtime_unit_s *restrict unit, 
 
 static void media_runtime_daemon_emit(struct media_runtime_s *restrict rt, struct media_runtime_task_s *restrict task)
 {
-	struct media_runtime_task_step_t *restrict step;
+	const struct media_runtime_task_step_t *restrict step;
 	struct media_runtime_unit_context_s *restrict uc;
 	uintptr_t unit_commit_number;
 	uint32_t status;
@@ -205,7 +206,7 @@ static void media_runtime_daemon_emit(struct media_runtime_s *restrict rt, struc
 		step = task->step + task->step_cur;
 		if ((uc = media_runtime_unit_context_alloc(task, rt->signal, rt->task_step)))
 		{
-			if (!step->emit(task, step->pri, rt, uc))
+			if (!step->emit(task, step, rt, uc))
 			{
 				m_task_result(task, none, fail);
 				m_task_status(task, running, cancel);

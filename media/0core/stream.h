@@ -12,8 +12,8 @@ struct media_container_s;
 struct media_stream_s {
 	const struct media_stream_spec_s *spec;
 	struct media_container_inner_s *inner;
-	const struct media_stack_id_s *restrict stack_id;
-	const struct media_frame_id_s *restrict frame_id;
+	const struct media_stack_id_s *stack_id;
+	const struct media_frame_id_s *frame_id;
 	refer_t pri_data;
 	struct media_attr_s *attr;
 	struct media_stack_s *stack;
