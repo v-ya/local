@@ -17,7 +17,8 @@ struct media_frame_s {
 
 struct media_frame_s* media_frame_alloc(const struct media_frame_id_s *restrict frame_id, uintptr_t dimension, const uintptr_t *restrict dimension_value);
 struct media_frame_s* media_frame_set_dimension(struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value);
-struct media_frame_s* media_frame_test_dimension(struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value);
+const struct media_frame_s* media_frame_test_dimension(const struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value);
+const struct media_frame_s* media_frame_exist_data(const struct media_frame_s *restrict frame);
 struct media_frame_s* media_frame_touch_data(struct media_frame_s *restrict frame);
 void media_frame_clear_data(struct media_frame_s *restrict frame);
 

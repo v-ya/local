@@ -3,6 +3,7 @@
 #include "0core/frame.h"
 #include "0core/media.h"
 #include "0core/runtime.h"
+#include "0core/transform.h"
 #include "media.frame.h"
 #include "media.container.h"
 // frame
@@ -10,6 +11,8 @@
 #include "zarch/frame.h"
 // container
 #include "image/container.h"
+// transform
+#include "image/transform.h"
 // print
 #include <inttypes.h>
 
@@ -61,6 +64,26 @@ static media_s* media_alloc_add_container(media_s *restrict r, struct media_cont
 	return NULL;
 }
 
+static media_s* media_alloc_add_transform(media_s *restrict r, struct media_transform_id_s* (*create_func)(const struct media_s *restrict media))
+{
+	struct media_transform_id_s *restrict id;
+	media_s *restrict m;
+	const char *restrict sc, *restrict dc;
+	if ((id = create_func(r)))
+	{
+		sc = id->src_frame_compat;
+		if (!(dc = id->dst_frame_compat))
+			dc = "any";
+		r = media_initial_add_transform(m = r, id);
+		if (r) media_verbose(m, "add transform (%s => %s) okay", sc, dc);
+		else media_error(m, "add transform (%s => %s) fail", sc, dc);
+		refer_free(id);
+		return r;
+	}
+	else media_error(r, "create transform id (%p) fail", create_func);
+	return NULL;
+}
+
 const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict mlog)
 {
 	media_s *restrict r;
@@ -85,6 +108,8 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
 			media_alloc_add_container(r, media_container_create_image_jpeg) &&
+			// transform
+			media_alloc_add_transform(r, media_transform_create_image__bgr24_bgra32) &&
 		1) return r;
 		refer_free(r);
 	}
@@ -401,6 +426,10 @@ refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream
 {
 	return stream->frame_id->name;
 }
+refer_string_t media_stream_get_frame_compat(const media_stream_s *restrict stream)
+{
+	return stream->frame_id->compat;
+}
 
 // io
 
@@ -431,4 +460,14 @@ void* media_io_map_data(media_io_s *restrict io, uintptr_t *restrict rsize)
 media_io_s* media_io_sync_data(media_io_s *restrict io)
 {
 	return media_io_sync(io);
+}
+
+// transform
+
+struct media_transform_s* media_create_transform(const media_s *restrict media, media_runtime_s *restrict runtime, const char *restrict src_frame_compat, const char *restrict dst_frame_compat)
+{
+	const struct media_transform_id_s *restrict id;
+	if ((id = media_get_transform(media, src_frame_compat, dst_frame_compat)))
+		return media_transform_alloc(media, id, runtime);
+	return NULL;
 }

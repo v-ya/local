@@ -69,14 +69,28 @@ struct media_frame_s* media_frame_set_dimension(struct media_frame_s *restrict f
 	return NULL;
 }
 
-struct media_frame_s* media_frame_test_dimension(struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value)
+const struct media_frame_s* media_frame_test_dimension(const struct media_frame_s *restrict frame, uintptr_t dimension, const uintptr_t *restrict dimension_value)
 {
 	if (frame->id->dimension == dimension)
 	{
-		if (!dimension_value || !memcpy(frame->dv, dimension_value, sizeof(uintptr_t) * dimension))
+		if (!dimension_value || !memcmp(frame->dv, dimension_value, sizeof(uintptr_t) * dimension))
 			return frame;
 	}
 	return NULL;
+}
+
+const struct media_frame_s* media_frame_exist_data(const struct media_frame_s *restrict frame)
+{
+	struct media_channel_s *const *restrict channel_chip;
+	uintptr_t i, channel;
+	channel_chip = frame->channel_chip;
+	channel = frame->channel;
+	for (i = 0; i < channel; ++i)
+	{
+		if (!channel_chip[i]->data && channel_chip[i]->size)
+			frame = NULL;
+	}
+	return frame;
 }
 
 struct media_frame_s* media_frame_touch_data(struct media_frame_s *restrict frame)

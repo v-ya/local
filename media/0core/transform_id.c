@@ -4,8 +4,8 @@
 
 void media_transform_id_free_func(struct media_transform_id_s *restrict r)
 {
-	if (r->src_frame_id) refer_free(r->src_frame_id);
-	if (r->dst_frame_id) refer_free(r->dst_frame_id);
+	if (r->src_frame_compat) refer_free(r->src_frame_compat);
+	if (r->dst_frame_compat) refer_free(r->dst_frame_compat);
 	if (r->judge) refer_free(r->judge);
 }
 
@@ -16,8 +16,8 @@ struct media_transform_id_s* media_transform_id_alloc(uintptr_t size, const stru
 		(r = (struct media_transform_id_s *) refer_alloz(size)))
 	{
 		refer_set_free(r, (refer_free_f) media_transform_id_free_func);
-		if ((r->src_frame_id = media_save_string(media, sfid)) &&
-			(!dfid || (r->dst_frame_id = media_save_string(media, dfid))))
+		if ((r->src_frame_compat = media_save_string(media, sfid)) &&
+			(!dfid || (r->dst_frame_compat = media_save_string(media, dfid))))
 		{
 			if (!func->initial_judge || (r->judge = media_attr_judge_create(func->initial_judge)))
 			{

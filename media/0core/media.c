@@ -2,12 +2,39 @@
 #include <string.h>
 #include <alloca.h>
 
+struct media_transform_src2dst_s {
+	hashmap_t transform;
+	const struct media_transform_id_s *restrict any;
+};
+
+static void media_transform_src2dst_free_func(struct media_transform_src2dst_s *restrict r)
+{
+	hashmap_uini(&r->transform);
+	if (r->any) refer_free(r->any);
+}
+
+static struct media_transform_src2dst_s* media_transform_src2dst_alloc(void)
+{
+	struct media_transform_src2dst_s *restrict r;
+	if ((r = (struct media_transform_src2dst_s *) refer_alloz(sizeof(struct media_transform_src2dst_s))))
+	{
+		refer_set_free(r, (refer_free_f) media_transform_src2dst_free_func);
+		if (hashmap_init(&r->transform))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+// media
+
 static void media_free_func(struct media_s *restrict r)
 {
 	hashmap_uini(&r->string);
 	hashmap_uini(&r->stack);
 	hashmap_uini(&r->frame);
 	hashmap_uini(&r->container);
+	hashmap_uini(&r->transform);
 	if (r->mlog_error) refer_free(r->mlog_error);
 	if (r->mlog_warning) refer_free(r->mlog_warning);
 	if (r->mlog_info) refer_free(r->mlog_info);
@@ -23,7 +50,8 @@ struct media_s* media_alloc_empty(void)
 		if (hashmap_init(&r->string) &&
 			hashmap_init(&r->stack) &&
 			hashmap_init(&r->frame) &&
-			hashmap_init(&r->container))
+			hashmap_init(&r->container) &&
+			hashmap_init(&r->transform))
 			return r;
 		refer_free(r);
 	}
@@ -99,6 +127,45 @@ struct media_s* media_initial_add_container(struct media_s *restrict media, cons
 	if (container_id && (name = container_id->name) && media_initial_hashmap_add_refer(&media->string, name, name) &&
 		media_initial_hashmap_add_refer(&media->container, name, container_id))
 		return media;
+	return NULL;
+}
+
+struct media_s* media_initial_add_transform(struct media_s *restrict media, const struct media_transform_id_s *restrict transform_id)
+{
+	struct media_transform_src2dst_s *restrict s2d;
+	if (transform_id->src_frame_compat && media_get_frame(media, transform_id->src_frame_compat))
+	{
+		if ((s2d = (struct media_transform_src2dst_s *) hashmap_get_name(&media->transform, transform_id->src_frame_compat)))
+		{
+			label_find_s2d:
+			if (transform_id->dst_frame_compat)
+			{
+				if (media_get_frame(media, transform_id->dst_frame_compat) &&
+					media_initial_hashmap_add_refer(&s2d->transform, transform_id->dst_frame_compat, transform_id))
+					goto label_okay;
+			}
+			else if (!s2d->any)
+			{
+				s2d->any = (const struct media_transform_id_s *) refer_save(transform_id);
+				label_okay:
+				return media;
+			}
+		}
+		else if ((s2d = media_transform_src2dst_alloc()))
+		{
+			if (hashmap_set_name(&media->transform, transform_id->src_frame_compat, s2d, media_hashmap_free_refer_func))
+				goto label_find_s2d;
+			refer_free(s2d);
+		}
+	}
+	return NULL;
+}
+
+const struct media_transform_id_s* media_get_transform(const struct media_s *restrict media, const char *restrict src_frame_compat, const char *restrict dst_frame_compat)
+{
+	const struct media_transform_src2dst_s *restrict s2d;
+	if (src_frame_compat && (s2d = (const struct media_transform_src2dst_s *) hashmap_get_name(&media->transform, src_frame_compat)))
+		return dst_frame_compat?((const struct media_transform_id_s *) hashmap_get_name(&s2d->transform, dst_frame_compat)):s2d->any;
 	return NULL;
 }
 

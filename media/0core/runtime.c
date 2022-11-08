@@ -381,7 +381,10 @@ struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_
 	{
 		media_atomic_ptr_add(&c->unit_running_number, 1);
 		if (mtask_push_task_block(r->mtask, 0, (mtask_deal_f) media_runtime_unit_deal, unit))
+		{
 			media_atomic_ptr_add(&c->unit_commit_number, 1);
+			mtask_active_pipe(r->mtask, 0);
+		}
 		else
 		{
 			media_atomic_ptr_sub(&c->unit_running_number, 1);

@@ -5,6 +5,7 @@
 #include "stack_id.h"
 #include "frame_id.h"
 #include "container_id.h"
+#include "transform_id.h"
 #include "mlog.h"
 #include <hashmap.h>
 
@@ -13,6 +14,7 @@ struct media_s {
 	hashmap_t stack;
 	hashmap_t frame;
 	hashmap_t container;
+	hashmap_t transform;
 	mlog_s *mlog_error;
 	mlog_s *mlog_warning;
 	mlog_s *mlog_info;
@@ -27,6 +29,9 @@ struct media_s* media_initial_add_string(struct media_s *restrict media, const c
 struct media_s* media_initial_add_stack(struct media_s *restrict media, const struct media_stack_id_s *restrict stack_id);
 struct media_s* media_initial_add_frame(struct media_s *restrict media, struct media_frame_id_s *restrict frame_id);
 struct media_s* media_initial_add_container(struct media_s *restrict media, const struct media_container_id_s *restrict container_id);
+struct media_s* media_initial_add_transform(struct media_s *restrict media, const struct media_transform_id_s *restrict transform_id);
+
+const struct media_transform_id_s* media_get_transform(const struct media_s *restrict media, const char *restrict src_frame_compat, const char *restrict dst_frame_compat);
 
 struct media_s* media_initial_set_mlog(struct media_s *restrict media, mlog_s *restrict mlog, uint32_t loglevel);
 mlog_s* media_get_mlog_by_loglevel(const struct media_s *restrict media, uint32_t loglevel);

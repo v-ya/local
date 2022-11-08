@@ -1,8 +1,8 @@
 #ifndef _media_core_runtime_h_
 #define _media_core_runtime_h_
 
+#include <refer.h>
 #include "../0bits/atomic.h"
-#include "media.h"
 
 enum media_runtime_status_t {
 	media_runtime_status__wait,
@@ -24,7 +24,7 @@ struct media_runtime_unit_context_s;
 
 typedef void (*media_runtime_done_f)(struct media_runtime_task_s *restrict task, refer_t pri);
 typedef struct media_runtime_task_s* (*media_runtime_emit_f)(struct media_runtime_task_s *restrict task, const struct media_runtime_task_step_t *restrict step, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc);
-typedef void* (*media_runtime_deal_f)(const void *restrict param, refer_t data);
+typedef const void* (*media_runtime_deal_f)(const void *restrict param, refer_t data);
 
 struct media_runtime_unit_param_t {
 	struct media_runtime_s *runtime;
@@ -60,5 +60,11 @@ struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_t
 void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
 enum media_runtime_status_t media_runtime_get_status(const struct media_runtime_task_s *restrict task);
 enum media_runtime_result_t media_runtime_get_result(const struct media_runtime_task_s *restrict task);
+
+#define media_runtime_symbol(_tf, _name)        media_runtime__##_tf##__##_name
+
+#define d_media_runtime__done(_name, _tp)       void media_runtime_symbol(done, _name)(struct media_runtime_task_s *restrict task, _tp pri)
+#define d_media_runtime__emit(_name)            struct media_runtime_task_s* media_runtime_symbol(emit, _name)(struct media_runtime_task_s *restrict task, const struct media_runtime_task_step_t *restrict step, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc)
+#define d_media_runtime__deal(_name, _tp, _td)  const void* media_runtime_symbol(deal, _name)(const _tp *restrict param, _td data)
 
 #endif

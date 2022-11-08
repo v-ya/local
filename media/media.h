@@ -78,6 +78,7 @@ struct media_stream_s* media_container_find_stream(const struct media_container_
 // stream
 
 refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream);
+refer_string_t media_stream_get_frame_compat(const media_stream_s *restrict stream);
 
 struct media_frame_s* media_stream_create_frame(struct media_stream_s *restrict stream);
 struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame, uintptr_t index);
@@ -108,5 +109,13 @@ const struct media_runtime_task_s* media_runtime_task_is_finish(const struct med
 const struct media_runtime_task_s* media_runtime_task_is_okay(const struct media_runtime_task_s *restrict task);
 struct media_runtime_task_s* media_runtime_task_wait_time(struct media_runtime_task_s *restrict task, uintptr_t usec);
 void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
+
+// transform
+
+struct media_transform_s* media_create_transform(const media_s *restrict media, media_runtime_s *restrict runtime, const char *restrict src_frame_compat, const char *restrict dst_frame_compat);
+
+struct media_transform_s* media_transform_open(struct media_transform_s *restrict transform);
+void media_transform_close(struct media_transform_s *restrict transform);
+struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, uintptr_t *restrict timeout_usec);
 
 #endif

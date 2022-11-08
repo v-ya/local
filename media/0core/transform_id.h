@@ -24,8 +24,8 @@ struct media_transform_id_func_t {
 };
 
 struct media_transform_id_s {
-	refer_string_t src_frame_id;
-	refer_string_t dst_frame_id;
+	refer_string_t src_frame_compat;
+	refer_string_t dst_frame_compat;
 	const struct media_attr_judge_s *judge;
 	struct media_transform_id_func_t func;
 };
