@@ -25,6 +25,6 @@ struct media_transform_s* media_transform_open(struct media_transform_s *restric
 void media_transform_close(struct media_transform_s *restrict transform);
 const struct media_frame_id_s* media_transform_dst_frame(struct media_transform_s *restrict transform, const char *restrict dst_frame_name);
 struct media_runtime_task_s* media_transform_post_task(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, struct media_frame_s *restrict dst_frame, const struct media_runtime_task_done_t *restrict done);
-struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, uintptr_t *restrict timeout_usec);
+struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec);
 
 #endif

@@ -86,13 +86,12 @@ struct media_runtime_task_s* media_transform_post_task(struct media_transform_s 
 	if (src_frame && dst_frame && src_frame->id->compat == transform->src_frame_compat->compat &&
 		(!transform->dst_frame_compat || dst_frame->id->compat == transform->dst_frame_compat->compat) &&
 		transform->codec && (post_task = transform->id->func.post_task) &&
-		media_frame_set_dimension(dst_frame, src_frame->id->dimension, src_frame->dv) &&
-		media_frame_exist_data(src_frame) && media_frame_touch_data(dst_frame))
+		media_frame_exist_data(src_frame))
 		return post_task(transform, src_frame, dst_frame, done);
 	return NULL;
 }
 
-struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, uintptr_t *restrict timeout_usec)
+struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec)
 {
 	const struct media_frame_id_s *restrict did;
 	struct media_frame_s *restrict dst_frame;

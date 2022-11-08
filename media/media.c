@@ -109,6 +109,7 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
 			media_alloc_add_container(r, media_container_create_image_jpeg) &&
 			// transform
+			media_alloc_add_transform(r, media_transform_create_image__bgra32_bgr24) &&
 			media_alloc_add_transform(r, media_transform_create_image__bgr24_bgra32) &&
 		1) return r;
 		refer_free(r);
@@ -470,4 +471,20 @@ struct media_transform_s* media_create_transform(const media_s *restrict media, 
 	if ((id = media_get_transform(media, src_frame_compat, dst_frame_compat)))
 		return media_transform_alloc(media, id, runtime);
 	return NULL;
+}
+
+struct media_frame_s* media_conver_frame(const media_s *restrict media, media_runtime_s *restrict runtime, const media_frame_s *restrict frame, const char *restrict target_frame_name, const uintptr_t *restrict timeout_usec)
+{
+	const struct media_frame_id_s *restrict id;
+	media_transform_s *restrict tf;
+	media_frame_s *restrict target;
+	target = NULL;
+	if (target_frame_name && (id = media_get_frame(media, target_frame_name)) &&
+		(tf = media_create_transform(media, runtime, frame->id->compat, id->compat)))
+	{
+		if (media_transform_open(tf))
+			target = media_transform_alloc_conver(tf, frame, id->name, timeout_usec);
+		refer_free(tf);
+	}
+	return target;
 }
