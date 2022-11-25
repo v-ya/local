@@ -38,6 +38,7 @@ jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td)
 			d_sp(eoi,   "* end of image") &&
 			d_sp(sos,   "start of scan") &&
 			d_sp(dqt,   "define quantization table(s)") &&
+			d_sp(dhp,   "define hierarchical progression") &&
 			#undef d_sp
 		1) return r;
 		refer_free(r);

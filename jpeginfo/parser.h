@@ -3,6 +3,7 @@
 
 #include "jpeg.h"
 #include "tmlog.h"
+#include "huffman.h"
 #include <hashmap.h>
 
 typedef struct jpeg_parser_target_t jpeg_parser_target_t;
@@ -56,6 +57,7 @@ jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_t
 #define jpeg_parser_segment__sof9   jpeg_parser_segment__sof
 #define jpeg_parser_segment__sof10  jpeg_parser_segment__sof
 #define jpeg_parser_segment__sof11  jpeg_parser_segment__sof
+#define jpeg_parser_segment__dhp    jpeg_parser_segment__sof
 #define jpeg_parser_segment__rst0   NULL
 #define jpeg_parser_segment__rst1   NULL
 #define jpeg_parser_segment__rst2   NULL
@@ -74,5 +76,16 @@ jpeg_parser_s* jpeg_parser_segment__dqt(jpeg_parser_s *restrict p, jpeg_parser_t
 #define parser_debits_4l(_v)      (_v & 0xf)
 #define parser_debits_4h(_v)      ((_v >> 4) & 0xf)
 #define parser_debits_be_4_4(_v)  parser_debits_4h(_v), parser_debits_4l(_v)
+
+// temp
+// MCU: Zig-zag sequence of quantized DCT coefficients
+//  0  1  5  6 14 15 27 28
+//  2  4  7 13 16 26 29 42
+//  3  8 12 17 25 30 41 43
+//  9 11 18 24 31 40 44 53
+// 10 19 23 32 39 45 52 54
+// 20 22 33 38 46 51 55 60
+// 21 34 37 47 50 56 59 61
+// 35 36 48 49 57 58 62 63
 
 #endif
