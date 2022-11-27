@@ -14,6 +14,28 @@ struct jpeg_segment_sof_t {
 	struct jpeg_segment_sof_channel_t c[];
 } __attribute__ ((packed));
 
+static jpeg_parser_s* jpeg_parser_segment__sof_add_info(jpeg_parser_s *restrict p, const struct jpeg_segment_sof_t *restrict sof)
+{
+	jpeg_parser_s *restrict r;
+	frame_info_s *restrict info;
+	uint32_t i, n;
+	r = NULL;
+	if ((info = frame_info_alloc(bits_n2be_16(sof->width), bits_n2be_16(sof->height), sof->sample_bits, n = sof->channel_number)))
+	{
+		for (i = 0; i < n; ++i)
+		{
+			if (!frame_info_set_channel(info, i, sof->c[i].channel_id, parser_debits_be_4_4(sof->c[i].hv_per_mcu), sof->c[i].quantization_table_id))
+				goto label_fail;
+		}
+		if (p->info) refer_free(p->info);
+		p->info = (const frame_info_s *) refer_save(info);
+		r = p;
+		label_fail:
+		refer_free(info);
+	}
+	return r;
+}
+
 jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size)
 {
 	const struct jpeg_segment_sof_t *restrict d;
@@ -38,7 +60,10 @@ jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_t
 			size -= sizeof(struct jpeg_segment_sof_channel_t);
 		}
 		if (i == (uintptr_t) d->channel_number)
+		{
+			jpeg_parser_segment__sof_add_info(p, d);
 			return p;
+		}
 	}
 	return NULL;
 }

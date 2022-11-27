@@ -16,6 +16,28 @@ struct jpeg_segment_sos_tail_t {
 	uint8_t hl_of_approximation_bit_position;
 } __attribute__ ((packed));
 
+static jpeg_parser_s* jpeg_parser_segment__sos_add_scan(jpeg_parser_s *restrict p, const struct jpeg_segment_sos_head_t *restrict sos)
+{
+	jpeg_parser_s *restrict r;
+	frame_scan_s *restrict scan;
+	uint32_t i, n;
+	r = NULL;
+	if ((scan = frame_scan_alloc(n = sos->channel_number)))
+	{
+		for (i = 0; i < n; ++i)
+		{
+			if (!frame_scan_set_scan(scan, i, sos->c[i].channel_id, parser_debits_be_4_4(sos->c[i].da_of_huffman)))
+				goto label_fail;
+		}
+		if (p->scan) refer_free(p->scan);
+		p->scan = (const frame_scan_s *) refer_save(scan);
+		r = p;
+		label_fail:
+		refer_free(scan);
+	}
+	return r;
+}
+
 jpeg_parser_s* jpeg_parser_segment__sos(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size)
 {
 	const struct jpeg_segment_sos_head_t *restrict d;
@@ -45,6 +67,8 @@ jpeg_parser_s* jpeg_parser_segment__sos(jpeg_parser_s *restrict p, jpeg_parser_t
 			mlog_printf(p->m, "hl_of_approximation_bit_position: (%u, %u)\n", parser_debits_be_4_4(e->hl_of_approximation_bit_position));
 			t->pos += sizeof(struct jpeg_segment_sos_tail_t);
 			size -= sizeof(struct jpeg_segment_sos_tail_t);
+			jpeg_parser_segment__sos_add_scan(p, d);
+			jpeg_parser_segment__mcu(p, t, t->size - t->pos);
 			return p;
 		}
 	}

@@ -4,7 +4,10 @@
 #include "jpeg.h"
 #include "tmlog.h"
 #include "huffman.h"
+#include "quantization.h"
+#include "frame_info.h"
 #include <hashmap.h>
+#include <rbtree.h>
 
 typedef struct jpeg_parser_target_t jpeg_parser_target_t;
 typedef struct jpeg_parser_segment_s jpeg_parser_segment_s;
@@ -26,11 +29,18 @@ struct jpeg_parser_segment_s {
 
 struct jpeg_parser_s {
 	hashmap_t type2parser;  // (enum jpeg_segment_type_t) => (jpeg_parser_segment_s *)
+	rbtree_t *q;            // id => (quantization_s *)
+	rbtree_t *h_dc;         // id => (huffman_decode_s *)
+	rbtree_t *h_ac;         // id => (huffman_decode_s *)
+	const frame_info_s *info;
+	const frame_scan_s *scan;
 	mlog_s *m;
 	tmlog_data_s *td;
 };
 
 jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td);
+rbtree_t* jpeg_parser_add_table(rbtree_t *restrict *restrict rbv, uint64_t id, refer_t value);
+refer_t jpeg_parser_get_table(rbtree_t *restrict *restrict rbv, uint64_t id);
 void jpeg_parser_done(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t);
 
 // inner
@@ -71,21 +81,12 @@ jpeg_parser_s* jpeg_parser_segment__sof(jpeg_parser_s *restrict p, jpeg_parser_t
 jpeg_parser_s* jpeg_parser_segment__sos(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
 jpeg_parser_s* jpeg_parser_segment__dqt(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
 
+jpeg_parser_s* jpeg_parser_segment__mcu(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t, uintptr_t size);
+
 // inner marco
 
 #define parser_debits_4l(_v)      (_v & 0xf)
 #define parser_debits_4h(_v)      ((_v >> 4) & 0xf)
 #define parser_debits_be_4_4(_v)  parser_debits_4h(_v), parser_debits_4l(_v)
-
-// temp
-// MCU: Zig-zag sequence of quantized DCT coefficients
-//  0  1  5  6 14 15 27 28
-//  2  4  7 13 16 26 29 42
-//  3  8 12 17 25 30 41 43
-//  9 11 18 24 31 40 44 53
-// 10 19 23 32 39 45 52 54
-// 20 22 33 38 46 51 55 60
-// 21 34 37 47 50 56 59 61
-// 35 36 48 49 57 58 62 63
 
 #endif

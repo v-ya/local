@@ -4,6 +4,11 @@ static void jpeg_parser_free_func(jpeg_parser_s *restrict r)
 {
 	if (r->m) refer_free(r->m);
 	if (r->td) refer_free(r->td);
+	if (r->scan) refer_free(r->scan);
+	if (r->info) refer_free(r->info);
+	rbtree_clear(&r->h_ac);
+	rbtree_clear(&r->h_dc);
+	rbtree_clear(&r->q);
 	hashmap_uini(&r->type2parser);
 }
 
@@ -43,6 +48,27 @@ jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td)
 		1) return r;
 		refer_free(r);
 	}
+	return NULL;
+}
+
+static void jpeg_parser_table_free_func(rbtree_t *restrict r)
+{
+	if (r->value) refer_free(r->value);
+}
+
+rbtree_t* jpeg_parser_add_table(rbtree_t *restrict *restrict rbv, uint64_t id, refer_t value)
+{
+	rbtree_t *restrict r;
+	if ((r = rbtree_insert(rbv, NULL, id, value, jpeg_parser_table_free_func)))
+		refer_save(value);
+	return r;
+}
+
+refer_t jpeg_parser_get_table(rbtree_t *restrict *restrict rbv, uint64_t id)
+{
+	rbtree_t *restrict r;
+	if ((r = rbtree_find(rbv, NULL, id)))
+		return (refer_t) r->value;
 	return NULL;
 }
 
