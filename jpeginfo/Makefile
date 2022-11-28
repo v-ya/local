@@ -3,7 +3,7 @@ TARGET		= jpeginfo
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -lrefer -lhashmap -lrbtree -lexbuffer -lfsys -lmlog
+LDFLAGS		= -lrefer -lhashmap -lrbtree -lexbuffer -lfsys -lmlog -lyaw -lxwindow -lm
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 

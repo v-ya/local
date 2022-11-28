@@ -3,6 +3,7 @@
 
 #include "jpeg.h"
 #include "tmlog.h"
+#include "display.h"
 #include "huffman.h"
 #include "quantization.h"
 #include "frame_info.h"
@@ -34,6 +35,7 @@ struct jpeg_parser_s {
 	rbtree_t *h_ac;         // id => (huffman_decode_s *)
 	const frame_info_s *info;
 	const frame_scan_s *scan;
+	display_s *display;
 	mlog_s *m;
 	tmlog_data_s *td;
 };
@@ -41,6 +43,7 @@ struct jpeg_parser_s {
 jpeg_parser_s* jpeg_parser_alloc(mlog_s *restrict m, tmlog_data_s *restrict td);
 rbtree_t* jpeg_parser_add_table(rbtree_t *restrict *restrict rbv, uint64_t id, refer_t value);
 refer_t jpeg_parser_get_table(rbtree_t *restrict *restrict rbv, uint64_t id);
+display_s* jpeg_parser_create_display(jpeg_parser_s *restrict p, uint32_t width, uint32_t height);
 void jpeg_parser_done(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t);
 
 // inner

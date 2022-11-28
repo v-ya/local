@@ -35,6 +35,8 @@ int main(int argc, const char *argv[])
 					target.size = d->length;
 					target.pos = 0;
 					jpeg_parser_done(p, &target);
+					if (p->display)
+						display_wait_close(p->display);
 					refer_free(d);
 				}
 				else mlog_printf(m, "load [%s] fail\n", argv[1]);

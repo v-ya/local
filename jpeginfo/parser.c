@@ -2,6 +2,7 @@
 
 static void jpeg_parser_free_func(jpeg_parser_s *restrict r)
 {
+	if (r->display) refer_free(r->display);
 	if (r->m) refer_free(r->m);
 	if (r->td) refer_free(r->td);
 	if (r->scan) refer_free(r->scan);
@@ -70,6 +71,16 @@ refer_t jpeg_parser_get_table(rbtree_t *restrict *restrict rbv, uint64_t id)
 	if ((r = rbtree_find(rbv, NULL, id)))
 		return (refer_t) r->value;
 	return NULL;
+}
+
+display_s* jpeg_parser_create_display(jpeg_parser_s *restrict p, uint32_t width, uint32_t height)
+{
+	if (p->display)
+	{
+		refer_free(p->display);
+		p->display = NULL;
+	}
+	return (p->display = display_alloc(width, height));
 }
 
 void jpeg_parser_done(jpeg_parser_s *restrict p, jpeg_parser_target_t *restrict t)

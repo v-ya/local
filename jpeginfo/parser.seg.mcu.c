@@ -1,5 +1,9 @@
+#define _DEFAULT_SOURCE
 #include "parser.h"
 #include <memory.h>
+#include <math.h>
+
+// bits
 
 typedef struct bits_be_reader_t {
 	const uint8_t *restrict u8;
@@ -8,8 +12,6 @@ typedef struct bits_be_reader_t {
 	uint32_t cache_bits;
 	uint32_t cache_value;
 } bits_be_reader_t;
-
-// bits
 
 static bits_be_reader_t* bits_be_reader_initial(bits_be_reader_t *restrict br, const uint8_t *restrict d, uintptr_t n)
 {
@@ -155,18 +157,227 @@ static bits_be_reader_t* bits_be_reader_read_huffman(bits_be_reader_t *restrict 
 	return br;
 }
 
-// print
+// fdct8x8
 
-void jpeg_parser_segment__mcu_print_unit(mlog_s *restrict mlog, const int32_t unit[64])
+typedef struct fdct8x8_s {
+	double c[64];
+} fdct8x8_s;
+
+static fdct8x8_s* fdct8x8_alloc(void)
 {
-	uintptr_t i, j, row, col;
-	row = col = 8;
-	for (i = j = 0, row *= col; i < row; ++i)
+	fdct8x8_s *restrict r;
+	uintptr_t i, j, p, n;
+	if ((r = (fdct8x8_s *) refer_alloz(sizeof(fdct8x8_s))))
 	{
-		if (++j >= col) j = 0;
-		mlog_printf(mlog, "%5d%s", unit[i], j?", ":"\n");
+		p = 0;
+		n = 8;
+		for (j = 0; j < n; ++j)
+		{
+			for (i = 0; i < n; ++i)
+				r->c[p++] = cos((i * 2 + 1) * j * (M_PI / 16)) * (j?(1.0 / 2):(M_SQRT1_2 / 2));
+		}
+		return r;
+	}
+	return NULL;
+}
+
+// static void fdct8x8_xy2uv(const fdct8x8_s *restrict t, int32_t uv[64], const int32_t xy[64], int32_t addend)
+// {
+// 	uintptr_t x, y, u, v, n;
+// 	uintptr_t y8, u8, v8;
+// 	double c;
+// 	n = 8;
+// 	for (v = 0; v < n; ++v)
+// 	{
+// 		v8 = v << 3;
+// 		for (u = 0; u < n; ++u)
+// 		{
+// 			u8 = u << 3;
+// 			c = 0;
+// 			for (y = 0; y < n; ++y)
+// 			{
+// 				y8 = y << 3;
+// 				for (x = 0; x < n; ++x)
+// 					c += (double) xy[y8 + x] * t->c[u8 + x] * t->c[v8 + y];
+// 			}
+// 			uv[v8 + u] = (int32_t) round(c) + addend;
+// 		}
+// 	}
+// }
+
+static void fdct8x8_uv2xy(const fdct8x8_s *restrict t, int32_t xy[64], const int32_t uv[64], int32_t addend, int32_t min, int32_t max)
+{
+	uintptr_t x, y, u, v, n;
+	uintptr_t y8, v8;
+	double c;
+	int32_t ci;
+	n = 8;
+	for (y = 0; y < n; ++y)
+	{
+		y8 = y << 3;
+		for (x = 0; x < n; ++x)
+		{
+			c = 0;
+			for (v = 0; v < n; ++v)
+			{
+				v8 = v << 3;
+				for (u = 0; u < n; ++u)
+					c += (double) uv[v8 + u] * t->c[(u << 3) + x] * t->c[v8 + y];
+			}
+			// ci = (int32_t) round(c) + addend;
+			ci = (int32_t) (c) + addend;
+			if (ci < min) ci = min;
+			if (ci > max) ci = max;
+			xy[y8 + x] = ci;
+		}
 	}
 }
+
+// mcu
+
+typedef struct mcu_data_t {
+	int32_t unit[64];
+	int32_t cpixel[64];
+} mcu_data_t;
+
+typedef struct mcu_ch_s {
+	uint32_t channel_id;
+	uint32_t quantization_id;
+	uint32_t huffman_dc_id;
+	uint32_t huffman_ac_id;
+	uint32_t mcu_h_number;
+	uint32_t mcu_v_number;
+	uint32_t unit_data_number;
+	int32_t unit_data_pred;
+	mcu_data_t *unit_data_array;
+	const huffman_decode_s *dc;
+	const huffman_decode_s *ac;
+	const quantization_s *q;
+} mcu_ch_s;
+
+typedef struct mcu_s {
+	const fdct8x8_s *fdct;
+	uintptr_t ch_number;
+	mcu_ch_s *ch_array[];
+} mcu_s;
+
+static void mcu_ch_free_func(mcu_ch_s *restrict r)
+{
+	if (r->dc) refer_free(r->dc);
+	if (r->ac) refer_free(r->ac);
+	if (r->q) refer_free(r->q);
+}
+
+static mcu_ch_s* mcu_ch_alloc(jpeg_parser_s *restrict p, const frame_channel_t *restrict ch1, const frame_scan_ch_t *restrict ch2)
+{
+	mcu_ch_s *restrict r;
+	uint32_t unit_data_number;
+	if ((unit_data_number = ch1->mcu_h_number * ch1->mcu_v_number) &&
+		(r = (mcu_ch_s *) refer_alloz(sizeof(mcu_ch_s) + sizeof(mcu_data_t) * unit_data_number)))
+	{
+		refer_set_free(r, (refer_free_f) mcu_ch_free_func);
+		r->channel_id = ch1->channel_id;
+		r->quantization_id = ch1->quantization_id;
+		r->huffman_dc_id = ch2->huffman_dc_id;
+		r->huffman_ac_id = ch2->huffman_ac_id;
+		r->mcu_h_number = ch1->mcu_h_number;
+		r->mcu_v_number = ch1->mcu_v_number;
+		r->unit_data_number = unit_data_number;
+		r->unit_data_pred = 0;
+		r->unit_data_array = (mcu_data_t *) (r + 1);
+		r->dc = (const huffman_decode_s *) refer_save(jpeg_parser_get_table(&p->h_dc, r->huffman_dc_id));
+		r->ac = (const huffman_decode_s *) refer_save(jpeg_parser_get_table(&p->h_ac, r->huffman_ac_id));
+		r->q = (const quantization_s *) refer_save(jpeg_parser_get_table(&p->q, r->quantization_id));
+		if (r->dc && r->ac && r->q)
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+static void mcu_free_func(mcu_s *restrict r)
+{
+	uintptr_t i, n;
+	if (r->fdct) refer_free(r->fdct);
+	for (i = 0, n = r->ch_number; i < n; ++i)
+	{
+		if (r->ch_array[i])
+			refer_free(r->ch_array[i]);
+	}
+}
+
+static mcu_s* mcu_alloc(jpeg_parser_s *restrict p, const frame_info_s *restrict info, const frame_scan_s *restrict scan)
+{
+	const frame_channel_t *restrict ch;
+	mcu_s *restrict r;
+	uintptr_t i, n;
+	if ((n = (uintptr_t) scan->scan_number) &&
+		(r = (mcu_s *) refer_alloz(sizeof(mcu_s) + sizeof(mcu_ch_s *) * n)))
+	{
+		refer_set_free(r, (refer_free_f) mcu_free_func);
+		r->ch_number = n;
+		for (i = 0; i < n; ++i)
+		{
+			if (!(ch = frame_info_get_channel(info, scan->scan[i].channel_id)))
+				goto label_fail;
+			if (!(r->ch_array[i] = mcu_ch_alloc(p, ch, scan->scan + i)))
+				goto label_fail;
+		}
+		if ((r->fdct = fdct8x8_alloc()))
+			return r;
+		label_fail:
+		refer_free(r);
+	}
+	return NULL;
+}
+
+// display
+
+static void jpeg_parser_segment__mcu_display_yuv411(display_s *restrict d, uint32_t px, uint32_t py, mcu_s *restrict mcu)
+{
+	const mcu_data_t *restrict y, *restrict u, *restrict v;
+	uint8_t *restrict bgra;
+	uintptr_t i, j, n;
+	float yy, cb, cr;
+	if (mcu->ch_number == 3 && mcu->ch_array[0]->unit_data_number == 4 &&
+		mcu->ch_array[1]->unit_data_number == 1 &&
+		mcu->ch_array[2]->unit_data_number == 1)
+	{
+		y = mcu->ch_array[0]->unit_data_array;
+		u = mcu->ch_array[1]->unit_data_array;
+		v = mcu->ch_array[2]->unit_data_array;
+		if ((bgra = (uint8_t *) xwindow_image_map(d->image, 16, 16)))
+		{
+			n = 16;
+			for (j = 0; j < n; ++j)
+			{
+				for (i = 0; i < n; ++i)
+				{
+					yy = (float) y[(j / 8) * 2 + (i / 8)].cpixel[(j % 8) * 8 + (i % 8)];
+					cb = (float) (u->cpixel[(j / 2) * 8 + (i / 2)] - 128);
+					cr = (float) (v->cpixel[(j / 2) * 8 + (i / 2)] - 128);
+					bgra[(j * n + i) * 4 + 0] = (uint8_t) (yy + 1.772f * cb);
+					bgra[(j * n + i) * 4 + 1] = (uint8_t) (yy - 0.34414f * cb - 0.71414f * cr);
+					bgra[(j * n + i) * 4 + 2] = (uint8_t) (yy + 1.402f * cr);
+				}
+			}
+			xwindow_image_update_full(d->image, px, py);
+		}
+	}
+}
+
+// print
+
+// static void jpeg_parser_segment__mcu_print_unit(mlog_s *restrict mlog, const int32_t unit[64])
+// {
+// 	uintptr_t i, j, row, col;
+// 	row = col = 8;
+// 	for (i = j = 0, row *= col; i < row; ++i)
+// 	{
+// 		if (++j >= col) j = 0;
+// 		mlog_printf(mlog, "%5d%s", unit[i], j?", ":"\n");
+// 	}
+// }
 
 // parse
 
@@ -240,60 +451,74 @@ static jpeg_parser_s* jpeg_parser_segment__mcu_parse_unit(jpeg_parser_s *restric
 	return NULL;
 }
 
+static void jpeg_parser_segment__mcu_unit_mul_q(int32_t unit[64], const quantization_s *restrict q)
+{
+	uintptr_t i, n;
+	for (i = 0, n = 64; i < n; ++i)
+		unit[i] *= q->q[i];
+}
+
 static uintptr_t jpeg_parser_segment__mcu_parse(jpeg_parser_s *restrict p, const uint8_t *restrict d, uintptr_t n)
 {
 	const frame_info_s *restrict info;
-	const frame_scan_s *restrict scan;
-	const frame_channel_t *restrict ch;
-	const huffman_decode_s *dc, *ac;
-	const quantization_s *q;
+	display_s *restrict display;
+	mcu_s *restrict mcu;
+	mcu_ch_s *restrict ch;
+	mcu_data_t *restrict md;
 	bits_be_reader_t br;
-	uint32_t mcu_hn, mcu_vn, hh, vv;
+	uint32_t mcu_w, mcu_h, mcu_hn, mcu_vn, hh, vv;
 	uint32_t i, in, j, jn;
-	int32_t unit[64];
-	if ((info = p->info) && (scan = p->scan))
+	if ((info = p->info) && p->scan &&
+		(display = jpeg_parser_create_display(p, info->width, info->height)) &&
+		(mcu = mcu_alloc(p, info, p->scan)))
 	{
 		bits_be_reader_initial(&br, d, n);
 		// calc
-		mcu_hn = mcu_vn = 1;
-		for (i = 0, in = scan->scan_number; i < in; ++i)
+		mcu_w = mcu_h = 1;
+		for (i = 0, in = mcu->ch_number; i < in; ++i)
 		{
-			ch = frame_info_get_channel(info, scan->scan[i].channel_id);
-			dc = (const huffman_decode_s *) jpeg_parser_get_table(&p->h_dc, scan->scan[i].huffman_dc_id);
-			ac = (const huffman_decode_s *) jpeg_parser_get_table(&p->h_ac, scan->scan[i].huffman_ac_id);
-			q = (const quantization_s *) jpeg_parser_get_table(&p->q, ch?ch->quantization_id:0);
-			if (!ch || !dc || !ac || !q) goto label_fail;
-			if (ch->mcu_h_number > mcu_hn) mcu_hn = ch->mcu_h_number;
-			if (ch->mcu_v_number > mcu_vn) mcu_vn = ch->mcu_v_number;
+			ch = mcu->ch_array[i];
+			if (ch->mcu_h_number > mcu_w) mcu_w = ch->mcu_h_number;
+			if (ch->mcu_v_number > mcu_h) mcu_h = ch->mcu_v_number;
 		}
-		mcu_hn *= 8;
-		mcu_vn *= 8;
-		mcu_hn = (info->width + mcu_hn - 1) / mcu_hn;
-		mcu_vn = (info->height + mcu_vn - 1) / mcu_vn;
+		mcu_w *= 8;
+		mcu_h *= 8;
+		mcu_hn = (info->width + mcu_w - 1) / mcu_w;
+		mcu_vn = (info->height + mcu_h - 1) / mcu_h;
 		mlog_printf(p->m, "mcu (%u, %u)\n", mcu_hn, mcu_vn);
-		for (hh = 0; hh < mcu_hn; ++hh)
+		for (vv = 0; vv < mcu_vn; ++vv)
 		{
-			for (vv = 0; vv < mcu_vn; ++vv)
+			for (hh = 0; hh < mcu_hn; ++hh)
 			{
-				// mcu
-				for (i = 0, in = scan->scan_number; i < in; ++i)
+				// load mcu
+				for (i = 0, in = mcu->ch_number; i < in; ++i)
 				{
-					ch = frame_info_get_channel(info, scan->scan[i].channel_id);
-					dc = (const huffman_decode_s *) jpeg_parser_get_table(&p->h_dc, scan->scan[i].huffman_dc_id);
-					ac = (const huffman_decode_s *) jpeg_parser_get_table(&p->h_ac, scan->scan[i].huffman_ac_id);
-					for (j = 0, jn = ch->mcu_h_number * ch->mcu_v_number; j < jn; ++j)
+					ch = mcu->ch_array[i];
+					md = ch->unit_data_array;
+					for (j = 0, jn = ch->unit_data_number; j < jn; ++j)
 					{
-						if (!jpeg_parser_segment__mcu_parse_unit(p, &br, unit, dc, ac))
+						if (!jpeg_parser_segment__mcu_parse_unit(p, &br, md[j].unit, ch->dc, ch->ac))
 							goto label_fail;
-						mlog_printf(p->m, "mcu(%u, %u) ch(%u) %u/%u ...\n", hh, vv, scan->scan[i].channel_id, j, jn);
-						tmlog_add(p->td, 1);
-						jpeg_parser_segment__mcu_print_unit(p->m, unit);
-						tmlog_sub(p->td, 1);
+						ch->unit_data_pred = (md[j].unit[0] += ch->unit_data_pred);
+						jpeg_parser_segment__mcu_unit_mul_q(md[j].unit, ch->q);
+						fdct8x8_uv2xy(mcu->fdct, md[j].cpixel, md[j].unit, 1 << (info->sample_bits - 1), 0, (1 << info->sample_bits) - 1);
+						// if (hh == 0 && vv == 0)
+						// {
+						// 	mlog_printf(p->m, "mcu(%u, %u) ch(%u) %u/%u ...\n", hh, vv, ch->channel_id, j, jn);
+						// 	tmlog_add(p->td, 1);
+						// 	jpeg_parser_segment__mcu_print_unit(p->m, md[j].unit);
+						// 	mlog_printf(p->m, "\n");
+						// 	jpeg_parser_segment__mcu_print_unit(p->m, md[j].cpixel);
+						// 	tmlog_sub(p->td, 1);
+						// }
 					}
 				}
+				// display mcu
+				jpeg_parser_segment__mcu_display_yuv411(display, mcu_w * hh, mcu_h * vv, mcu);
 			}
 		}
 		label_fail:
+		refer_free(mcu);
 		return (bits_be_reader_bits_pos(&br) + 7) >> 3;
 	}
 	return 0;
