@@ -141,7 +141,7 @@ jpeg_parser_s* jpeg_parser_segment__dht(jpeg_parser_s *restrict p, jpeg_parser_t
 	static const char *const sc[3] = {"DC", "AC", "unknow"};
 	const uint8_t *restrict d, *restrict L;
 	uintptr_t table_class, id, i, n;
-	if (size >= sizeof(uint8_t))
+	while (size >= sizeof(uint8_t))
 	{
 		d = t->data + t->pos;
 		if ((table_class = (uintptr_t) parser_debits_4h(*d)) > 2)
@@ -150,41 +150,38 @@ jpeg_parser_s* jpeg_parser_segment__dht(jpeg_parser_s *restrict p, jpeg_parser_t
 		mlog_printf(p->m, "huffman_dst_id: %zu\n", id = (uintptr_t) parser_debits_4l(*d));
 		t->pos += sizeof(uint8_t);
 		size -= sizeof(uint8_t);
-		if (size >= 16)
+		if (size < 16) goto label_fail;
+		L = d + 1;
+		for (i = n = 0; i < 16; ++i)
+			n += L[i];
+		t->pos += 16;
+		size -= 16;
+		mlog_printf(p->m, "count_of_codes[length = (1 ... 16)]: all codes = %zu\n", n);
+		tmlog_add(p->td, 1);
+		jpeg_parser_print_mat_u8(p->m, L, 1, 16);
+		tmlog_sub(p->td, 1);
+		if (size < n) goto label_fail;
+		t->pos += n;
+		size -= n;
+		mlog_printf(p->m, "huffman:\n");
+		tmlog_add(p->td, 1);
+		d = L + 16;
+		for (i = 0; i < 16; ++i)
 		{
-			L = d + 1;
-			for (i = n = 0; i < 16; ++i)
-				n += L[i];
-			t->pos += 16;
-			size -= 16;
-			mlog_printf(p->m, "count_of_codes[length = (1 ... 16)]: all codes = %zu\n", n);
-			tmlog_add(p->td, 1);
-			jpeg_parser_print_mat_u8(p->m, L, 1, 16);
-			tmlog_sub(p->td, 1);
-			if (size >= n)
-			{
-				t->pos += n;
-				size -= n;
-				mlog_printf(p->m, "huffman:\n");
-				tmlog_add(p->td, 1);
-				d = L + 16;
-				for (i = 0; i < 16; ++i)
-				{
-					n = (uintptr_t) L[i];
-					mlog_printf(p->m, "(bits: %2zu, count: %3zu): ", i + 1, n);
-					if (n) jpeg_parser_print_mat_x8(p->m, d, 1, n);
-					else mlog_printf(p->m, "\n");
-					d += n;
-				}
-				mlog_printf(p->m, "mapping-table:\n");
-				tmlog_add(p->td, 1);
-				jpeg_parser_segment__dht_print_mapping(p->m, L, L + 16, 4);
-				// jpeg_parser_segment__dht_print_huffman(p->m, L, L + 16);
-				tmlog_sub(p->td, 2);
-				jpeg_parser_segment__dht_add_table(p, table_class, id, L, L + 16);
-				return p;
-			}
+			n = (uintptr_t) L[i];
+			mlog_printf(p->m, "(bits: %2zu, count: %3zu): ", i + 1, n);
+			if (n) jpeg_parser_print_mat_x8(p->m, d, 1, n);
+			else mlog_printf(p->m, "\n");
+			d += n;
 		}
+		mlog_printf(p->m, "mapping-table:\n");
+		tmlog_add(p->td, 1);
+		jpeg_parser_segment__dht_print_mapping(p->m, L, L + 16, 4);
+		// jpeg_parser_segment__dht_print_huffman(p->m, L, L + 16);
+		tmlog_sub(p->td, 2);
+		jpeg_parser_segment__dht_add_table(p, table_class, id, L, L + 16);
 	}
+	return p;
+	label_fail:
 	return NULL;
 }

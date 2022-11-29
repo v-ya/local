@@ -152,7 +152,8 @@ static bits_be_reader_t* bits_be_reader_read_huffman(bits_be_reader_t *restrict 
 	label_okay:
 	if (b && !bits_be_reader_back_pos(br, b, v))
 		goto label_fail;
-	if (rvalue) *rvalue = (uint32_t) (((v >> b) & 1)?jv->bit_1_value:jv->bit_0_value);
+	v = (uint32_t) (((v >> b) & 1)?jv->bit_1_value:jv->bit_0_value);
+	if (rvalue) *rvalue = v;
 	if (!~p) goto label_fail;
 	return br;
 }
@@ -224,10 +225,9 @@ static void fdct8x8_uv2xy(const fdct8x8_s *restrict t, int32_t xy[64], const int
 				for (u = 0; u < n; ++u)
 					c += (double) uv[v8 + u] * t->c[(u << 3) + x] * t->c[v8 + y];
 			}
-			// ci = (int32_t) round(c) + addend;
-			ci = (int32_t) (c) + addend;
-			if (ci < min) ci = min;
-			if (ci > max) ci = max;
+			ci = (int32_t) round(c) + addend;
+			// if (ci < min) ci = min;
+			// if (ci > max) ci = max;
 			xy[y8 + x] = ci;
 		}
 	}
@@ -331,34 +331,57 @@ static mcu_s* mcu_alloc(jpeg_parser_s *restrict p, const frame_info_s *restrict 
 	return NULL;
 }
 
+static int32_t mcu_get_ch_pixel(const mcu_s *restrict mcu, uintptr_t ch_index, uint32_t x, uint32_t y)
+{
+	const mcu_ch_s *restrict ch;
+	if (ch_index < mcu->ch_number)
+	{
+		ch = mcu->ch_array[ch_index];
+		return ch->unit_data_array[
+			((y >> 3) % ch->mcu_v_number) * ch->mcu_h_number + ((x >> 3) % ch->mcu_h_number)].
+			cpixel[((y & 7) << 3) | (x & 7)];
+	}
+	return 0;
+}
+
 // display
 
-static void jpeg_parser_segment__mcu_display_yuv411(display_s *restrict d, uint32_t px, uint32_t py, mcu_s *restrict mcu)
+static void jpeg_parser_segment__mcu_display(display_s *restrict d, uint32_t px, uint32_t py, mcu_s *restrict mcu, uint32_t w, uint32_t h)
 {
-	const mcu_data_t *restrict y, *restrict u, *restrict v;
 	uint8_t *restrict bgra;
-	uintptr_t i, j, n;
-	float yy, cb, cr;
-	if (mcu->ch_number == 3 && mcu->ch_array[0]->unit_data_number == 4 &&
-		mcu->ch_array[1]->unit_data_number == 1 &&
-		mcu->ch_array[2]->unit_data_number == 1)
+	uintptr_t x, y;
+	uint32_t kyy_x, kyy_y, kcb_x, kcb_y, kcr_x, kcr_y;
+	float yy, cb, cr, bb, gg, rr;
+	if (mcu->ch_number == 3)
 	{
-		y = mcu->ch_array[0]->unit_data_array;
-		u = mcu->ch_array[1]->unit_data_array;
-		v = mcu->ch_array[2]->unit_data_array;
-		if ((bgra = (uint8_t *) xwindow_image_map(d->image, 16, 16)))
+		kyy_x = w / 8 / mcu->ch_array[0]->mcu_h_number;
+		kyy_y = h / 8 / mcu->ch_array[0]->mcu_v_number;
+		kcb_x = w / 8 / mcu->ch_array[1]->mcu_h_number;
+		kcb_y = h / 8 / mcu->ch_array[1]->mcu_v_number;
+		kcr_x = w / 8 / mcu->ch_array[2]->mcu_h_number;
+		kcr_y = h / 8 / mcu->ch_array[2]->mcu_v_number;
+		if ((bgra = (uint8_t *) xwindow_image_map(d->image, w, h)))
 		{
-			n = 16;
-			for (j = 0; j < n; ++j)
+			for (y = 0; y < h; ++y)
 			{
-				for (i = 0; i < n; ++i)
+				for (x = 0; x < w; ++x)
 				{
-					yy = (float) y[(j / 8) * 2 + (i / 8)].cpixel[(j % 8) * 8 + (i % 8)];
-					cb = (float) (u->cpixel[(j / 2) * 8 + (i / 2)] - 128);
-					cr = (float) (v->cpixel[(j / 2) * 8 + (i / 2)] - 128);
-					bgra[(j * n + i) * 4 + 0] = (uint8_t) (yy + 1.772f * cb);
-					bgra[(j * n + i) * 4 + 1] = (uint8_t) (yy - 0.34414f * cb - 0.71414f * cr);
-					bgra[(j * n + i) * 4 + 2] = (uint8_t) (yy + 1.402f * cr);
+					yy = (float) mcu_get_ch_pixel(mcu, 0, x / kyy_x, y / kyy_y);
+					cb = (float) (mcu_get_ch_pixel(mcu, 1, x / kcb_x, y / kcb_y) - 128);
+					cr = (float) (mcu_get_ch_pixel(mcu, 2, x / kcr_x, y / kcr_y) - 128);
+					bb = yy + 1.772f * cb;
+					gg = yy - 0.34414f * cb - 0.71414f * cr;
+					rr = yy + 1.402f * cr;
+					if (bb > 255) bb = 255;
+					if (bb < 0) bb = 0;
+					if (gg > 255) gg = 255;
+					if (gg < 0) gg = 0;
+					if (rr > 255) rr = 255;
+					if (rr < 0) rr = 0;
+					*bgra++ = (uint8_t) bb;
+					*bgra++ = (uint8_t) gg;
+					*bgra++ = (uint8_t) rr;
+					++bgra;
 				}
 			}
 			xwindow_image_update_full(d->image, px, py);
@@ -430,9 +453,7 @@ static jpeg_parser_s* jpeg_parser_segment__mcu_parse_unit(jpeg_parser_s *restric
 		if (s4 >= 16 || r4 >= 16)
 			goto label_fail;
 		// skip zero
-		if (r4 + i <= n)
-			i += r4;
-		else i = n;
+		i += r4;
 		// read ac
 		if (s4)
 		{
@@ -443,8 +464,9 @@ static jpeg_parser_s* jpeg_parser_segment__mcu_parse_unit(jpeg_parser_s *restric
 				v |= (~(uint32_t) 0) << s4;
 				v += 1;
 			}
-			if (i < n) unit[zigzag_seq2index[i++]] = (int32_t) v;
+			if (i < n) unit[zigzag_seq2index[i]] = (int32_t) v;
 		}
+		i += 1;
 	} while (i < n && rs);
 	return p;
 	label_fail:
@@ -485,7 +507,7 @@ static uintptr_t jpeg_parser_segment__mcu_parse(jpeg_parser_s *restrict p, const
 		mcu_h *= 8;
 		mcu_hn = (info->width + mcu_w - 1) / mcu_w;
 		mcu_vn = (info->height + mcu_h - 1) / mcu_h;
-		mlog_printf(p->m, "mcu (%u, %u)\n", mcu_hn, mcu_vn);
+		mlog_printf(p->m, "mcu n(%u, %u) x size(%u, %u)\n", mcu_hn, mcu_vn, mcu_w, mcu_h);
 		for (vv = 0; vv < mcu_vn; ++vv)
 		{
 			for (hh = 0; hh < mcu_hn; ++hh)
@@ -502,19 +524,10 @@ static uintptr_t jpeg_parser_segment__mcu_parse(jpeg_parser_s *restrict p, const
 						ch->unit_data_pred = (md[j].unit[0] += ch->unit_data_pred);
 						jpeg_parser_segment__mcu_unit_mul_q(md[j].unit, ch->q);
 						fdct8x8_uv2xy(mcu->fdct, md[j].cpixel, md[j].unit, 1 << (info->sample_bits - 1), 0, (1 << info->sample_bits) - 1);
-						// if (hh == 0 && vv == 0)
-						// {
-						// 	mlog_printf(p->m, "mcu(%u, %u) ch(%u) %u/%u ...\n", hh, vv, ch->channel_id, j, jn);
-						// 	tmlog_add(p->td, 1);
-						// 	jpeg_parser_segment__mcu_print_unit(p->m, md[j].unit);
-						// 	mlog_printf(p->m, "\n");
-						// 	jpeg_parser_segment__mcu_print_unit(p->m, md[j].cpixel);
-						// 	tmlog_sub(p->td, 1);
-						// }
 					}
 				}
 				// display mcu
-				jpeg_parser_segment__mcu_display_yuv411(display, mcu_w * hh, mcu_h * vv, mcu);
+				jpeg_parser_segment__mcu_display(display, mcu_w * hh, mcu_h * vv, mcu, mcu_w, mcu_h);
 			}
 		}
 		label_fail:

@@ -43,7 +43,10 @@ display_s* display_alloc(uint32_t width, uint32_t height)
 		if ((r->xw = xwindow_alloc(0, 0, width, height, 24)) && xwindow_map(r->xw) &&
 			(r->image = xwindow_image_alloc_shm(r->xw, width, height)) &&
 			(r->yaw = yaw_alloc_and_start(display_yaw_func, r->xw, NULL)))
+		{
+			yaw_msleep(50);
 			return r;
+		}
 		refer_free(r);
 	}
 	return NULL;
