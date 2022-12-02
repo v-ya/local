@@ -6,6 +6,7 @@
 #define media_naci_width   "c.width"
 #define media_naci_height  "c.height"
 #define media_naci_bpp     "c.bpp"     // bits per pixel
+#define media_naci_bpc     "c.bpc"     // bits per channel
 
 #define media_nacs_bmp_magic          "c.bmp.magic"          // "BM", "BA", "CI", "CP", "IC", "PT"
 #define media_naci_bmp_version        "c.bmp.version"        // 12, 16, 40, 52, 56, 64, 108, 124
@@ -16,6 +17,8 @@
 #define media_naci_bmp_color_palette  "c.bmp.color_palette"  // 0 and 2^n
 #define media_naci_bmp_used_color     "c.bmp.used_color"     // 0 is every color
 #define media_naci_bmp_pixels_align   "c.bmp.pixels_align"   // [1, 16]
+
+#define media_naci_jpeg_channel  "c.jpeg.channel"  // 3
 
 // stream
 

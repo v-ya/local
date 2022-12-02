@@ -170,8 +170,15 @@ struct mi_jpeg_scan_t {
 };
 
 struct mi_jpeg_codec_s* mi_jpeg_codec_alloc(void);
+void mi_jpeg_codec_clear(struct mi_jpeg_codec_s *restrict jc);
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_q(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_h(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
+struct mi_jpeg_codec_s* mi_jpeg_codec_load_sof(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
+struct mi_jpeg_codec_s* mi_jpeg_codec_load_sos(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
+const struct mi_jpeg_quantization_s* mi_jpeg_codec_find_quantization(const struct mi_jpeg_codec_s *restrict jc, uint32_t qid);
+const struct mi_jpeg_huffman_s* mi_jpeg_codec_find_huffman_dc(const struct mi_jpeg_codec_s *restrict jc, uint32_t hid);
+const struct mi_jpeg_huffman_s* mi_jpeg_codec_find_huffman_ac(const struct mi_jpeg_codec_s *restrict jc, uint32_t hid);
+const struct mi_jpeg_ch_t* mi_jpeg_sof_find_ch(const struct mi_jpeg_sof_s *restrict sof, uint32_t cid);
 
 void media_codec_jpeg_scan_initial(struct mi_jpeg_scan_t *restrict scan);
 struct mi_jpeg_scan_t* media_codec_jpeg_scan_fetch(struct mi_jpeg_scan_t *restrict scan, struct media_io_s *restrict io);
