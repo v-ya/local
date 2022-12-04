@@ -79,6 +79,7 @@ struct media_stream_s* media_container_find_stream(const struct media_container_
 
 refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream);
 refer_string_t media_stream_get_frame_compat(const media_stream_s *restrict stream);
+media_attr_s* media_stream_get_attr(const media_stream_s *restrict stream);
 
 struct media_frame_s* media_stream_create_frame(struct media_stream_s *restrict stream);
 struct media_frame_s* media_stream_read_frame_by_index(struct media_stream_s *restrict stream, struct media_frame_s *restrict frame, uintptr_t index);

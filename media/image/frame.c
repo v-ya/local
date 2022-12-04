@@ -29,7 +29,7 @@ struct media_frame_id_s* media_frame_create_image_bgra32(void)
 		})) return r;
 		refer_free(r);
 	}
-	return r;
+	return NULL;
 }
 
 struct media_frame_id_s* media_frame_create_image_bgr24(void)
@@ -61,7 +61,7 @@ struct media_frame_id_s* media_frame_create_image_bgr24(void)
 		})) return r;
 		refer_free(r);
 	}
-	return r;
+	return NULL;
 }
 
 struct media_frame_id_s* media_frame_create_image_bgr24_p4(void)
@@ -93,5 +93,5 @@ struct media_frame_id_s* media_frame_create_image_bgr24_p4(void)
 		})) return r;
 		refer_free(r);
 	}
-	return r;
+	return NULL;
 }

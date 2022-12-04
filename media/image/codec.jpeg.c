@@ -1,5 +1,6 @@
 #include "codec.jpeg.h"
 #include "../0bits/bits.h"
+#include "../media.frame.h"
 #include <memory.h>
 
 // codec
@@ -123,6 +124,7 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_h(struct mi_jpeg_codec_s *restrict jc
 			goto label_fail;
 		if (!(h = (struct mi_jpeg_huffman_s *) refer_alloc(sizeof(*h) + vn)))
 			goto label_fail;
+		h->size = sizeof(h->L) + vn;
 		memcpy(h->L, L, sizeof(L));
 		if (media_io_read(io, h->v, vn) != vn)
 			goto label_fail;
@@ -272,6 +274,122 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_sos(struct mi_jpeg_codec_s *restrict 
 	return NULL;
 }
 
+static void mi_jpeg_frame_info_free_func(struct mi_jpeg_frame_info_s *restrict r)
+{
+	if (r->frame) refer_free(r->frame);
+	if (r->ch) refer_free(r->ch);
+	if (r->q) refer_free(r->q);
+	if (r->h) refer_free(r->h);
+}
+
+static void mi_jpeg_codec_create_frame_info_func_write_qh(rbtree_t *restrict rbv, const void *argv[2])
+{
+	const struct mi_jpeg_frame_info_s *restrict r;
+	const struct mi_jpeg_codec_s *restrict jc;
+	const struct mi_jpeg_quantization_s *restrict q;
+	const struct mi_jpeg_huffman_s *restrict h;
+	r = (const struct mi_jpeg_frame_info_s *) argv[0];
+	jc = (const struct mi_jpeg_codec_s *) argv[1];
+	switch ((uint32_t) (rbv->key_index >> 32))
+	{
+		case 1: // q
+			q = mi_jpeg_codec_find_quantization(jc, (uint32_t) rbv->key_index);
+			memcpy(r->q + (uintptr_t) rbv->value, q, sizeof(*q));
+			break;
+		case 2: // h dc
+			h = mi_jpeg_codec_find_huffman_dc(jc, (uint32_t) rbv->key_index);
+			memcpy(r->h + (uintptr_t) rbv->value, h->L, h->size);
+			break;
+		case 3: // h ac
+			h = mi_jpeg_codec_find_huffman_ac(jc, (uint32_t) rbv->key_index);
+			memcpy(r->h + (uintptr_t) rbv->value, h->L, h->size);
+			break;
+		default:
+			break;
+	}
+}
+
+struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpeg_codec_s *restrict jc)
+{
+	struct mi_jpeg_frame_info_s *restrict r;
+	const struct mi_jpeg_sof_s *restrict sof;
+	const struct mi_jpeg_sos_s *restrict sos;
+	const struct mi_jpeg_ch_t *restrict ch;
+	const struct mi_jpeg_quantization_s *restrict q;
+	const struct mi_jpeg_huffman_s *restrict h;
+	rbtree_t *hit, *restrict rbv;
+	uint64_t key;
+	uint32_t i, n;
+	const void *argv[2];
+	r = NULL;
+	if ((sof = jc->sof) && (sos = jc->sos))
+	{
+		hit = NULL;
+		// fill frame, ch
+		if ((r = (struct mi_jpeg_frame_info_s *) refer_alloz(sizeof(struct mi_jpeg_frame_info_s))))
+		{
+			refer_set_free(r, (refer_free_f) mi_jpeg_frame_info_free_func);
+			if (!(r->frame = (struct mi_jpeg_frame_t *) refer_alloc(sizeof(struct mi_jpeg_frame_t))) ||
+				!(r->ch = (struct mi_jpeg_frame_ch_t *) refer_alloc(sizeof(struct mi_jpeg_frame_ch_t) * sos->ch_number)))
+				goto label_fail;
+			r->frame->width = sof->width;
+			r->frame->height = sof->height;
+			r->frame->depth = sof->ch_depth;
+			r->frame->channel = n = sos->ch_number;
+			for (i = 0; i < n; ++i)
+			{
+				if (!(ch = mi_jpeg_sof_find_ch(sof, sos->ch[i].cid)))
+					goto label_fail;
+				r->ch[i].mcu_nh = ch->mcu_nh;
+				r->ch[i].mcu_nv = ch->mcu_nv;
+				if (!(q = mi_jpeg_codec_find_quantization(jc, sos->ch[i].qid)))
+					goto label_fail;
+				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 1 << 32) | sos->ch[i].qid)))
+				{
+					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->q_size, NULL)))
+						goto label_fail;
+					r->q_size += sizeof(*q);
+				}
+				r->ch[i].q_offset = (uintptr_t) rbv->value;
+				r->ch[i].q_size = sizeof(*q);
+				if (!(h = mi_jpeg_codec_find_huffman_dc(jc, sos->ch[i].hdcid)))
+					goto label_fail;
+				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 2 << 32) | sos->ch[i].hdcid)))
+				{
+					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->h_size, NULL)))
+						goto label_fail;
+					r->h_size += h->size;
+				}
+				r->ch[i].hdc_offset = (uintptr_t) rbv->value;
+				r->ch[i].hdc_size = h->size;
+				if (!(h = mi_jpeg_codec_find_huffman_ac(jc, sos->ch[i].hacid)))
+					goto label_fail;
+				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 3 << 32) | sos->ch[i].hacid)))
+				{
+					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->h_size, NULL)))
+						goto label_fail;
+					r->h_size += h->size;
+				}
+				r->ch[i].hac_offset = (uintptr_t) rbv->value;
+				r->ch[i].hac_size = h->size;
+			}
+			if (!(r->q = (uint8_t *) refer_alloc(r->q_size)) ||
+				!(r->h = (uint8_t *) refer_alloc(r->h_size)))
+				goto label_fail;
+			argv[0] = r;
+			argv[1] = jc;
+			rbtree_call(&hit, (rbtree_func_call_f) mi_jpeg_codec_create_frame_info_func_write_qh, argv);
+		}
+		label_fail_clear:
+		rbtree_clear(&hit);
+	}
+	return r;
+	label_fail:
+	refer_free(r);
+	r = NULL;
+	goto label_fail_clear;
+}
+
 static inline const void* mi_jpeg_rbtree_find_by_id(rbtree_t *const restrict *restrict rbv, uint32_t id)
 {
 	rbtree_t *restrict v;
@@ -298,6 +416,38 @@ const struct mi_jpeg_huffman_s* mi_jpeg_codec_find_huffman_ac(const struct mi_jp
 const struct mi_jpeg_ch_t* mi_jpeg_sof_find_ch(const struct mi_jpeg_sof_s *restrict sof, uint32_t cid)
 {
 	return (const struct mi_jpeg_ch_t *) mi_jpeg_rbtree_find_by_id(&sof->ch_finder, cid);
+}
+
+const char* mi_jpeg_test_frame_name(const struct mi_jpeg_sof_s *restrict sof, const struct mi_jpeg_sos_s *restrict sos)
+{
+	const struct mi_jpeg_ch_t *restrict ch1, *restrict ch2, *restrict ch3;
+	if (sof && sos)
+	{
+		if (sos->ch_number == 3)
+		{
+			ch1 = mi_jpeg_sof_find_ch(sof, sos->ch[0].cid);
+			ch2 = mi_jpeg_sof_find_ch(sof, sos->ch[1].cid);
+			ch3 = mi_jpeg_sof_find_ch(sof, sos->ch[2].cid);
+			if (ch1 && ch2 && ch3 && ch1->cid == 1 && ch2->cid == 2 && ch3->cid == 3)
+			{
+				if (ch1->mcu_nh == ch2->mcu_nh * 2 && ch1->mcu_nv == ch2->mcu_nv * 2 &&
+					ch1->mcu_nh == ch3->mcu_nh * 2 && ch1->mcu_nv == ch3->mcu_nv * 2)
+				{
+					// yuv 2x2:1x1:1x1
+					if (sof->ch_depth == 8)
+						return media_nf_jpeg_yuv_8_411;
+				}
+				else if (ch1->mcu_nh == ch2->mcu_nh && ch1->mcu_nv == ch2->mcu_nv &&
+					ch1->mcu_nh == ch3->mcu_nh && ch1->mcu_nv == ch3->mcu_nv)
+				{
+					// yuv 1x1:1x1:1x1
+					if (sof->ch_depth == 8)
+						return media_nf_jpeg_yuv_8_111;
+				}
+			}
+		}
+	}
+	return NULL;
 }
 
 // scan

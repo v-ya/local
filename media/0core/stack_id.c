@@ -37,3 +37,7 @@ struct media_stack_id_s* media_stack_id_alloc(media_stack_layout_initial_f initi
 #define q_clear(_name)  ((media_stack_clear_f) media_stack_layout_clear__##_name)
 
 d_layout(oz, 16, NULL, NULL)
+
+d_copy(ozp) { refer_save(p->pri); return p; }
+d_clear(ozp) { if (p->pri) refer_free(p->pri); }
+d_layout(ozp, 16, q_copy(ozp), q_clear(ozp))

@@ -49,7 +49,7 @@ struct media_channel_s* media_channel_test_dimension(struct media_channel_s *res
 	return NULL;
 }
 
-struct media_channel_s* media_channel_set_data(struct media_channel_s *restrict channel, void *restrict data, uintptr_t size, refer_t data_source)
+struct media_channel_s* media_channel_set_data(struct media_channel_s *restrict channel, void *data, uintptr_t size, refer_t data_source)
 {
 	if (data && size >= channel->size)
 	{

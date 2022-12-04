@@ -100,10 +100,13 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_initial_add_string(r, media_st_zarch) &&
 			// stack layout
 			media_alloc_add_stack(r, media_stack_layout_initial__oz) &&
+			media_alloc_add_stack(r, media_stack_layout_initial__ozp) &&
 			// frame
 			media_alloc_add_frame(r, media_frame_create_image_bgra32) &&
 			media_alloc_add_frame(r, media_frame_create_image_bgr24) &&
 			media_alloc_add_frame(r, media_frame_create_image_bgr24_p4) &&
+			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_411) &&
+			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_111) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
@@ -430,6 +433,10 @@ refer_string_t media_stream_get_frame_name(const media_stream_s *restrict stream
 refer_string_t media_stream_get_frame_compat(const media_stream_s *restrict stream)
 {
 	return stream->frame_id->compat;
+}
+media_attr_s* media_stream_get_attr(const media_stream_s *restrict stream)
+{
+	return stream->attr;
 }
 
 // io

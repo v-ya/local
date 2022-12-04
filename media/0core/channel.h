@@ -15,7 +15,7 @@ struct media_channel_s {
 struct media_channel_s* media_channel_alloc(uintptr_t dimension, const struct media_cell_info_t cell[], const uintptr_t *restrict dimension_value);
 struct media_channel_s* media_channel_set_dimension(struct media_channel_s *restrict channel, uintptr_t dimension, const struct media_cell_info_t cell[], const uintptr_t *restrict dimension_value);
 struct media_channel_s* media_channel_test_dimension(struct media_channel_s *restrict channel, uintptr_t dimension, const uintptr_t *restrict dimension_value);
-struct media_channel_s* media_channel_set_data(struct media_channel_s *restrict channel, void *restrict data, uintptr_t size, refer_t data_source);
+struct media_channel_s* media_channel_set_data(struct media_channel_s *restrict channel, void *data, uintptr_t size, refer_t data_source);
 struct media_channel_s* media_channel_touch_data(struct media_channel_s *restrict channel);
 void media_channel_clear_data(struct media_channel_s *restrict channel);
 

@@ -10,6 +10,7 @@
 
 // compress
 
-#define media_nf_jpeg      "fi/jpeg"
+#define media_nf_jpeg_yuv_8_411  "fi/jpeg/yuv:8:411"
+#define media_nf_jpeg_yuv_8_111  "fi/jpeg/yuv:8:111"
 
 #endif

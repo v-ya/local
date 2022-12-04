@@ -90,6 +90,7 @@ struct mi_jpeg_quantization_s {
 };
 
 struct mi_jpeg_huffman_s {
+	uintptr_t size;
 	uint8_t L[16];
 	uint8_t v[];
 };
@@ -152,11 +153,12 @@ struct mi_jpeg_frame_ch_t {
 	uint32_t hac_size;
 };
 
+// frame, ch, q, h: allow refer_save();
 struct mi_jpeg_frame_info_s {
-	const struct mi_jpeg_frame_t *frame;
-	const struct mi_jpeg_frame_ch_t *ch;
-	const void *q;
-	const void *h;
+	struct mi_jpeg_frame_t *frame;
+	struct mi_jpeg_frame_ch_t *ch;
+	uint8_t *q;
+	uint8_t *h;
 	uintptr_t q_size;
 	uintptr_t h_size;
 };
@@ -175,10 +177,14 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_q(struct mi_jpeg_codec_s *restrict jc
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_h(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_sof(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_sos(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
+struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpeg_codec_s *restrict jc);
+
 const struct mi_jpeg_quantization_s* mi_jpeg_codec_find_quantization(const struct mi_jpeg_codec_s *restrict jc, uint32_t qid);
 const struct mi_jpeg_huffman_s* mi_jpeg_codec_find_huffman_dc(const struct mi_jpeg_codec_s *restrict jc, uint32_t hid);
 const struct mi_jpeg_huffman_s* mi_jpeg_codec_find_huffman_ac(const struct mi_jpeg_codec_s *restrict jc, uint32_t hid);
 const struct mi_jpeg_ch_t* mi_jpeg_sof_find_ch(const struct mi_jpeg_sof_s *restrict sof, uint32_t cid);
+
+const char* mi_jpeg_test_frame_name(const struct mi_jpeg_sof_s *restrict sof, const struct mi_jpeg_sos_s *restrict sos);
 
 void media_codec_jpeg_scan_initial(struct mi_jpeg_scan_t *restrict scan);
 struct mi_jpeg_scan_t* media_codec_jpeg_scan_fetch(struct mi_jpeg_scan_t *restrict scan, struct media_io_s *restrict io);

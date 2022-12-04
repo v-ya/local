@@ -4,7 +4,7 @@
 #include "container.h"
 #include "codec.jpeg.h"
 
-struct media_container_pri_jpeg_s {
+struct media_stream_pri_jpeg_s {
 	struct mi_jpeg_codec_s *codec;
 	// info ...
 	uint32_t width;
@@ -18,7 +18,7 @@ struct media_container_pri_jpeg_s {
 
 // container
 
-d_media_container__initial_judge(jpeg);
+#define media_container__initial_judge__jpeg NULL
 d_media_container__create_pri(jpeg);
 d_media_container__parse_head(jpeg);
 #define media_container__parse_tail__jpeg NULL
@@ -26,5 +26,9 @@ d_media_container__parse_head(jpeg);
 #define media_container__build_tail__jpeg NULL
 
 // stream
+
+d_media_stream__initial_judge(jpeg);
+d_media_stream__create_pri(jpeg);
+d_media_stream__spec_append(jpeg);
 
 #endif
