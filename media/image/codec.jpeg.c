@@ -276,8 +276,7 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_sos(struct mi_jpeg_codec_s *restrict 
 
 static void mi_jpeg_frame_info_free_func(struct mi_jpeg_frame_info_s *restrict r)
 {
-	if (r->frame) refer_free(r->frame);
-	if (r->ch) refer_free(r->ch);
+	if (r->f) refer_free(r->f);
 	if (r->q) refer_free(r->q);
 	if (r->h) refer_free(r->h);
 }
@@ -317,6 +316,7 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 	const struct mi_jpeg_ch_t *restrict ch;
 	const struct mi_jpeg_quantization_s *restrict q;
 	const struct mi_jpeg_huffman_s *restrict h;
+	struct mi_jpeg_frame_t *restrict f;
 	rbtree_t *hit, *restrict rbv;
 	uint64_t key;
 	uint32_t i, n;
@@ -329,19 +329,19 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 		if ((r = (struct mi_jpeg_frame_info_s *) refer_alloz(sizeof(struct mi_jpeg_frame_info_s))))
 		{
 			refer_set_free(r, (refer_free_f) mi_jpeg_frame_info_free_func);
-			if (!(r->frame = (struct mi_jpeg_frame_t *) refer_alloc(sizeof(struct mi_jpeg_frame_t))) ||
-				!(r->ch = (struct mi_jpeg_frame_ch_t *) refer_alloc(sizeof(struct mi_jpeg_frame_ch_t) * sos->ch_number)))
+			r->f_size = sizeof(struct mi_jpeg_frame_t) + sizeof(struct mi_jpeg_frame_ch_t) * sos->ch_number;
+			if (!(r->f = f = (struct mi_jpeg_frame_t *) refer_alloc(r->f_size)))
 				goto label_fail;
-			r->frame->width = sof->width;
-			r->frame->height = sof->height;
-			r->frame->depth = sof->ch_depth;
-			r->frame->channel = n = sos->ch_number;
+			f->width = sof->width;
+			f->height = sof->height;
+			f->depth = sof->ch_depth;
+			f->channel = n = sos->ch_number;
 			for (i = 0; i < n; ++i)
 			{
 				if (!(ch = mi_jpeg_sof_find_ch(sof, sos->ch[i].cid)))
 					goto label_fail;
-				r->ch[i].mcu_nh = ch->mcu_nh;
-				r->ch[i].mcu_nv = ch->mcu_nv;
+				f->ch[i].mcu_nh = ch->mcu_nh;
+				f->ch[i].mcu_nv = ch->mcu_nv;
 				if (!(q = mi_jpeg_codec_find_quantization(jc, sos->ch[i].qid)))
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 1 << 32) | sos->ch[i].qid)))
@@ -350,8 +350,8 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 						goto label_fail;
 					r->q_size += sizeof(*q);
 				}
-				r->ch[i].q_offset = (uintptr_t) rbv->value;
-				r->ch[i].q_size = sizeof(*q);
+				f->ch[i].q_offset = (uintptr_t) rbv->value;
+				f->ch[i].q_size = sizeof(*q);
 				if (!(h = mi_jpeg_codec_find_huffman_dc(jc, sos->ch[i].hdcid)))
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 2 << 32) | sos->ch[i].hdcid)))
@@ -360,8 +360,8 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 						goto label_fail;
 					r->h_size += h->size;
 				}
-				r->ch[i].hdc_offset = (uintptr_t) rbv->value;
-				r->ch[i].hdc_size = h->size;
+				f->ch[i].hdc_offset = (uintptr_t) rbv->value;
+				f->ch[i].hdc_size = h->size;
 				if (!(h = mi_jpeg_codec_find_huffman_ac(jc, sos->ch[i].hacid)))
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 3 << 32) | sos->ch[i].hacid)))
@@ -370,8 +370,8 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 						goto label_fail;
 					r->h_size += h->size;
 				}
-				r->ch[i].hac_offset = (uintptr_t) rbv->value;
-				r->ch[i].hac_size = h->size;
+				f->ch[i].hac_offset = (uintptr_t) rbv->value;
+				f->ch[i].hac_size = h->size;
 			}
 			if (!(r->q = (uint8_t *) refer_alloc(r->q_size)) ||
 				!(r->h = (uint8_t *) refer_alloc(r->h_size)))

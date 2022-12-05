@@ -26,21 +26,23 @@ static d_media_stream__read_frame(jpeg_ozp)
 	if ((sp = (const struct media_stack__ozp_t *) media_stack_get(stack, index)) &&
 		(fi = (const struct mi_jpeg_frame_info_s *) sp->pri))
 	{
-		dv[0] = (uintptr_t) fi->frame->channel;
+		dv[0] = (uintptr_t) fi->f->channel;
 		dv[1] = fi->q_size;
 		dv[2] = fi->h_size;
 		dv[3] = sp->size;
-		if (media_frame_set_dimension(frame, 4, dv) && frame->channel == 5 &&
-			media_channel_set_data(frame->channel_chip[0], fi->frame, sizeof(*fi->frame), fi->frame) &&
-			media_channel_set_data(frame->channel_chip[1], fi->ch, sizeof(*fi->ch) * fi->frame->channel, fi->ch) &&
-			media_channel_set_data(frame->channel_chip[2], fi->q, fi->q_size, fi->q) &&
-			media_channel_set_data(frame->channel_chip[3], fi->h, fi->h_size, fi->h) &&
-			frame->channel_chip[4]->size == sp->size &&
+		if (media_frame_set_dimension(frame, 4, dv) && frame->channel == 4 &&
+			frame->channel_chip[0]->size == fi->f_size &&
+			frame->channel_chip[1]->size == fi->q_size &&
+			frame->channel_chip[2]->size == fi->h_size &&
+			frame->channel_chip[3]->size == sp->size &&
+			media_channel_set_data(frame->channel_chip[0], fi->f, fi->f_size, fi->f) &&
+			media_channel_set_data(frame->channel_chip[1], fi->q, fi->q_size, fi->q) &&
+			media_channel_set_data(frame->channel_chip[2], fi->h, fi->h_size, fi->h) &&
 			media_frame_touch_data(frame))
 		{
 			io = s->inner->io;
 			if (media_io_offset(io, &sp->offset) == sp->offset &&
-				media_io_read(io, frame->channel_chip[4]->data, sp->size))
+				media_io_read(io, frame->channel_chip[3]->data, sp->size))
 				return frame;
 		}
 	}

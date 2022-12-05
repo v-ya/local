@@ -105,6 +105,8 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_frame(r, media_frame_create_image_bgra32) &&
 			media_alloc_add_frame(r, media_frame_create_image_bgr24) &&
 			media_alloc_add_frame(r, media_frame_create_image_bgr24_p4) &&
+			media_alloc_add_frame(r, media_frame_create_image_yuv_8_411) &&
+			media_alloc_add_frame(r, media_frame_create_image_yuv_8_111) &&
 			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_411) &&
 			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_111) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&

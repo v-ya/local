@@ -135,13 +135,6 @@ struct mi_jpeg_codec_s {
 	const struct mi_jpeg_sos_s *sos;
 };
 
-struct mi_jpeg_frame_t {
-	uint32_t width;
-	uint32_t height;
-	uint32_t depth;
-	uint32_t channel;
-};
-
 struct mi_jpeg_frame_ch_t {
 	uint32_t mcu_nh;
 	uint32_t mcu_nv;
@@ -153,12 +146,20 @@ struct mi_jpeg_frame_ch_t {
 	uint32_t hac_size;
 };
 
+struct mi_jpeg_frame_t {
+	uint32_t width;
+	uint32_t height;
+	uint32_t depth;
+	uint32_t channel;
+	struct mi_jpeg_frame_ch_t ch[];
+};
+
 // frame, ch, q, h: allow refer_save();
 struct mi_jpeg_frame_info_s {
-	struct mi_jpeg_frame_t *frame;
-	struct mi_jpeg_frame_ch_t *ch;
+	struct mi_jpeg_frame_t *f;
 	uint8_t *q;
 	uint8_t *h;
+	uintptr_t f_size;
 	uintptr_t q_size;
 	uintptr_t h_size;
 };
