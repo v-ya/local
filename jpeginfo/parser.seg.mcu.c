@@ -73,7 +73,7 @@ static bits_be_reader_t* bits_be_reader_try_cache(bits_be_reader_t *restrict br)
 	uint32_t v, bits;
 	if ((bits = bits_be_reader_load_be_with_filter(br, 4 - ((br->cache_bits + 7) >> 3), &v) << 3))
 	{
-		br->cache_value |= v << br->cache_bits;
+		br->cache_value = (br->cache_value << bits) | v;
 		br->cache_bits += bits;
 		return br;
 	}
