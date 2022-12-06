@@ -20,6 +20,7 @@ enum media_runtime_result_t {
 struct media_runtime_s;
 struct media_runtime_task_s;
 struct media_runtime_task_step_t;
+struct media_runtime_task_list_s;
 struct media_runtime_unit_context_s;
 
 typedef void (*media_runtime_done_f)(struct media_runtime_task_s *restrict task, refer_t pri);
@@ -52,7 +53,10 @@ uintptr_t media_runtime_unit_core_number(struct media_runtime_s *restrict runtim
 // media_runtime_task_step_t's (pri, src, dst) at unit is save
 struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_param_t *restrict up, const void *restrict param, refer_t data);
 
-struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, uintptr_t step_number, const struct media_runtime_task_step_t *restrict steps, const struct media_runtime_task_done_t *restrict done);
+struct media_runtime_task_list_s* media_runtime_task_list_alloc(void);
+struct media_runtime_task_list_s* media_runtime_task_list_append(struct media_runtime_task_list_s *restrict list, const struct media_runtime_task_step_t *restrict steps, uintptr_t step_number);
+
+struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, struct media_runtime_task_list_s *restrict list, const struct media_runtime_task_done_t *restrict done);
 struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task_s *restrict task);
 const struct media_runtime_task_s* media_runtime_task_is_finish(const struct media_runtime_task_s *restrict task);
 const struct media_runtime_task_s* media_runtime_task_is_okay(const struct media_runtime_task_s *restrict task);

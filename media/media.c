@@ -474,11 +474,11 @@ media_io_s* media_io_sync_data(media_io_s *restrict io)
 
 // transform
 
-struct media_transform_s* media_create_transform(const media_s *restrict media, media_runtime_s *restrict runtime, const char *restrict src_frame_compat, const char *restrict dst_frame_compat)
+struct media_transform_s* media_create_transform(const media_s *restrict media, const char *restrict src_frame_compat, const char *restrict dst_frame_compat)
 {
 	const struct media_transform_id_s *restrict id;
 	if ((id = media_get_transform(media, src_frame_compat, dst_frame_compat)))
-		return media_transform_alloc(media, id, runtime);
+		return media_transform_alloc(media, id);
 	return NULL;
 }
 
@@ -489,10 +489,10 @@ struct media_frame_s* media_conver_frame(const media_s *restrict media, media_ru
 	media_frame_s *restrict target;
 	target = NULL;
 	if (target_frame_name && (id = media_get_frame(media, target_frame_name)) &&
-		(tf = media_create_transform(media, runtime, frame->id->compat, id->compat)))
+		(tf = media_create_transform(media, frame->id->compat, id->compat)))
 	{
 		if (media_transform_open(tf))
-			target = media_transform_alloc_conver(tf, frame, id->name, timeout_usec);
+			target = media_transform_alloc_conver(runtime, tf, frame, id->name, timeout_usec);
 		refer_free(tf);
 	}
 	return target;

@@ -5,14 +5,13 @@ static void media_transform_free_func(struct media_transform_s *restrict r)
 	if (r->codec) refer_free(r->codec);
 	if (r->pri_data) refer_free(r->pri_data);
 	if (r->attr) refer_free(r->attr);
-	if (r->runtime) refer_free(r->runtime);
 	if (r->media) refer_free(r->media);
 	if (r->dst_frame_compat) refer_free(r->dst_frame_compat);
 	if (r->src_frame_compat) refer_free(r->src_frame_compat);
 	if (r->id) refer_free(r->id);
 }
 
-struct media_transform_s* media_transform_alloc(const struct media_s *restrict media, const struct media_transform_id_s *restrict transform_id, struct media_runtime_s *restrict runtime)
+struct media_transform_s* media_transform_alloc(const struct media_s *restrict media, const struct media_transform_id_s *restrict transform_id)
 {
 	struct media_transform_s *restrict r;
 	if ((r = (struct media_transform_s *) refer_alloz(sizeof(struct media_transform_s))))
@@ -24,8 +23,6 @@ struct media_transform_s* media_transform_alloc(const struct media_s *restrict m
 		if (transform_id->dst_frame_compat && !(r->dst_frame_compat = media_save_frame(media, transform_id->dst_frame_compat)))
 			goto label_fail;
 		r->media = (const struct media_s *) refer_save(media);
-		if (!(r->runtime = (struct media_runtime_s *) refer_save(runtime)))
-			goto label_fail;
 		if (!(r->attr = media_attr_alloc(NULL)))
 			goto label_fail;
 		if (transform_id->judge)
@@ -80,18 +77,32 @@ const struct media_frame_id_s* media_transform_dst_frame(struct media_transform_
 	return NULL;
 }
 
-struct media_runtime_task_s* media_transform_post_task(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, struct media_frame_s *restrict dst_frame, const struct media_runtime_task_done_t *restrict done)
+struct media_runtime_task_list_s* media_transform_task_append(struct media_runtime_task_list_s *restrict list, struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, struct media_frame_s *restrict dst_frame)
 {
-	media_transform_post_task_f post_task;
+	media_transform_task_append_f task_append;
 	if (src_frame && dst_frame && src_frame->id->compat == transform->src_frame_compat->compat &&
 		(!transform->dst_frame_compat || dst_frame->id->compat == transform->dst_frame_compat->compat) &&
-		transform->codec && (post_task = transform->id->func.post_task) &&
+		transform->codec && (task_append = transform->id->func.task_append) &&
 		media_frame_exist_data(src_frame))
-		return post_task(transform, src_frame, dst_frame, done);
+		return task_append(transform, list, src_frame, dst_frame);
 	return NULL;
 }
 
-struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec)
+struct media_runtime_task_s* media_transform_post_task(struct media_runtime_s *restrict runtime, struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, struct media_frame_s *restrict dst_frame, const struct media_runtime_task_done_t *restrict done)
+{
+	struct media_runtime_task_list_s *restrict list;
+	struct media_runtime_task_s *restrict r;
+	r = NULL;
+	if ((list = media_runtime_task_list_alloc()))
+	{
+		if (media_transform_task_append(list, transform, src_frame, dst_frame))
+			r = media_runtime_alloc_task(runtime, list, done);
+		refer_free(list);
+	}
+	return r;
+}
+
+struct media_frame_s* media_transform_alloc_conver(struct media_runtime_s *restrict runtime, struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec)
 {
 	const struct media_frame_id_s *restrict did;
 	struct media_frame_s *restrict dst_frame;
@@ -99,7 +110,7 @@ struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *res
 	if ((did = media_transform_dst_frame(transform, dst_frame_name)) &&
 		(dst_frame = media_frame_alloc(did, did->dimension, NULL)))
 	{
-		if ((task = media_transform_post_task(transform, src_frame, dst_frame, NULL)))
+		if ((task = media_transform_post_task(runtime, transform, src_frame, dst_frame, NULL)))
 		{
 			if (!timeout_usec)
 			{

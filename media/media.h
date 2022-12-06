@@ -113,11 +113,11 @@ void media_runtime_task_wait(struct media_runtime_task_s *restrict task);
 
 // transform
 
-struct media_transform_s* media_create_transform(const media_s *restrict media, media_runtime_s *restrict runtime, const char *restrict src_frame_compat, const char *restrict dst_frame_compat);
+struct media_transform_s* media_create_transform(const media_s *restrict media, const char *restrict src_frame_compat, const char *restrict dst_frame_compat);
 struct media_frame_s* media_conver_frame(const media_s *restrict media, media_runtime_s *restrict runtime, const media_frame_s *restrict frame, const char *restrict target_frame_name, const uintptr_t *restrict timeout_usec);
 
 struct media_transform_s* media_transform_open(struct media_transform_s *restrict transform);
 void media_transform_close(struct media_transform_s *restrict transform);
-struct media_frame_s* media_transform_alloc_conver(struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec);
+struct media_frame_s* media_transform_alloc_conver(struct media_runtime_s *restrict runtime, struct media_transform_s *restrict transform, const struct media_frame_s *restrict src_frame, const char *restrict dst_frame_name, const uintptr_t *restrict timeout_usec);
 
 #endif

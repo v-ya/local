@@ -41,8 +41,7 @@ static struct mi_jpeg_codec_s* media_container_jpeg_parse__sos(struct mi_jpeg_co
 			scan->offset_segment_next = scan_skip_frame.offset_segment_start;
 			if ((ozp.pri = fi = mi_jpeg_codec_create_frame_info(codec)))
 			{
-				// media_mlog_print_rawdata(c->inner->media->mlog_verbose, "frame", fi->frame, sizeof(struct mi_jpeg_frame_t));
-				// media_mlog_print_rawdata(c->inner->media->mlog_verbose, "ch[]", fi->ch, sizeof(struct mi_jpeg_frame_ch_t) * fi->frame->channel);
+				// media_mlog_print_rawdata(c->inner->media->mlog_verbose, "f", fi->f, fi->f_size);
 				// media_mlog_print_rawdata(c->inner->media->mlog_verbose, "q", fi->q, fi->q_size);
 				// media_mlog_print_rawdata(c->inner->media->mlog_verbose, "h", fi->h, fi->h_size);
 				if (!media_stack_push(st->stack, &ozp))

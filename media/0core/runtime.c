@@ -1,6 +1,7 @@
 #include "runtime.h"
 #include <memory.h>
 #include <queue/queue.h>
+#include <exbuffer.h>
 #include <hashmap.h>
 #include <mtask.h>
 #include <yaw.h>
@@ -18,6 +19,15 @@ struct media_runtime_s {
 	media_atomic_ptr_t task_next_index;
 };
 
+// task list
+
+struct media_runtime_task_list_s {
+	exbuffer_t cache;
+	const struct media_runtime_task_step_t *step;
+	uintptr_t step_max;
+	uintptr_t step_cur;
+};
+
 // task
 
 struct media_runtime_task_s {
@@ -25,10 +35,8 @@ struct media_runtime_task_s {
 	yaw_signal_s *signal;
 	media_atomic_u32_t status;  // (enum media_runtime_status_t)
 	media_atomic_u32_t result;  // (enum media_runtime_result_t)
-	uintptr_t step_max;
-	uintptr_t step_cur;
 	struct media_runtime_task_done_t done;
-	struct media_runtime_task_step_t step[];
+	struct media_runtime_task_list_s *list;
 };
 
 #define m_task_status(_task, _from, _to)  media_atomic_u32_compare_swap(&(_task)->status, media_runtime_status__##_from, media_runtime_status__##_to)
@@ -78,42 +86,26 @@ static void media_runtime_task_free_func(struct media_runtime_task_s *restrict r
 {
 	if (r->signal) refer_free(r->signal);
 	if (r->done.pri) refer_free(r->done.pri);
-	for (uintptr_t i = 0, n = r->step_max; i < n; ++i)
-	{
-		if (r->step[i].pri) refer_free(r->step[i].pri);
-		if (r->step[i].src) refer_free(r->step[i].src);
-		if (r->step[i].dst) refer_free(r->step[i].dst);
-	}
+	if (r->list) refer_free(r->list);
 }
 
-static struct media_runtime_task_s* media_runtime_task_alloc(uintptr_t step_number, const struct media_runtime_task_step_t *restrict steps, const struct media_runtime_task_done_t *restrict done)
+static struct media_runtime_task_s* media_runtime_task_alloc(struct media_runtime_task_list_s *restrict list, const struct media_runtime_task_done_t *restrict done)
 {
 	struct media_runtime_task_s *restrict r;
-	uintptr_t i;
-	if (step_number && steps && (r = (struct media_runtime_task_s *) refer_alloz(
-		sizeof(struct media_runtime_task_s) + sizeof(struct media_runtime_task_step_t) * step_number)))
+	if (list && list->step_max && (r = (struct media_runtime_task_s *) refer_alloz(sizeof(struct media_runtime_task_s))))
 	{
 		refer_set_free(r, (refer_free_f) media_runtime_task_free_func);
 		if ((r->signal = yaw_signal_alloc()))
 		{
 			yaw_signal_set(r->signal, 0);
-			r->step_max = step_number;
 			if (done)
 			{
 				r->done.done = done->done;
 				r->done.pri = refer_save(done->pri);
 			}
-			for (i = 0; i < step_number; ++i)
-			{
-				if (!(r->step[i].emit = steps[i].emit))
-					goto label_fail;
-				r->step[i].pri = refer_save(steps[i].pri);
-				r->step[i].src = refer_save(steps[i].src);
-				r->step[i].dst = refer_save(steps[i].dst);
-			}
+			r->list = (struct media_runtime_task_list_s *) refer_save(list);
 			return r;
 		}
-		label_fail:
 		refer_free(r);
 	}
 	return NULL;
@@ -195,29 +187,34 @@ static void media_runtime_unit_deal(struct media_runtime_unit_s *restrict unit, 
 
 static void media_runtime_daemon_emit(struct media_runtime_s *restrict rt, struct media_runtime_task_s *restrict task)
 {
+	struct media_runtime_task_list_s *restrict list;
 	const struct media_runtime_task_step_t *restrict step;
 	struct media_runtime_unit_context_s *restrict uc;
 	uintptr_t unit_commit_number;
 	uint32_t status;
+	list = task->list;
 	label_next_step:
 	if ((status = task->status) == media_runtime_status__running &&
-		task->step_cur < task->step_max)
+		list->step_cur < list->step_max)
 	{
-		step = task->step + task->step_cur;
+		step = list->step + list->step_cur;
 		if ((uc = media_runtime_unit_context_alloc(task, rt->signal, rt->task_step)))
 		{
-			if (!step->emit(task, step, rt, uc))
-			{
-				m_task_result(task, none, fail);
-				m_task_status(task, running, cancel);
-			}
+			if (!step->emit || !step->emit(task, step, rt, uc))
+				goto label_fail;
 			unit_commit_number = uc->unit_commit_number;
 			refer_free(uc);
 			if (!unit_commit_number)
 			{
-				task->step_cur += 1;
+				list->step_cur += 1;
 				goto label_next_step;
 			}
+		}
+		else
+		{
+			label_fail:
+			m_task_result(task, none, fail);
+			m_task_status(task, running, cancel);
 		}
 	}
 	else
@@ -272,7 +269,7 @@ static void media_runtime_daemon(yaw_s *restrict yaw)
 		}
 		while ((task = (struct media_runtime_task_s *) qs->pull(qs)))
 		{
-			task->step_cur += 1;
+			task->list->step_cur += 1;
 			media_runtime_daemon_emit(r, task);
 			refer_free(task);
 		}
@@ -396,11 +393,59 @@ struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_
 	return NULL;
 }
 
-struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, uintptr_t step_number, const struct media_runtime_task_step_t *restrict steps, const struct media_runtime_task_done_t *restrict done)
+static void media_runtime_task_list_free_func(struct media_runtime_task_list_s *restrict r)
+{
+	const struct media_runtime_task_step_t *restrict p;
+	uintptr_t i, n;
+	p = r->step;
+	n = r->step_max;
+	for (i = 0; i < n; ++i)
+	{
+		if (p[i].pri) refer_free(p[i].pri);
+		if (p[i].src) refer_free(p[i].src);
+		if (p[i].dst) refer_free(p[i].dst);
+	}
+	exbuffer_uini(&r->cache);
+}
+
+struct media_runtime_task_list_s* media_runtime_task_list_alloc(void)
+{
+	struct media_runtime_task_list_s *restrict r;
+	if ((r = (struct media_runtime_task_list_s *) refer_alloz(sizeof(struct media_runtime_task_list_s))))
+	{
+		refer_set_free(r, (refer_free_f) media_runtime_task_list_free_func);
+		if (exbuffer_init(&r->cache, sizeof(struct media_runtime_task_step_t) * 16))
+			return r;
+		refer_free(r);
+	}
+	return NULL;
+}
+
+struct media_runtime_task_list_s* media_runtime_task_list_append(struct media_runtime_task_list_s *restrict list, const struct media_runtime_task_step_t *restrict steps, uintptr_t step_number)
+{
+	const struct media_runtime_task_step_t *p;
+	uintptr_t i;
+	if (step_number && (p = (const struct media_runtime_task_step_t *) exbuffer_append(&list->cache, steps, sizeof(struct media_runtime_task_step_t) * step_number)))
+	{
+		list->step = p;
+		p += list->step_max;
+		for (i = 0; i < step_number; ++i)
+		{
+			refer_save(p[i].pri);
+			refer_save(p[i].src);
+			refer_save(p[i].dst);
+		}
+		list->step_max += step_number;
+		return list;
+	}
+	return NULL;
+}
+
+struct media_runtime_task_s* media_runtime_alloc_task(struct media_runtime_s *restrict runtime, struct media_runtime_task_list_s *restrict list, const struct media_runtime_task_done_t *restrict done)
 {
 	struct media_runtime_task_s *restrict task;
 	if (runtime->daemon && runtime->daemon->running &&
-		(task = media_runtime_task_alloc(step_number, steps, done)))
+		(task = media_runtime_task_alloc(list, done)))
 	{
 		if (media_runtime_queue_push(runtime->task_wait, runtime->signal, task, &runtime->daemon->running))
 			return task;

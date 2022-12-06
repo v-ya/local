@@ -39,7 +39,7 @@ static d_media_runtime__emit(bgra32_bgr24)
 		(media_runtime_deal_f) media_runtime_symbol(deal, bgra32_bgr24), NULL);
 }
 
-static d_media_transform__post_task(bgra32_bgr24)
+static d_media_transform__task_append(bgra32_bgr24)
 {
 	struct media_runtime_task_step_t steps[] = {
 		{
@@ -49,7 +49,7 @@ static d_media_transform__post_task(bgra32_bgr24)
 			.dst = df,
 		}
 	};
-	return media_runtime_alloc_task(tf->runtime, sizeof(steps) / sizeof(*steps), steps, done);
+	return media_runtime_task_list_append(list, steps, sizeof(steps) / sizeof(*steps));
 }
 
 struct media_transform_id_s* media_transform_create_image__bgra32_bgr24(const struct media_s *restrict media)
@@ -59,7 +59,7 @@ struct media_transform_id_s* media_transform_create_image__bgra32_bgr24(const st
 		.create_pri = NULL,
 		.open_codec = NULL,
 		.dst_frame = NULL,
-		.post_task = media_transform_symbol(post_task, bgra32_bgr24),
+		.task_append = media_transform_symbol(task_append, bgra32_bgr24),
 	};
 	return media_transform_id_alloc(sizeof(struct media_transform_id_s), media, media_nf_bgra32, media_nf_bgr24, &func);
 }
@@ -94,7 +94,7 @@ static d_media_runtime__emit(bgr24_bgra32)
 		(media_runtime_deal_f) media_runtime_symbol(deal, bgr24_bgra32), NULL);
 }
 
-static d_media_transform__post_task(bgr24_bgra32)
+static d_media_transform__task_append(bgr24_bgra32)
 {
 	struct media_runtime_task_step_t steps[] = {
 		{
@@ -104,7 +104,7 @@ static d_media_transform__post_task(bgr24_bgra32)
 			.dst = df,
 		}
 	};
-	return media_runtime_alloc_task(tf->runtime, sizeof(steps) / sizeof(*steps), steps, done);
+	return media_runtime_task_list_append(list, steps, sizeof(steps) / sizeof(*steps));
 }
 
 struct media_transform_id_s* media_transform_create_image__bgr24_bgra32(const struct media_s *restrict media)
@@ -114,7 +114,7 @@ struct media_transform_id_s* media_transform_create_image__bgr24_bgra32(const st
 		.create_pri = NULL,
 		.open_codec = NULL,
 		.dst_frame = NULL,
-		.post_task = media_transform_symbol(post_task, bgr24_bgra32),
+		.task_append = media_transform_symbol(task_append, bgr24_bgra32),
 	};
 	return media_transform_id_alloc(sizeof(struct media_transform_id_s), media, media_nf_bgr24, media_nf_bgra32, &func);
 }
