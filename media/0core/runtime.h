@@ -17,6 +17,8 @@ enum media_runtime_result_t {
 	media_runtime_result__okay,
 };
 
+struct media_s;
+
 struct media_runtime_s;
 struct media_runtime_task_s;
 struct media_runtime_task_step_t;
@@ -46,9 +48,10 @@ struct media_runtime_task_step_t {
 	refer_t dst;
 };
 
-struct media_runtime_s* media_runtime_alloc(uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly);
+struct media_runtime_s* media_runtime_alloc(const struct media_s *restrict media, uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly);
 void media_runtime_stop(struct media_runtime_s *restrict runtime);
-uintptr_t media_runtime_unit_core_number(struct media_runtime_s *restrict runtime);
+uintptr_t media_runtime_unit_core_number(const struct media_runtime_s *restrict runtime);
+const struct media_s* media_runtime_get_media(const struct media_runtime_s *restrict runtime);
 
 // media_runtime_task_step_t's (pri, src, dst) at unit is save
 struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_param_t *restrict up, const void *restrict param, refer_t data);

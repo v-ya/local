@@ -7,6 +7,7 @@
 #include "../0bits/bits.h"
 #include "../0bits/huffman.h"
 #include "../0bits/fdct.h"
+#include "../0bits/zigzag.h"
 
 enum mi_jpeg_segment_type_t {
 // JPEG reserved
@@ -213,18 +214,35 @@ struct mi_jpeg_decode_ch_t {
 	const uint32_t *q;
 	media_huffman_index_t hdc_index;
 	media_huffman_index_t hac_index;
+	struct mi_jpeg_codec_i8x8_t *data;
 };
 
 struct mi_jpeg_decode_s {
-	const struct media_huffman_decode_s *hd;
 	const struct media_fdct_2d_i32_s *fdct8x8;
-	struct mi_jpeg_codec_i8x8_t *data;
-	uintptr_t mcu_w_number;
-	uintptr_t mcu_h_number;
-	uintptr_t mcu_number;
-	uintptr_t mcu_ch_number;
+	const struct media_zigzag_s *zigzag8x8;
+	const struct media_huffman_decode_s *huffman;
+	uintptr_t mcu_w_max;        // mcu_pixel_width / 8
+	uintptr_t mcu_h_max;        // mcu_pixel_height / 8
+	uintptr_t mcu_w_number;     // [image_pixel_width / mcu_pixel_width]
+	uintptr_t mcu_h_number;     // [image_pixel_height / mcu_pixel_height]
+	uintptr_t mcu_unit_number;  // sum: (mcu_npw * mcu_nph)
+	uintptr_t mcu_all_number;   // mcu_unit_number * mcu_w_number * mcu_h_number
 	uintptr_t ch_number;
 	struct mi_jpeg_decode_ch_t ch[];
 };
+
+struct mi_jpeg_decode_param_t {
+	const struct media_fdct_2d_i32_s *fdct8x8;
+	const struct media_zigzag_s *zigzag8x8;
+	const uint8_t *f;
+	const uint8_t *q;
+	const uint8_t *h;
+	uintptr_t f_size;
+	uintptr_t q_size;
+	uintptr_t h_size;
+};
+
+struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_t *restrict param);
+struct mi_jpeg_decode_s* mi_jpeg_decode_load(struct mi_jpeg_decode_s *restrict jd, struct media_bits_reader_t *restrict reader);
 
 #endif

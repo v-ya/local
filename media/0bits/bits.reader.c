@@ -96,7 +96,7 @@ uintptr_t media_bits_reader_bits_res(struct media_bits_reader_t *restrict reader
 	return (reader->size - reader->upos) * 8 + reader->cache_bits;
 }
 
-struct media_bits_reader_t* media_bits_reader_bits_read_cache(struct media_bits_reader_t *restrict reader, uint32_t *restrict nbits, media_bits_t *restrict vbits)
+struct media_bits_reader_t* media_bits_reader_read_cache(struct media_bits_reader_t *restrict reader, uint32_t *restrict nbits, media_bits_t *restrict vbits)
 {
 	if (reader->cache_bits || reader->func.try_cache(reader))
 	{

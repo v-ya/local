@@ -48,12 +48,12 @@ struct media_bits_reader_t {
 	uint32_t cache_bits;
 };
 
-#define media_bits_reader_bits_read_bits(_br, _nbits, _vbits)  (_br)->func.read_bits(_br, _nbits, _vbits)
-#define media_bits_reader_bits_push_back(_br, _nbits, _vbits)  (_br)->func.push_back(_br, _nbits, _vbits)
+#define media_bits_reader_read_bits(_br, _nbits, _vbits)  (_br)->func.read_bits(_br, _nbits, _vbits)
+#define media_bits_reader_push_back(_br, _nbits, _vbits)  (_br)->func.push_back(_br, _nbits, _vbits)
 
 struct media_bits_reader_t* media_bits_reader_initial_be(struct media_bits_reader_t *restrict reader, const uint8_t *restrict d, uintptr_t n, media_bits_reader_next_bytes_f next_bytes);
 uintptr_t media_bits_reader_bits_pos(struct media_bits_reader_t *restrict reader);
 uintptr_t media_bits_reader_bits_res(struct media_bits_reader_t *restrict reader);
-struct media_bits_reader_t* media_bits_reader_bits_read_cache(struct media_bits_reader_t *restrict reader, uint32_t *restrict nbits, media_bits_t *restrict vbits);
+struct media_bits_reader_t* media_bits_reader_read_cache(struct media_bits_reader_t *restrict reader, uint32_t *restrict nbits, media_bits_t *restrict vbits);
 
 #endif

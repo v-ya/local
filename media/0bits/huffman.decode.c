@@ -151,7 +151,7 @@ const void* media_huffman_decode_bits(const struct media_huffman_decode_s *restr
 		if (p < jn)
 		{
 			do {
-				if (!media_bits_reader_bits_read_bits(reader, 1, &v))
+				if (!media_bits_reader_read_bits(reader, 1, &v))
 					goto label_fail;
 				jv = jp + p;
 				p = jv->bit_jump2[v];

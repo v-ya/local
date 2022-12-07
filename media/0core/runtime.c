@@ -17,6 +17,8 @@ struct media_runtime_s {
 	uintptr_t unit_core_number;
 	yaw_s *daemon;
 	media_atomic_ptr_t task_next_index;
+	// only hold
+	const struct media_s *media;
 };
 
 // task list
@@ -320,9 +322,10 @@ static void media_runtime_free_func(struct media_runtime_s *restrict r)
 	if (r->task_wait) refer_free(r->task_wait);
 	if (r->task_step) refer_free(r->task_step);
 	hashmap_uini(&r->task_save);
+	if (r->media) refer_free(r->media);
 }
 
-struct media_runtime_s* media_runtime_alloc(uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly)
+struct media_runtime_s* media_runtime_alloc(const struct media_s *restrict media, uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly)
 {
 	struct media_runtime_s *restrict r;
 	mtask_param_inst_t mp;
@@ -342,6 +345,7 @@ struct media_runtime_s* media_runtime_alloc(uintptr_t unit_core_number, uintptr_
 	{
 		refer_set_free(r, (refer_free_f) media_runtime_free_func);
 		r->unit_core_number = unit_core_number;
+		r->media = (const struct media_s *) refer_save(media);
 		if (hashmap_init(&r->task_save) &&
 			(r->mtask = mtask_inst_alloc(&mp)) &&
 			(r->signal = yaw_signal_alloc()) &&
@@ -363,9 +367,14 @@ void media_runtime_stop(struct media_runtime_s *restrict runtime)
 	}
 }
 
-uintptr_t media_runtime_unit_core_number(struct media_runtime_s *restrict runtime)
+uintptr_t media_runtime_unit_core_number(const struct media_runtime_s *restrict runtime)
 {
 	return runtime->unit_core_number;
+}
+
+const struct media_s* media_runtime_get_media(const struct media_runtime_s *restrict runtime)
+{
+	return runtime->media;
 }
 
 struct media_runtime_s* media_runtime_post_unit(const struct media_runtime_unit_param_t *restrict up, refer_t data, const void *restrict param)

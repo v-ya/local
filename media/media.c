@@ -129,6 +129,7 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
 			// component
 			media_alloc_add_component(r, media_cp_fdct_i32_r8p16, media_component_create__fdct_i32_r8p16) &&
+			media_alloc_add_component(r, media_cp_zigzag_8x8, media_component_create__zigzag_8x8) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
 			media_alloc_add_container(r, media_container_create_image_jpeg) &&
