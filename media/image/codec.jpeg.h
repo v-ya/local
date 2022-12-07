@@ -4,6 +4,8 @@
 #include <refer.h>
 #include <rbtree.h>
 #include "../0core/io.h"
+#include "../0bits/bits.h"
+#include "../0bits/huffman.h"
 
 enum mi_jpeg_segment_type_t {
 // JPEG reserved
@@ -85,6 +87,8 @@ enum mi_jpeg_segment_type_t {
 	mi_jpeg_segment_type__jpg13 = 0xfd, //  extension data 13
 };
 
+// codec
+
 struct mi_jpeg_quantization_s {
 	uint32_t q[64];
 };
@@ -164,14 +168,6 @@ struct mi_jpeg_frame_info_s {
 	uintptr_t h_size;
 };
 
-struct mi_jpeg_scan_t {
-	uint64_t offset_segment_start;
-	uint64_t offset_segment_data;
-	uint64_t offset_segment_next;
-	uintptr_t segment_data_length;
-	enum mi_jpeg_segment_type_t type;
-};
-
 struct mi_jpeg_codec_s* mi_jpeg_codec_alloc(void);
 void mi_jpeg_codec_clear(struct mi_jpeg_codec_s *restrict jc);
 struct mi_jpeg_codec_s* mi_jpeg_codec_load_q(struct mi_jpeg_codec_s *restrict jc, struct media_io_s *restrict io, uintptr_t size);
@@ -187,7 +183,46 @@ const struct mi_jpeg_ch_t* mi_jpeg_sof_find_ch(const struct mi_jpeg_sof_s *restr
 
 const char* mi_jpeg_test_frame_name(const struct mi_jpeg_sof_s *restrict sof, const struct mi_jpeg_sos_s *restrict sos);
 
+// scan
+
+struct mi_jpeg_scan_t {
+	uint64_t offset_segment_start;
+	uint64_t offset_segment_data;
+	uint64_t offset_segment_next;
+	uintptr_t segment_data_length;
+	enum mi_jpeg_segment_type_t type;
+};
+
 void media_codec_jpeg_scan_initial(struct mi_jpeg_scan_t *restrict scan);
 struct mi_jpeg_scan_t* media_codec_jpeg_scan_fetch(struct mi_jpeg_scan_t *restrict scan, struct media_io_s *restrict io);
+
+// encode, decode
+
+struct mi_jpeg_codec_i8x8_t {
+	int32_t v[64];
+};
+
+// decode
+
+struct mi_jpeg_decode_ch_t {
+	uintptr_t mcu_npw;
+	uintptr_t mcu_nph;
+	uintptr_t mcu_npm;
+	uintptr_t depth_bits;
+	const uint32_t *q;
+	media_huffman_index_t hdc_index;
+	media_huffman_index_t hac_index;
+};
+
+struct mi_jpeg_decode_s {
+	const struct media_huffman_decode_s *hd;
+	struct mi_jpeg_codec_i8x8_t *data;
+	uintptr_t mcu_w_number;
+	uintptr_t mcu_h_number;
+	uintptr_t mcu_number;
+	uintptr_t mcu_ch_number;
+	uintptr_t ch_number;
+	struct mi_jpeg_decode_ch_t ch[];
+};
 
 #endif
