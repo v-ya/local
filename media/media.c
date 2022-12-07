@@ -4,6 +4,7 @@
 #include "0core/media.h"
 #include "0core/runtime.h"
 #include "0core/transform.h"
+#include "0core/component.h"
 #include "media.frame.h"
 #include "media.container.h"
 // frame
@@ -45,6 +46,22 @@ static media_s* media_alloc_add_frame(media_s *restrict r, struct media_frame_id
 		return r;
 	}
 	else media_error(r, "create frame id (%p) fail", create_func);
+	return NULL;
+}
+
+static media_s* media_alloc_add_component(media_s *restrict r, const char *restrict name, refer_t (*create_func)(void))
+{
+	refer_t cp;
+	media_s *restrict m;
+	if ((cp = create_func()))
+	{
+		r = media_initial_add_component(m = r, name, cp);
+		if (r) media_verbose(m, "add component (%s) okay", name);
+		else media_error(m, "add component (%s) fail", name);
+		refer_free(cp);
+		return r;
+	}
+	else media_error(r, "create component (%s) fail", name);
 	return NULL;
 }
 
@@ -110,12 +127,16 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_411) &&
 			media_alloc_add_frame(r, media_frame_create_image_jpeg_yuv_8_111) &&
 			media_alloc_add_frame(r, media_frame_create_zarch_native) &&
+			// component
+			media_alloc_add_component(r, media_cp_fdct_i32_r8p16, media_component_create__fdct_i32_r8p16) &&
 			// container
 			media_alloc_add_container(r, media_container_create_image_bmp) &&
 			media_alloc_add_container(r, media_container_create_image_jpeg) &&
 			// transform
 			media_alloc_add_transform(r, media_transform_create_image__bgra32_bgr24) &&
 			media_alloc_add_transform(r, media_transform_create_image__bgr24_bgra32) &&
+			media_alloc_add_transform(r, media_transform_create_image__jpeg_yuv_8_411) &&
+			media_alloc_add_transform(r, media_transform_create_image__jpeg_yuv_8_111) &&
 		1) return r;
 		refer_free(r);
 	}

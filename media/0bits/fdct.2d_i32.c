@@ -37,7 +37,7 @@ void media_fdct_2d_i32_fdct(const struct media_fdct_2d_i32_s *restrict fdct, int
 	rank = (uintptr_t) fdct->rank;
 	rsh = fdct->rsh << 1;
 	mask = (int64_t) 1 << (rsh - 1);
-	for (v = rky = 0; v < rank; ++v, rkv += rank)
+	for (v = rkv = 0; v < rank; ++v, rkv += rank)
 	{
 		for (u = rku = 0; u < rank; ++u, rku += rank)
 		{

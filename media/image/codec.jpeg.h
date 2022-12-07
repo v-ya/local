@@ -6,6 +6,7 @@
 #include "../0core/io.h"
 #include "../0bits/bits.h"
 #include "../0bits/huffman.h"
+#include "../0bits/fdct.h"
 
 enum mi_jpeg_segment_type_t {
 // JPEG reserved
@@ -216,6 +217,7 @@ struct mi_jpeg_decode_ch_t {
 
 struct mi_jpeg_decode_s {
 	const struct media_huffman_decode_s *hd;
+	const struct media_fdct_2d_i32_s *fdct8x8;
 	struct mi_jpeg_codec_i8x8_t *data;
 	uintptr_t mcu_w_number;
 	uintptr_t mcu_h_number;

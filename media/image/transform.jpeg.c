@@ -1,60 +1,59 @@
 #include "transform.jpeg.h"
 
-struct media_transform_param_t {
-	const uint8_t *src;
-	uint8_t *dst;
-	uintptr_t src_skip;
-	uintptr_t dst_skip;
-	uintptr_t w;
-	uintptr_t yn;
-};
+// struct media_transform_param_t {
+// 	const uint8_t *src;
+// 	uint8_t *dst;
+// 	uintptr_t src_skip;
+// 	uintptr_t dst_skip;
+// 	uintptr_t w;
+// 	uintptr_t yn;
+// };
 
-// bgra32 => bgr24
+// static d_media_runtime__deal(bgra32_bgr24, struct media_transform_param_t, refer_t)
+// {
+// 	const uint8_t *restrict s;
+// 	uint8_t *restrict d;
+// 	uintptr_t x, y;
+// 	s = param->src;
+// 	d = param->dst;
+// 	for (y = param->yn; y; --y)
+// 	{
+// 		for (x = param->w; x; --x)
+// 		{
+// 			*d++ = *s++;
+// 			*d++ = *s++;
+// 			*d++ = *s++;
+// 			++s;
+// 		}
+// 		s += param->src_skip;
+// 		d += param->dst_skip;
+// 	}
+// 	return param;
+// }
 
-static d_media_runtime__deal(bgra32_bgr24, struct media_transform_param_t, refer_t)
+// static d_media_runtime__emit(bgra32_bgr24)
+// {
+// 	return media_transform_inner_image_emit__d2c1(task, step, rt, uc,
+// 		(media_runtime_deal_f) media_runtime_symbol(deal, bgra32_bgr24), NULL);
+// }
+
+static d_media_transform__task_append(jpeg)
 {
-	const uint8_t *restrict s;
-	uint8_t *restrict d;
-	uintptr_t x, y;
-	s = param->src;
-	d = param->dst;
-	for (y = param->yn; y; --y)
-	{
-		for (x = param->w; x; --x)
-		{
-			*d++ = *s++;
-			*d++ = *s++;
-			*d++ = *s++;
-			++s;
-		}
-		s += param->src_skip;
-		d += param->dst_skip;
-	}
-	return param;
-}
-
-static d_media_runtime__emit(bgra32_bgr24)
-{
-	return media_transform_inner_image_emit__d2c1(task, step, rt, uc,
-		(media_runtime_deal_f) media_runtime_symbol(deal, bgra32_bgr24), NULL);
-}
-
-static d_media_transform__task_append(bgra32_bgr24)
-{
-	struct media_runtime_task_step_t steps[] = {
-		{
-			.emit = media_runtime_symbol(emit, bgra32_bgr24),
-			.pri = NULL,
-			.src = sf,
-			.dst = df,
-		}
-	};
-	return media_runtime_task_list_append(list, steps, sizeof(steps) / sizeof(*steps));
+	// struct media_runtime_task_step_t steps[] = {
+	// 	{
+	// 		.emit = media_runtime_symbol(emit, jpeg),
+	// 		.pri = NULL,
+	// 		.src = sf,
+	// 		.dst = df,
+	// 	}
+	// };
+	// return media_runtime_task_list_append(list, steps, sizeof(steps) / sizeof(*steps));
+	return NULL;
 }
 
 static void media_transform_id_jpeg_free_func(struct media_transform_id_jpeg_s *restrict r)
 {
-	/// TODO: clear media_transform_id_jpeg_s
+	if (r->fdct8x8) refer_free(r->fdct8x8);
 	media_transform_id_free_func(&r->transform);
 }
 
@@ -66,13 +65,24 @@ static struct media_transform_id_s* media_transform_create_image__jpeg(const str
 		.create_pri = NULL,
 		.open_codec = NULL,
 		.dst_frame = NULL,
-		.task_append = media_transform_symbol(task_append, bgra32_bgr24),
+		.task_append = media_transform_symbol(task_append, jpeg),
 	};
-	if ((r = (struct media_transform_id_jpeg_s *) media_transform_id_alloc(sizeof(struct media_transform_id_s), media, src_frame_id, dst_frame_id, &func)))
+	if ((r = (struct media_transform_id_jpeg_s *) media_transform_id_alloc(sizeof(struct media_transform_id_jpeg_s), media, src_frame_id, dst_frame_id, &func)))
 	{
 		refer_set_free(r, (refer_free_f) media_transform_id_jpeg_free_func);
-		return &r->transform;
+		if ((r->fdct8x8 = media_save_component(media, media_cp_fdct_i32_r8p16, struct media_fdct_2d_i32_s)))
+			return &r->transform;
 		refer_free(r);
 	}
 	return NULL;
+}
+
+struct media_transform_id_s* media_transform_create_image__jpeg_yuv_8_411(const struct media_s *restrict media)
+{
+	return media_transform_create_image__jpeg(media, media_nf_jpeg_yuv_8_411, media_nf_yuv_8_411);
+}
+
+struct media_transform_id_s* media_transform_create_image__jpeg_yuv_8_111(const struct media_s *restrict media)
+{
+	return media_transform_create_image__jpeg(media, media_nf_jpeg_yuv_8_111, media_nf_yuv_8_111);
 }
