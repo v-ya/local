@@ -2,6 +2,7 @@
 #include "codec.jpeg.h"
 
 struct media_transform_param__jpeg_parse_t {
+	const struct media_s *media;
 	struct mi_jpeg_decode_s *jd;
 	const uint8_t *data;
 	uintptr_t size;
@@ -48,12 +49,12 @@ static const uint8_t* media_bits_reader_next_bytes__jpeg(struct media_bits_reade
 	return u8 + p - 1;
 }
 
-static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_parse_t, const struct media_s *restrict)
+static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_parse_t, refer_t)
 {
 	struct media_bits_reader_t reader;
 	if (media_bits_reader_initial_be(&reader, param->data, param->size, media_bits_reader_next_bytes__jpeg))
 	{
-		// media_verbose(data, "[deal] jpeg_parse ...");
+		media_verbose(param->media, "[deal] jpeg_parse ...");
 		if (mi_jpeg_decode_load(param->jd, &reader))
 			return param;
 	}
@@ -63,23 +64,18 @@ static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_pars
 static d_media_runtime__emit(jpeg_parse)
 {
 	const struct media_frame_s *restrict sf;
-	struct media_frame_s *restrict df;
 	struct media_transform_param__jpeg_parse_t param;
 	struct media_runtime_unit_param_t up;
-	uintptr_t dv[2];
-	sf = (const struct media_frame_s *) step->src;
-	df = (struct media_frame_s *) step->dst;
-	param.jd = (struct mi_jpeg_decode_s *) step->pri;
+	sf = (const struct media_frame_s *) pri_data[0];
+	param.media = (const struct media_s *) pri_data[2];
+	param.jd = (struct mi_jpeg_decode_s *) pri_data[1];
 	param.data = sf->channel_chip[3]->data;
 	param.size = sf->channel_chip[3]->size;
 	up.runtime = rt;
 	up.context = uc;
 	up.deal = (media_runtime_deal_f) media_runtime_symbol(deal, jpeg_parse);
 	up.param_size = sizeof(param);
-	dv[0] = param.jd->width;
-	dv[1] = param.jd->height;
-	if (media_frame_set_dimension(df, 2, dv) && media_frame_touch_data(df) &&
-		media_runtime_post_unit(&up, &param, media_runtime_get_media(rt)))
+	if (media_runtime_post_unit(&up, &param, NULL))
 		return task;
 	return NULL;
 }
@@ -127,9 +123,12 @@ static d_media_runtime__emit(jpeg_idct_d8)
 	struct media_transform_param__jpeg_idct_t param;
 	struct media_runtime_unit_param_t up;
 	uintptr_t i, n;
-	jd = (struct mi_jpeg_decode_s *) step->pri;
-	df = (struct media_frame_s *) step->dst;
-	// check ... channel
+	jd = (struct mi_jpeg_decode_s *) pri_data[0];
+	df = (struct media_frame_s *) pri_data[1];
+	if (!media_frame_set_dimension(df, 2, (const uintptr_t []) {jd->width, jd->height}))
+		goto label_fail;
+	if (!media_frame_touch_data(df))
+		goto label_fail;
 	if ((n = jd->ch_number) == df->channel)
 	{
 		for (i = 0; i < n; ++i)
@@ -165,7 +164,7 @@ static d_media_runtime__emit(jpeg_idct_d8)
 
 static d_media_transform__task_append(jpeg)
 {
-	struct mi_jpeg_decode_s *restrict pri;
+	struct mi_jpeg_decode_s *restrict jd;
 	struct mi_jpeg_decode_param_t param;
 	param.fdct8x8 = ((const struct media_transform_id_jpeg_s *) tf->id)->fdct8x8;
 	param.zigzag8x8 = ((const struct media_transform_id_jpeg_s *) tf->id)->zigzag8x8;
@@ -175,24 +174,22 @@ static d_media_transform__task_append(jpeg)
 	param.f_size = sf->channel_chip[0]->size;
 	param.q_size = sf->channel_chip[1]->size;
 	param.h_size = sf->channel_chip[2]->size;
-	if ((pri = mi_jpeg_decode_alloc(&param)))
+	if ((jd = mi_jpeg_decode_alloc(&param)))
 	{
 		struct media_runtime_task_step_t steps[] = {
 			{
 				.emit = media_runtime_symbol(emit, jpeg_parse),
-				.pri = pri,
-				.src = sf,
-				.dst = df,
+				.pri_number = 3,
+				.pri_data = (const refer_t []) {sf, jd, tf->media}
 			},
 			{
 				.emit = media_runtime_symbol(emit, jpeg_idct_d8),
-				.pri = pri,
-				.src = sf,
-				.dst = df,
+				.pri_number = 2,
+				.pri_data = (const refer_t []) {jd, df}
 			}
 		};
 		list = media_runtime_task_list_append(list, steps, sizeof(steps) / sizeof(*steps));
-		refer_free(pri);
+		refer_free(jd);
 		return list;
 	}
 	return NULL;

@@ -26,6 +26,6 @@ struct media_transform_param__d2c1_t {
 	uintptr_t w;
 	uintptr_t yn;
 };
-struct media_runtime_task_s* media_transform_inner_image_emit__d2c1(struct media_runtime_task_s *restrict task, const struct media_runtime_task_step_t *restrict step, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc, media_runtime_deal_f deal, refer_t data);
+struct media_runtime_task_s* media_transform_inner_image_emit__d2c1(struct media_runtime_task_s *restrict task, const struct media_frame_s *restrict sf, struct media_frame_s *restrict df, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc, media_runtime_deal_f deal, refer_t data);
 
 #endif

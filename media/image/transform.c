@@ -15,14 +15,10 @@ void* media_transform_inner_image_cinfo(const struct media_channel_s *restrict c
 
 // d2c1
 
-struct media_runtime_task_s* media_transform_inner_image_emit__d2c1(struct media_runtime_task_s *restrict task, const struct media_runtime_task_step_t *restrict step, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc, media_runtime_deal_f deal, refer_t data)
+struct media_runtime_task_s* media_transform_inner_image_emit__d2c1(struct media_runtime_task_s *restrict task, const struct media_frame_s *restrict sf, struct media_frame_s *restrict df, struct media_runtime_s *restrict rt, struct media_runtime_unit_context_s *restrict uc, media_runtime_deal_f deal, refer_t data)
 {
-	const struct media_frame_s *restrict sf;
-	struct media_frame_s *restrict df;
 	struct media_transform_param__d2c1_t param;
 	uintptr_t n, sl, dl, h, dh;
-	sf = (const struct media_frame_s *) step->src;
-	df = (struct media_frame_s *) step->dst;
 	if (media_frame_set_dimension(df, sf->id->dimension, sf->dv) && media_frame_touch_data(df) &&
 		(param.src = media_transform_inner_image_cinfo(sf->channel_chip[0], &param.w, &h, &sl, &param.src_skip)) &&
 		(param.dst = media_transform_inner_image_cinfo(df->channel_chip[0], NULL, NULL, &dl, &param.dst_skip)))

@@ -102,7 +102,7 @@ struct media_io_s* media_io_create_fsys(const char *restrict path, fsys_file_fla
 
 // runtime
 
-struct media_runtime_s* media_runtime_alloc(const struct media_s *restrict media, uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly);
+struct media_runtime_s* media_runtime_alloc(uintptr_t unit_core_number, uintptr_t task_queue_limit, uintptr_t friendly);
 void media_runtime_stop(struct media_runtime_s *restrict runtime);
 
 struct media_runtime_task_s* media_runtime_task_cancel(struct media_runtime_task_s *restrict task);
