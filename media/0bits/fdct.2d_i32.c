@@ -34,6 +34,7 @@ void media_fdct_2d_i32_fdct(const struct media_fdct_2d_i32_s *restrict fdct, int
 	uintptr_t rank, rkv, rku, rky;
 	int64_t t, mask;
 	uint32_t rsh;
+	int32_t c_rkv_y;
 	rank = (uintptr_t) fdct->rank;
 	rsh = fdct->rsh << 1;
 	mask = (int64_t) 1 << (rsh - 1);
@@ -44,8 +45,9 @@ void media_fdct_2d_i32_fdct(const struct media_fdct_2d_i32_s *restrict fdct, int
 			t = 0;
 			for (y = rky = 0; y < rank; ++y, rky += rank)
 			{
+				c_rkv_y = fdct->coefficient[rkv + y];
 				for (x = 0; x < rank; ++x)
-					t += (int64_t) src[rky + x] * fdct->coefficient[rku + x] * fdct->coefficient[rkv + y];
+					t += (int64_t) src[rky + x] * fdct->coefficient[rku + x] * c_rkv_y;
 			}
 			dst[rkv + u] = (int32_t) ((t + (t & mask)) >> rsh);
 		}
@@ -58,6 +60,7 @@ void media_fdct_2d_i32_idct(const struct media_fdct_2d_i32_s *restrict fdct, int
 	uintptr_t rank, rky, rkv, rku;
 	int64_t t, mask;
 	uint32_t rsh;
+	int32_t c_rkv_y;
 	rank = (uintptr_t) fdct->rank;
 	rsh = fdct->rsh << 1;
 	mask = (int64_t) 1 << (rsh - 1);
@@ -68,9 +71,9 @@ void media_fdct_2d_i32_idct(const struct media_fdct_2d_i32_s *restrict fdct, int
 			t = 0;
 			for (v = rkv = 0; v < rank; ++v, rkv += rank)
 			{
-				rkv = v * rank;
+				c_rkv_y = fdct->coefficient[rkv + y];
 				for (u = rku = 0; u < rank; ++u, rku += rank)
-					t += (int64_t) src[rkv + u] * fdct->coefficient[rku + x] * fdct->coefficient[rkv + y];
+					t += (int64_t) src[rkv + u] * fdct->coefficient[rku + x] * c_rkv_y;
 			}
 			dst[rky + x] = (int32_t) ((t + (t & mask)) >> rsh);
 		}

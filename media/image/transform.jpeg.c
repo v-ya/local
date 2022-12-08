@@ -54,7 +54,7 @@ static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_pars
 	struct media_bits_reader_t reader;
 	if (media_bits_reader_initial_be(&reader, param->data, param->size, media_bits_reader_next_bytes__jpeg))
 	{
-		media_verbose(param->media, "[deal] jpeg_parse ...");
+		// media_verbose(param->media, "[deal] jpeg_parse ...");
 		if (mi_jpeg_decode_load(param->jd, &reader))
 			return param;
 	}
@@ -80,11 +80,47 @@ static d_media_runtime__emit(jpeg_parse)
 	return NULL;
 }
 
+static void media_transform_inner_jpeg_idct_d8(const struct mi_jpeg_codec_i8x8_t *restrict src, const struct media_fdct_2d_i32_s *fdct8x8, uint8_t *restrict dst, const struct mi_jpeg_decode_ch_t *restrict ch, uintptr_t x, uintptr_t y)
+{
+	struct mi_jpeg_codec_i8x8_t pixel;
+	const int32_t *restrict p;
+	uint8_t *restrict q;
+	uintptr_t w, h, sp, dp;
+	int32_t pixel_add, min, max, v;
+	if (x < ch->width && y < ch->height)
+	{
+		media_fdct_2d_i32_idct(fdct8x8, pixel.v, src->v);
+		w = h = sp = 8;
+		if (x + w > ch->width) w = ch->width - x;
+		if (y + h > ch->height) h = ch->height - y;
+		sp -= w;
+		dp = x;
+		pixel_add = (int32_t) 1 << (uint32_t) (ch->depth_bits - 1);
+		min = 0;
+		max = ((int32_t) 1 << (uint32_t) ch->depth_bits) - 1;
+		p = pixel.v;
+		q = dst + (y * ch->width + x);
+		for (y = 0; y < h; ++y)
+		{
+			for (x = 0; x < w; ++x)
+			{
+				v = (*p++) + pixel_add;
+				if (v < min) v = min;
+				if (v > max) v = max;
+				*q++ = (uint8_t) v;
+			}
+			p += sp;
+			q += dp;
+		}
+	}
+}
+
 static d_media_runtime__deal(jpeg_idct_d8, struct media_transform_param__jpeg_idct_t, refer_t)
 {
 	struct mi_jpeg_decode_s *restrict jd;
-	struct mi_jpeg_decode_ch_t *restrict ch;
-	struct mi_jpeg_codec_i8x8_t *restrict d;
+	const struct mi_jpeg_decode_ch_t *restrict ch;
+	const struct mi_jpeg_codec_i8x8_t *restrict d;
+	uint8_t *restrict channel_dst;
 	uintptr_t mcu_x, mcu_y, i, n, c, cn, xx, yy;
 	jd = param->jd;
 	i = param->mcu_index;
@@ -97,12 +133,15 @@ static d_media_runtime__deal(jpeg_idct_d8, struct media_transform_param__jpeg_id
 		{
 			ch = jd->ch + c;
 			d = ch->data + i * ch->mcu_npm;
+			channel_dst = (uint8_t *) param->df->channel_chip[c]->data;
 			for (yy = 0; yy < ch->mcu_nph; ++yy)
 			{
 				for (xx = 0; xx < ch->mcu_npw; ++xx)
 				{
-					// d => idct => df.c(mcu_x * ch->mcu_npw + xx, mcu_y * ch->mcu_nph + yy) + (8, 8)
-					;
+					media_transform_inner_jpeg_idct_d8(
+						d, jd->fdct8x8, channel_dst, ch,
+						mcu_x * ch->mcu_npw + xx,
+						mcu_y * ch->mcu_nph + yy);
 					++d;
 				}
 			}
