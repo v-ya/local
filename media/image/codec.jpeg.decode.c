@@ -97,6 +97,8 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 	r->fdct8x8 = (const struct media_fdct_2d_i32_s *) refer_save(param->fdct8x8);
 	r->zigzag8x8 = (const struct media_zigzag_s *) refer_save(param->zigzag8x8);
 	r->huffman = huffman = media_huffman_decode_alloc((media_huffman_index_t) f->h_number);
+	r->width = (uintptr_t) f->width;
+	r->height = (uintptr_t) f->height;
 	r->mcu_w_max = (uintptr_t) mcu_w_max;
 	r->mcu_h_max = (uintptr_t) mcu_h_max;
 	r->mcu_w_number = mcu_w_number;
@@ -120,6 +122,8 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 		r->ch[i].mcu_nph = (uintptr_t) f->ch[i].mcu_nv;
 		r->ch[i].mcu_npm = r->ch[i].mcu_npw * r->ch[i].mcu_nph;
 		r->ch[i].depth_bits = f->depth;
+		r->ch[i].width = (r->width * r->ch[i].mcu_npw + r->mcu_w_max - 1) / r->mcu_w_max;
+		r->ch[i].height = (r->height * r->ch[i].mcu_nph + r->mcu_h_max - 1) / r->mcu_h_max;
 		if (f->ch[i].q_index >= f->q_number)
 			goto label_fail;
 		r->ch[i].q = (const uint32_t *) (param->q + f->ch[i].q_index * qsize);

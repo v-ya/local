@@ -7,6 +7,13 @@ struct media_transform_param__jpeg_parse_t {
 	uintptr_t size;
 };
 
+struct media_transform_param__jpeg_idct_t {
+	struct mi_jpeg_decode_s *jd;
+	struct media_frame_s *df;
+	uintptr_t mcu_index;
+	uintptr_t mcu_number;
+};
+
 static const uint8_t* media_bits_reader_next_bytes__jpeg(struct media_bits_reader_t *restrict reader, uintptr_t *restrict nbyte)
 {
 	const uint8_t *restrict u8;
@@ -46,13 +53,9 @@ static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_pars
 	struct media_bits_reader_t reader;
 	if (media_bits_reader_initial_be(&reader, param->data, param->size, media_bits_reader_next_bytes__jpeg))
 	{
-		media_verbose(data, "[deal] jpeg_parse ...");
+		// media_verbose(data, "[deal] jpeg_parse ...");
 		if (mi_jpeg_decode_load(param->jd, &reader))
-		{
-			media_verbose(data, "[deal] jpeg_parse ... bits-res: %zu", media_bits_reader_bits_res(&reader));
 			return param;
-		}
-		media_warning(data, "[deal] jpeg_parse ... fail");
 	}
 	return NULL;
 }
@@ -60,9 +63,12 @@ static d_media_runtime__deal(jpeg_parse, struct media_transform_param__jpeg_pars
 static d_media_runtime__emit(jpeg_parse)
 {
 	const struct media_frame_s *restrict sf;
+	struct media_frame_s *restrict df;
 	struct media_transform_param__jpeg_parse_t param;
 	struct media_runtime_unit_param_t up;
+	uintptr_t dv[2];
 	sf = (const struct media_frame_s *) step->src;
+	df = (struct media_frame_s *) step->dst;
 	param.jd = (struct mi_jpeg_decode_s *) step->pri;
 	param.data = sf->channel_chip[3]->data;
 	param.size = sf->channel_chip[3]->size;
@@ -70,8 +76,90 @@ static d_media_runtime__emit(jpeg_parse)
 	up.context = uc;
 	up.deal = (media_runtime_deal_f) media_runtime_symbol(deal, jpeg_parse);
 	up.param_size = sizeof(param);
-	if (media_runtime_post_unit(&up, &param, media_runtime_get_media(rt)))
+	dv[0] = param.jd->width;
+	dv[1] = param.jd->height;
+	if (media_frame_set_dimension(df, 2, dv) && media_frame_touch_data(df) &&
+		media_runtime_post_unit(&up, &param, media_runtime_get_media(rt)))
 		return task;
+	return NULL;
+}
+
+static d_media_runtime__deal(jpeg_idct_d8, struct media_transform_param__jpeg_idct_t, refer_t)
+{
+	struct mi_jpeg_decode_s *restrict jd;
+	struct mi_jpeg_decode_ch_t *restrict ch;
+	struct mi_jpeg_codec_i8x8_t *restrict d;
+	uintptr_t mcu_x, mcu_y, i, n, c, cn, xx, yy;
+	jd = param->jd;
+	i = param->mcu_index;
+	mcu_y = i / jd->mcu_w_number;
+	mcu_x = i % jd->mcu_w_number;
+	cn = jd->ch_number;
+	for (n = i + param->mcu_number; i < n; ++i)
+	{
+		for (c = 0; c < cn; ++c)
+		{
+			ch = jd->ch + c;
+			d = ch->data + i * ch->mcu_npm;
+			for (yy = 0; yy < ch->mcu_nph; ++yy)
+			{
+				for (xx = 0; xx < ch->mcu_npw; ++xx)
+				{
+					// d => idct => df.c(mcu_x * ch->mcu_npw + xx, mcu_y * ch->mcu_nph + yy) + (8, 8)
+					;
+					++d;
+				}
+			}
+		}
+		if (++mcu_x >= jd->mcu_w_number)
+		{
+			mcu_x -= jd->mcu_w_number;
+			mcu_y += 1;
+		}
+	}
+	return param;
+}
+
+static d_media_runtime__emit(jpeg_idct_d8)
+{
+	struct mi_jpeg_decode_s *restrict jd;
+	struct media_frame_s *restrict df;
+	struct media_transform_param__jpeg_idct_t param;
+	struct media_runtime_unit_param_t up;
+	uintptr_t i, n;
+	jd = (struct mi_jpeg_decode_s *) step->pri;
+	df = (struct media_frame_s *) step->dst;
+	// check ... channel
+	if ((n = jd->ch_number) == df->channel)
+	{
+		for (i = 0; i < n; ++i)
+		{
+			if (jd->ch[i].width * jd->ch[i].height != df->channel_chip[i]->size)
+				goto label_fail;
+		}
+	}
+	// post ...
+	param.jd = jd;
+	param.df = df;
+	param.mcu_index = 0;
+	param.mcu_number = 0;
+	up.runtime = rt;
+	up.context = uc;
+	up.deal = (media_runtime_deal_f) media_runtime_symbol(deal, jpeg_idct_d8);
+	up.param_size = sizeof(param);
+	i = media_runtime_unit_core_number(rt);
+	n = jd->mcu_w_number * jd->mcu_h_number;
+	i = (n + i - 1) / i;
+	while (n && task)
+	{
+		param.mcu_number = i = (i <= n)?i:n;
+		if (!media_runtime_post_unit(&up, &param, NULL))
+			task = NULL;
+		param.mcu_index += i;
+		n -= i;
+	}
+	return task;
+	label_fail:
 	return NULL;
 }
 
@@ -92,6 +180,12 @@ static d_media_transform__task_append(jpeg)
 		struct media_runtime_task_step_t steps[] = {
 			{
 				.emit = media_runtime_symbol(emit, jpeg_parse),
+				.pri = pri,
+				.src = sf,
+				.dst = df,
+			},
+			{
+				.emit = media_runtime_symbol(emit, jpeg_idct_d8),
 				.pri = pri,
 				.src = sf,
 				.dst = df,

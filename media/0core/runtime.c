@@ -203,7 +203,10 @@ static void media_runtime_daemon_emit(struct media_runtime_s *restrict rt, struc
 		if ((uc = media_runtime_unit_context_alloc(task, rt->signal, rt->task_step)))
 		{
 			if (!step->emit || !step->emit(task, step, rt, uc))
-				goto label_fail;
+			{
+				m_task_result(task, none, fail);
+				m_task_status(task, running, cancel);
+			}
 			unit_commit_number = uc->unit_commit_number;
 			refer_free(uc);
 			if (!unit_commit_number)
@@ -214,7 +217,6 @@ static void media_runtime_daemon_emit(struct media_runtime_s *restrict rt, struc
 		}
 		else
 		{
-			label_fail:
 			m_task_result(task, none, fail);
 			m_task_status(task, running, cancel);
 		}

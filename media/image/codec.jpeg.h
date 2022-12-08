@@ -212,6 +212,8 @@ struct mi_jpeg_decode_ch_t {
 	uintptr_t mcu_nph;
 	uintptr_t mcu_npm;
 	uintptr_t depth_bits;
+	uintptr_t width;
+	uintptr_t height;
 	const uint32_t *q;
 	media_huffman_index_t hdc_index;
 	media_huffman_index_t hac_index;
@@ -222,6 +224,8 @@ struct mi_jpeg_decode_s {
 	const struct media_fdct_2d_i32_s *fdct8x8;
 	const struct media_zigzag_s *zigzag8x8;
 	const struct media_huffman_decode_s *huffman;
+	uintptr_t width;
+	uintptr_t height;
 	uintptr_t mcu_w_max;        // mcu_pixel_width / 8
 	uintptr_t mcu_h_max;        // mcu_pixel_height / 8
 	uintptr_t mcu_w_number;     // [image_pixel_width / mcu_pixel_width]
