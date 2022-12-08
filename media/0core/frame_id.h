@@ -5,11 +5,14 @@
 #include "cell.h"
 #include "channel.h"
 
+typedef void (*media_frame_touch_initial_f)(struct media_channel_s *restrict channel, uintptr_t channel_index);
+
 struct media_frame_id_s {
 	refer_string_t name;
 	refer_string_t compat;
 	uintptr_t channel;
 	uintptr_t dimension;
+	media_frame_touch_initial_f touch_initial;
 	struct media_cell_info_t cell[];
 };
 

@@ -67,7 +67,7 @@ struct media_channel_s* media_channel_touch_data(struct media_channel_s *restric
 		goto label_okay;
 	if (channel->data_source)
 		refer_free(channel->data_source);
-	if ((channel->data_source = refer_alloz(channel->size)))
+	if ((channel->data_source = refer_alloc(channel->size)))
 	{
 		channel->data = (void *) channel->data_source;
 		label_okay:

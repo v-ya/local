@@ -96,13 +96,21 @@ const struct media_frame_s* media_frame_exist_data(const struct media_frame_s *r
 struct media_frame_s* media_frame_touch_data(struct media_frame_s *restrict frame)
 {
 	struct media_channel_s *const *restrict channel_chip;
+	struct media_channel_s *restrict ch;
+	media_frame_touch_initial_f touch_initial;
 	uintptr_t i, channel;
 	channel_chip = frame->channel_chip;
 	channel = frame->channel;
+	touch_initial = frame->id->touch_initial;
 	for (i = 0; i < channel; ++i)
 	{
-		if (!media_channel_touch_data(channel_chip[i]))
+		ch = channel_chip[i];
+		if (ch->data || !ch->size)
+			continue;
+		if (!media_channel_touch_data(ch))
 			frame = NULL;
+		else if (touch_initial)
+			touch_initial(ch, i);
 	}
 	return frame;
 }

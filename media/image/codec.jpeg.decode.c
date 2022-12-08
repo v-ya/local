@@ -1,32 +1,44 @@
 #include "codec.jpeg.h"
 
-static struct media_huffman_decode_s* mi_jpeg_decode_huffman_initial(struct media_huffman_decode_s *restrict huffman, media_huffman_index_t hi, const uint8_t *restrict h, uintptr_t n)
+static uintptr_t mi_jpeg_decode_parse_huffman(struct media_huffman_decode_s *restrict huffman, media_huffman_index_t hi, const uint8_t *restrict h, uintptr_t n)
 {
-	const uint8_t *restrict L;
-	uintptr_t index, number, v, vn;
+	uintptr_t index, number, pos, end;
 	number = 16;
-	if (n >= number)
+	if (number <= n)
 	{
-		L = h;
-		h += number;
-		n -= number;
-		while (number && !L[number - 1]) --number;
+		pos = end = number;
+		while (number && !h[number - 1]) --number;
 		for (index = 0; index < number; ++index)
 		{
-			vn = (uintptr_t) L[index];
-			if (n < vn) goto label_fail;
+			if ((end += (uintptr_t) h[index]) > n)
+				goto label_fail;
 			if (!media_huffman_decode_add_bits(huffman, hi))
 				goto label_fail;
-			for (v = 0; v < vn; ++v)
+			while (pos < end)
 			{
-				if (!media_huffman_decode_add_value(huffman, hi, h + v))
+				if (!media_huffman_decode_add_value(huffman, hi, h + pos))
 					goto label_fail;
+				++pos;
 			}
-			h += vn;
-			n -= vn;
 		}
-		if (!n) return huffman;
+		return pos;
 	}
+	label_fail:
+	return 0;
+}
+
+static struct media_huffman_decode_s* mi_jpeg_decode_initial_huffman(struct media_huffman_decode_s *restrict huffman, const uint8_t *restrict data, uintptr_t size, media_huffman_index_t number)
+{
+	media_huffman_index_t index;
+	uintptr_t length;
+	for (index = 0; index < number; ++index)
+	{
+		if (!(length = mi_jpeg_decode_parse_huffman(huffman, index, data, size)))
+			goto label_fail;
+		data += length;
+		size -= length;
+	}
+	if (!size) return huffman;
 	label_fail:
 	return NULL;
 }
@@ -44,7 +56,7 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 	const struct mi_jpeg_frame_t *restrict f;
 	struct media_huffman_decode_s *restrict huffman;
 	struct mi_jpeg_codec_i8x8_t *restrict data;
-	uintptr_t i, n, nn;
+	uintptr_t i, n, nn, qsize;
 	uintptr_t mcu_w_number;
 	uintptr_t mcu_h_number;
 	uintptr_t mcu_unit_number;
@@ -84,7 +96,7 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 		goto label_fail;
 	r->fdct8x8 = (const struct media_fdct_2d_i32_s *) refer_save(param->fdct8x8);
 	r->zigzag8x8 = (const struct media_zigzag_s *) refer_save(param->zigzag8x8);
-	r->huffman = huffman = media_huffman_decode_alloc((media_huffman_index_t) mcu_unit_number * 2);
+	r->huffman = huffman = media_huffman_decode_alloc((media_huffman_index_t) f->h_number);
 	r->mcu_w_max = (uintptr_t) mcu_w_max;
 	r->mcu_h_max = (uintptr_t) mcu_h_max;
 	r->mcu_w_number = mcu_w_number;
@@ -95,6 +107,11 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 	refer_set_free(r, (refer_free_f) mi_jpeg_decode_free_func);
 	if (!r->fdct8x8 || !r->zigzag8x8 || !r->huffman)
 		goto label_fail;
+	qsize = sizeof(*data) / sizeof(*data->v) * sizeof(*r->ch[i].q);
+	if (f->q_number * qsize != param->q_size)
+		goto label_fail;
+	if (!mi_jpeg_decode_initial_huffman(huffman, param->h, param->h_size, (media_huffman_index_t) f->h_number))
+		goto label_fail;
 	data = (struct mi_jpeg_codec_i8x8_t *) ((struct mi_jpeg_decode_ch_t *) (r + 1) + n);
 	nn = mcu_w_number * mcu_h_number;
 	for (i = 0; i < n; ++i)
@@ -103,21 +120,15 @@ struct mi_jpeg_decode_s* mi_jpeg_decode_alloc(const struct mi_jpeg_decode_param_
 		r->ch[i].mcu_nph = (uintptr_t) f->ch[i].mcu_nv;
 		r->ch[i].mcu_npm = r->ch[i].mcu_npw * r->ch[i].mcu_nph;
 		r->ch[i].depth_bits = f->depth;
-		if ((uintptr_t) f->ch[i].q_offset + f->ch[i].q_size > param->q_size)
+		if (f->ch[i].q_index >= f->q_number)
 			goto label_fail;
-		if (f->ch[i].q_size != (sizeof(*data) / sizeof(*data->v) * sizeof(*r->ch[i].q)))
+		r->ch[i].q = (const uint32_t *) (param->q + f->ch[i].q_index * qsize);
+		if (f->ch[i].hdc_index >= f->h_number)
 			goto label_fail;
-		r->ch[i].q = (const uint32_t *) (param->q + f->ch[i].q_offset);
-		if ((uintptr_t) f->ch[i].hdc_offset + f->ch[i].hdc_size > param->h_size)
+		if (f->ch[i].hac_index >= f->h_number)
 			goto label_fail;
-		if ((uintptr_t) f->ch[i].hac_offset + f->ch[i].hac_size > param->h_size)
-			goto label_fail;
-		r->ch[i].hdc_index = (media_huffman_index_t) (i * 2);
-		r->ch[i].hac_index = (media_huffman_index_t) (i * 2 + 1);
-		if (!mi_jpeg_decode_huffman_initial(huffman, r->ch[i].hdc_index, param->h + f->ch[i].hdc_offset, (uintptr_t) f->ch[i].hdc_size))
-			goto label_fail;
-		if (!mi_jpeg_decode_huffman_initial(huffman, r->ch[i].hac_index, param->h + f->ch[i].hac_offset, (uintptr_t) f->ch[i].hac_size))
-			goto label_fail;
+		r->ch[i].hdc_index = (media_huffman_index_t) f->ch[i].hdc_index;
+		r->ch[i].hac_index = (media_huffman_index_t) f->ch[i].hac_index;
 		r->ch[i].data = data;
 		data += r->ch[i].mcu_npm * nn;
 	}

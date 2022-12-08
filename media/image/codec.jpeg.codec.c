@@ -1,6 +1,7 @@
 #include "codec.jpeg.h"
 #include "../media.frame.h"
 #include <memory.h>
+#include <alloca.h>
 
 static void mi_jpeg_codec_free_func(struct mi_jpeg_codec_s *restrict r)
 {
@@ -78,6 +79,7 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_q(struct mi_jpeg_codec_s *restrict jc
 		else goto label_fail;
 		if (!rbtree_insert(&jc->q, NULL, (uint64_t) id, q, mi_jpeg_codec_rbtree_free_func))
 			goto label_fail;
+		jc->q_number += 1;
 		q = NULL;
 	}
 	if (!size)
@@ -128,6 +130,7 @@ struct mi_jpeg_codec_s* mi_jpeg_codec_load_h(struct mi_jpeg_codec_s *restrict jc
 		size -= vn;
 		if (!rbtree_insert(target, NULL, (uint64_t) id, h, mi_jpeg_codec_rbtree_free_func))
 			goto label_fail;
+		jc->h_number += 1;
 		h = NULL;
 	}
 	if (!size)
@@ -284,21 +287,23 @@ static void mi_jpeg_codec_create_frame_info_func_write_qh(rbtree_t *restrict rbv
 	const struct mi_jpeg_codec_s *restrict jc;
 	const struct mi_jpeg_quantization_s *restrict q;
 	const struct mi_jpeg_huffman_s *restrict h;
+	uintptr_t offset;
 	r = (const struct mi_jpeg_frame_info_s *) argv[0];
 	jc = (const struct mi_jpeg_codec_s *) argv[1];
+	offset = ((uintptr_t *) rbv->value)[0];
 	switch ((uint32_t) (rbv->key_index >> 32))
 	{
 		case 1: // q
 			q = mi_jpeg_codec_find_quantization(jc, (uint32_t) rbv->key_index);
-			memcpy(r->q + (uintptr_t) rbv->value, q, sizeof(*q));
+			memcpy(r->q + offset, q, sizeof(*q));
 			break;
 		case 2: // h dc
 			h = mi_jpeg_codec_find_huffman_dc(jc, (uint32_t) rbv->key_index);
-			memcpy(r->h + (uintptr_t) rbv->value, h->L, h->size);
+			memcpy(r->h + offset, h->L, h->size);
 			break;
 		case 3: // h ac
 			h = mi_jpeg_codec_find_huffman_ac(jc, (uint32_t) rbv->key_index);
-			memcpy(r->h + (uintptr_t) rbv->value, h->L, h->size);
+			memcpy(r->h + offset, h->L, h->size);
 			break;
 		default:
 			break;
@@ -315,6 +320,7 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 	const struct mi_jpeg_huffman_s *restrict h;
 	struct mi_jpeg_frame_t *restrict f;
 	rbtree_t *hit, *restrict rbv;
+	uintptr_t *restrict offset_and_id;
 	uint64_t key;
 	uint32_t i, n;
 	const void *argv[2];
@@ -333,6 +339,10 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 			f->height = sof->height;
 			f->depth = sof->ch_depth;
 			f->channel = n = sos->ch_number;
+			f->q_number = 0;
+			f->h_number = 0;
+			if (!(offset_and_id = (uintptr_t *) alloca(sizeof(uintptr_t) * 2 * (jc->q_number + jc->h_number))))
+				goto label_fail;
 			for (i = 0; i < n; ++i)
 			{
 				if (!(ch = mi_jpeg_sof_find_ch(sof, sos->ch[i].cid)))
@@ -343,32 +353,41 @@ struct mi_jpeg_frame_info_s* mi_jpeg_codec_create_frame_info(const struct mi_jpe
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 1 << 32) | sos->ch[i].qid)))
 				{
-					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->q_size, NULL)))
+					offset_and_id[0] = r->q_size;
+					offset_and_id[1] = f->q_number;
+					if (!(rbv = rbtree_insert(&hit, NULL, key, offset_and_id, NULL)))
 						goto label_fail;
+					offset_and_id += 2;
 					r->q_size += sizeof(*q);
+					f->q_number += 1;
 				}
-				f->ch[i].q_offset = (uintptr_t) rbv->value;
-				f->ch[i].q_size = sizeof(*q);
+				f->ch[i].q_index = ((uintptr_t *) rbv->value)[1];
 				if (!(h = mi_jpeg_codec_find_huffman_dc(jc, sos->ch[i].hdcid)))
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 2 << 32) | sos->ch[i].hdcid)))
 				{
-					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->h_size, NULL)))
+					offset_and_id[0] = r->h_size;
+					offset_and_id[1] = f->h_number;
+					if (!(rbv = rbtree_insert(&hit, NULL, key, offset_and_id, NULL)))
 						goto label_fail;
+					offset_and_id += 2;
 					r->h_size += h->size;
+					f->h_number += 1;
 				}
-				f->ch[i].hdc_offset = (uintptr_t) rbv->value;
-				f->ch[i].hdc_size = h->size;
+				f->ch[i].hdc_index = ((uintptr_t *) rbv->value)[1];
 				if (!(h = mi_jpeg_codec_find_huffman_ac(jc, sos->ch[i].hacid)))
 					goto label_fail;
 				if (!(rbv = rbtree_find(&hit, NULL, key = ((uint64_t) 3 << 32) | sos->ch[i].hacid)))
 				{
-					if (!(rbv = rbtree_insert(&hit, NULL, key, (const void *) r->h_size, NULL)))
+					offset_and_id[0] = r->h_size;
+					offset_and_id[1] = f->h_number;
+					if (!(rbv = rbtree_insert(&hit, NULL, key, offset_and_id, NULL)))
 						goto label_fail;
+					offset_and_id += 2;
 					r->h_size += h->size;
+					f->h_number += 1;
 				}
-				f->ch[i].hac_offset = (uintptr_t) rbv->value;
-				f->ch[i].hac_size = h->size;
+				f->ch[i].hac_index = ((uintptr_t *) rbv->value)[1];
 			}
 			if (!(r->q = (uint8_t *) refer_alloc(r->q_size)) ||
 				!(r->h = (uint8_t *) refer_alloc(r->h_size)))

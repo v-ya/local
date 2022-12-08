@@ -137,6 +137,8 @@ struct mi_jpeg_codec_s {
 	rbtree_t *q;
 	rbtree_t *h_dc;
 	rbtree_t *h_ac;
+	uintptr_t q_number;
+	uintptr_t h_number;
 	const struct mi_jpeg_sof_s *sof;
 	const struct mi_jpeg_sos_s *sos;
 };
@@ -144,12 +146,9 @@ struct mi_jpeg_codec_s {
 struct mi_jpeg_frame_ch_t {
 	uint32_t mcu_nh;
 	uint32_t mcu_nv;
-	uint32_t q_offset;
-	uint32_t q_size;
-	uint32_t hdc_offset;
-	uint32_t hdc_size;
-	uint32_t hac_offset;
-	uint32_t hac_size;
+	uint32_t q_index;
+	uint32_t hdc_index;
+	uint32_t hac_index;
 };
 
 struct mi_jpeg_frame_t {
@@ -157,6 +156,8 @@ struct mi_jpeg_frame_t {
 	uint32_t height;
 	uint32_t depth;
 	uint32_t channel;
+	uint32_t q_number;
+	uint32_t h_number;
 	struct mi_jpeg_frame_ch_t ch[];
 };
 
