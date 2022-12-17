@@ -136,6 +136,8 @@ const media_s* media_alloc(media_loglevel_t loglevel, struct mlog_s *restrict ml
 			// transform
 			media_alloc_add_transform(r, media_transform_create_image__bgra32_bgr24) &&
 			media_alloc_add_transform(r, media_transform_create_image__bgr24_bgra32) &&
+			media_alloc_add_transform(r, media_transform_create_image__yuv_8_411_bgra32) &&
+			media_alloc_add_transform(r, media_transform_create_image__yuv_8_111_bgra32) &&
 			media_alloc_add_transform(r, media_transform_create_image__jpeg_yuv_8_411) &&
 			media_alloc_add_transform(r, media_transform_create_image__jpeg_yuv_8_111) &&
 		1) return r;

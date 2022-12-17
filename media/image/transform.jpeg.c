@@ -80,7 +80,14 @@ static d_media_runtime__emit(jpeg_parse)
 	return NULL;
 }
 
-static void media_transform_inner_jpeg_idct_d8(const struct mi_jpeg_codec_i8x8_t *restrict src, const struct media_fdct_2d_i32_s *fdct8x8, uint8_t *restrict dst, const struct mi_jpeg_decode_ch_t *restrict ch, uintptr_t x, uintptr_t y)
+static void media_transform_inner_jpeg_mul_q(struct mi_jpeg_codec_i8x8_t *restrict idct, const uint32_t *restrict q)
+{
+	uintptr_t i, n;
+	for (i = 0, n = 64; i < n; ++i)
+		idct->v[i] *= q[i];
+}
+
+static void media_transform_inner_jpeg_idct_d8(struct mi_jpeg_codec_i8x8_t *restrict src, const struct media_fdct_2d_i32_s *fdct8x8, uint8_t *restrict dst, const struct mi_jpeg_decode_ch_t *restrict ch, uintptr_t x, uintptr_t y)
 {
 	struct mi_jpeg_codec_i8x8_t pixel;
 	const int32_t *restrict p;
@@ -89,12 +96,13 @@ static void media_transform_inner_jpeg_idct_d8(const struct mi_jpeg_codec_i8x8_t
 	int32_t pixel_add, min, max, v;
 	if (x < ch->width && y < ch->height)
 	{
+		media_transform_inner_jpeg_mul_q(src, ch->q);
 		media_fdct_2d_i32_idct(fdct8x8, pixel.v, src->v);
 		w = h = sp = 8;
 		if (x + w > ch->width) w = ch->width - x;
 		if (y + h > ch->height) h = ch->height - y;
 		sp -= w;
-		dp = x;
+		dp = ch->width - w;
 		pixel_add = (int32_t) 1 << (uint32_t) (ch->depth_bits - 1);
 		min = 0;
 		max = ((int32_t) 1 << (uint32_t) ch->depth_bits) - 1;
@@ -118,8 +126,8 @@ static void media_transform_inner_jpeg_idct_d8(const struct mi_jpeg_codec_i8x8_t
 static d_media_runtime__deal(jpeg_idct_d8, struct media_transform_param__jpeg_idct_t, refer_t)
 {
 	struct mi_jpeg_decode_s *restrict jd;
-	const struct mi_jpeg_decode_ch_t *restrict ch;
-	const struct mi_jpeg_codec_i8x8_t *restrict d;
+	struct mi_jpeg_decode_ch_t *restrict ch;
+	struct mi_jpeg_codec_i8x8_t *restrict d;
 	uint8_t *restrict channel_dst;
 	uintptr_t mcu_x, mcu_y, i, n, c, cn, xx, yy;
 	jd = param->jd;
@@ -140,8 +148,8 @@ static d_media_runtime__deal(jpeg_idct_d8, struct media_transform_param__jpeg_id
 				{
 					media_transform_inner_jpeg_idct_d8(
 						d, jd->fdct8x8, channel_dst, ch,
-						mcu_x * ch->mcu_npw + xx,
-						mcu_y * ch->mcu_nph + yy);
+						(mcu_x * ch->mcu_npw + xx) << 3,
+						(mcu_y * ch->mcu_nph + yy) << 3);
 					++d;
 				}
 			}

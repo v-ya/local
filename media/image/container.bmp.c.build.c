@@ -40,8 +40,8 @@ static struct media_container_inner_s* media_container_bmp_build_info_40(struct 
 	struct mi_bmp_info_40_t info;
 	struct media_container_pri_bmp_s *restrict pri;
 	pri = (struct media_container_pri_bmp_s *) ci->pri_data;
-	info.width = media_n2le_32(pri->width_signed);
-	info.height = media_n2le_32(pri->height_signed);
+	info.width = media_n2le_32((int32_t) pri->width);
+	info.height = media_n2le_32((pri->y_reverse?-(int32_t) pri->height:(int32_t) pri->height));
 	info.color_plane = media_n2le_16((uint16_t) pri->color_plane);
 	info.bpp = media_n2le_16((uint16_t) pri->bpp);
 	info.compression_method = media_n2le_32(pri->compression);

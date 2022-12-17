@@ -48,29 +48,21 @@ static d_media_attr_unset(bmp, version, struct media_container_pri_bmp_s)
 }
 static d_media_attr_set(bmp, width, struct media_container_pri_bmp_s)
 {
-	if (value->value.av_int >= 0)
-	{
-		pri->width_signed = (int32_t) value->value.av_int;
-		pri->width = (uint32_t) ((pri->width_signed >= 0)?pri->width_signed:-pri->width_signed);
-		return attr;
-	}
-	return NULL;
+	pri->width = (uint32_t) value->value.av_int;
+	return attr;
 }
 static d_media_attr_unset(bmp, width, struct media_container_pri_bmp_s)
 {
 	pri->width = 0;
-	pri->width_signed = 0;
 }
 static d_media_attr_set(bmp, height, struct media_container_pri_bmp_s)
 {
-	pri->height_signed = (int32_t) value->value.av_int;
-	pri->height = (uint32_t) ((pri->height_signed >= 0)?pri->height_signed:-pri->height_signed);
+	pri->height = (uint32_t) value->value.av_int;
 	return attr;
 }
 static d_media_attr_unset(bmp, height, struct media_container_pri_bmp_s)
 {
 	pri->height = 0;
-	pri->height_signed = 0;
 }
 static d_media_attr_set(bmp, color_plane, struct media_container_pri_bmp_s)
 {
@@ -167,14 +159,23 @@ static d_media_attr_unset(bmp, pixels_align, struct media_container_pri_bmp_s)
 {
 	pri->pixels_align = 4;
 }
+static d_media_attr_set(bmp, y_reverse, struct media_container_pri_bmp_s)
+{
+	pri->y_reverse = (uint32_t) !!value->value.av_int;
+	return attr;
+}
+static d_media_attr_unset(bmp, y_reverse, struct media_container_pri_bmp_s)
+{
+	pri->y_reverse = 0;
+}
 
 d_media_container__initial_judge(bmp)
 {
 	media_attr_judge_set_extra_clear(judge, (media_attr_unset_f) media_attr_symbol(unset, bmp, ));
 	if (d_media_attr_judge_add(judge, bmp, magic, media_nacs_bmp_magic, string) &&
 		d_media_attr_judge_add(judge, bmp, version, media_naci_bmp_version, uint32) &&
-		d_media_attr_judge_add(judge, bmp, width, media_naci_width, sint32) &&
-		d_media_attr_judge_add(judge, bmp, height, media_naci_height, sint32) &&
+		d_media_attr_judge_add(judge, bmp, width, media_naci_width, uint32) &&
+		d_media_attr_judge_add(judge, bmp, height, media_naci_height, uint32) &&
 		d_media_attr_judge_add(judge, bmp, color_plane, media_naci_bmp_color_plane, uint32) &&
 		d_media_attr_judge_add(judge, bmp, bpp, media_naci_bpp, uint32) &&
 		d_media_attr_judge_add(judge, bmp, compression, media_naci_bmp_compression, uint32) &&
@@ -182,7 +183,8 @@ d_media_container__initial_judge(bmp)
 		d_media_attr_judge_add(judge, bmp, yppm, media_naci_bmp_yppm, uint32) &&
 		d_media_attr_judge_add(judge, bmp, color_palette, media_naci_bmp_color_palette, uint32) &&
 		d_media_attr_judge_add(judge, bmp, used_color, media_naci_bmp_used_color, uint32) &&
-		d_media_attr_judge_add(judge, bmp, pixels_align, media_naci_bmp_pixels_align, uint32)
+		d_media_attr_judge_add(judge, bmp, pixels_align, media_naci_bmp_pixels_align, uint32) &&
+		d_media_attr_judge_add(judge, bmp, y_reverse, media_naci_bmp_y_reverse, int)
 	) return judge;
 	return NULL;
 }

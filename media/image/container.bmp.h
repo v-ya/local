@@ -17,8 +17,6 @@ struct media_container_pri_bmp_s {
 	// info ...
 	uint32_t width;
 	uint32_t height;
-	int32_t width_signed;
-	int32_t height_signed;
 	uint32_t color_plane;
 	uint32_t bpp;
 	uint32_t compression;
@@ -27,6 +25,7 @@ struct media_container_pri_bmp_s {
 	uint32_t color_palette;
 	uint32_t used_color;
 	uint32_t pixels_align;
+	uint32_t y_reverse;
 };
 
 // packed

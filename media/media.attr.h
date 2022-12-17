@@ -16,6 +16,7 @@
 #define media_naci_bmp_color_palette  "c.bmp.color_palette"  // 0 and 2^n
 #define media_naci_bmp_used_color     "c.bmp.used_color"     // 0 is every color
 #define media_naci_bmp_pixels_align   "c.bmp.pixels_align"   // [1, 16]
+#define media_naci_bmp_y_reverse      "c.bmp.y_reverse"      // 1, 0
 
 // stream
 
