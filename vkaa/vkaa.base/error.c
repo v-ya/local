@@ -252,6 +252,6 @@ void vkaa_elog_print_exec(const vkaa_elog_s *restrict elog, uintptr_t exec_pos, 
 {
 	const vkaa_elog_exec_t *restrict exec;
 	if ((exec = vkaa_elog_find(elog, exec_pos)))
-		vkaa_elog_print(elog->parse, exec->source, exec->syntax_pos_start, exec->syntax_pos_stop, exec_pos, message);
-	else vkaa_elog_print(elog->parse, NULL, 0, 0, exec_pos, message);
+		vkaa_elog_print(elog->exec, exec->source, exec->syntax_pos_start, exec->syntax_pos_stop, exec_pos, message);
+	else vkaa_elog_print(elog->exec, NULL, 0, 0, exec_pos, message);
 }
