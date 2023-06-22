@@ -371,7 +371,7 @@ static const vkaa_selector_param_t* vkaa_std_selector_fix_input(const vkaa_selec
 		{
 			switch (vkaa_std_selector_test_input_hit(param, input_list[i], n, ++input_typeid, &rt))
 			{
-				case 2: continue;
+				case 2: break;
 				case 1:
 				case 0:
 					if (!(cf = vkaa_std_convert_by_typeid(param->exec, param->tpool, input_list[i], rt)))
