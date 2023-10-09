@@ -5,21 +5,32 @@
 #include <refer.h>
 
 typedef enum abc_adora_vflag_t abc_adora_vflag_t;
+typedef enum abc_adora_itype_t abc_adora_itype_t;
 typedef union abc_adora_value_t abc_adora_value_t;
-typedef struct abc_adora_type_t abc_adora_type_t;
+typedef struct abc_adora_vtype_t abc_adora_vtype_t;
+typedef struct abc_adora_var_t abc_adora_var_t;
+typedef struct abc_adora_symbol_t abc_adora_symbol_t;
+typedef struct abc_adora_relocate_t abc_adora_relocate_t;
+typedef struct abc_adora_import_setting_t abc_adora_import_setting_t;
+typedef struct abc_adora_import_offset_t abc_adora_import_offset_t;
+typedef struct abc_adora_icode_t abc_adora_icode_t;
 
-typedef struct abc_adora_mcode_s abc_adora_mcode_s;
-typedef abc_adora_mcode_s* (*abc_adora_mcode_append_f)(abc_adora_mcode_s *restrict m, const void *restrict data, uintptr_t size);
-typedef abc_adora_mcode_s* (*abc_adora_mcode_fillch_f)(abc_adora_mcode_s *restrict m, int32_t ch, uintptr_t count);
-typedef uintptr_t (*abc_adora_mcode_offset_f)(const abc_adora_mcode_s *restrict m);
-typedef abc_adora_mcode_s* (*abc_adora_mcode_restore_f)(abc_adora_mcode_s *restrict m, uintptr_t offset);
-typedef uint8_t* (*abc_adora_mcode_mapping_f)(abc_adora_mcode_s *restrict m, uintptr_t *restrict size);
-typedef void (*abc_adora_mcode_clear_f)(abc_adora_mcode_s *restrict m);
+typedef struct abc_adora_mcache_s abc_adora_mcache_s;
+typedef struct abc_adora_symbol_s abc_adora_symbol_s;
+typedef struct abc_adora_relocate_s abc_adora_relocate_s;
+typedef struct abc_adora_import_s abc_adora_import_s;
+typedef struct abc_adora_icode_s abc_adora_icode_s;
 
 enum abc_adora_vflag_t {
 	abc_adora_vflag__read  = 0x01,
 	abc_adora_vflag__write = 0x02,
 	abc_adora_vflag__xcall = 0x04,
+};
+
+enum abc_adora_itype_t {
+	abc_adora_itype__label,
+	abc_adora_itype__instruction,
+	abc_adora_itype_max
 };
 
 union abc_adora_value_t {
@@ -31,18 +42,57 @@ union abc_adora_value_t {
 	float f32;
 };
 
-struct abc_adora_type_t {
-	uint32_t type;
+struct abc_adora_vtype_t {
+	uint32_t vtype;
 	uint32_t vflag;
 };
 
-struct abc_adora_mcode_s {
-	abc_adora_mcode_append_f append;
-	abc_adora_mcode_fillch_f fillch;
-	abc_adora_mcode_offset_f offset;
-	abc_adora_mcode_restore_f restore;
-	abc_adora_mcode_mapping_f mapping;
-	abc_adora_mcode_clear_f clear;
+struct abc_adora_var_t {
+	abc_adora_vtype_t vtype;
+	abc_adora_value_t value;
 };
+
+struct abc_adora_symbol_t {
+	refer_nstring_t segment;
+	refer_nstring_t symbol;
+	uint32_t segment_index;
+	uint32_t symbol_index;
+	uint32_t symbol_per_segment;
+	uint32_t symbol_type;
+};
+
+struct abc_adora_relocate_t {
+	uint32_t source_symbol;
+	uint32_t relocate_type;
+	int64_t relocate_addend;
+	uint64_t target_offset;
+};
+
+struct abc_adora_import_setting_t {
+	uint32_t import_type;
+	uint32_t segment_index;
+	uint64_t symbol_offset;
+};
+
+struct abc_adora_import_offset_t {
+	uint64_t segment_offset;
+	uint64_t symbol_offset;
+};
+
+struct abc_adora_icode_t {
+	abc_adora_var_t icode;
+	uintptr_t var_offset;
+	uintptr_t var_number;
+};
+
+// mcache
+
+abc_adora_mcache_s* abc_adora_mcache_alloc(void);
+abc_adora_mcache_s* abc_adora_mcache_append(abc_adora_mcache_s *restrict m, const void *restrict data, uintptr_t size);
+abc_adora_mcache_s* abc_adora_mcache_fillch(abc_adora_mcache_s *restrict m, int32_t ch, uintptr_t count);
+uintptr_t abc_adora_mcache_offset(const abc_adora_mcache_s *restrict m);
+abc_adora_mcache_s* abc_adora_mcache_restore(abc_adora_mcache_s *restrict m, uintptr_t offset);
+uint8_t* abc_adora_mcache_mapping(abc_adora_mcache_s *restrict m, uintptr_t *restrict size);
+void abc_adora_mcache_clear(abc_adora_mcache_s *restrict m);
 
 #endif

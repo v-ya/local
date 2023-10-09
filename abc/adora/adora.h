@@ -3,8 +3,4 @@
 
 #include "../adora.h"
 
-// adora.mcode.c
-
-abc_adora_mcode_s* abc_adora_mcode_alloc(void);
-
 #endif
