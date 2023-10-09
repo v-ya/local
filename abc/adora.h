@@ -95,4 +95,16 @@ abc_adora_mcache_s* abc_adora_mcache_restore(abc_adora_mcache_s *restrict m, uin
 uint8_t* abc_adora_mcache_mapping(abc_adora_mcache_s *restrict m, uintptr_t *restrict size);
 void abc_adora_mcache_clear(abc_adora_mcache_s *restrict m);
 
+// symbol
+
+abc_adora_symbol_s* abc_adora_symbol_alloc(void);
+void abc_adora_symbol_clear(abc_adora_symbol_s *restrict s);
+abc_adora_symbol_s* abc_adora_symbol_fetch_segment(abc_adora_symbol_s *restrict s, const char *restrict segment);
+const abc_adora_symbol_t* abc_adora_symbol_create_nstring(abc_adora_symbol_s *restrict s, const char *restrict segment, refer_nstring_t symbol, uint32_t symbol_type);
+const abc_adora_symbol_t* abc_adora_symbol_create_cstring(abc_adora_symbol_s *restrict s, const char *restrict segment, const char *restrict symbol, uint32_t symbol_type);
+const abc_adora_symbol_s* abc_adora_symbol_find_segment(const abc_adora_symbol_s *restrict s, const char *restrict segment, uint32_t *restrict segment_index, uint32_t *restrict symbol_count);
+const abc_adora_symbol_t* abc_adora_symbol_find_symbol(abc_adora_symbol_s *restrict s, const char *restrict segment, const char *restrict symbol);
+uintptr_t abc_adora_symbol_count_segment(abc_adora_symbol_s *restrict s);
+uintptr_t abc_adora_symbol_count_symbol(abc_adora_symbol_s *restrict s);
+
 #endif

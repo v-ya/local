@@ -6,7 +6,7 @@ struct abc_adora_mcache_s {
 	exbuffer_t mcache;
 };
 
-static void adora_mcache_free_func(abc_adora_mcache_s *restrict r)
+static void abc_adora_mcache_free_func(abc_adora_mcache_s *restrict r)
 {
 	exbuffer_uini(&r->mcache);
 }
@@ -16,7 +16,7 @@ abc_adora_mcache_s* abc_adora_mcache_alloc(void)
 	abc_adora_mcache_s *restrict r;
 	if ((r = (abc_adora_mcache_s *) refer_alloz(sizeof(abc_adora_mcache_s))))
 	{
-		refer_set_free(r, (refer_free_f) adora_mcache_free_func);
+		refer_set_free(r, (refer_free_f) abc_adora_mcache_free_func);
 		if (exbuffer_init(&r->mcache, 0))
 			return r;
 		refer_free(r);
