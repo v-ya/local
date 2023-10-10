@@ -99,12 +99,27 @@ void abc_adora_mcache_clear(abc_adora_mcache_s *restrict m);
 
 abc_adora_symbol_s* abc_adora_symbol_alloc(void);
 void abc_adora_symbol_clear(abc_adora_symbol_s *restrict s);
-abc_adora_symbol_s* abc_adora_symbol_fetch_segment(abc_adora_symbol_s *restrict s, const char *restrict segment);
+abc_adora_symbol_s* abc_adora_symbol_touch_segment(abc_adora_symbol_s *restrict s, const char *restrict segment);
 const abc_adora_symbol_t* abc_adora_symbol_create_nstring(abc_adora_symbol_s *restrict s, const char *restrict segment, refer_nstring_t symbol, uint32_t symbol_type);
 const abc_adora_symbol_t* abc_adora_symbol_create_cstring(abc_adora_symbol_s *restrict s, const char *restrict segment, const char *restrict symbol, uint32_t symbol_type);
 const abc_adora_symbol_s* abc_adora_symbol_find_segment(const abc_adora_symbol_s *restrict s, const char *restrict segment, uint32_t *restrict segment_index, uint32_t *restrict symbol_count);
 const abc_adora_symbol_t* abc_adora_symbol_find_symbol(abc_adora_symbol_s *restrict s, const char *restrict segment, const char *restrict symbol);
 uintptr_t abc_adora_symbol_count_segment(abc_adora_symbol_s *restrict s);
 uintptr_t abc_adora_symbol_count_symbol(abc_adora_symbol_s *restrict s);
+
+// relocate
+
+abc_adora_relocate_s* abc_adora_relocate_alloc(void);
+void abc_adora_relocate_clear(abc_adora_relocate_s *restrict r);
+const abc_adora_relocate_t* abc_adora_relocate_append(abc_adora_relocate_s *restrict r, uint32_t source_symbol, uint32_t relocate_type, int64_t relocate_addend, uint64_t target_offset);
+const abc_adora_relocate_t* abc_adora_relocate_mapping(abc_adora_relocate_s *restrict r, uintptr_t *restrict relocate_count);
+
+// import
+
+abc_adora_import_s* abc_adora_import_alloc(uint32_t import_type_number);
+void abc_adora_import_clear(abc_adora_import_s *restrict i);
+abc_adora_import_s* abc_adora_import_create_segment(abc_adora_import_s *restrict i, uint32_t segment_index, uint64_t segment_offset);
+abc_adora_import_s* abc_adora_import_create_import(abc_adora_import_s *restrict i, uint32_t import_index, uintptr_t n, const abc_adora_import_setting_t setting[]);
+const abc_adora_import_s* abc_adora_import_get_offset(const abc_adora_import_s *restrict i, uint32_t import_index, uintptr_t n, const uint32_t import_type[], abc_adora_import_offset_t offset[]);
 
 #endif

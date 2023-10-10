@@ -140,7 +140,7 @@ void abc_adora_symbol_clear(abc_adora_symbol_s *restrict s)
 	exbuffer_clear(&s->symbol_buffer);
 }
 
-abc_adora_symbol_s* abc_adora_symbol_fetch_segment(abc_adora_symbol_s *restrict s, const char *restrict segment)
+abc_adora_symbol_s* abc_adora_symbol_touch_segment(abc_adora_symbol_s *restrict s, const char *restrict segment)
 {
 	if (segment && abc_adora_symbol_segment_fetch(s->segment_pool, segment))
 		return s;

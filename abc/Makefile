@@ -7,7 +7,7 @@ HEADER		= adora.h
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS-ADORA	= -shared -soname ${TARGET-ADORA} -lrefer -lexbuffer -lhashmap -lvattr
+LDFLAGS-ADORA	= -shared -soname ${TARGET-ADORA} -lrefer -lexbuffer -lrbtree -lhashmap -lvattr
 LDFLAGS-BLINK	= -shared -soname ${TARGET-BLINK} -lrefer
 LDFLAGS-CUTIE	= -shared -soname ${TARGET-CUTIE} -lrefer
 
