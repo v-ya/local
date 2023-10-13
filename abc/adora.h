@@ -122,4 +122,12 @@ abc_adora_import_s* abc_adora_import_create_segment(abc_adora_import_s *restrict
 abc_adora_import_s* abc_adora_import_create_import(abc_adora_import_s *restrict i, uint32_t import_index, uintptr_t n, const abc_adora_import_setting_t setting[]);
 const abc_adora_import_s* abc_adora_import_get_offset(const abc_adora_import_s *restrict i, uint32_t import_index, uintptr_t n, const uint32_t import_type[], abc_adora_import_offset_t offset[]);
 
+// icode
+
+abc_adora_icode_s* abc_adora_icode_alloc(void);
+void abc_adora_icode_clear(abc_adora_icode_s *restrict c);
+const abc_adora_icode_t* abc_adora_icode_append(abc_adora_icode_s *restrict c, const abc_adora_var_t *restrict icode, const abc_adora_var_t *restrict param_array, uintptr_t param_count);
+const abc_adora_icode_t* abc_adora_icode_mapping(abc_adora_icode_s *restrict r, uintptr_t *restrict icode_count);
+const abc_adora_var_t* abc_adora_icode_vlist(abc_adora_icode_s *restrict r, uintptr_t *restrict var_count);
+
 #endif
