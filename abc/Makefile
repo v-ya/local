@@ -11,7 +11,7 @@ CCFLAGS			= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-ADORA		= -shared -soname ${TARGET-ADORA} -lrefer -lexbuffer -lrbtree -lhashmap -lvattr
 LDFLAGS-BLINK		= -shared -soname ${TARGET-BLINK} -lrefer
 LDFLAGS-CUTIE		= -shared -soname ${TARGET-CUTIE} -lrefer
-LDFLAGS-Z-X86_64	= -shared -soname ${TARGET-Z-X86_64}
+LDFLAGS-Z-X86_64	= -shared -soname ${TARGET-Z-X86_64} -lrefer -L. -labc-adora
 
 OBJECT-ADORA		= $(patsubst %.c, %.o, $(wildcard adora/*.c))
 OBJECT-BLINK		= 
