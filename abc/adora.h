@@ -14,12 +14,34 @@ typedef struct abc_adora_relocate_t abc_adora_relocate_t;
 typedef struct abc_adora_import_setting_t abc_adora_import_setting_t;
 typedef struct abc_adora_import_offset_t abc_adora_import_offset_t;
 typedef struct abc_adora_icode_t abc_adora_icode_t;
+typedef struct abc_adora_instr_t abc_adora_instr_t;
+typedef struct abc_adora_asm_t abc_adora_asm_t;
+typedef struct abc_adora_isa_t abc_adora_isa_t;
 
 typedef struct abc_adora_mcache_s abc_adora_mcache_s;
 typedef struct abc_adora_symbol_s abc_adora_symbol_s;
 typedef struct abc_adora_relocate_s abc_adora_relocate_s;
 typedef struct abc_adora_import_s abc_adora_import_s;
 typedef struct abc_adora_icode_s abc_adora_icode_s;
+typedef struct abc_adora_label_s abc_adora_label_s;
+typedef struct abc_adora_asm_s abc_adora_asm_s;
+typedef struct abc_adora_isa_s abc_adora_isa_s;
+typedef struct abc_adora_context_s abc_adora_context_s;
+
+typedef const abc_adora_label_s* (*abc_adora_label_f)(const abc_adora_label_s *restrict label, uint64_t label_id, uint64_t *restrict offset);
+
+typedef uintptr_t (*abc_adora_instr_ilength_f)(uintptr_t offset, refer_t pri, const abc_adora_var_t *restrict icode, const abc_adora_var_t *restrict varray, uintptr_t vcount);
+typedef const abc_adora_asm_t* (*abc_adora_instr_iwriter_f)(const abc_adora_asm_t *restrict a, refer_t pri, const abc_adora_var_t *restrict icode, const abc_adora_var_t *restrict varray, uintptr_t vcount);
+
+typedef void (*abc_adora_isa__none__f)(void);
+typedef void (*abc_adora_isa__register_iset__f)(abc_adora_isa_s *restrict isa, const char *restrict iset_name, uint64_t iset_flag);
+typedef void (*abc_adora_isa__register_instr__f)(abc_adora_isa_s *restrict isa, const char *restrict instr_name, const abc_adora_instr_t *restrict instr);
+typedef void (*abc_adora_isa__link_instr__f)(abc_adora_isa_s *restrict isa, uint64_t instr_id, uint64_t exist_iset_flags, const char *restrict instr_name);
+
+typedef uint32_t (*abc_adora_isa_version_f)(abc_adora_isa_s *restrict isa);
+typedef abc_adora_isa__none__f (*abc_adora_isa_function_f)(abc_adora_isa_s *restrict isa, const char *restrict name);
+typedef void (*abc_adora_isa_initial_f)(abc_adora_isa_s *restrict isa, const abc_adora_isa_t *restrict func);
+typedef void (*abc_adora_isa_finally_f)(abc_adora_isa_s *restrict isa, const char *restrict arch);
 
 enum abc_adora_vflag_t {
 	abc_adora_vflag__read  = 0x01,
@@ -85,6 +107,33 @@ struct abc_adora_icode_t {
 	uintptr_t var_number;
 };
 
+struct abc_adora_instr_t {
+	uintptr_t vtype_count;
+	const abc_adora_vtype_t *restrict vtype_array;
+	abc_adora_instr_ilength_f ilength;
+	abc_adora_instr_iwriter_f iwriter;
+	refer_t instr_pri;
+	uintptr_t const_length;
+	uintptr_t const_instr_length;
+	const uint8_t *const_instr_data;
+};
+
+struct abc_adora_asm_t {
+	abc_adora_mcache_s *mcache;
+	abc_adora_relocate_s *relocate;
+	abc_adora_label_s *label;
+	abc_adora_label_f loffset;
+};
+
+struct abc_adora_isa_t {
+	abc_adora_isa_version_f version;
+	abc_adora_isa_function_f function;
+	abc_adora_isa_finally_f finally;
+};
+
+#define abc_adora_isa_version  1
+#define abc_adora_isa_function(_isa, _func, _name)  ((abc_adora_isa__##_name##__f) (_func)->function(_isa, #_name))
+
 // mcache
 
 abc_adora_mcache_s* abc_adora_mcache_alloc(void);
@@ -129,5 +178,11 @@ void abc_adora_icode_clear(abc_adora_icode_s *restrict c);
 const abc_adora_icode_t* abc_adora_icode_append(abc_adora_icode_s *restrict c, const abc_adora_var_t *restrict icode, const abc_adora_var_t *restrict param_array, uintptr_t param_count);
 const abc_adora_icode_t* abc_adora_icode_mapping(abc_adora_icode_s *restrict r, uintptr_t *restrict icode_count);
 const abc_adora_var_t* abc_adora_icode_vlist(abc_adora_icode_s *restrict r, uintptr_t *restrict var_count);
+
+// isa
+
+abc_adora_isa_s* abc_adora_isa_alloc(abc_adora_isa_initial_f initial);
+refer_nstring_t abc_adora_isa_arch(const abc_adora_isa_s *restrict isa);
+uint64_t abc_adora_isa_iset_flag(const abc_adora_isa_s *restrict isa, const char *restrict iset_name);
 
 #endif
