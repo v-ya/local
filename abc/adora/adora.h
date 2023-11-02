@@ -30,13 +30,16 @@ const abc_adora_instr_s* abc_adora_instr_match(const abc_adora_instr_s *restrict
 // adora.ilink.c
 
 typedef struct abc_adora_ilink_s abc_adora_ilink_s;
+typedef struct abc_adora_ilink_t abc_adora_ilink_t;
 
-struct abc_adora_ilink_s {
+struct abc_adora_ilink_t {
 	uint64_t exist_iset_flags;
 	refer_nstring_t instr_name;
 };
 
-abc_adora_ilink_s* abc_adora_ilink_alloc(refer_nstring_t instr_name, uint64_t exist_iset_flags);
+abc_adora_ilink_s* abc_adora_ilink_alloc(void);
+abc_adora_ilink_s* abc_adora_ilink_append(abc_adora_ilink_s *restrict r, refer_nstring_t instr_name, uint64_t exist_iset_flags);
+const abc_adora_ilink_t* abc_adora_ilink_mapping(const abc_adora_ilink_s *restrict r, uintptr_t *restrict ilink_count);
 
 // adora.isa.c
 

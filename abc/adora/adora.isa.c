@@ -71,18 +71,26 @@ static void abc_adora_isa__register_instr__func(abc_adora_isa_s *restrict isa, c
 }
 static void abc_adora_isa__link_instr__func(abc_adora_isa_s *restrict isa, uint64_t instr_id, uint64_t exist_iset_flags, const char *restrict instr_name)
 {
-	const abc_adora_ilink_s *restrict ilink;
 	const abc_adora_instr_s *restrict i;
+	abc_adora_ilink_s *restrict ilink;
 	rbtree_t *restrict rbv;
-	rbv = NULL;
+	ilink = NULL;
 	if (instr_name && !rbtree_find(&isa->ilink, NULL, instr_id) &&
-		(i = (const abc_adora_instr_s *) vattr_get_first(isa->instr, instr_name)) &&
-		(ilink = abc_adora_ilink_alloc(i->instr_name, exist_iset_flags)))
+		(i = (const abc_adora_instr_s *) vattr_get_first(isa->instr, instr_name)))
 	{
-		if (!(rbv = rbtree_insert(&isa->ilink, NULL, instr_id, ilink, abc_adora_isa_rbtree_free_func)))
-			refer_free(ilink);
+		if ((rbv = rbtree_find(&isa->ilink, NULL, instr_id)))
+			ilink = (abc_adora_ilink_s *) rbv->value;
+		else if ((ilink = abc_adora_ilink_alloc()))
+		{
+			if (!rbtree_insert(&isa->ilink, NULL, instr_id, ilink, abc_adora_isa_rbtree_free_func))
+			{
+				refer_free(ilink);
+				ilink = NULL;
+			}
+		}
+		if (ilink) ilink = abc_adora_ilink_append(ilink, i->instr_name, exist_iset_flags);
 	}
-	if (!rbv) isa->error = 1;
+	if (!ilink) isa->error = 1;
 }
 
 // isa func
@@ -175,22 +183,28 @@ const abc_adora_instr_s* abc_adora_isa_match_instr(const abc_adora_isa_s *restri
 {
 	const abc_adora_ilink_s *restrict ilink;
 	const abc_adora_instr_s *restrict instr;
+	const abc_adora_ilink_t *restrict p;
 	rbtree_t *restrict rbv;
 	vattr_vlist_t *restrict vl;
 	uint64_t exist_iset_flags;
+	uintptr_t i, n;
 	if ((rbv = rbtree_find(&isa->ilink, NULL, instr_id)) &&
 		(ilink = (const abc_adora_ilink_s *) rbv->value))
 	{
-		exist_iset_flags = ilink->exist_iset_flags;
-		if ((iset_flags & exist_iset_flags) == exist_iset_flags)
+		p = abc_adora_ilink_mapping(ilink, &n);
+		for (i = 0; i < n; ++i)
 		{
-			vl = vattr_get_vlist_first(isa->instr, ilink->instr_name->string);
-			while (vl)
+			exist_iset_flags = p[i].exist_iset_flags;
+			if ((iset_flags & exist_iset_flags) == exist_iset_flags)
 			{
-				instr = (const abc_adora_instr_s *) vl->value;
-				if (abc_adora_instr_match(instr, vtype_count, vtype_array))
-					return instr;
-				vl = vl->vslot_next;
+				vl = vattr_get_vlist_first(isa->instr, p[i].instr_name->string);
+				while (vl)
+				{
+					instr = (const abc_adora_instr_s *) vl->value;
+					if (abc_adora_instr_match(instr, vtype_count, vtype_array))
+						return instr;
+					vl = vl->vslot_next;
+				}
 			}
 		}
 	}
