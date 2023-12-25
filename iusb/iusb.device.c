@@ -184,6 +184,9 @@ static void iusb_inner_device_free_func(iusb_device_s *restrict r)
 {
 	if (r->path) refer_free(r->path);
 	if (r->id) refer_free(r->id);
+	if (r->manufacturer) refer_free(r->manufacturer);
+	if (r->product) refer_free(r->product);
+	if (r->serial) refer_free(r->serial);
 	if (r->attr) refer_free(r->attr);
 }
 

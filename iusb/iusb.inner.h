@@ -18,6 +18,9 @@ struct iusb_inst_s {
 struct iusb_device_s {
 	refer_string_t path;
 	refer_string_t id;
+	refer_string_t manufacturer;
+	refer_string_t product;
+	refer_string_t serial;
 	vattr_s *attr;
 	const uint8_t *usb_descriptor_data;
 	uintptr_t usb_descriptor_size;
@@ -103,7 +106,7 @@ static inline uint32_t iusb_number_from_bcd2(uint32_t bcd2)
 // bus
 
 iusb_inst_s* iusb_inner_inst_alloc(uintptr_t cache_size);
-uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpath, exbuffer_t *restrict cache);
+uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpath, exbuffer_t *restrict cache, uintptr_t parse_string);
 iusb_device_s* iusb_inner_bus_alloc_device(exbuffer_t *restrict cache, uint32_t bus_id, uint32_t dev_id);
 
 // device

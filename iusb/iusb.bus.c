@@ -43,6 +43,25 @@ static uint32_t iusb_inner_bus_scan_get_number(exbuffer_t *restrict cache, const
 	return r;
 }
 
+static refer_string_t iusb_inner_bus_scan_get_string(exbuffer_t *restrict cache, const char *restrict path)
+{
+	fsys_file_s *restrict fp;
+	const char *restrict p;
+	uintptr_t n;
+	p = NULL;
+	if (path && (fp = fsys_file_alloc(path, fsys_file_flag_read)))
+	{
+		if (fsys_file_read(fp, cache->data, cache->size, &n) && n)
+		{
+			p = (const char *) cache->data;
+			while (n && p[n - 1] == '\n') n -= 1;
+		}
+		refer_free(fp);
+	}
+	if (p) return refer_dump_string_with_length(p, n);
+	return NULL;
+}
+
 static exbuffer_t* iusb_inner_bus_scan_read_data(exbuffer_t *restrict cache, uintptr_t *restrict rsize, const char *restrict path)
 {
 	fsys_file_s *restrict fp;
@@ -71,19 +90,29 @@ static iusb_device_s* iusb_inner_bus_alloc_device_inner(const uint8_t *descripto
 	return NULL;
 }
 
-static iusb_device_s* iusb_inner_bus_scan_alloc_device(exbuffer_t *restrict cache, fsys_rpath_s *restrict rpath)
+static iusb_device_s* iusb_inner_bus_scan_alloc_device(exbuffer_t *restrict cache, fsys_rpath_s *restrict rpath, uintptr_t parse_string)
 {
+	iusb_device_s *restrict device;
 	uintptr_t size;
 	uint32_t bus_id, dev_id;
 	bus_id = iusb_inner_bus_scan_get_number(cache, fsys_rpath_get_full_path(rpath, "busnum"));
 	dev_id = iusb_inner_bus_scan_get_number(cache, fsys_rpath_get_full_path(rpath, "devnum"));
 	if (bus_id && dev_id && iusb_inner_bus_scan_read_data(
 		cache, &size, fsys_rpath_get_full_path(rpath, "descriptors")))
-		return iusb_inner_bus_alloc_device_inner(cache->data, size, bus_id, dev_id, NULL);
+	{
+		device = iusb_inner_bus_alloc_device_inner(cache->data, size, bus_id, dev_id, NULL);
+		if (parse_string && device)
+		{
+			device->manufacturer = iusb_inner_bus_scan_get_string(cache, fsys_rpath_get_full_path(rpath, "manufacturer"));
+			device->product = iusb_inner_bus_scan_get_string(cache, fsys_rpath_get_full_path(rpath, "product"));
+			device->serial = iusb_inner_bus_scan_get_string(cache, fsys_rpath_get_full_path(rpath, "serial"));
+		}
+		return device;
+	}
 	return NULL;
 }
 
-uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpath, exbuffer_t *restrict cache)
+uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpath, exbuffer_t *restrict cache, uintptr_t parse_string)
 {
 	fsys_dir_s *restrict dir;
 	iusb_device_s *restrict dev;
@@ -100,7 +129,7 @@ uintptr_t iusb_inner_bus_scan(vattr_s *restrict pool, fsys_rpath_s *restrict rpa
 			{
 				if (fsys_rpath_push(rpath, item.name))
 				{
-					if ((dev = iusb_inner_bus_scan_alloc_device(cache, rpath)))
+					if ((dev = iusb_inner_bus_scan_alloc_device(cache, rpath, parse_string)))
 					{
 						if (vattr_insert_tail(pool, dev->id, dev))
 							n += 1;

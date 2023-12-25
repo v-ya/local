@@ -15,7 +15,12 @@ iusb_pool_t iusb_inst_pool(iusb_inst_s *restrict inst)
 
 uintptr_t iusb_inst_update(iusb_inst_s *restrict inst)
 {
-	return iusb_inner_bus_scan(inst->device, inst->rpath, &inst->cache);
+	return iusb_inner_bus_scan(inst->device, inst->rpath, &inst->cache, 0);
+}
+
+uintptr_t iusb_inst_update_with_string(iusb_inst_s *restrict inst)
+{
+	return iusb_inner_bus_scan(inst->device, inst->rpath, &inst->cache, 1);
 }
 
 iusb_device_s* iusb_inst_alloc_device(iusb_inst_s *restrict inst, uint32_t bus_id, uint32_t device_id)
@@ -33,6 +38,21 @@ refer_string_t iusb_device_path(const iusb_device_s *restrict device)
 refer_string_t iusb_device_id(const iusb_device_s *restrict device)
 {
 	return device->id;
+}
+
+refer_string_t iusb_device_manufacturer(const iusb_device_s *restrict device)
+{
+	return device->manufacturer;
+}
+
+refer_string_t iusb_device_product(const iusb_device_s *restrict device)
+{
+	return device->product;
+}
+
+refer_string_t iusb_device_serial(const iusb_device_s *restrict device)
+{
+	return device->serial;
 }
 
 iusb_attr_t iusb_device_attr(const iusb_device_s *restrict device)
