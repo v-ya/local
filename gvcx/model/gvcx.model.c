@@ -1,5 +1,15 @@
 #include "gvcx.model.h"
 
+gvcx_model_item_s* gvcx_model_inner_create_item(const gvcx_model_s *restrict m, gvcx_model_flag_t flag, const char *restrict tname)
+{
+	const gvcx_model_type_s *restrict t;
+	gvcx_model_type_t type;
+	type = gvcx_model_type_enum(tname);
+	t = m->type[type];
+	if (t->create) return t->create(t, m, type, flag, tname);
+	return NULL;
+}
+
 static void gvcx_model_free_func(refer_t *restrict r)
 {
 	uintptr_t i, n;
@@ -38,18 +48,16 @@ const gvcx_model_s* gvcx_model_alloc(void)
 	return NULL;
 }
 
-gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, gvcx_model_type_t type, gvcx_model_flag_t flag, const char *restrict tname)
+gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, const char *restrict type)
 {
-	const gvcx_model_type_s *restrict t;
-	t = m->type[type];
-	if (t->create) return t->create(t, m, type, flag, tname);
-	return NULL;
+	return gvcx_model_inner_create_item(m, gvcx_model_flag__write, type);
 }
 
 gvcx_model_item_s* gvcx_model_copyto_item(const gvcx_model_s *restrict m, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src)
 {
 	const gvcx_model_type_s *restrict t;
-	if (dst->type == src->type && (dst->flag & gvcx_model_flag__write) && dst->tname == src->tname)
+	if ((uintptr_t) dst != (uintptr_t) src && dst->type == src->type &&
+		(dst->flag & gvcx_model_flag__write) && dst->tname == src->tname)
 	{
 		t = m->type[dst->type];
 		if (t->copyto) return t->copyto(t, dst, src);

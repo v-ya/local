@@ -51,15 +51,12 @@ struct gvcx_model_item_s {
 	refer_string_t tname;
 };
 
-// gvcx.model.c
-
-gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, gvcx_model_type_t type, gvcx_model_flag_t flag, const char *restrict tname);
-gvcx_model_item_s* gvcx_model_copyto_item(const gvcx_model_s *restrict m, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src);
-
 // gvcx.model.t.c
 
 void gvcx_model_type_free_func(gvcx_model_type_s *restrict r);
 const gvcx_model_type_s* gvcx_model_type_alloc(const char *restrict tname, uintptr_t tsize, gvcx_model_type_initial_f initial, const void *restrict pri);
+gvcx_model_type_t gvcx_model_type_enum(const char *restrict tname);
+const char* gvcx_model_type_inherit(const char *restrict parent, const char *restrict child);
 
 // gvcx.model.i.c
 

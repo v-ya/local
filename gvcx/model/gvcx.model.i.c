@@ -13,7 +13,7 @@ gvcx_model_item_s* gvcx_model_item_alloc(uintptr_t isize, gvcx_model_type_t type
 		refer_set_free(r, (refer_free_f) gvcx_model_item_free_func);
 		r->type = type;
 		r->flag = flag;
-		r->tname = refer_save(tname);
+		r->tname = (refer_string_t) refer_save(tname);
 		return r;
 	}
 	return NULL;

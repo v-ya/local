@@ -13,17 +13,17 @@
 //+o: object
 //+.: preset
 
-#define gvcx_model_stype__any         "*:"
-#define gvcx_model_stype__uint        "u:"
-#define gvcx_model_stype__int         "i:"
-#define gvcx_model_stype__float       "f:"
-#define gvcx_model_stype__boolean     "b:"
-#define gvcx_model_stype__string      "s:"
-#define gvcx_model_stype__data        "d:"
-#define gvcx_model_stype__enum        "e:"
-#define gvcx_model_stype__array       "a:"
-#define gvcx_model_stype__object      "o:"
-#define gvcx_model_stype__preset      ".:"
+#define gvcx_model_stype__any         "*"
+#define gvcx_model_stype__uint        "u"
+#define gvcx_model_stype__int         "i"
+#define gvcx_model_stype__float       "f"
+#define gvcx_model_stype__boolean     "b"
+#define gvcx_model_stype__string      "s"
+#define gvcx_model_stype__data        "d"
+#define gvcx_model_stype__enum        "e"
+#define gvcx_model_stype__array       "a"
+#define gvcx_model_stype__object      "o"
+#define gvcx_model_stype__preset      "."
 #define gvcx_model_stype__dimensions  ".:dimensions"
 #define gvcx_model_sname__dimensions  gvcx_model_type__dimensions
 
