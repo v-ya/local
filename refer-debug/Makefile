@@ -7,7 +7,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -ldl -lpthread -shared -soname ${TARGET} ${WRAP-MALLOC} ${WRAP-REFER}
 
-OBJECT		= refer.debug.o refer.pool.o inner/rbtree.o inner/queue_ring.o
+OBJECT		= refer.debug.o refer.pool.o refer.printf.o inner/rbtree.o inner/queue_ring.o
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

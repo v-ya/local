@@ -1,11 +1,11 @@
 #define _GNU_SOURCE
 #include "refer.debug.h"
 #include "refer.pool.h"
+#include "refer.printf.h"
 #include <dlfcn.h>
 #include <execinfo.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <inttypes.h>
 
 // #define _print_
@@ -14,24 +14,20 @@
 #define p(...)
 #define print_address(_name, _addr)
 #else
-#define p(...)  write(1, #__VA_ARGS__ "\n", sizeof(#__VA_ARGS__)); print_address("caller", __builtin_return_address(0))
+#define p(...)  refer_debug_printf(1, #__VA_ARGS__ "\n"); print_address("caller", __builtin_return_address(0))
 static void print_address(const char *restrict name, void *addr)
 {
-	char buffer[4096];
 	Dl_info info;
-	int n;
-	n = snprintf(buffer, sizeof(buffer), "\t" "%s: %p\n", name, addr);
-	if (n > 0) write(1, buffer, n);
+	refer_debug_printf(1, "\t" "%s: %p\n", name, addr);
 	if (dladdr(addr, &info))
 	{
-		n = snprintf(buffer, sizeof(buffer),
+		refer_debug_printf(1,
 			"\t\t" "file-name   = %s\n"
 			"\t\t" "file-base   = %p\n"
 			"\t\t" "symbol-name = %s\n"
 			"\t\t" "symbol-addr = %p\n",
 			info.dli_fname, info.dli_fbase,
 			info.dli_sname, info.dli_saddr);
-		if (n > 0) write(1, buffer, n);
 	}
 }
 #endif
@@ -103,11 +99,8 @@ static uint64_t __impl_refer_save_number(refer_t v)
 
 static void refer_debug_print_addr(const char *restrict name, void *addr)
 {
-	char buffer[4096];
 	Dl_info info;
-	int n;
-	n = snprintf(buffer, sizeof(buffer), "\t" "%s: %p\n", name, addr);
-	if (n > 0) write(1, buffer, n);
+	refer_debug_printf(1, "\t" "%s: %p\n", name, addr);
 	info.dli_fname = NULL;
 	info.dli_fbase = NULL;
 	info.dli_sname = NULL;
@@ -115,14 +108,13 @@ static void refer_debug_print_addr(const char *restrict name, void *addr)
 	dladdr(addr, &info);
 	if (!info.dli_fname) info.dli_fname = "";
 	if (!info.dli_sname) info.dli_sname = "";
-	n = snprintf(buffer, sizeof(buffer),
+	refer_debug_printf(1,
 		"\t\t" "file-name   = %s\n"
 		"\t\t" "file-base   = %p (+ %p)\n"
 		"\t\t" "symbol-name = %s\n"
 		"\t\t" "symbol-addr = %p (+ %p)\n",
 		info.dli_fname, info.dli_fbase, (void *) ((uintptr_t) addr - (uintptr_t) info.dli_fbase),
 		info.dli_sname, info.dli_saddr, (void *) ((uintptr_t) addr - (uintptr_t) info.dli_saddr));
-	if (n > 0) write(1, buffer, n);
 }
 static void refer_debug_print_item(const refer_pool_item_t *restrict item, const uint64_t *restrict ref_count)
 {
@@ -144,13 +136,10 @@ static void refer_debug_print_item(const refer_pool_item_t *restrict item, const
 		[refer_pool_fn__refer_save_number] = "refer_save_number",
 		[refer_pool_fn__realloc] = "realloc",
 	};
-	char buffer[4096];
-	int n;
-	n = snprintf(buffer, sizeof(buffer),
+	refer_debug_printf(1,
 		"[%s](%s:%" PRIu64 ") ptr=%p, block=%zu, size=%zu, align=%zu, time=%.3fms\n",
 		fn_string[item->fn], ref_count?"ref":"miss", ref_count?*ref_count:(uint64_t) 0,
 		item->ptr, item->block, item->size, item->alignment, (double) item->timestamp * 0.001);
-	if (n > 0) write(1, buffer, n);
 	if (item->raddr) refer_debug_print_addr("caller", item->raddr);
 	if (item->func) refer_debug_print_addr("free_func", item->func);
 }
