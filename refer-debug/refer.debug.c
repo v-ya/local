@@ -117,11 +117,11 @@ static void refer_debug_print_addr(const char *restrict name, void *addr)
 	if (!info.dli_sname) info.dli_sname = "";
 	n = snprintf(buffer, sizeof(buffer),
 		"\t\t" "file-name   = %s\n"
-		"\t\t" "file-base   = %p\n"
+		"\t\t" "file-base   = %p (+ %p)\n"
 		"\t\t" "symbol-name = %s\n"
-		"\t\t" "symbol-addr = %p\n",
-		info.dli_fname, info.dli_fbase,
-		info.dli_sname, info.dli_saddr);
+		"\t\t" "symbol-addr = %p (+ %p)\n",
+		info.dli_fname, info.dli_fbase, (void *) ((uintptr_t) addr - (uintptr_t) info.dli_fbase),
+		info.dli_sname, info.dli_saddr, (void *) ((uintptr_t) addr - (uintptr_t) info.dli_saddr));
 	if (n > 0) write(1, buffer, n);
 }
 static void refer_debug_print_item(const refer_pool_item_t *restrict item, const uint64_t *restrict ref_count)
@@ -176,6 +176,7 @@ _kira_ _init_ void __init_refer_debug(void)
 {
 	p(__init_refer_debug);
 	refer_pool_s *restrict p;
+	_rf_.__libc_freeres = dlsym(RTLD_NEXT, "__libc_freeres");
 	_rf_.__real_malloc = dlsym(RTLD_NEXT, "malloc");
 	_rf_.__real_calloc = dlsym(RTLD_NEXT, "calloc");
 	_rf_.__real_posix_memalign = dlsym(RTLD_NEXT, "posix_memalign");
@@ -200,6 +201,7 @@ _kira_ _fini_ void __fini_refer_debug(void)
 {
 	p(__fini_refer_debug);
 	refer_pool_s *restrict p;
+	_rf_.__libc_freeres();
 	p = pool;
 	pool = NULL;
 	if (p)
