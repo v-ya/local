@@ -6,7 +6,7 @@
 typedef struct gvcx_model_s gvcx_model_s;
 typedef struct gvcx_model_item_s gvcx_model_item_s;
 
-const gvcx_model_s* gvcx_model_alloc(void);
+gvcx_model_s* gvcx_model_alloc(void);
 gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, const char *restrict type);
 gvcx_model_item_s* gvcx_model_copyto_item(const gvcx_model_s *restrict m, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src);
 

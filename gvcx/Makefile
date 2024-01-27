@@ -4,7 +4,7 @@ HEADER		= $(wildcard *.h)
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lrefer -lrbtree -lvattr -soname ${TARGET}
+LDFLAGS		= -shared -lrefer -lrbtree -lhashmap -lexbuffer -lvattr -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard */*.c))
 

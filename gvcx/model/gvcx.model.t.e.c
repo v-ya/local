@@ -1,6 +1,6 @@
 #include "gvcx.model.h"
 
-const gvcx_model_type_s* gvcx_model_type_create__e(void)
+const gvcx_model_type_s* gvcx_model_type_create__enum(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict ename)
 {
-	return gvcx_model_type_alloc(gvcx_model_stype__enum, sizeof(gvcx_model_type_s), NULL, NULL);
+	return gvcx_model_type_alloc(name, gvcx_model_type__enum, 0, sizeof(gvcx_model_type_s), NULL, NULL);
 }

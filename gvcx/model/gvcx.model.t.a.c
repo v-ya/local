@@ -1,6 +1,6 @@
 #include "gvcx.model.h"
 
-const gvcx_model_type_s* gvcx_model_type_create__a(void)
+const gvcx_model_type_s* gvcx_model_type_create__array(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname)
 {
-	return gvcx_model_type_alloc(gvcx_model_stype__array, sizeof(gvcx_model_type_s), NULL, NULL);
+	return gvcx_model_type_alloc(name, gvcx_model_type__array, 0, sizeof(gvcx_model_type_s), NULL, NULL);
 }

@@ -13,42 +13,42 @@ static void gvcx_model_item_string_free_func(gvcx_model_item_string_s *restrict 
 	gvcx_model_item_free_func(&r->item);
 }
 
-static gvcx_model_item_s* gvcx_model_type_create(const gvcx_model_type_s *restrict t, const gvcx_model_s *restrict m, gvcx_model_type_t type, gvcx_model_flag_t flag, const char *restrict tname)
+static d_type_create(string, gvcx_model_type_s)
 {
 	gvcx_model_item_s *restrict r;
-	if ((r = gvcx_model_item_alloc(sizeof(gvcx_model_item_string_s), type, flag, t->tname)))
+	if ((r = gvcx_model_item_alloc(sizeof(gvcx_model_item_string_s), t)))
 		refer_set_free(r, (refer_free_f) gvcx_model_item_string_free_func);
 	return r;
 }
-static gvcx_model_item_s* gvcx_model_type_copyto(const gvcx_model_type_s *restrict t, gvcx_model_item_string_s *restrict dst, const gvcx_model_item_string_s *restrict src)
+static d_type_copyto(string, gvcx_model_type_s, gvcx_model_item_string_s)
 {
 	if ((dst->value)) refer_free(dst->value);
 	dst->value = (refer_nstring_t) refer_save(src->value);
 	return &dst->item;
 }
-static gvcx_model_type_s* gvcx_model_type_initial(gvcx_model_type_s *restrict t, const void *restrict pri)
+static d_type_initial(string, void)
 {
-	t->create = (gvcx_model_type_create_f) gvcx_model_type_create;
-	t->copyto = (gvcx_model_type_copyto_f) gvcx_model_type_copyto;
+	t->create = d_type_function(string, create);
+	t->copyto = d_type_function(string, copyto);
 	return t;
 }
 
-const gvcx_model_type_s* gvcx_model_type_create__s(void)
+const gvcx_model_type_s* gvcx_model_type_create__string(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor)
 {
-	return gvcx_model_type_alloc(gvcx_model_stype__string, sizeof(gvcx_model_type_s), gvcx_model_type_initial, NULL);
+	return gvcx_model_type_alloc(name, gvcx_model_type__string, type_minor, sizeof(gvcx_model_type_s), d_type_function(string, initial), NULL);
 }
 
 // api
 
 refer_nstring_t gvcx_model_get_s(const gvcx_model_item_s *restrict i)
 {
-	if (i->type == gvcx_model_type__s)
+	if (i->type_major == gvcx_model_type__string)
 		return ((const gvcx_model_item_string_s *) i)->value;
 	return NULL;
 }
 gvcx_model_item_s* gvcx_model_set_s(gvcx_model_item_s *restrict i, refer_nstring_t v)
 {
-	if (i->type == gvcx_model_type__s && (i->flag & gvcx_model_flag__write))
+	if (i->type_major == gvcx_model_type__string && (i->item_flag & gvcx_model_flag__write))
 	{
 		refer_save(v);
 		if (((gvcx_model_item_string_s *) i)->value)
