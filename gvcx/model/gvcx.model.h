@@ -4,6 +4,7 @@
 #include "../gvcx.model.h"
 #include "../gvcx.model.custom.h"
 #include "../gvcx.model.string.h"
+#include "../gvcx.file.h"
 #include <vattr.h>
 
 typedef enum gvcx_model_type_t gvcx_model_type_t;
@@ -14,12 +15,12 @@ typedef struct gvcx_model_enum_s gvcx_model_enum_s;
 typedef struct gvcx_model_object_s gvcx_model_object_s;
 
 typedef gvcx_model_type_s* (*gvcx_model_type_initial_f)(gvcx_model_type_s *restrict t, const void *restrict pri);
-typedef gvcx_model_item_s* (*gvcx_model_type_create_f)(const gvcx_model_type_s *restrict t);
+typedef gvcx_model_item_s* (*gvcx_model_type_create_f)(const gvcx_model_type_s *restrict t, const gvcx_model_s *restrict m);
 typedef gvcx_model_item_s* (*gvcx_model_type_copyto_f)(const gvcx_model_type_s *restrict t, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src);
 
 #define d_type_symbol(_name, _method)       gvcx_model_type__##_name##__##_method
 #define d_type_initial(_name, _type)        gvcx_model_type_s* d_type_symbol(_name, initial)(gvcx_model_type_s *restrict t, const _type *restrict pri)
-#define d_type_create(_name, _type)         gvcx_model_item_s* d_type_symbol(_name, create)(const _type *restrict t)
+#define d_type_create(_name, _type)         gvcx_model_item_s* d_type_symbol(_name, create)(const _type *restrict t, const gvcx_model_s *restrict m)
 #define d_type_copyto(_name, _type, _item)  gvcx_model_item_s* d_type_symbol(_name, copyto)(const _type *restrict t, _item *restrict dst, const _item *restrict src)
 #define d_type_function(_name, _method)     (gvcx_model_type_##_method##_f) d_type_symbol(_name, _method)
 
@@ -31,7 +32,7 @@ enum gvcx_model_type_t {
 	gvcx_model_type__float,   // double
 	gvcx_model_type__boolean, // boolean
 	gvcx_model_type__string,  // string
-	gvcx_model_type__data,    //+data-block
+	gvcx_model_type__data,    // data-block
 	gvcx_model_type__enum,    //+enum
 	gvcx_model_type__array,   //+array
 	gvcx_model_type__object,  //+object
@@ -71,6 +72,7 @@ const gvcx_model_type_s* gvcx_model_find_type(const gvcx_model_s *restrict m, co
 const gvcx_model_any_s* gvcx_model_find_any(const gvcx_model_s *restrict m, const char *restrict name);
 const gvcx_model_enum_s* gvcx_model_find_enum(const gvcx_model_s *restrict m, const char *restrict name);
 const gvcx_model_object_s* gvcx_model_find_object(const gvcx_model_s *restrict m, const char *restrict name);
+refer_string_t gvcx_model_find_cname(const gvcx_model_s *restrict m, const char *restrict cname, const gvcx_model_type_s *restrict *restrict type, const gvcx_model_any_s *restrict *restrict any);
 gvcx_model_s* gvcx_model_add_type(gvcx_model_s *restrict m, const gvcx_model_type_s *restrict type);
 gvcx_model_s* gvcx_model_add_any(gvcx_model_s *restrict m, const gvcx_model_any_s *restrict any);
 gvcx_model_s* gvcx_model_add_enum(gvcx_model_s *restrict m, const char *restrict name, const gvcx_model_enum_s *restrict e);
@@ -82,7 +84,8 @@ void gvcx_model_type_free_func(gvcx_model_type_s *restrict r);
 const gvcx_model_type_s* gvcx_model_type_alloc(const char *restrict name, uint32_t type_major, uint32_t type_minor, uintptr_t tsize, gvcx_model_type_initial_f initial, const void *restrict pri);
 gvcx_model_type_t gvcx_model_type_name_enum(const char *restrict name);
 const char* gvcx_model_type_name_inherit(const char *restrict parent, const char *restrict child);
-const char* gvcx_model_type_inherit(const vattr_s *restrict pool_any, const char *restrict parent, const char *restrict child);
+const char* gvcx_model_type_inherit_name(refer_string_t cname, const gvcx_model_any_s *restrict cany, const char *restrict name);
+const gvcx_model_type_s* gvcx_model_type_inherit_type(refer_string_t cname, const gvcx_model_any_s *restrict cany, const gvcx_model_type_s *restrict type);
 
 // gvcx.model.any.c
 
@@ -102,8 +105,8 @@ const gvcx_model_enum_s* gvcx_model_enum_value(const gvcx_model_enum_s *restrict
 // gvcx.model.object.c
 
 gvcx_model_object_s* gvcx_model_object_alloc(void);
-gvcx_model_object_s* gvcx_model_object_insert(gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t name, gvcx_model_item_s *restrict dv);
-const gvcx_model_object_s* gvcx_model_object_find(const gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t *restrict name, const gvcx_model_item_s *restrict *restrict dv);
+gvcx_model_object_s* gvcx_model_object_insert(gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t name, const gvcx_model_any_s *restrict any, gvcx_model_item_s *restrict dv);
+const gvcx_model_object_s* gvcx_model_object_find(const gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t *restrict name, const gvcx_model_any_s *restrict *restrict any, gvcx_model_item_s *restrict *restrict dv);
 
 // gvcx.model.i.c
 
@@ -112,6 +115,7 @@ gvcx_model_item_s* gvcx_model_item_alloc(uintptr_t isize, const gvcx_model_type_
 
 // gvcx.model.t.*.c
 
+const gvcx_model_type_s* gvcx_model_type_create__null(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 const gvcx_model_type_s* gvcx_model_type_create__uint(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 const gvcx_model_type_s* gvcx_model_type_create__int(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 const gvcx_model_type_s* gvcx_model_type_create__float(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
@@ -120,6 +124,6 @@ const gvcx_model_type_s* gvcx_model_type_create__string(const gvcx_model_s *rest
 const gvcx_model_type_s* gvcx_model_type_create__data(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 const gvcx_model_type_s* gvcx_model_type_create__enum(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict ename);
 const gvcx_model_type_s* gvcx_model_type_create__array(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname);
-const gvcx_model_type_s* gvcx_model_type_create__object(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname);
+const gvcx_model_type_s* gvcx_model_type_create__object(const gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname, const char *restrict oname);
 
 #endif

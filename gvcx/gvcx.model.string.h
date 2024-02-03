@@ -13,6 +13,7 @@
 //+o: object
 //+.: preset
 
+#define gvcx_model_stype__null        "!"
 #define gvcx_model_stype__any         "*"
 #define gvcx_model_stype__uint        "u"
 #define gvcx_model_stype__int         "i"

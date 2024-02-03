@@ -9,8 +9,6 @@ const gvcx_model_type_s* gvcx_model_type_alloc(const char *restrict name, uint32
 {
 	gvcx_model_type_s *restrict r;
 	if (tsize >= sizeof(gvcx_model_type_s) && name &&
-		type_major != gvcx_model_type__unknow &&
-		type_major != gvcx_model_type__any &&
 		gvcx_model_type_name_enum(name) == type_major &&
 		(r = (gvcx_model_type_s *) refer_alloz(tsize)))
 	{
@@ -64,18 +62,18 @@ const char* gvcx_model_type_name_inherit(const char *restrict parent, const char
 	return NULL;
 }
 
-const char* gvcx_model_type_inherit(const vattr_s *restrict pool_any, const char *restrict parent, const char *restrict child)
+const char* gvcx_model_type_inherit_name(refer_string_t cname, const gvcx_model_any_s *restrict cany, const char *restrict name)
 {
-	const gvcx_model_any_s *restrict any;
-	gvcx_model_type_t type;
-	if (!parent)
-		return child;
-	else if ((type = gvcx_model_type_name_enum(parent)) != gvcx_model_type__unknow)
-	{
-		if (type != gvcx_model_type__any)
-			return gvcx_model_type_name_inherit(parent, child);
-		else if (pool_any && (any = (const gvcx_model_any_s *) vattr_get_first(pool_any, parent)))
-			return gvcx_model_any_inherit(any, child);
-	}
+	if (!cname)
+		return name;
+	else if (cany)
+		return gvcx_model_any_inherit(cany, name);
+	else return gvcx_model_type_name_inherit(cname, name);
+}
+
+const gvcx_model_type_s* gvcx_model_type_inherit_type(refer_string_t cname, const gvcx_model_any_s *restrict cany, const gvcx_model_type_s *restrict type)
+{
+	if (!cname || (type && (cname == type->name || (cany && gvcx_model_any_inherit(cany, type->name)))))
+		return type;
 	return NULL;
 }

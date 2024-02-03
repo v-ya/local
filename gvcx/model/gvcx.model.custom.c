@@ -14,6 +14,7 @@
 		return NULL;\
 	}
 
+gvcx_model_s* gvcx_model_create_type__null(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor) d_create_type(null)
 gvcx_model_s* gvcx_model_create_type__uint(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor) d_create_type(uint)
 gvcx_model_s* gvcx_model_create_type__int(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor) d_create_type(int)
 gvcx_model_s* gvcx_model_create_type__float(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor) d_create_type(float)
@@ -22,7 +23,7 @@ gvcx_model_s* gvcx_model_create_type__string(gvcx_model_s *restrict m, const cha
 gvcx_model_s* gvcx_model_create_type__data(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor) d_create_type(data)
 gvcx_model_s* gvcx_model_create_type__enum(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict ename) d_create_type(enum, ename)
 gvcx_model_s* gvcx_model_create_type__array(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname) d_create_type(array, cname)
-gvcx_model_s* gvcx_model_create_type__object(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname) d_create_type(object, cname)
+gvcx_model_s* gvcx_model_create_type__object(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname, const char *restrict oname) d_create_type(object, cname, oname)
 
 #undef d_create_type
 
@@ -37,8 +38,6 @@ gvcx_model_s* gvcx_model_create_any(gvcx_model_s *restrict m, const char *restri
 		{
 			while (*list)
 			{
-				if (!gvcx_model_find_type(m, *list))
-					goto label_fail;
 				if (!gvcx_model_any_insert(a, *list))
 					goto label_fail;
 				list += 1;
@@ -83,35 +82,25 @@ gvcx_model_s* gvcx_model_create_enum(gvcx_model_s *restrict m, const char *restr
 
 // object
 
-static refer_string_t gvcx_model_create_object_name(const gvcx_model_s *restrict m, const char *restrict name)
-{
-	const gvcx_model_type_s *restrict type;
-	const gvcx_model_any_s *restrict any;
-	if ((type = gvcx_model_find_type(m, name)))
-		return type->name;
-	else if ((any = gvcx_model_find_any(m, name)))
-		return gvcx_model_any_name(any);
-	return NULL;
-}
 static gvcx_model_object_s* gvcx_model_create_object_insert(gvcx_model_object_s *restrict o, const gvcx_model_s *restrict m, const gvcx_model_custom_object_t *restrict item)
 {
-	gvcx_model_item_s *restrict dv;
 	refer_string_t name;
+	const gvcx_model_any_s *restrict any;
+	gvcx_model_item_s *restrict dv;
 	name = NULL;
+	any = NULL;
 	dv = NULL;
-	if (item->name && !(name = gvcx_model_create_object_name(m, item->name)))
+	if (item->name && !(name = gvcx_model_find_cname(m, item->name, NULL, &any)))
 		goto label_fail;
 	if (item->func && !(dv = item->func(m)))
 		goto label_fail;
-	if (!gvcx_model_object_insert(o, item->key, name, dv))
+	if (!gvcx_model_object_insert(o, item->key, name, any, dv))
 		goto label_fail;
-	label_clear:
 	if (dv) refer_free(dv);
-	if (name) refer_free(name);
 	return o;
 	label_fail:
-	o = NULL;
-	goto label_clear;
+	if (dv) refer_free(dv);
+	return NULL;
 }
 gvcx_model_s* gvcx_model_create_object(gvcx_model_s *restrict m, const char *restrict name, const gvcx_model_custom_object_t *restrict list)
 {

@@ -21,6 +21,7 @@ struct gvcx_model_custom_object_t {
 
 // create type
 
+gvcx_model_s* gvcx_model_create_type__null(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 gvcx_model_s* gvcx_model_create_type__uint(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 gvcx_model_s* gvcx_model_create_type__int(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 gvcx_model_s* gvcx_model_create_type__float(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
@@ -29,7 +30,7 @@ gvcx_model_s* gvcx_model_create_type__string(gvcx_model_s *restrict m, const cha
 gvcx_model_s* gvcx_model_create_type__data(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor);
 gvcx_model_s* gvcx_model_create_type__enum(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict ename);
 gvcx_model_s* gvcx_model_create_type__array(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname);
-gvcx_model_s* gvcx_model_create_type__object(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname);
+gvcx_model_s* gvcx_model_create_type__object(gvcx_model_s *restrict m, const char *restrict name, uint32_t type_minor, const char *restrict cname, const char *restrict oname);
 
 // create any
 

@@ -18,6 +18,29 @@ const gvcx_model_object_s* gvcx_model_find_object(const gvcx_model_s *restrict m
 {
 	return (const gvcx_model_object_s *) vattr_get_first(m->pool_object, name);
 }
+refer_string_t gvcx_model_find_cname(const gvcx_model_s *restrict m, const char *restrict cname, const gvcx_model_type_s *restrict *restrict type, const gvcx_model_any_s *restrict *restrict any)
+{
+	const gvcx_model_type_s *restrict t;
+	const gvcx_model_any_s *restrict a;
+	if ((t = gvcx_model_find_type(m, cname)))
+	{
+		if (type) *type = t;
+		if (any) *any = NULL;
+		return t->name;
+	}
+	else if ((a = gvcx_model_find_any(m, cname)))
+	{
+		if (type) *type = NULL;
+		if (any) *any = a;
+		return gvcx_model_any_name(a);
+	}
+	else
+	{
+		if (type) *type = NULL;
+		if (any) *any = NULL;
+		return NULL;
+	}
+}
 
 gvcx_model_s* gvcx_model_add_type(gvcx_model_s *restrict m, const gvcx_model_type_s *restrict type)
 {
@@ -72,6 +95,7 @@ gvcx_model_s* gvcx_model_alloc(void)
 		if (!(r->pool_enum = vattr_alloc())) goto label_fail;
 		if (!(r->pool_object = vattr_alloc())) goto label_fail;
 		#define d_type(_t, ...)  if (!gvcx_model_create_type__##_t(r, gvcx_model_stype__##_t, 0, ##__VA_ARGS__)) goto label_fail
+		d_type(null);
 		d_type(uint);
 		d_type(int);
 		d_type(float);
@@ -79,7 +103,7 @@ gvcx_model_s* gvcx_model_alloc(void)
 		d_type(string);
 		d_type(data);
 		d_type(array, NULL);
-		d_type(object, NULL);
+		d_type(object, NULL, NULL);
 		#undef d_type
 		return r;
 		label_fail:
@@ -92,15 +116,28 @@ gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, const 
 {
 	const gvcx_model_type_s *restrict t;
 	if ((t = gvcx_model_find_type(m, name)) && t->create)
-		return t->create(t);
+		return t->create(t, m);
 	return NULL;
 }
 
-gvcx_model_item_s* gvcx_model_copyto_item(const gvcx_model_s *restrict m, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src)
+gvcx_model_item_s* gvcx_model_copyto_item(gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src)
 {
 	const gvcx_model_type_s *restrict t;
 	if ((uintptr_t) dst != (uintptr_t) src && (t = dst->type) == src->type &&
 		(dst->item_flag & gvcx_model_flag__write) && t->copyto)
 		return t->copyto(t, dst, src);
+	return NULL;
+}
+
+gvcx_model_item_s* gvcx_model_dumpit_item(const gvcx_model_s *restrict m, const gvcx_model_item_s *restrict item)
+{
+	const gvcx_model_type_s *restrict t;
+	gvcx_model_item_s *restrict r;
+	if ((t = item->type) && t->create && (r = t->create(t, m)))
+	{
+		if (gvcx_model_copyto_item(r, item))
+			return r;
+		refer_free(r);
+	}
 	return NULL;
 }
