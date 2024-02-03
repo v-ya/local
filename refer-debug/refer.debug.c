@@ -328,7 +328,7 @@ _kira_ refer_free_f refer_get_free(refer_t v)
 _kira_ refer_t refer_save(refer_t v)
 {
 	p(refer_save);
-	refer_pool_push__refer_save(pool, __builtin_return_address(0), v);
+	if (v) refer_pool_push__refer_save(pool, __builtin_return_address(0), v);
 	return _rf_.__real_refer_save(v);
 }
 
