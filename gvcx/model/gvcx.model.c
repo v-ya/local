@@ -141,3 +141,18 @@ gvcx_model_item_s* gvcx_model_dumpit_item(const gvcx_model_s *restrict m, const 
 	}
 	return NULL;
 }
+
+void gvcx_model_iprint_item(struct gvcx_log_s *restrict log, const gvcx_model_item_s *restrict item)
+{
+	const gvcx_model_type_s *restrict t;
+	if (log && item)
+	{
+		if ((t = item->type)->iprint)
+			t->iprint(t, item, log);
+		else
+		{
+			gvcx_model_item_iprint(item, log);
+			mlog_printf(log->input, "\n");
+		}
+	}
+}

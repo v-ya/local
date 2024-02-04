@@ -41,6 +41,13 @@ static const gvcx_model_type_s* gvcx_model_type_object_inherit_type(const gvcx_m
 	return gvcx_model_type_inherit_type(cname, cany, type);
 }
 
+static void gvcx_model_type_object_iprint_child(const gvcx_model_item_s *restrict item, gvcx_log_s *restrict log, const char *restrict key, int ctype)
+{
+	mlog_printf(log->input, "\"%s\"%c ", key, ctype);
+	if (item) gvcx_model_iprint_item(log, item);
+	else mlog_printf(log->input, "-\n");
+}
+
 static void gvcx_model_type_object_free_func(gvcx_model_type_object_s *restrict r)
 {
 	if (r->o) refer_free(r->o);
@@ -86,6 +93,43 @@ static d_type_copyto(object, gvcx_model_type_object_s, gvcx_model_item_object_s)
 	label_fail:
 	return NULL;
 }
+static d_type_iprint(object, gvcx_model_type_object_s, gvcx_model_item_object_s)
+{
+	const vattr_s *restrict ov;
+	vattr_vlist_t *restrict vl;
+	const char *restrict key;
+	const gvcx_model_item_s *restrict v;
+	if (gvcx_model_item_iprint(&item->item, log))
+	{
+		mlog_printf(log->input, "@(%s) count = %u\n", t->cname?t->cname:"-", item->object->vslot.number);
+		if (gvcx_log_push(log, 1))
+		{
+			ov = t->o?gvcx_model_object_vattr(t->o):NULL;
+			if (ov)
+			{
+				for (vl = ov->vattr; vl; vl = vl->vattr_next)
+				{
+					key = vl->vslot->key;
+					if ((v = (const gvcx_model_item_s *) vattr_get_first(item->object, key)))
+						gvcx_model_type_object_iprint_child(v, log, key, '*');
+					else
+					{
+						gvcx_model_object_find(t->o, key, NULL, NULL, (gvcx_model_item_s **) &v);
+						gvcx_model_type_object_iprint_child(v, log, key, '~');
+					}
+				}
+			}
+			for (vl = item->object->vattr; vl; vl = vl->vattr_next)
+			{
+				key = vl->vslot->key;
+				v = (const gvcx_model_item_s *) vl->value;
+				if (!ov || !vattr_get_vslot(ov, key))
+					gvcx_model_type_object_iprint_child(v, log, key, ':');
+			}
+			gvcx_log_pop(log, 1);
+		}
+	}
+}
 static d_type_initial(object, gvcx_model_type_object_param_t)
 {
 	refer_set_free(t, (refer_free_f) gvcx_model_type_object_free_func);
@@ -94,6 +138,7 @@ static d_type_initial(object, gvcx_model_type_object_param_t)
 	((gvcx_model_type_object_s *) t)->o = (const gvcx_model_object_s *) refer_save(pri->o);
 	t->create = d_type_function(object, create);
 	t->copyto = d_type_function(object, copyto);
+	t->iprint = d_type_function(object, iprint);
 	return t;
 }
 

@@ -72,6 +72,26 @@ static d_type_copyto(array, gvcx_model_type_array_s, gvcx_model_item_array_s)
 	label_fail:
 	return NULL;
 }
+static d_type_iprint(array, gvcx_model_type_array_s, gvcx_model_item_array_s)
+{
+	gvcx_model_item_s **restrict p;
+	uintptr_t i, n;
+	if (gvcx_model_item_iprint(&item->item, log))
+	{
+		mlog_printf(log->input, "@(%s) count = %zu\n", t->cname?t->cname:"-", item->item_count);
+		if (gvcx_log_push(log, 1))
+		{
+			p = item->item_array;
+			n = item->item_count;
+			for (i = 0; i < n; ++i)
+			{
+				mlog_printf(log->input, "[%zu]: ", i);
+				gvcx_model_iprint_item(log, p[i]);
+			}
+			gvcx_log_pop(log, 1);
+		}
+	}
+}
 static d_type_initial(array, gvcx_model_type_array_param_t)
 {
 	refer_set_free(t, (refer_free_f) gvcx_model_type_array_free_func);
@@ -79,6 +99,7 @@ static d_type_initial(array, gvcx_model_type_array_param_t)
 	((gvcx_model_type_array_s *) t)->cany = (const gvcx_model_any_s *) refer_save(pri->cany);
 	t->create = d_type_function(array, create);
 	t->copyto = d_type_function(array, copyto);
+	t->iprint = d_type_function(array, iprint);
 	return t;
 }
 

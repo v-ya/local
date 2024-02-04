@@ -1,4 +1,5 @@
 #include "gvcx.model.h"
+#include <inttypes.h>
 
 typedef struct gvcx_model_type_enum_s gvcx_model_type_enum_s;
 typedef struct gvcx_model_item_enum_s gvcx_model_item_enum_s;
@@ -31,12 +32,18 @@ static d_type_copyto(enum, gvcx_model_type_enum_s, gvcx_model_item_enum_s)
 	dst->value = src->value;
 	return &dst->item;
 }
+static d_type_iprint(enum, gvcx_model_type_enum_s, gvcx_model_item_enum_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+		mlog_printf(log->input, " = %" PRIi64 " (%s)\n", item->value, gvcx_model_enum_name(t->e, item->value));
+}
 static d_type_initial(enum, gvcx_model_enum_s)
 {
 	refer_set_free(t, (refer_free_f) gvcx_model_type_enum_free_func);
 	((gvcx_model_type_enum_s *) t)->e = (const gvcx_model_enum_s *) refer_save(pri);
 	t->create = d_type_function(enum, create);
 	t->copyto = d_type_function(enum, copyto);
+	t->iprint = d_type_function(enum, iprint);
 	return t;
 }
 

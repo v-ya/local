@@ -3,6 +3,7 @@
 
 #include <refer.h>
 
+struct gvcx_log_s;
 struct gvcx_file_s;
 
 typedef struct gvcx_model_s gvcx_model_s;
@@ -12,7 +13,10 @@ gvcx_model_s* gvcx_model_alloc(void);
 gvcx_model_item_s* gvcx_model_create_item(const gvcx_model_s *restrict m, const char *restrict type);
 gvcx_model_item_s* gvcx_model_copyto_item(gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src);
 gvcx_model_item_s* gvcx_model_dumpit_item(const gvcx_model_s *restrict m, const gvcx_model_item_s *restrict item);
+void gvcx_model_iprint_item(struct gvcx_log_s *restrict log, const gvcx_model_item_s *restrict item);
 
+uintptr_t gvcx_model_get_n_bits(const gvcx_model_item_s *restrict i);
+gvcx_model_item_s* gvcx_model_set_n_bits(gvcx_model_item_s *restrict i, uintptr_t nbist);
 uint64_t gvcx_model_get_u(const gvcx_model_item_s *restrict i);
 gvcx_model_item_s* gvcx_model_set_u(gvcx_model_item_s *restrict i, uint64_t v);
 int64_t gvcx_model_get_i(const gvcx_model_item_s *restrict i);

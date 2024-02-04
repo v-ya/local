@@ -1,4 +1,5 @@
 #include "gvcx.model.h"
+#include <inttypes.h>
 
 typedef union gvcx_model_value_number_t gvcx_model_value_number_t;
 typedef struct gvcx_model_item_number_s gvcx_model_item_number_s;
@@ -26,10 +27,38 @@ static d_type_copyto(number, gvcx_model_type_s, gvcx_model_item_number_s)
 	dst->value.u = src->value.u;
 	return &dst->item;
 }
+static d_type_iprint(uint, gvcx_model_type_s, gvcx_model_item_number_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+		mlog_printf(log->input, " = %" PRIu64 " (%zu bits)\n", item->value.u, item->nbits);
+}
+static d_type_iprint(int, gvcx_model_type_s, gvcx_model_item_number_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+		mlog_printf(log->input, " = %" PRIi64 " (%zu bits)\n", item->value.i, item->nbits);
+}
+static d_type_iprint(float, gvcx_model_type_s, gvcx_model_item_number_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+		mlog_printf(log->input, " = %g (%zu bits)\n", item->value.f, item->nbits);
+}
+static d_type_iprint(boolean, gvcx_model_type_s, gvcx_model_item_number_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+		mlog_printf(log->input, " = %s (%zu bits)\n", item->value.b?"true":"false", item->nbits);
+}
 static d_type_initial(number, void)
 {
 	t->create = d_type_function(number, create);
 	t->copyto = d_type_function(number, copyto);
+	switch (t->type_major)
+	{
+		case gvcx_model_type__uint:    t->iprint = d_type_function(uint,    iprint); break;
+		case gvcx_model_type__int:     t->iprint = d_type_function(int,     iprint); break;
+		case gvcx_model_type__float:   t->iprint = d_type_function(float,   iprint); break;
+		case gvcx_model_type__boolean: t->iprint = d_type_function(boolean, iprint); break;
+		default: t->iprint = NULL; break;
+	}
 	return t;
 }
 
@@ -41,6 +70,38 @@ const gvcx_model_type_s* gvcx_model_type_create__boolean(const gvcx_model_s *res
 #undef d_type
 
 // api
+
+uintptr_t gvcx_model_get_n_bits(const gvcx_model_item_s *restrict i)
+{
+	switch (i->type_major)
+	{
+		case gvcx_model_type__uint:
+		case gvcx_model_type__int:
+		case gvcx_model_type__float:
+		case gvcx_model_type__boolean:
+			return ((const gvcx_model_item_number_s *) i)->nbits;
+		default:
+			return 0;
+	}
+}
+gvcx_model_item_s* gvcx_model_set_n_bits(gvcx_model_item_s *restrict i, uintptr_t nbist)
+{
+	if (i->item_flag & gvcx_model_flag__write)
+	{
+		switch (i->type_major)
+		{
+			case gvcx_model_type__uint:
+			case gvcx_model_type__int:
+			case gvcx_model_type__float:
+			case gvcx_model_type__boolean:
+				((gvcx_model_item_number_s *) i)->nbits = nbist;
+				return i;
+			default:
+				break;
+		}
+	}
+	return NULL;
+}
 
 #define d_get(_f, _t)  { if (i->type_major == gvcx_model_type__##_t) return ((const gvcx_model_item_number_s *) i)->value._f; return 0; }
 #define d_set(_f, _t, ...)  { if (i->type_major == gvcx_model_type__##_t && (i->item_flag & gvcx_model_flag__write)) { ((gvcx_model_item_number_s *) i)->value._f = __VA_ARGS__(v); return i; } return NULL; }

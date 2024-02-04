@@ -46,6 +46,11 @@ gvcx_model_object_s* gvcx_model_object_alloc(void)
 	return (gvcx_model_object_s *) vattr_alloc();
 }
 
+const vattr_s* gvcx_model_object_vattr(const gvcx_model_object_s *restrict object)
+{
+	return &object->param;
+}
+
 gvcx_model_object_s* gvcx_model_object_insert(gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t name, const gvcx_model_any_s *restrict any, gvcx_model_item_s *restrict dv)
 {
 	const gvcx_model_object_item_s *restrict item;

@@ -4,6 +4,7 @@
 #include "../gvcx.model.h"
 #include "../gvcx.model.custom.h"
 #include "../gvcx.model.string.h"
+#include "../gvcx.log.h"
 #include "../gvcx.file.h"
 #include <vattr.h>
 
@@ -17,11 +18,13 @@ typedef struct gvcx_model_object_s gvcx_model_object_s;
 typedef gvcx_model_type_s* (*gvcx_model_type_initial_f)(gvcx_model_type_s *restrict t, const void *restrict pri);
 typedef gvcx_model_item_s* (*gvcx_model_type_create_f)(const gvcx_model_type_s *restrict t, const gvcx_model_s *restrict m);
 typedef gvcx_model_item_s* (*gvcx_model_type_copyto_f)(const gvcx_model_type_s *restrict t, gvcx_model_item_s *restrict dst, const gvcx_model_item_s *restrict src);
+typedef void (*gvcx_model_type_iprint_f)(const gvcx_model_type_s *restrict t, const gvcx_model_item_s *restrict item, gvcx_log_s *restrict log);
 
 #define d_type_symbol(_name, _method)       gvcx_model_type__##_name##__##_method
 #define d_type_initial(_name, _type)        gvcx_model_type_s* d_type_symbol(_name, initial)(gvcx_model_type_s *restrict t, const _type *restrict pri)
 #define d_type_create(_name, _type)         gvcx_model_item_s* d_type_symbol(_name, create)(const _type *restrict t, const gvcx_model_s *restrict m)
 #define d_type_copyto(_name, _type, _item)  gvcx_model_item_s* d_type_symbol(_name, copyto)(const _type *restrict t, _item *restrict dst, const _item *restrict src)
+#define d_type_iprint(_name, _type, _item)  void d_type_symbol(_name, iprint)(const _type *restrict t, const _item *restrict item, gvcx_log_s *restrict log)
 #define d_type_function(_name, _method)     (gvcx_model_type_##_method##_f) d_type_symbol(_name, _method)
 
 enum gvcx_model_type_t {
@@ -51,6 +54,7 @@ struct gvcx_model_type_s {
 	uint32_t type_minor;
 	gvcx_model_type_create_f create;
 	gvcx_model_type_copyto_f copyto;
+	gvcx_model_type_iprint_f iprint;
 };
 
 struct gvcx_model_item_s {
@@ -105,6 +109,7 @@ const gvcx_model_enum_s* gvcx_model_enum_value(const gvcx_model_enum_s *restrict
 // gvcx.model.object.c
 
 gvcx_model_object_s* gvcx_model_object_alloc(void);
+const vattr_s* gvcx_model_object_vattr(const gvcx_model_object_s *restrict object);
 gvcx_model_object_s* gvcx_model_object_insert(gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t name, const gvcx_model_any_s *restrict any, gvcx_model_item_s *restrict dv);
 const gvcx_model_object_s* gvcx_model_object_find(const gvcx_model_object_s *restrict object, const char *restrict key, refer_string_t *restrict name, const gvcx_model_any_s *restrict *restrict any, gvcx_model_item_s *restrict *restrict dv);
 
@@ -112,6 +117,7 @@ const gvcx_model_object_s* gvcx_model_object_find(const gvcx_model_object_s *res
 
 void gvcx_model_item_free_func(gvcx_model_item_s *restrict r);
 gvcx_model_item_s* gvcx_model_item_alloc(uintptr_t isize, const gvcx_model_type_s *restrict type);
+mlog_s* gvcx_model_item_iprint(const gvcx_model_item_s *restrict item, gvcx_log_s *restrict log);
 
 // gvcx.model.t.*.c
 

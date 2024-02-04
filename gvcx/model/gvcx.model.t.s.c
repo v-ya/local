@@ -26,10 +26,20 @@ static d_type_copyto(string, gvcx_model_type_s, gvcx_model_item_string_s)
 	dst->value = (refer_nstring_t) refer_save(src->value);
 	return &dst->item;
 }
+static d_type_iprint(string, gvcx_model_type_s, gvcx_model_item_string_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+	{
+		if (item->value)
+			mlog_printf(log->input, " = %s\n", item->value->string);
+		else mlog_printf(log->input, " -\n");
+	}
+}
 static d_type_initial(string, void)
 {
 	t->create = d_type_function(string, create);
 	t->copyto = d_type_function(string, copyto);
+	t->iprint = d_type_function(string, iprint);
 	return t;
 }
 

@@ -1,4 +1,5 @@
 #include "gvcx.model.h"
+#include <inttypes.h>
 
 typedef struct gvcx_model_item_data_s gvcx_model_item_data_s;
 
@@ -30,10 +31,22 @@ static d_type_copyto(data, gvcx_model_type_s, gvcx_model_item_data_s)
 	dst->size = src->size;
 	return &dst->item;
 }
+static d_type_iprint(data, gvcx_model_type_s, gvcx_model_item_data_s)
+{
+	if (gvcx_model_item_iprint(&item->item, log))
+	{
+		if (item->file)
+			mlog_printf(log->input, "\n+(file:%p)[%" PRIu64 "] @%" PRIu64 "+%" PRIu64 "\n",
+				item->file, gvcx_file_size(item->file),
+				item->offset, item->size);
+		else mlog_printf(log->input, "\n");
+	}
+}
 static d_type_initial(data, void)
 {
 	t->create = d_type_function(data, create);
 	t->copyto = d_type_function(data, copyto);
+	t->iprint = d_type_function(data, iprint);
 	return t;
 }
 
