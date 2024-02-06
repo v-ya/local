@@ -1,17 +1,17 @@
 #include "buffer_pri.h"
 #include <alloca.h>
 
-static void graph_memory_heap_free_func(register graph_memory_heap_s *restrict r)
+static void graph_memory_heap_free_func(graph_memory_heap_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_memory_heap_s* graph_memory_heap_alloc(register struct graph_dev_s *restrict dev)
+graph_memory_heap_s* graph_memory_heap_alloc(struct graph_dev_s *restrict dev)
 {
-	register graph_memory_heap_s *restrict r;
+	graph_memory_heap_s *restrict r;
 	r = (graph_memory_heap_s *) refer_alloz(sizeof(graph_memory_heap_s));
 	if (r)
 	{
@@ -24,12 +24,12 @@ graph_memory_heap_s* graph_memory_heap_alloc(register struct graph_dev_s *restri
 	return r;
 }
 
-VkDeviceMemory graph_memory_alloc(register graph_memory_heap_s *restrict r, register VkMemoryRequirements *restrict require, register graph_memory_property_t property)
+VkDeviceMemory graph_memory_alloc(graph_memory_heap_s *restrict r, VkMemoryRequirements *restrict require, graph_memory_property_t property)
 {
 	VkDeviceMemory memory;
 	VkMemoryAllocateInfo info;
 	VkResult ret;
-	register uint32_t i;
+	uint32_t i;
 	memory = NULL;
 	info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	info.pNext = NULL;
@@ -51,9 +51,9 @@ VkDeviceMemory graph_memory_alloc(register graph_memory_heap_s *restrict r, regi
 	goto label_return_null;
 }
 
-static void graph_buffer_free_func(register graph_buffer_s *restrict r)
+static void graph_buffer_free_func(graph_buffer_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->memory)) vkFreeMemory(r->dev->dev, (VkDeviceMemory) v, &r->ga->alloc);
 	if ((v = r->buffer)) vkDestroyBuffer(r->dev->dev, (VkBuffer) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
@@ -62,9 +62,9 @@ static void graph_buffer_free_func(register graph_buffer_s *restrict r)
 	if ((v = r->heap)) refer_free(v);
 }
 
-graph_buffer_s* graph_buffer_alloc(register graph_memory_heap_s *restrict heap, uint64_t size, graph_buffer_flags_t flags, graph_buffer_usage_t usage, graph_memory_property_t property, uint32_t share_queue_number, const struct graph_device_queue_t *restrict share_queue_array)
+graph_buffer_s* graph_buffer_alloc(graph_memory_heap_s *restrict heap, uint64_t size, graph_buffer_flags_t flags, graph_buffer_usage_t usage, graph_memory_property_t property, uint32_t share_queue_number, const struct graph_device_queue_t *restrict share_queue_array)
 {
-	register graph_buffer_s *restrict r;
+	graph_buffer_s *restrict r;
 	VkBufferCreateInfo info;
 	VkResult ret;
 	info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -80,7 +80,7 @@ graph_buffer_s* graph_buffer_alloc(register graph_memory_heap_s *restrict heap, 
 	}
 	else
 	{
-		register uint32_t *queue;
+		uint32_t *queue;
 		queue = (uint32_t *) alloca(sizeof(uint32_t) * share_queue_number);
 		if (!queue) goto label_return_null;
 		info.sharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -102,6 +102,7 @@ graph_buffer_s* graph_buffer_alloc(register graph_memory_heap_s *restrict heap, 
 		if (!ret)
 		{
 			vkGetBufferMemoryRequirements(device, r->buffer, &r->require);
+			r->size = size;
 			r->memory = graph_memory_alloc(heap, &r->require, property);
 			if (r->memory)
 			{
@@ -117,10 +118,10 @@ graph_buffer_s* graph_buffer_alloc(register graph_memory_heap_s *restrict heap, 
 	return NULL;
 }
 
-#define graph_buffer_range_fix(_bf, _off, _size)  if (_off > _bf->require.size) _off = _bf->require.size;\
-						if (_size > (_bf->require.size - _off)) _size = (_bf->require.size - _off)
+#define graph_buffer_range_fix(_bf, _off, _size)  if (_off > _bf->size) _off = _bf->size;\
+						if (_size > (_bf->size - _off)) _size = (_bf->size - _off)
 
-void* graph_buffer_map(register graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+void* graph_buffer_map(graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
 {
 	void *r;
 	VkResult ret;
@@ -135,12 +136,12 @@ void* graph_buffer_map(register graph_buffer_s *restrict buffer, uint64_t offset
 	return NULL;
 }
 
-void graph_buffer_unmap(register graph_buffer_s *restrict buffer)
+void graph_buffer_unmap(graph_buffer_s *restrict buffer)
 {
 	vkUnmapMemory(buffer->dev->dev, buffer->memory);
 }
 
-graph_buffer_s* graph_buffer_flush(register graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+graph_buffer_s* graph_buffer_flush(graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
 {
 	VkMappedMemoryRange range;
 	VkResult ret;
@@ -159,7 +160,7 @@ graph_buffer_s* graph_buffer_flush(register graph_buffer_s *restrict buffer, uin
 	return NULL;
 }
 
-graph_buffer_s* graph_buffer_invalidate(register graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+graph_buffer_s* graph_buffer_invalidate(graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
 {
 	VkMappedMemoryRange range;
 	VkResult ret;

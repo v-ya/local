@@ -2,11 +2,11 @@
 
 static const char graph_string_unknow[] = graph_type_red "unknow" graph_type_back;
 
-char* graph_type_list(char *restrict s, register uint32_t r, register const char *array[], register uint32_t n)
+char* graph_type_list(char *restrict s, uint32_t r, const char *array[], uint32_t n)
 {
-	register char *d;
-	register const char *restrict c;
-	register uint32_t i;
+	char *d;
+	const char *restrict c;
+	uint32_t i;
 	d = s;
 	i = 0;
 	do {
@@ -23,7 +23,7 @@ char* graph_type_list(char *restrict s, register uint32_t r, register const char
 	return s;
 }
 
-const char* graph_bool$string(register graph_bool_t r)
+const char* graph_bool$string(graph_bool_t r)
 {
 	return (const char *[]){
 		graph_type_red   "false" graph_type_back,
@@ -31,7 +31,7 @@ const char* graph_bool$string(register graph_bool_t r)
 	}[!!r];
 }
 
-const char* graph_physical_device_type$string(register graph_physical_device_type_t r)
+const char* graph_physical_device_type$string(graph_physical_device_type_t r)
 {
 	static const char *mapping[] = {
 		[graph_physical_device_type_other]          = graph_type_red "other" graph_type_back,
@@ -45,7 +45,7 @@ const char* graph_physical_device_type$string(register graph_physical_device_typ
 	return graph_string_unknow;
 }
 
-graph_format_t graph_format4vk(register VkFormat r)
+graph_format_t graph_format4vk(VkFormat r)
 {
 	static const graph_format_t mapping[] = {
 		[VK_FORMAT_UNDEFINED]                  = graph_format_unknow,
@@ -185,7 +185,7 @@ graph_format_t graph_format4vk(register VkFormat r)
 	return graph_format_unknow;
 }
 
-VkFormat graph_format2vk(register graph_format_t r)
+VkFormat graph_format2vk(graph_format_t r)
 {
 	static const VkFormat mapping[] = {
 		[graph_format_unknow]                     = VK_FORMAT_UNDEFINED,
@@ -325,7 +325,7 @@ VkFormat graph_format2vk(register graph_format_t r)
 	return VK_FORMAT_UNDEFINED;
 }
 
-const char* graph_format$string(register graph_format_t r)
+const char* graph_format$string(graph_format_t r)
 {
 	static const char *mapping[] = {
 		#define def_string(_n)  [graph_format_##_n] = #_n
@@ -467,7 +467,7 @@ const char* graph_format$string(register graph_format_t r)
 	return mapping[0];
 }
 
-const char* graph_color_space$string(register graph_color_space_t r)
+const char* graph_color_space$string(graph_color_space_t r)
 {
 	static const char *mapping[] = {
 		[graph_color_space_srgb] = "srgb"
@@ -477,7 +477,7 @@ const char* graph_color_space$string(register graph_color_space_t r)
 	return graph_string_unknow;
 }
 
-const char* graph_present_mode$string(register graph_present_mode_t r)
+const char* graph_present_mode$string(graph_present_mode_t r)
 {
 	static const char *mapping[] = {
 		[graph_present_mode_immediate]    = graph_type_blue "immediate" graph_type_back,
@@ -490,7 +490,7 @@ const char* graph_present_mode$string(register graph_present_mode_t r)
 	return graph_string_unknow;
 }
 
-char* graph_queue_flags$list(register char *restrict s, register graph_queue_flags_t r)
+char* graph_queue_flags$list(char *restrict s, graph_queue_flags_t r)
 {
 	static const char *array[] = {
 		graph_type_green "graphics" graph_type_back,
@@ -502,7 +502,7 @@ char* graph_queue_flags$list(register char *restrict s, register graph_queue_fla
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-char* graph_image_usage$list(register char *restrict s, register graph_image_usage_t r)
+char* graph_image_usage$list(char *restrict s, graph_image_usage_t r)
 {
 	static const char *array[] = {
 		"transfer_src",
@@ -519,7 +519,7 @@ char* graph_image_usage$list(register char *restrict s, register graph_image_usa
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-graph_image_view_type_t graph_image_view_type4vk(register VkImageViewType r)
+graph_image_view_type_t graph_image_view_type4vk(VkImageViewType r)
 {
 	static const graph_image_view_type_t mapping[graph_image_view_type$number] = {
 		[VK_IMAGE_VIEW_TYPE_1D]         = graph_image_view_type_1D,
@@ -535,7 +535,7 @@ graph_image_view_type_t graph_image_view_type4vk(register VkImageViewType r)
 	return graph_image_view_type$number;
 }
 
-VkImageViewType graph_image_view_type2vk(register graph_image_view_type_t r)
+VkImageViewType graph_image_view_type2vk(graph_image_view_type_t r)
 {
 	static const VkImageViewType mapping[graph_image_view_type$number] = {
 		[graph_image_view_type_1D]         = VK_IMAGE_VIEW_TYPE_1D,
@@ -551,7 +551,7 @@ VkImageViewType graph_image_view_type2vk(register graph_image_view_type_t r)
 	return VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 }
 
-char* graph_surface_transform$list(register char *restrict s, register graph_surface_transform_t r)
+char* graph_surface_transform$list(char *restrict s, graph_surface_transform_t r)
 {
 	static const char *array[] = {
 		"identity",
@@ -566,7 +566,7 @@ char* graph_surface_transform$list(register char *restrict s, register graph_sur
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-char* graph_composite_alpha$list(register char *restrict s, register graph_composite_alpha_t r)
+char* graph_composite_alpha$list(char *restrict s, graph_composite_alpha_t r)
 {
 	static const char *array[] = {
 		"opaque",
@@ -577,7 +577,7 @@ char* graph_composite_alpha$list(register char *restrict s, register graph_compo
 	return graph_type_list(s, r, array, graph_array_number(array));
 }
 
-VkVertexInputRate graph_vertex_input_rate2vk(register graph_vertex_input_rate_t r)
+VkVertexInputRate graph_vertex_input_rate2vk(graph_vertex_input_rate_t r)
 {
 	static const VkVertexInputRate mapping[graph_vertex_input_rate$number] = {
 		[graph_vertex_input_rate_vertex]   = VK_VERTEX_INPUT_RATE_VERTEX,
@@ -588,7 +588,7 @@ VkVertexInputRate graph_vertex_input_rate2vk(register graph_vertex_input_rate_t 
 	return VK_VERTEX_INPUT_RATE_MAX_ENUM;
 }
 
-VkPrimitiveTopology graph_primitive_topology2vk(register graph_primitive_topology_t r)
+VkPrimitiveTopology graph_primitive_topology2vk(graph_primitive_topology_t r)
 {
 	static const VkPrimitiveTopology mapping[graph_primitive_topology$number] = {
 		[graph_primitive_topology_point_list]                    = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
@@ -608,7 +608,7 @@ VkPrimitiveTopology graph_primitive_topology2vk(register graph_primitive_topolog
 	return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 }
 
-VkPolygonMode graph_polygon_mode2vk(register graph_polygon_mode_t r)
+VkPolygonMode graph_polygon_mode2vk(graph_polygon_mode_t r)
 {
 	static const VkPolygonMode mapping[graph_polygon_mode$number] = {
 		[graph_polygon_mode_fill]  = VK_POLYGON_MODE_FILL,
@@ -620,7 +620,7 @@ VkPolygonMode graph_polygon_mode2vk(register graph_polygon_mode_t r)
 	return VK_POLYGON_MODE_MAX_ENUM;
 }
 
-VkBlendFactor graph_blend_factor2vk(register graph_blend_factor_t r)
+VkBlendFactor graph_blend_factor2vk(graph_blend_factor_t r)
 {
 	static const VkBlendFactor mapping[graph_blend_factor$number] = {
 		[graph_blend_factor_zero]                     = VK_BLEND_FACTOR_ZERO,
@@ -648,7 +648,7 @@ VkBlendFactor graph_blend_factor2vk(register graph_blend_factor_t r)
 	return VK_BLEND_FACTOR_ZERO;
 }
 
-VkBlendOp graph_blend_op2vk(register graph_blend_op_t r)
+VkBlendOp graph_blend_op2vk(graph_blend_op_t r)
 {
 	static const VkBlendOp mapping[graph_blend_op$number] = {
 		[graph_blend_op_add]              = VK_BLEND_OP_ADD,
@@ -662,7 +662,7 @@ VkBlendOp graph_blend_op2vk(register graph_blend_op_t r)
 	return VK_BLEND_OP_ADD;
 }
 
-VkLogicOp graph_logic_op2vk(register graph_logic_op_t r)
+VkLogicOp graph_logic_op2vk(graph_logic_op_t r)
 {
 	static const VkLogicOp mapping[graph_logic_op$number] = {
 		[graph_logic_op_clear]         = VK_LOGIC_OP_CLEAR,
@@ -687,7 +687,7 @@ VkLogicOp graph_logic_op2vk(register graph_logic_op_t r)
 	return VK_LOGIC_OP_CLEAR;
 }
 
-VkAttachmentLoadOp graph_attachment_load_op2vk(register graph_attachment_load_op_t r)
+VkAttachmentLoadOp graph_attachment_load_op2vk(graph_attachment_load_op_t r)
 {
 	static const VkAttachmentLoadOp mapping[graph_attachment_load_op$number] = {
 		[graph_attachment_load_op_load]  = VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -699,7 +699,7 @@ VkAttachmentLoadOp graph_attachment_load_op2vk(register graph_attachment_load_op
 	return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 }
 
-VkAttachmentStoreOp graph_attachment_store_op2vk(register graph_attachment_store_op_t r)
+VkAttachmentStoreOp graph_attachment_store_op2vk(graph_attachment_store_op_t r)
 {
 	static const VkAttachmentStoreOp mapping[graph_attachment_store_op$number] = {
 		[graph_attachment_store_op_store] = VK_ATTACHMENT_STORE_OP_STORE,
@@ -710,7 +710,7 @@ VkAttachmentStoreOp graph_attachment_store_op2vk(register graph_attachment_store
 	return VK_ATTACHMENT_STORE_OP_DONT_CARE;
 }
 
-VkImageLayout graph_image_layout2vk(register graph_image_layout_t r)
+VkImageLayout graph_image_layout2vk(graph_image_layout_t r)
 {
 	static const VkImageLayout mapping[graph_image_layout$number] = {
 		[graph_image_layout_undefined]                        = VK_IMAGE_LAYOUT_UNDEFINED,
@@ -729,7 +729,7 @@ VkImageLayout graph_image_layout2vk(register graph_image_layout_t r)
 	return VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
-VkDescriptorType graph_desc_type2vk(register graph_desc_type_t r)
+VkDescriptorType graph_desc_type2vk(graph_desc_type_t r)
 {
 	static const VkDescriptorType mapping[graph_desc_type$number] = {
 		[graph_desc_type_sampler]                = VK_DESCRIPTOR_TYPE_SAMPLER,
@@ -749,7 +749,7 @@ VkDescriptorType graph_desc_type2vk(register graph_desc_type_t r)
 	return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 }
 
-VkPipelineBindPoint graph_pipeline_bind_point2vk(register graph_pipeline_bind_point_t r)
+VkPipelineBindPoint graph_pipeline_bind_point2vk(graph_pipeline_bind_point_t r)
 {
 	static const VkPipelineBindPoint mapping[graph_pipeline_bind_point$number] = {
 		[graph_pipeline_bind_point_graphics] = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -760,7 +760,7 @@ VkPipelineBindPoint graph_pipeline_bind_point2vk(register graph_pipeline_bind_po
 	return VK_PIPELINE_BIND_POINT_GRAPHICS;
 }
 
-VkDynamicState graph_dynamic2vk(register graph_dynamic_t r)
+VkDynamicState graph_dynamic2vk(graph_dynamic_t r)
 {
 	static const VkDynamicState mapping[graph_dynamic$number] = {
 		[graph_dynamic_viewport]             = VK_DYNAMIC_STATE_VIEWPORT,
@@ -778,7 +778,7 @@ VkDynamicState graph_dynamic2vk(register graph_dynamic_t r)
 	return VK_DYNAMIC_STATE_MAX_ENUM;
 }
 
-VkSubpassContents graph_subpass_contents2vk(register graph_subpass_contents_t r)
+VkSubpassContents graph_subpass_contents2vk(graph_subpass_contents_t r)
 {
 	static const VkSubpassContents mapping[graph_subpass_contents$number] = {
 		[graph_subpass_contents_inline]    = VK_SUBPASS_CONTENTS_INLINE,
@@ -789,7 +789,7 @@ VkSubpassContents graph_subpass_contents2vk(register graph_subpass_contents_t r)
 	return VK_SUBPASS_CONTENTS_INLINE;
 }
 
-VkIndexType graph_index_type2vk(register graph_index_type_t r)
+VkIndexType graph_index_type2vk(graph_index_type_t r)
 {
 	static const VkIndexType mapping[graph_index_type$number] = {
 		[graph_index_type_uint16] = VK_INDEX_TYPE_UINT16,
@@ -800,7 +800,7 @@ VkIndexType graph_index_type2vk(register graph_index_type_t r)
 	return VK_INDEX_TYPE_MAX_ENUM;
 }
 
-VkFilter graph_filter2vk(register graph_filter_t r)
+VkFilter graph_filter2vk(graph_filter_t r)
 {
 	static const VkFilter mapping[graph_filter$number] = {
 		[graph_filter_nearest]   = VK_FILTER_NEAREST,
@@ -812,7 +812,7 @@ VkFilter graph_filter2vk(register graph_filter_t r)
 	return VK_FILTER_NEAREST;
 }
 
-VkSamplerMipmapMode graph_sampler_mipmap_mode2vk(register graph_sampler_mipmap_mode_t r)
+VkSamplerMipmapMode graph_sampler_mipmap_mode2vk(graph_sampler_mipmap_mode_t r)
 {
 	static const VkSamplerMipmapMode mapping[graph_sampler_mipmap_mode$number] = {
 		[graph_sampler_mipmap_mode_nearest] = VK_SAMPLER_MIPMAP_MODE_NEAREST,
@@ -823,7 +823,7 @@ VkSamplerMipmapMode graph_sampler_mipmap_mode2vk(register graph_sampler_mipmap_m
 	return VK_SAMPLER_MIPMAP_MODE_NEAREST;
 }
 
-VkSamplerAddressMode graph_sampler_address_mode2vk(register graph_sampler_address_mode_t r)
+VkSamplerAddressMode graph_sampler_address_mode2vk(graph_sampler_address_mode_t r)
 {
 	static const VkSamplerAddressMode mapping[graph_sampler_address_mode$number] = {
 		[graph_sampler_address_mode_repeat]               = VK_SAMPLER_ADDRESS_MODE_REPEAT,
@@ -837,7 +837,7 @@ VkSamplerAddressMode graph_sampler_address_mode2vk(register graph_sampler_addres
 	return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 }
 
-VkCompareOp graph_compare_op2vk(register graph_compare_op_t r)
+VkCompareOp graph_compare_op2vk(graph_compare_op_t r)
 {
 	static const VkCompareOp mapping[graph_compare_op$number] = {
 		[graph_compare_op_never]            = VK_COMPARE_OP_NEVER,
@@ -854,7 +854,7 @@ VkCompareOp graph_compare_op2vk(register graph_compare_op_t r)
 	return VK_COMPARE_OP_NEVER;
 }
 
-VkBorderColor graph_border_color2vk(register graph_border_color_t r)
+VkBorderColor graph_border_color2vk(graph_border_color_t r)
 {
 	static const VkBorderColor mapping[graph_border_color$number] = {
 		[graph_border_color_float_transparent_black] = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,

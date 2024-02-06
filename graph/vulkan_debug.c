@@ -167,7 +167,7 @@ static VkBool32 graph_vulkan_instance_debug_callback_func(
 	return VK_FALSE;
 }
 
-static void graph_value_debug_utils_messenger_free_func(register graph_vulkan_debug_utils_messenger_s *restrict r)
+static void graph_value_debug_utils_messenger_free_func(graph_vulkan_debug_utils_messenger_s *restrict r)
 {
 	if (r->message && r->destroy) r->destroy(r->instance, r->message, &r->ga->alloc);
 	if (r->ga) refer_free(r->ga);

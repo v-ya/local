@@ -6,7 +6,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS		= -shared -lrefer -lhashmap -lmlog -lvulkan -lxcb -soname ${TARGET}
 
-OBJECT		= graph.o allocator.o support.o device.o surface.o surface_xcb.o image.o layout.o shader.o command.o buffer.o type.o vulkan_debug.o system.o
+OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c))
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

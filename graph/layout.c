@@ -5,11 +5,11 @@
 #include <memory.h>
 #include <alloca.h>
 
-static void graph_descriptor_set_layout_param_free_func(register graph_descriptor_set_layout_param_s *restrict r)
+static void graph_descriptor_set_layout_param_free_func(graph_descriptor_set_layout_param_s *restrict r)
 {
-	register refer_t *restrict p;
-	register refer_t v;
-	register uint32_t n;
+	refer_t *restrict p;
+	refer_t v;
+	uint32_t n;
 	p = (refer_t *) r->graph_sampler;
 	n = r->sampler_number;
 	while (n)
@@ -21,7 +21,7 @@ static void graph_descriptor_set_layout_param_free_func(register graph_descripto
 
 graph_descriptor_set_layout_param_s* graph_descriptor_set_layout_param_alloc(uint32_t binding_number, uint32_t sampler_number, graph_desc_set_layout_flags_t flags)
 {
-	register graph_descriptor_set_layout_param_s *restrict r;
+	graph_descriptor_set_layout_param_s *restrict r;
 	r = (graph_descriptor_set_layout_param_s *) refer_alloz(
 		sizeof(graph_descriptor_set_layout_param_s) +
 		sizeof(VkDescriptorSetLayoutBinding) * binding_number +
@@ -41,11 +41,11 @@ graph_descriptor_set_layout_param_s* graph_descriptor_set_layout_param_alloc(uin
 	return r;
 }
 
-graph_descriptor_set_layout_param_s* graph_descriptor_set_layout_param_set_binding(register graph_descriptor_set_layout_param_s *restrict param, uint32_t index, uint32_t binding, graph_desc_type_t type, uint32_t number, graph_shader_stage_flags_t flags)
+graph_descriptor_set_layout_param_s* graph_descriptor_set_layout_param_set_binding(graph_descriptor_set_layout_param_s *restrict param, uint32_t index, uint32_t binding, graph_desc_type_t type, uint32_t number, graph_shader_stage_flags_t flags)
 {
 	if (index < param->binding_size && (uint32_t) type < graph_desc_type$number)
 	{
-		register VkDescriptorSetLayoutBinding *restrict p;
+		VkDescriptorSetLayoutBinding *restrict p;
 		p = param->binding + index;
 		p->binding = binding;
 		p->descriptorType = graph_desc_type2vk(type);
@@ -58,18 +58,18 @@ graph_descriptor_set_layout_param_s* graph_descriptor_set_layout_param_set_bindi
 	return NULL;
 }
 
-static void graph_descriptor_set_layout_free_func(register graph_descriptor_set_layout_s *restrict r)
+static void graph_descriptor_set_layout_free_func(graph_descriptor_set_layout_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->set_layout)) vkDestroyDescriptorSetLayout(r->dev->dev, (VkDescriptorSetLayout) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_descriptor_set_layout_s* graph_descriptor_set_layout_alloc(register graph_descriptor_set_layout_param_s *restrict param, register struct graph_dev_s *restrict dev)
+graph_descriptor_set_layout_s* graph_descriptor_set_layout_alloc(graph_descriptor_set_layout_param_s *restrict param, struct graph_dev_s *restrict dev)
 {
-	register graph_descriptor_set_layout_s *restrict r;
+	graph_descriptor_set_layout_s *restrict r;
 	VkResult ret;
 	r = (graph_descriptor_set_layout_s *) refer_alloz(sizeof(graph_descriptor_set_layout_s));
 	if (r)
@@ -86,11 +86,11 @@ graph_descriptor_set_layout_s* graph_descriptor_set_layout_alloc(register graph_
 	return NULL;
 }
 
-static void graph_pipe_layout_param_free_func(register graph_pipe_layout_param_s *restrict r)
+static void graph_pipe_layout_param_free_func(graph_pipe_layout_param_s *restrict r)
 {
-	register refer_t *restrict p;
-	register refer_t v;
-	register uint32_t n;
+	refer_t *restrict p;
+	refer_t v;
+	uint32_t n;
 	p = (refer_t *) r->rsl;
 	n = r->set_layout_number;
 	while (n)
@@ -102,7 +102,7 @@ static void graph_pipe_layout_param_free_func(register graph_pipe_layout_param_s
 
 graph_pipe_layout_param_s* graph_pipe_layout_param_alloc(uint32_t set_layout_number, uint32_t range_number)
 {
-	register graph_pipe_layout_param_s *restrict r;
+	graph_pipe_layout_param_s *restrict r;
 	r = (graph_pipe_layout_param_s *) refer_alloz(
 		sizeof(graph_pipe_layout_param_s) +
 		(sizeof(struct graph_descriptor_set_layout_s *) + sizeof(VkDescriptorSetLayout)) * set_layout_number +
@@ -119,9 +119,9 @@ graph_pipe_layout_param_s* graph_pipe_layout_param_alloc(uint32_t set_layout_num
 	return r;
 }
 
-graph_pipe_layout_param_s* graph_pipe_layout_param_append_set_layout(register graph_pipe_layout_param_s *restrict param, register const graph_descriptor_set_layout_s *restrict set_layout)
+graph_pipe_layout_param_s* graph_pipe_layout_param_append_set_layout(graph_pipe_layout_param_s *restrict param, const graph_descriptor_set_layout_s *restrict set_layout)
 {
-	register uint32_t i;
+	uint32_t i;
 	if ((i = param->set_layout_number) < param->set_layout_size)
 	{
 		param->rsl[i] = (graph_descriptor_set_layout_s *) refer_save(set_layout);
@@ -132,10 +132,10 @@ graph_pipe_layout_param_s* graph_pipe_layout_param_append_set_layout(register gr
 	return NULL;
 }
 
-graph_pipe_layout_param_s* graph_pipe_layout_param_append_range(register graph_pipe_layout_param_s *restrict param, graph_shader_stage_flags_t flags, uint32_t offset, uint32_t size)
+graph_pipe_layout_param_s* graph_pipe_layout_param_append_range(graph_pipe_layout_param_s *restrict param, graph_shader_stage_flags_t flags, uint32_t offset, uint32_t size)
 {
-	register VkPushConstantRange *restrict p;
-	register uint32_t i;
+	VkPushConstantRange *restrict p;
+	uint32_t i;
 	if ((i = param->push_constant_range_number) < param->push_constant_range_size)
 	{
 		p = param->push_constant_ranges + i;
@@ -148,18 +148,18 @@ graph_pipe_layout_param_s* graph_pipe_layout_param_append_range(register graph_p
 	return NULL;
 }
 
-void graph_pipe_layout_free_func(register graph_pipe_layout_s *restrict r)
+void graph_pipe_layout_free_func(graph_pipe_layout_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->layout)) vkDestroyPipelineLayout(r->dev->dev, (VkPipelineLayout) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restrict dev, register const graph_pipe_layout_param_s *restrict param)
+graph_pipe_layout_s* graph_pipe_layout_alloc(struct graph_dev_s *restrict dev, const graph_pipe_layout_param_s *restrict param)
 {
-	register graph_pipe_layout_s *restrict r;
+	graph_pipe_layout_s *restrict r;
 	VkPipelineLayoutCreateInfo info;
 	VkResult ret;
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -191,19 +191,19 @@ graph_pipe_layout_s* graph_pipe_layout_alloc(register struct graph_dev_s *restri
 	return NULL;
 }
 
-static void graph_descriptor_pool_free_func(register graph_descriptor_pool_s *restrict r)
+static void graph_descriptor_pool_free_func(graph_descriptor_pool_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->pool)) vkDestroyDescriptorPool(r->dev->dev, (VkDescriptorPool) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_descriptor_pool_s* graph_descriptor_pool_alloc(register struct graph_dev_s *restrict dev, graph_desc_pool_flags_t flags, uint32_t max_sets, uint32_t pool_size_number, graph_desc_type_t pool_type[], uint32_t pool_desc_number[])
+graph_descriptor_pool_s* graph_descriptor_pool_alloc(struct graph_dev_s *restrict dev, graph_desc_pool_flags_t flags, uint32_t max_sets, uint32_t pool_size_number, graph_desc_type_t pool_type[], uint32_t pool_desc_number[])
 {
-	register graph_descriptor_pool_s *restrict r;
-	register VkDescriptorPoolSize *restrict p;
+	graph_descriptor_pool_s *restrict r;
+	VkDescriptorPoolSize *restrict p;
 	VkDescriptorPoolCreateInfo info;
 	VkResult ret;
 	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -244,10 +244,10 @@ graph_descriptor_pool_s* graph_descriptor_pool_alloc(register struct graph_dev_s
 	goto label_fail;
 }
 
-static void graph_descriptor_sets_free_func(register graph_descriptor_sets_s *restrict r)
+static void graph_descriptor_sets_free_func(graph_descriptor_sets_s *restrict r)
 {
-	register refer_t v;
-	register uint32_t i;
+	refer_t v;
+	uint32_t i;
 	if (r->pool) refer_free(r->pool);
 	for (i = 0; i < r->number; ++i)
 	{
@@ -256,10 +256,10 @@ static void graph_descriptor_sets_free_func(register graph_descriptor_sets_s *re
 	}
 }
 
-graph_descriptor_sets_s* graph_descriptor_sets_alloc(register graph_descriptor_pool_s *restrict pool, uint32_t number, graph_descriptor_set_layout_s *set_layout[])
+graph_descriptor_sets_s* graph_descriptor_sets_alloc(graph_descriptor_pool_s *restrict pool, uint32_t number, graph_descriptor_set_layout_s *set_layout[])
 {
-	register graph_descriptor_sets_s *restrict r;
-	register VkDescriptorSetLayout *restrict p;
+	graph_descriptor_sets_s *restrict r;
+	VkDescriptorSetLayout *restrict p;
 	VkDescriptorSetAllocateInfo info;
 	uint32_t i;
 	VkResult ret;
@@ -299,17 +299,17 @@ graph_descriptor_sets_s* graph_descriptor_sets_alloc(register graph_descriptor_p
 	return NULL;
 }
 
-static void graph_descriptor_sets_info_free_func(register graph_descriptor_sets_info_s *restrict r)
+static void graph_descriptor_sets_info_free_func(graph_descriptor_sets_info_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->sets)) refer_free(v);
 }
 
-graph_descriptor_sets_info_s* graph_descriptor_sets_info_alloc(register graph_descriptor_sets_s *restrict sets, uint32_t n_write, uint32_t n_copy, uint32_t n_image_info, uint32_t n_buffer_info, uint32_t n_buffer_view)
+graph_descriptor_sets_info_s* graph_descriptor_sets_info_alloc(graph_descriptor_sets_s *restrict sets, uint32_t n_write, uint32_t n_copy, uint32_t n_image_info, uint32_t n_buffer_info, uint32_t n_buffer_view)
 {
-	register graph_descriptor_sets_info_s *restrict r;
+	graph_descriptor_sets_info_s *restrict r;
 	size_t size;
 	size = sizeof(graph_descriptor_sets_info_s);
 	size += sizeof(VkWriteDescriptorSet) * n_write;
@@ -341,10 +341,10 @@ graph_descriptor_sets_info_s* graph_descriptor_sets_info_alloc(register graph_de
 	return r;
 }
 
-uint32_t graph_descriptor_sets_info_append_write(register graph_descriptor_sets_info_s *restrict info, uint32_t set_index, uint32_t binding, graph_desc_type_t type, uint32_t offset, uint32_t count)
+uint32_t graph_descriptor_sets_info_append_write(graph_descriptor_sets_info_s *restrict info, uint32_t set_index, uint32_t binding, graph_desc_type_t type, uint32_t offset, uint32_t count)
 {
-	register VkWriteDescriptorSet *restrict p;
-	register void *restrict v;
+	VkWriteDescriptorSet *restrict p;
+	void *restrict v;
 	uint32_t r;
 	if ((r = info->write_number) < info->write_size && set_index < info->sets->number && count)
 	{
@@ -388,10 +388,10 @@ uint32_t graph_descriptor_sets_info_append_write(register graph_descriptor_sets_
 	return ~0;
 }
 
-void graph_descriptor_sets_info_set_write_image_info(register graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t image_info_index, const struct graph_sampler_s *restrict sampler, const struct graph_image_view_s *restrict image_view, graph_image_layout_t layout)
+void graph_descriptor_sets_info_set_write_image_info(graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t image_info_index, const struct graph_sampler_s *restrict sampler, const struct graph_image_view_s *restrict image_view, graph_image_layout_t layout)
 {
-	register VkWriteDescriptorSet *restrict w;
-	register VkDescriptorImageInfo *restrict p;
+	VkWriteDescriptorSet *restrict w;
+	VkDescriptorImageInfo *restrict p;
 	if (write_index < info->write_number &&
 		image_info_index < (w = info->write + write_index)->descriptorCount &&
 		(p = (VkDescriptorImageInfo *) w->pImageInfo))
@@ -403,24 +403,24 @@ void graph_descriptor_sets_info_set_write_image_info(register graph_descriptor_s
 	}
 }
 
-void graph_descriptor_sets_info_set_write_buffer_info(register graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t buffer_info_index, const struct graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+void graph_descriptor_sets_info_set_write_buffer_info(graph_descriptor_sets_info_s *restrict info, uint32_t write_index, uint32_t buffer_info_index, const struct graph_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
 {
-	register VkWriteDescriptorSet *restrict w;
-	register VkDescriptorBufferInfo *restrict p;
+	VkWriteDescriptorSet *restrict w;
+	VkDescriptorBufferInfo *restrict p;
 	if (write_index < info->write_number &&
 		buffer_info_index < (w = info->write + write_index)->descriptorCount &&
 		(p = (VkDescriptorBufferInfo *) w->pBufferInfo))
 	{
 		p += buffer_info_index;
 		p->buffer = buffer->buffer;
-		if (offset > buffer->require.size) offset = buffer->require.size;
-		if (size > buffer->require.size - offset) size = buffer->require.size - offset;
+		if (offset > buffer->size) offset = buffer->size;
+		if (size > buffer->size - offset) size = buffer->size - offset;
 		p->offset = offset;
 		p->range = size;
 	}
 }
 
-void graph_descriptor_sets_info_update(register graph_descriptor_sets_info_s *restrict info)
+void graph_descriptor_sets_info_update(graph_descriptor_sets_info_s *restrict info)
 {
 	vkUpdateDescriptorSets(info->dev->dev,
 		info->write_number, info->write_number?info->write:NULL,

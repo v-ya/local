@@ -36,6 +36,7 @@ graph_command_pool_s* graph_command_bind_desc_sets(graph_command_pool_s *restric
 void graph_command_draw(graph_command_pool_s *restrict r, uint32_t ia, uint32_t v_number, uint32_t i_number, uint32_t v_start, uint32_t i_start);
 void graph_command_draw_index(graph_command_pool_s *restrict r, uint32_t ia, uint32_t idx_number, uint32_t i_number, uint32_t idx_start, uint32_t v_start, uint32_t i_start);
 void graph_command_end_render(graph_command_pool_s *restrict r, uint32_t ia);
+void graph_command_dispatch(graph_command_pool_s *restrict r, uint32_t ia, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);
 void graph_command_copy_buffer(graph_command_pool_s *restrict r, uint32_t ia, struct graph_buffer_s *restrict dst, const struct graph_buffer_s *restrict src, uint64_t dst_offset, uint64_t src_offset, uint64_t size);
 graph_command_pool_s* graph_command_copy_buffer_to_image(graph_command_pool_s *restrict r, uint32_t ia, struct graph_image_s *restrict dst, const struct graph_buffer_s *restrict src, graph_image_layout_t layout, uint64_t buffer_offset, graph_image_aspect_flags_t flags, const int32_t *restrict image_offset, const uint32_t *restrict image_extent);
 

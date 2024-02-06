@@ -11,10 +11,10 @@ typedef struct graph_surface_xcb_s {
 	xcb_atom_t atom_close;
 } graph_surface_xcb_s;
 
-static const graph_surface_s* graph_surface_xcb_do_event_func(register graph_surface_xcb_s *restrict r)
+static const graph_surface_s* graph_surface_xcb_do_event_func(graph_surface_xcb_s *restrict r)
 {
-	register xcb_generic_event_t *restrict e;
-	register void *restrict func;
+	xcb_generic_event_t *restrict e;
+	void *restrict func;
 	graph_surface_do_event_state_t state;
 	e = xcb_poll_for_event(r->connect);
 	if (e)
@@ -131,9 +131,9 @@ static const graph_surface_s* graph_surface_xcb_do_event_func(register graph_sur
 	return e?&r->surface:NULL;
 }
 
-static const graph_surface_s* graph_surface_xcb_set_event_func(register graph_surface_xcb_s *restrict r, const graph_surface_event_t *restrict events)
+static const graph_surface_s* graph_surface_xcb_set_event_func(graph_surface_xcb_s *restrict r, const graph_surface_event_t *restrict events)
 {
-	register xcb_generic_error_t *error;
+	xcb_generic_error_t *error;
 	xcb_void_cookie_t cookie;
 	uint32_t value;
 	value = 0;
@@ -180,9 +180,9 @@ static const graph_surface_s* graph_surface_xcb_set_event_func(register graph_su
 	return NULL;
 }
 
-static const graph_surface_s* graph_surface_xcb_get_geometry_func(register const graph_surface_xcb_s *restrict r, register graph_surface_geometry_t *restrict geometry)
+static const graph_surface_s* graph_surface_xcb_get_geometry_func(const graph_surface_xcb_s *restrict r, graph_surface_geometry_t *restrict geometry)
 {
-	register xcb_get_geometry_reply_t *reply;
+	xcb_get_geometry_reply_t *reply;
 	xcb_get_geometry_cookie_t cookie;
 	cookie = xcb_get_geometry(r->connect, r->winid);
 	reply = xcb_get_geometry_reply(r->connect, cookie, NULL);
@@ -199,7 +199,7 @@ static const graph_surface_s* graph_surface_xcb_get_geometry_func(register const
 	return NULL;
 }
 
-static graph_surface_s* graph_surface_xcb_resize_func(register graph_surface_xcb_s *restrict r, uint32_t width, uint32_t height)
+static graph_surface_s* graph_surface_xcb_resize_func(graph_surface_xcb_s *restrict r, uint32_t width, uint32_t height)
 {
 	xcb_generic_error_t *error;
 	xcb_void_cookie_t cookie;
@@ -276,7 +276,7 @@ static graph_surface_xcb_s* graph_surface_xcb_set_atom_close(graph_surface_xcb_s
 	return r;
 }
 
-static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r)
+static void graph_surface_xcb_free_func(graph_surface_xcb_s *restrict r)
 {
 	if (r->connect)
 	{
@@ -292,7 +292,7 @@ static void graph_surface_xcb_free_func(register graph_surface_xcb_s *restrict r
 
 graph_surface_s* graph_surface_xcb_create_window(struct graph_s *restrict g, graph_surface_s *restrict parent, int x, int y, unsigned int width, unsigned int height, unsigned int depth)
 {
-	register graph_surface_xcb_s *restrict r;
+	graph_surface_xcb_s *restrict r;
 	const xcb_screen_t *screen;
 	xcb_generic_error_t *error;
 	PFN_vkCreateXcbSurfaceKHR func;

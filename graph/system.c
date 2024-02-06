@@ -5,16 +5,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-char* graph_system_dump_string(const char *restrict s)
-{
-	register char *restrict r;
-	register size_t n;
-	n = strlen(s) + 1;
-	r = (char *) malloc(n);
-	if (r) return (char *) memcpy(r, s, n);
-	return NULL;
-}
-
 uint8_t* graph_system_load_file(const char *restrict path, size_t *restrict size)
 {
 	uint8_t *restrict r;

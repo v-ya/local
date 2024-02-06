@@ -31,9 +31,9 @@ struct graph_extension_support_s {
 	graph_support_s extension;
 };
 
-static inline const uint32_t* mapping_length(register const uint32_t *restrict p, uint32_t *restrict length, uint32_t n)
+static inline const uint32_t* mapping_length(const uint32_t *restrict p, uint32_t *restrict length, uint32_t n)
 {
-	register uint32_t i;
+	uint32_t i;
 	i = 0;
 	while (*p)
 	{
@@ -47,34 +47,34 @@ static inline const uint32_t* mapping_length(register const uint32_t *restrict p
 	return p;
 }
 
-static inline void mapping_tr(register const uint32_t *restrict p, const char **restrict d, const char* mapping[])
+static inline void mapping_tr(const uint32_t *restrict p, const char **restrict d, const char* mapping[])
 {
 	while (*p) *d++ = mapping[*p++];
 }
 
-const graph_layer_t* graph_layer_mapping_length(register const graph_layer_t *restrict p, uint32_t *restrict length)
+const graph_layer_t* graph_layer_mapping_length(const graph_layer_t *restrict p, uint32_t *restrict length)
 {
 	return (const graph_layer_t *) mapping_length((const uint32_t *restrict) p, length, graph_layer$number);
 }
 
-const graph_extension_t* graph_extension_mapping_length(register const graph_extension_t *restrict p, uint32_t *restrict length)
+const graph_extension_t* graph_extension_mapping_length(const graph_extension_t *restrict p, uint32_t *restrict length)
 {
 	return (const graph_extension_t *) mapping_length((const uint32_t *restrict) p, length, graph_extension$number);
 }
 
-const char** graph_layer_mapping_copy(register const graph_layer_t *restrict p, const char* d[])
+const char** graph_layer_mapping_copy(const graph_layer_t *restrict p, const char* d[])
 {
 	mapping_tr((const uint32_t *restrict) p, d, graph_layer_mapping);
 	return d;
 }
 
-const char** graph_extension_mapping_copy(register const graph_extension_t *restrict p, const char* d[])
+const char** graph_extension_mapping_copy(const graph_extension_t *restrict p, const char* d[])
 {
 	mapping_tr((const uint32_t *restrict) p, d, graph_extension_mapping);
 	return d;
 }
 
-static void graph_support_free_func(register graph_support_s *restrict r)
+static void graph_support_free_func(graph_support_s *restrict r)
 {
 	hashmap_uini(&r->support);
 	if (r->pdata) free(r->pdata);
@@ -83,7 +83,7 @@ static void graph_support_free_func(register graph_support_s *restrict r)
 
 static graph_support_s* graph_support_alloc(uint32_t number, size_t size)
 {
-	register graph_support_s *restrict r;
+	graph_support_s *restrict r;
 	if (number)
 	{
 		r = (graph_support_s *) refer_alloc(sizeof(graph_support_s));
@@ -129,7 +129,7 @@ static graph_support_s* graph_support_set(graph_support_s *restrict r, uint32_t 
 
 graph_layer_support_s* graph_layer_support_get_instance(void)
 {
-	register graph_support_s *restrict r;
+	graph_support_s *restrict r;
 	uint32_t number;
 	if (!vkEnumerateInstanceLayerProperties(&number, NULL) && number)
 	{
@@ -153,7 +153,7 @@ graph_layer_support_s* graph_layer_support_get_instance(void)
 
 graph_layer_support_s* graph_layer_support_get_dev(const struct graph_device_t *restrict device)
 {
-	register graph_support_s *restrict r;
+	graph_support_s *restrict r;
 	uint32_t number;
 	if (!vkEnumerateDeviceLayerProperties(device->phydev, &number, NULL) && number)
 	{
@@ -179,7 +179,7 @@ graph_extension_support_s* graph_extension_support_get_instance(graph_layer_t la
 {
 	if ((uint32_t) layer < graph_layer$number)
 	{
-		register graph_support_s *restrict r;
+		graph_support_s *restrict r;
 		const char *layer_name;
 		uint32_t number;
 		layer_name = graph_layer_mapping[layer];
@@ -208,7 +208,7 @@ graph_extension_support_s* graph_extension_support_get_dev(const struct graph_de
 {
 	if ((uint32_t) layer < graph_layer$number)
 	{
-		register graph_support_s *restrict r;
+		graph_support_s *restrict r;
 		const char *layer_name;
 		uint32_t number;
 		layer_name = graph_layer_mapping[layer];
@@ -236,7 +236,7 @@ graph_extension_support_s* graph_extension_support_get_dev(const struct graph_de
 
 const graph_layer_support_s* graph_layer_support_test(const graph_layer_support_s *restrict layer_support, graph_layer_t layer, const char *restrict *restrict name, const char *restrict *restrict description, uint32_t *restrict spec_version, uint32_t *restrict impl_version)
 {
-	register VkLayerProperties *restrict p;
+	VkLayerProperties *restrict p;
 	if (layer && (uint32_t) layer < graph_layer$number)
 	{
 		p = (VkLayerProperties *) hashmap_get_name(&layer_support->layer.support, graph_layer_mapping[layer]);
@@ -266,9 +266,9 @@ const graph_layer_t* graph_layer_support_all(const graph_layer_support_s *restri
 
 void graph_layer_support_dump(const graph_layer_support_s *restrict layer_support, mlog_s *restrict ml)
 {
-	register VkLayerProperties *p;
-	register graph_layer_t *t;
-	register uint32_t n;
+	VkLayerProperties *p;
+	graph_layer_t *t;
+	uint32_t n;
 	n = layer_support->layer.support.number;
 	if (n)
 	{
@@ -294,7 +294,7 @@ void graph_layer_support_dump(const graph_layer_support_s *restrict layer_suppor
 
 const graph_extension_support_s* graph_extension_support_test(const graph_extension_support_s *restrict extension_support, graph_extension_t extension, const char *restrict *restrict name, uint32_t *restrict spec_version)
 {
-	register VkExtensionProperties *restrict p;
+	VkExtensionProperties *restrict p;
 	if (extension && (uint32_t) extension < graph_layer$number)
 	{
 		p = (VkExtensionProperties *) hashmap_get_name(&extension_support->extension.support, graph_extension_mapping[extension]);
@@ -320,9 +320,9 @@ const graph_extension_t* graph_extension_support_all(const graph_extension_suppo
 
 void graph_extension_support_dump(const graph_extension_support_s *restrict extension_support, mlog_s *restrict ml)
 {
-	register VkExtensionProperties *p;
-	register graph_extension_t *t;
-	register uint32_t n;
+	VkExtensionProperties *p;
+	graph_extension_t *t;
+	uint32_t n;
 	n = extension_support->extension.support.number;
 	if (n)
 	{

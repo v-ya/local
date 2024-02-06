@@ -26,9 +26,9 @@ static void graph_image_info_init_data(VkImageCreateInfo *restrict info, const g
 	else memcpy(info, &param->info, sizeof(param->info));
 }
 
-static void graph_image_free_func(register graph_image_s *restrict r)
+static void graph_image_free_func(graph_image_s *restrict r)
 {
-	register refer_t v;
+	refer_t v;
 	if ((v = r->image))
 		vkDestroyImage(r->dev->dev, (VkImage) v, &r->ga->alloc);
 	if ((v = r->memory))
@@ -39,9 +39,9 @@ static void graph_image_free_func(register graph_image_s *restrict r)
 	if ((v = r->heap)) refer_free(v);
 }
 
-static graph_image_s* graph_image_alloc(register struct graph_memory_heap_s *restrict heap, const VkImageCreateInfo *restrict info)
+static graph_image_s* graph_image_alloc(struct graph_memory_heap_s *restrict heap, const VkImageCreateInfo *restrict info)
 {
-	register graph_image_s *restrict r;
+	graph_image_s *restrict r;
 	VkDevice device;
 	VkResult ret;
 	r = (graph_image_s *) refer_alloz(sizeof(graph_image_s));
@@ -120,7 +120,7 @@ graph_image_s* graph_image_alloc_3d(struct graph_memory_heap_s *restrict heap, g
 
 graph_image_view_param_s* graph_image_view_param_alloc(graph_image_view_type_t type)
 {
-	register graph_image_view_param_s *restrict r;
+	graph_image_view_param_s *restrict r;
 	r = NULL;
 	if ((uint32_t) type < graph_image_view_type$number)
 	{
@@ -148,9 +148,9 @@ graph_image_view_param_s* graph_image_view_param_alloc(graph_image_view_type_t t
 	return r;
 }
 
-static void graph_image_view_free_func(register graph_image_view_s *restrict r)
+static void graph_image_view_free_func(graph_image_view_s *restrict r)
 {
-	register refer_t v;
+	refer_t v;
 	if ((v = r->view))
 		vkDestroyImageView(r->dev->dev, (VkImageView) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
@@ -159,9 +159,9 @@ static void graph_image_view_free_func(register graph_image_view_s *restrict r)
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_image_view_s* graph_image_view_alloc(register const graph_image_view_param_s *restrict param, register graph_image_s *restrict image)
+graph_image_view_s* graph_image_view_alloc(const graph_image_view_param_s *restrict param, graph_image_s *restrict image)
 {
-	register graph_image_view_s *restrict r;
+	graph_image_view_s *restrict r;
 	VkImageViewCreateInfo info;
 	VkResult ret;
 	r = (graph_image_view_s *) refer_alloz(sizeof(graph_image_view_s));
@@ -189,9 +189,9 @@ graph_image_view_s* graph_image_view_alloc(register const graph_image_view_param
 	return NULL;
 }
 
-graph_image_view_s* graph_image_view_alloc_by_swapchain(register const graph_image_view_param_s *restrict param, register struct graph_swapchain_s *restrict swapchain, uint32_t index)
+graph_image_view_s* graph_image_view_alloc_by_swapchain(const graph_image_view_param_s *restrict param, struct graph_swapchain_s *restrict swapchain, uint32_t index)
 {
-	register graph_image_view_s *restrict r;
+	graph_image_view_s *restrict r;
 	VkImageViewCreateInfo info;
 	VkResult ret;
 	if (index < swapchain->image_number)
@@ -222,9 +222,9 @@ graph_image_view_s* graph_image_view_alloc_by_swapchain(register const graph_ima
 	return NULL;
 }
 
-static void graph_frame_buffer_free_func(register graph_frame_buffer_s *restrict r)
+static void graph_frame_buffer_free_func(graph_frame_buffer_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->frame_buffer)) vkDestroyFramebuffer(r->dev->dev, (VkFramebuffer) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
@@ -232,9 +232,9 @@ static void graph_frame_buffer_free_func(register graph_frame_buffer_s *restrict
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_frame_buffer_s* graph_frame_buffer_alloc(register struct graph_render_pass_s *restrict render, register graph_image_view_s *restrict view, uint32_t width, uint32_t height, uint32_t layers)
+graph_frame_buffer_s* graph_frame_buffer_alloc(struct graph_render_pass_s *restrict render, graph_image_view_s *restrict view, uint32_t width, uint32_t height, uint32_t layers)
 {
-	register graph_frame_buffer_s *restrict r;
+	graph_frame_buffer_s *restrict r;
 	VkFramebufferCreateInfo info;
 	VkImageView iv;
 	VkResult ret;
@@ -269,24 +269,24 @@ graph_frame_buffer_s* graph_frame_buffer_alloc(register struct graph_render_pass
 
 graph_sampler_param_s* graph_sampler_param_alloc(void)
 {
-	register graph_sampler_param_s *restrict r;
+	graph_sampler_param_s *restrict r;
 	r = (graph_sampler_param_s *) refer_alloz(sizeof(graph_sampler_param_s));
 	if (r) r->info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	return r;
 }
 
-void graph_sampler_param_set_flags(register graph_sampler_param_s *restrict param, graph_sampler_flags_t flags)
+void graph_sampler_param_set_flags(graph_sampler_param_s *restrict param, graph_sampler_flags_t flags)
 {
 	param->info.flags = (VkSamplerCreateFlags) flags;
 }
 
-void graph_sampler_param_set_filter(register graph_sampler_param_s *restrict param, graph_filter_t mag, graph_filter_t min)
+void graph_sampler_param_set_filter(graph_sampler_param_s *restrict param, graph_filter_t mag, graph_filter_t min)
 {
 	param->info.magFilter = graph_filter2vk(mag);
 	param->info.minFilter = graph_filter2vk(min);
 }
 
-void graph_sampler_param_set_mipmap(register graph_sampler_param_s *restrict param, graph_sampler_mipmap_mode_t mode, float mip_lod_bias, float min_lod, float max_lod)
+void graph_sampler_param_set_mipmap(graph_sampler_param_s *restrict param, graph_sampler_mipmap_mode_t mode, float mip_lod_bias, float min_lod, float max_lod)
 {
 	param->info.mipmapMode = graph_sampler_mipmap_mode2vk(mode);
 	param->info.mipLodBias = mip_lod_bias;
@@ -294,48 +294,48 @@ void graph_sampler_param_set_mipmap(register graph_sampler_param_s *restrict par
 	param->info.maxLod = max_lod;
 }
 
-void graph_sampler_param_set_address(register graph_sampler_param_s *restrict param, graph_sampler_address_mode_t u, graph_sampler_address_mode_t v, graph_sampler_address_mode_t w)
+void graph_sampler_param_set_address(graph_sampler_param_s *restrict param, graph_sampler_address_mode_t u, graph_sampler_address_mode_t v, graph_sampler_address_mode_t w)
 {
 	param->info.addressModeU = graph_sampler_address_mode2vk(u);
 	param->info.addressModeV = graph_sampler_address_mode2vk(v);
 	param->info.addressModeW = graph_sampler_address_mode2vk(w);
 }
 
-void graph_sampler_param_set_anisotropy(register graph_sampler_param_s *restrict param, graph_bool_t enable, float max)
+void graph_sampler_param_set_anisotropy(graph_sampler_param_s *restrict param, graph_bool_t enable, float max)
 {
 	param->info.anisotropyEnable = !!enable;
 	param->info.maxAnisotropy = max;
 }
 
-void graph_sampler_param_set_compare(register graph_sampler_param_s *restrict param, graph_bool_t enable, graph_compare_op_t op)
+void graph_sampler_param_set_compare(graph_sampler_param_s *restrict param, graph_bool_t enable, graph_compare_op_t op)
 {
 	param->info.compareEnable = !!enable;
 	param->info.compareOp = graph_compare_op2vk(op);
 }
 
-void graph_sampler_param_set_border(register graph_sampler_param_s *restrict param, graph_border_color_t color)
+void graph_sampler_param_set_border(graph_sampler_param_s *restrict param, graph_border_color_t color)
 {
 	if ((uint32_t) color < graph_border_color$number)
 		param->info.borderColor = graph_border_color2vk(color);
 }
 
-void graph_sampler_param_set_coordinates(register graph_sampler_param_s *restrict param, graph_bool_t unnormalized)
+void graph_sampler_param_set_coordinates(graph_sampler_param_s *restrict param, graph_bool_t unnormalized)
 {
 	param->info.unnormalizedCoordinates = !!unnormalized;
 }
 
-static void graph_sampler_free_func(register graph_sampler_s *restrict r)
+static void graph_sampler_free_func(graph_sampler_s *restrict r)
 {
-	register void *v;
+	void *v;
 	if ((v = r->sampler)) vkDestroySampler(r->dev->dev, (VkSampler) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_sampler_s* graph_sampler_alloc(register const graph_sampler_param_s *restrict param, register struct graph_dev_s *restrict dev)
+graph_sampler_s* graph_sampler_alloc(const graph_sampler_param_s *restrict param, struct graph_dev_s *restrict dev)
 {
-	register graph_sampler_s *restrict r;
+	graph_sampler_s *restrict r;
 	VkResult ret;
 	r = (graph_sampler_s *) refer_alloz(sizeof(graph_sampler_s));
 	if (r)

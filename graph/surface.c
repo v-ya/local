@@ -11,7 +11,7 @@ const graph_s* graph_surface_init_check(const graph_s *restrict g)
 	return NULL;
 }
 
-graph_surface_s* graph_surface_init(register graph_surface_s *restrict surface, const graph_s *restrict g, graph_surface_vk_create_f func, const void *restrict info)
+graph_surface_s* graph_surface_init(graph_surface_s *restrict surface, const graph_s *restrict g, graph_surface_vk_create_f func, const void *restrict info)
 {
 	VkResult r;
 	r = func(g->instance, info, &g->ga->alloc, &surface->surface);
@@ -25,9 +25,9 @@ graph_surface_s* graph_surface_init(register graph_surface_s *restrict surface, 
 	return NULL;
 }
 
-void graph_surface_uini(register graph_surface_s *restrict surface)
+void graph_surface_uini(graph_surface_s *restrict surface)
 {
-	register void *v;
+	void *v;
 	if ((v = surface->surface))
 		vkDestroySurfaceKHR(surface->g->instance, (VkSurfaceKHR) v, &surface->ga->alloc);
 	if ((v = surface->ga)) refer_free(v);
@@ -37,22 +37,22 @@ void graph_surface_uini(register graph_surface_s *restrict surface)
 		refer_free(v);
 }
 
-static inline graph_surface_s* graph_surface_not_support(register const graph_surface_s *restrict surface, register const char *restrict func_name)
+static inline graph_surface_s* graph_surface_not_support(const graph_surface_s *restrict surface, const char *restrict func_name)
 {
 	mlog_printf(surface->ml, "[%s] surface not support\n", func_name);
 	return NULL;
 }
 
-static void graph_surface_attr_free_func(register graph_surface_attr_s *restrict r)
+static void graph_surface_attr_free_func(graph_surface_attr_s *restrict r)
 {
 	if (r->formats) free(r->formats);
 	if (r->modes) free(r->modes);
 	if (r->ml) refer_free(r->ml);
 }
 
-graph_surface_attr_s* graph_surface_attr_get(register const graph_surface_s *restrict surface, register const struct graph_device_t *restrict device)
+graph_surface_attr_s* graph_surface_attr_get(const graph_surface_s *restrict surface, const struct graph_device_t *restrict device)
 {
-	register graph_surface_attr_s *restrict r;
+	graph_surface_attr_s *restrict r;
 	VkResult ret;
 	r = (graph_surface_attr_s *) refer_alloz(sizeof(graph_surface_attr_s));
 	if (r)
@@ -98,28 +98,28 @@ graph_surface_attr_s* graph_surface_attr_get(register const graph_surface_s *res
 	goto label_return;
 }
 
-graph_surface_s* graph_surface_do_event(register graph_surface_s *restrict surface)
+graph_surface_s* graph_surface_do_event(graph_surface_s *restrict surface)
 {
 	if (surface->control.do_event)
 		return (graph_surface_s *) surface->control.do_event(surface);
 	return NULL;
 }
 
-void graph_surface_do_events(register graph_surface_s *restrict surface)
+void graph_surface_do_events(graph_surface_s *restrict surface)
 {
-	register graph_surface_do_event_f func;
+	graph_surface_do_event_f func;
 	if ((func = surface->control.do_event))
 		while (func(surface)) ;
 }
 
-void graph_surface_set_event_data(register graph_surface_s *restrict surface, refer_t data)
+void graph_surface_set_event_data(graph_surface_s *restrict surface, refer_t data)
 {
 	if (surface->report.data)
 		refer_free(surface->report.data);
 	surface->report.data = refer_save(data);
 }
 
-#define graph_surface_register_event$def(_name)  void graph_surface_register_event_##_name(register graph_surface_s *restrict surface, graph_surface_do_event_##_name##_f func) {surface->report.do_##_name = func;}
+#define graph_surface_register_event$def(_name)  void graph_surface_register_event_##_name(graph_surface_s *restrict surface, graph_surface_do_event_##_name##_f func) {surface->report.do_##_name = func;}
 graph_surface_register_event$def(close)
 graph_surface_register_event$def(expose)
 graph_surface_register_event$def(key)
@@ -130,28 +130,28 @@ graph_surface_register_event$def(focus)
 graph_surface_register_event$def(config)
 #undef graph_surface_register_event$def
 
-graph_surface_s* graph_surface_set_event(register graph_surface_s *restrict surface, register const graph_surface_event_t *restrict events)
+graph_surface_s* graph_surface_set_event(graph_surface_s *restrict surface, const graph_surface_event_t *restrict events)
 {
 	if (surface->control.set_event)
 		return (graph_surface_s *) surface->control.set_event(surface, events);
 	return graph_surface_not_support(surface, "graph_surface_set_event");
 }
 
-graph_surface_s* graph_surface_get_geometry(register const graph_surface_s *restrict surface, register graph_surface_geometry_t *restrict geometry)
+graph_surface_s* graph_surface_get_geometry(const graph_surface_s *restrict surface, graph_surface_geometry_t *restrict geometry)
 {
 	if (surface->control.get_geometry)
 		return (graph_surface_s *) surface->control.get_geometry(surface, geometry);
 	return graph_surface_not_support(surface, "graph_surface_get_geometry");
 }
 
-graph_surface_s* graph_surface_resize(register graph_surface_s *restrict surface, register uint32_t width, register uint32_t height)
+graph_surface_s* graph_surface_resize(graph_surface_s *restrict surface, uint32_t width, uint32_t height)
 {
 	if (surface->control.resize)
 		return surface->control.resize(surface, width, height);
 	return graph_surface_not_support(surface, "graph_surface_resize");
 }
 
-static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register const VkPresentModeKHR *restrict p, register uint32_t n, register VkPresentModeKHR mode)
+static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(const VkPresentModeKHR *restrict p, uint32_t n, VkPresentModeKHR mode)
 {
 	while (n)
 	{
@@ -162,17 +162,17 @@ static const VkPresentModeKHR* graph_surface_attr_test_VkPresentModeKHR(register
 	return NULL;
 }
 
-static void graph_swapchain_param_free_func(register graph_swapchain_param_s *restrict r)
+static void graph_swapchain_param_free_func(graph_swapchain_param_s *restrict r)
 {
-	register refer_t v;
+	refer_t v;
 	if ((v = r->surface)) refer_free(v);
 	if ((v = r->attr)) refer_free(v);
 	if ((v = r->dev)) refer_free(v);
 }
 
-graph_swapchain_param_s* graph_swapchain_param_alloc(register graph_surface_s *restrict surface, register const graph_surface_attr_s *restrict attr, uint32_t queue_sharing_number)
+graph_swapchain_param_s* graph_swapchain_param_alloc(graph_surface_s *restrict surface, const graph_surface_attr_s *restrict attr, uint32_t queue_sharing_number)
 {
-	register graph_swapchain_param_s *restrict r;
+	graph_swapchain_param_s *restrict r;
 	r = NULL;
 	if (attr->format_number && attr->mode_number)
 	{
@@ -212,9 +212,9 @@ graph_swapchain_param_s* graph_swapchain_param_alloc(register graph_surface_s *r
 	return r;
 }
 
-static void graph_swapchain_free_func(register graph_swapchain_s *restrict r)
+static void graph_swapchain_free_func(graph_swapchain_s *restrict r)
 {
-	register void *v;
+	void *v;
 	// if ((v = r->info->oldSwapchain))
 	// 	vkDestroySwapchainKHR(r->dev->dev, (VkSwapchainKHR) v, &r->ga->alloc);
 	if ((v = r->swapchain))
@@ -227,9 +227,9 @@ static void graph_swapchain_free_func(register graph_swapchain_s *restrict r)
 	if ((v = r->image_array)) free(v);
 }
 
-graph_swapchain_s* graph_swapchain_alloc(register const graph_swapchain_param_s *restrict param, register struct graph_dev_s *dev)
+graph_swapchain_s* graph_swapchain_alloc(const graph_swapchain_param_s *restrict param, struct graph_dev_s *dev)
 {
-	register graph_swapchain_s *restrict r;
+	graph_swapchain_s *restrict r;
 	VkResult ret;
 	if ((dev || param->dev) && (!dev || !param->dev || dev == param->dev))
 	{
@@ -277,9 +277,9 @@ graph_swapchain_s* graph_swapchain_alloc(register const graph_swapchain_param_s 
 	goto label_free;
 }
 
-graph_swapchain_s* graph_swapchain_rebulid(register graph_swapchain_s *restrict swapchain)
+graph_swapchain_s* graph_swapchain_rebulid(graph_swapchain_s *restrict swapchain)
 {
-	register VkSwapchainCreateInfoKHR *restrict info;
+	VkSwapchainCreateInfoKHR *restrict info;
 	VkImage *image_array;
 	graph_surface_geometry_t geometry;
 	uint32_t n;
@@ -330,19 +330,19 @@ graph_swapchain_s* graph_swapchain_rebulid(register graph_swapchain_s *restrict 
 	return NULL;
 }
 
-uint32_t graph_swapchain_image_number(register const graph_swapchain_s *restrict swapchain)
+uint32_t graph_swapchain_image_number(const graph_swapchain_s *restrict swapchain)
 {
 	return swapchain->image_number;
 }
 
-graph_format_t graph_swapchain_format(register const graph_swapchain_s *restrict swapchain)
+graph_format_t graph_swapchain_format(const graph_swapchain_s *restrict swapchain)
 {
 	return graph_format4vk(swapchain->info->imageFormat);
 }
 
-void graph_swapchain_info(register const graph_swapchain_s *restrict swapchain, uint32_t *restrict image_number, graph_format_t *restrict format, uint32_t *restrict width, uint32_t *restrict height)
+void graph_swapchain_info(const graph_swapchain_s *restrict swapchain, uint32_t *restrict image_number, graph_format_t *restrict format, uint32_t *restrict width, uint32_t *restrict height)
 {
-	register const VkSwapchainCreateInfoKHR *restrict info;
+	const VkSwapchainCreateInfoKHR *restrict info;
 	info = swapchain->info;
 	if (image_number) *image_number = swapchain->image_number;
 	if (format) *format = graph_format4vk(info->imageFormat);
@@ -350,7 +350,7 @@ void graph_swapchain_info(register const graph_swapchain_s *restrict swapchain, 
 	if (height) *height = info->imageExtent.height;
 }
 
-uint32_t graph_swapchain_acquire(register graph_swapchain_s *restrict swapchain, uint64_t timeout, struct graph_semaphore_s *restrict semaphore, struct graph_fence_s *restrict fence)
+uint32_t graph_swapchain_acquire(graph_swapchain_s *restrict swapchain, uint64_t timeout, struct graph_semaphore_s *restrict semaphore, struct graph_fence_s *restrict fence)
 {
 	uint32_t r;
 	VkResult ret;
@@ -367,7 +367,7 @@ uint32_t graph_swapchain_acquire(register graph_swapchain_s *restrict swapchain,
 	return ~0;
 }
 
-static void graph_surface_attr_dump_capabilities(register mlog_s *restrict ml, register const VkSurfaceCapabilitiesKHR *restrict r)
+static void graph_surface_attr_dump_capabilities(mlog_s *restrict ml, const VkSurfaceCapabilitiesKHR *restrict r)
 {
 	char buffer[128];
 	mlog_printf(ml, "\t" "min image count           = %u\n", r->minImageCount);
@@ -386,7 +386,7 @@ static void graph_surface_attr_dump_capabilities(register mlog_s *restrict ml, r
 		r->supportedUsageFlags, graph_image_usage$list(buffer, (graph_image_usage_t) r->supportedUsageFlags));
 }
 
-static void graph_surface_attr_dump_formats(register mlog_s *restrict ml, register const VkSurfaceFormatKHR *restrict r, register uint32_t n)
+static void graph_surface_attr_dump_formats(mlog_s *restrict ml, const VkSurfaceFormatKHR *restrict r, uint32_t n)
 {
 	graph_format_t f;
 	do {
@@ -399,7 +399,7 @@ static void graph_surface_attr_dump_formats(register mlog_s *restrict ml, regist
 	} while (--n);
 }
 
-static void graph_surface_attr_dump_modes(register mlog_s *restrict ml, register const VkPresentModeKHR *restrict r, register uint32_t n)
+static void graph_surface_attr_dump_modes(mlog_s *restrict ml, const VkPresentModeKHR *restrict r, uint32_t n)
 {
 	do {
 		mlog_printf(ml, "\t" "[%d] (%s)\n",
@@ -408,7 +408,7 @@ static void graph_surface_attr_dump_modes(register mlog_s *restrict ml, register
 	} while (--n);
 }
 
-void graph_surface_attr_dump(register const graph_surface_attr_s *restrict attr)
+void graph_surface_attr_dump(const graph_surface_attr_s *restrict attr)
 {
 	mlog_printf(attr->ml, "surface capabilities:\n");
 	graph_surface_attr_dump_capabilities(attr->ml, &attr->capabilities);

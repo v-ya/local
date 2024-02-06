@@ -14,6 +14,7 @@ typedef struct graph_render_pass_s graph_render_pass_s;
 typedef struct graph_pipe_cache_s graph_pipe_cache_s;
 typedef struct graph_pipe_s graph_pipe_s;
 typedef struct graph_gpipe_param_s graph_gpipe_param_s;
+typedef struct graph_cpipe_param_s graph_cpipe_param_s;
 
 struct graph_dev_s;
 struct graph_pipe_layout_s;
@@ -66,5 +67,11 @@ graph_gpipe_param_s* graph_gpipe_param_set_dynamic(graph_gpipe_param_s *restrict
 void graph_gpipe_param_set_layout(graph_gpipe_param_s *restrict r, const struct graph_pipe_layout_s *restrict layout);
 void graph_gpipe_param_set_render(graph_gpipe_param_s *restrict r, const graph_render_pass_s *restrict render, uint32_t subpass_index);
 graph_gpipe_param_s* graph_gpipe_param_ok(graph_gpipe_param_s *restrict r);
+
+graph_pipe_s* graph_pipe_alloc_compute(const graph_cpipe_param_s *restrict param, const graph_pipe_cache_s *restrict cache);
+graph_cpipe_param_s* graph_cpipe_param_alloc(struct graph_dev_s *restrict dev);
+graph_cpipe_param_s* graph_cpipe_param_set_shader(graph_cpipe_param_s *restrict r, const graph_shader_s *restrict shader, graph_shader_type_t type, const char *restrict entry, const graph_shader_spec_s *restrict spec);
+void graph_cpipe_param_set_layout(graph_cpipe_param_s *restrict r, const struct graph_pipe_layout_s *restrict layout);
+graph_cpipe_param_s* graph_cpipe_param_ok(graph_cpipe_param_s *restrict r);
 
 #endif

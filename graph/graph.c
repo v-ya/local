@@ -2,10 +2,10 @@
 #include "support_pri.h"
 #include <alloca.h>
 
-static void graph_free_func(register graph_s *restrict r)
+static void graph_free_func(graph_s *restrict r)
 {
-	register void *v;
-	register VkAllocationCallbacks *ga;
+	void *v;
+	VkAllocationCallbacks *ga;
 	ga = &r->ga->alloc;
 	if ((v = r->ml)) refer_free(v);
 	if ((v = r->debug)) refer_free(v);
@@ -15,7 +15,7 @@ static void graph_free_func(register graph_s *restrict r)
 
 graph_s* graph_alloc(mlog_s *ml, struct graph_allocator_s *ga)
 {
-	register graph_s *restrict r;
+	graph_s *restrict r;
 	r = (graph_s *) refer_alloz(sizeof(graph_s));
 	if (r)
 	{

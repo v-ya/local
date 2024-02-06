@@ -117,19 +117,19 @@ graph_devices_s* graph_instance_devices_get(const struct graph_s *restrict g)
 	goto label_return_null;
 }
 
-uint32_t graph_devices_number(register const graph_devices_s *restrict gds)
+uint32_t graph_devices_number(const graph_devices_s *restrict gds)
 {
 	return (uint32_t) gds->number;
 }
 
-const graph_device_t* graph_devices_index(register const graph_devices_s *restrict gds, register uint32_t index)
+const graph_device_t* graph_devices_index(const graph_devices_s *restrict gds, uint32_t index)
 {
 	if (index < gds->number)
 		return gds->device_array + index;
 	return NULL;
 }
 
-graph_device_queues_s* graph_device_queues_get(register const graph_device_t *restrict gd)
+graph_device_queues_s* graph_device_queues_get(const graph_device_t *restrict gd)
 {
 	graph_device_queues_s *restrict r;
 	VkQueueFamilyProperties *p;
@@ -158,22 +158,22 @@ graph_device_queues_s* graph_device_queues_get(register const graph_device_t *re
 	return NULL;
 }
 
-uint32_t graph_device_queues_number(register const graph_device_queues_s *restrict gdqs)
+uint32_t graph_device_queues_number(const graph_device_queues_s *restrict gdqs)
 {
 	return (uint32_t) gdqs->number;
 }
 
-const graph_device_queue_t* graph_device_queues_index(register const graph_device_queues_s *restrict gdqs, register uint32_t index)
+const graph_device_queue_t* graph_device_queues_index(const graph_device_queues_s *restrict gdqs, uint32_t index)
 {
 	if (index < gdqs->number)
 		return gdqs->queue_array + index;
 	return NULL;
 }
 
-static void graph_dev_param_free_func(register graph_dev_param_s *restrict r)
+static void graph_dev_param_free_func(graph_dev_param_s *restrict r)
 {
-	register void *v;
-	register uint32_t n;
+	void *v;
+	uint32_t n;
 	if ((v = r->layer_list)) free(v);
 	if ((v = r->extension_list)) free(v);
 	n = r->qf_number;
@@ -185,9 +185,9 @@ static void graph_dev_param_free_func(register graph_dev_param_s *restrict r)
 	}
 }
 
-graph_dev_param_s* graph_dev_param_alloc(register uint32_t queue_family_number)
+graph_dev_param_s* graph_dev_param_alloc(uint32_t queue_family_number)
 {
-	register graph_dev_param_s *restrict r;
+	graph_dev_param_s *restrict r;
 	r = (graph_dev_param_s *) refer_alloz(sizeof(graph_dev_param_s) + sizeof(VkDeviceQueueCreateInfo) * queue_family_number);
 	if (r)
 	{
@@ -201,12 +201,12 @@ graph_dev_param_s* graph_dev_param_alloc(register uint32_t queue_family_number)
 	return NULL;
 }
 
-graph_dev_param_s* graph_dev_param_set_queue(register graph_dev_param_s *restrict param, uint32_t index, const graph_device_queue_t *restrict queue, uint32_t number, const float *restrict priorities, graph_queue_create_flags_t flags)
+graph_dev_param_s* graph_dev_param_set_queue(graph_dev_param_s *restrict param, uint32_t index, const graph_device_queue_t *restrict queue, uint32_t number, const float *restrict priorities, graph_queue_create_flags_t flags)
 {
 	if (index < param->qf_number && number && number <= queue->properties->queueCount)
 	{
-		register VkDeviceQueueCreateInfo *restrict info;
-		register float *restrict p;
+		VkDeviceQueueCreateInfo *restrict info;
+		float *restrict p;
 		info = param->queue_info + index;
 		if ((p = (float *) info->pQueuePriorities))
 		{
@@ -233,7 +233,7 @@ graph_dev_param_s* graph_dev_param_set_queue(register graph_dev_param_s *restric
 	return NULL;
 }
 
-graph_dev_param_s* graph_dev_param_set_layer(register graph_dev_param_s *restrict param, const graph_layer_t *restrict layer)
+graph_dev_param_s* graph_dev_param_set_layer(graph_dev_param_s *restrict param, const graph_layer_t *restrict layer)
 {
 	const char **s;
 	uint32_t n;
@@ -257,7 +257,7 @@ graph_dev_param_s* graph_dev_param_set_layer(register graph_dev_param_s *restric
 	return NULL;
 }
 
-graph_dev_param_s* graph_dev_param_set_extension(register graph_dev_param_s *restrict param, const graph_extension_t *restrict extension)
+graph_dev_param_s* graph_dev_param_set_extension(graph_dev_param_s *restrict param, const graph_extension_t *restrict extension)
 {
 	const char **s;
 	uint32_t n;
@@ -281,26 +281,26 @@ graph_dev_param_s* graph_dev_param_set_extension(register graph_dev_param_s *res
 	return NULL;
 }
 
-void graph_dev_param_feature_enable(register graph_dev_param_s *restrict param, register graph_device_feature_t feature)
+void graph_dev_param_feature_enable(graph_dev_param_s *restrict param, graph_device_feature_t feature)
 {
 	if ((uint32_t) feature < graph_device_feature$number)
 		*(VkBool32 *) ((uint8_t *) &param->features + graph_device_feature_offset[feature]) = 1;
 }
 
-void graph_dev_param_feature_disable(register graph_dev_param_s *restrict param, register graph_device_feature_t feature)
+void graph_dev_param_feature_disable(graph_dev_param_s *restrict param, graph_device_feature_t feature)
 {
 	if ((uint32_t) feature < graph_device_feature$number)
 		*(VkBool32 *) ((uint8_t *) &param->features + graph_device_feature_offset[feature]) = 0;
 }
 
-void graph_dev_param_feature_enable_all(register graph_dev_param_s *restrict param, register const graph_device_t *restrict gd)
+void graph_dev_param_feature_enable_all(graph_dev_param_s *restrict param, const graph_device_t *restrict gd)
 {
 	memcpy(&param->features, &gd->features, sizeof(param->features));
 }
 
-static void graph_dev_free_func(register graph_dev_s *restrict r)
+static void graph_dev_free_func(graph_dev_s *restrict r)
 {
-	register void *v;
+	void *v;
 	graph_dev_wait_idle(r);
 	if ((v = r->dev)) vkDestroyDevice((VkDevice) v, &r->ga->alloc);
 	if ((v = r->ml)) refer_free(v);
@@ -308,9 +308,9 @@ static void graph_dev_free_func(register graph_dev_s *restrict r)
 	if ((v = r->ga)) refer_free(v);
 }
 
-graph_dev_s* graph_dev_alloc(register const graph_dev_param_s *restrict param, register const struct graph_s *restrict g, register const graph_device_t *restrict gd)
+graph_dev_s* graph_dev_alloc(const graph_dev_param_s *restrict param, const struct graph_s *restrict g, const graph_device_t *restrict gd)
 {
-	register graph_dev_s *restrict r;
+	graph_dev_s *restrict r;
 	VkDeviceCreateInfo info;
 	uint32_t i, n;
 	VkResult ret;
@@ -361,10 +361,10 @@ graph_dev_s* graph_dev_alloc(register const graph_dev_param_s *restrict param, r
 	return NULL;
 }
 
-graph_queue_t* graph_dev_queue(register graph_dev_s *restrict dev, const graph_device_queue_t *restrict queue, uint32_t qi)
+graph_queue_t* graph_dev_queue(graph_dev_s *restrict dev, const graph_device_queue_t *restrict queue, uint32_t qi)
 {
-	register graph_queue_t *restrict r;
-	register uint32_t i, n;
+	graph_queue_t *restrict r;
+	uint32_t i, n;
 	i = (uint32_t) queue->index;
 	n = dev->q_number;
 	r = dev->queue;
@@ -376,7 +376,7 @@ graph_queue_t* graph_dev_queue(register graph_dev_s *restrict dev, const graph_d
 	return NULL;
 }
 
-graph_dev_s* graph_dev_wait_idle(register graph_dev_s *restrict dev)
+graph_dev_s* graph_dev_wait_idle(graph_dev_s *restrict dev)
 {
 	VkResult r;
 	r = vkDeviceWaitIdle(dev->dev);
@@ -385,49 +385,49 @@ graph_dev_s* graph_dev_wait_idle(register graph_dev_s *restrict dev)
 	return NULL;
 }
 
-graph_physical_device_type_t graph_device_type(register const graph_device_t *restrict gd)
+graph_physical_device_type_t graph_device_type(const graph_device_t *restrict gd)
 {
 	return (graph_physical_device_type_t) gd->properties.deviceType;
 }
 
-const char* graph_device_name(register const graph_device_t *restrict gd)
+const char* graph_device_name(const graph_device_t *restrict gd)
 {
 	return gd->properties.deviceName;
 }
 
-graph_queue_flags_t graph_device_queue_flags(register const graph_device_queue_t *restrict q)
+graph_queue_flags_t graph_device_queue_flags(const graph_device_queue_t *restrict q)
 {
 	return (graph_queue_flags_t) q->properties->queueFlags;
 }
 
-uint32_t graph_device_queue_count(register const graph_device_queue_t *restrict q)
+uint32_t graph_device_queue_count(const graph_device_queue_t *restrict q)
 {
 	return q->properties->queueCount;
 }
 
-uint32_t graph_device_queue_timestamp_valid_bits(register const graph_device_queue_t *restrict q)
+uint32_t graph_device_queue_timestamp_valid_bits(const graph_device_queue_t *restrict q)
 {
 	return q->properties->timestampValidBits;
 }
 
-void graph_device_queue_min_image_transfer_granularity(register const graph_device_queue_t *restrict q, uint32_t *restrict width, uint32_t *restrict height, uint32_t *restrict depth)
+void graph_device_queue_min_image_transfer_granularity(const graph_device_queue_t *restrict q, uint32_t *restrict width, uint32_t *restrict height, uint32_t *restrict depth)
 {
-	register const VkExtent3D *restrict e = &q->properties->minImageTransferGranularity;
+	const VkExtent3D *restrict e = &q->properties->minImageTransferGranularity;
 	if (width) *width = e->width;
 	if (height) *height = e->height;
 	if (depth) *depth = e->depth;
 }
 
-graph_bool_t graph_device_features_test(register const graph_device_t *restrict gd, register graph_device_feature_t feature)
+graph_bool_t graph_device_features_test(const graph_device_t *restrict gd, graph_device_feature_t feature)
 {
 	if ((uint32_t) feature < graph_device_feature$number)
 		return *(VkBool32 *) ((uint8_t *) &gd->features + graph_device_feature_offset[feature]);
 	return 0;
 }
 
-graph_bool_t graph_device_queue_surface_support(register const graph_device_queue_t *restrict q, register const struct graph_surface_s *restrict sf)
+graph_bool_t graph_device_queue_surface_support(const graph_device_queue_t *restrict q, const struct graph_surface_s *restrict sf)
 {
-	register const graph_device_queues_s *restrict qs;
+	const graph_device_queues_s *restrict qs;
 	VkResult r;
 	VkBool32 b;
 	qs = (graph_device_queues_s *) ((uint8_t *) (q - q->index) - offsetof(graph_device_queues_s, queue_array));
@@ -441,9 +441,9 @@ graph_bool_t graph_device_queue_surface_support(register const graph_device_queu
 
 void graph_device_properties_header_dump(const graph_device_t *restrict gd)
 {
-	register mlog_s *ml;
-	register const VkPhysicalDeviceProperties *restrict p;
-	register uint32_t v;
+	mlog_s *ml;
+	const VkPhysicalDeviceProperties *restrict p;
+	uint32_t v;
 	ml = gd->ml;
 	p = &gd->properties;
 	v = p->apiVersion;
@@ -464,8 +464,8 @@ void graph_device_properties_header_dump(const graph_device_t *restrict gd)
 
 void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
 {
-	register mlog_s *ml;
-	register const VkPhysicalDeviceLimits *restrict p;
+	mlog_s *ml;
+	const VkPhysicalDeviceLimits *restrict p;
 	ml = gd->ml;
 	p = &gd->properties.limits;
 	mlog_printf(ml, "\t" "max image dimension 1D                                = %u\n", p->maxImageDimension1D);
@@ -578,8 +578,8 @@ void graph_device_properties_limits_dump(const graph_device_t *restrict gd)
 
 void graph_device_properties_sparse_dump(const graph_device_t *restrict gd)
 {
-	register mlog_s *ml;
-	register const VkPhysicalDeviceSparseProperties *restrict p;
+	mlog_s *ml;
+	const VkPhysicalDeviceSparseProperties *restrict p;
 	ml = gd->ml;
 	p = &gd->properties.sparseProperties;
 	mlog_printf(ml, "\t" "residency standard 2D block shape                     = %s\n", graph_bool$string(p->residencyStandard2DBlockShape));
@@ -598,8 +598,8 @@ void graph_device_properties_dump(const graph_device_t *restrict gd)
 
 void graph_device_features_dump(const graph_device_t *restrict gd)
 {
-	register mlog_s *ml;
-	register const VkPhysicalDeviceFeatures *restrict p;
+	mlog_s *ml;
+	const VkPhysicalDeviceFeatures *restrict p;
 	ml = gd->ml;
 	p = &gd->features;
 	mlog_printf(ml, "\t" "robust buffer access                         = %s\n", graph_bool$string(p->robustBufferAccess));
@@ -669,8 +669,8 @@ void graph_device_dump(const graph_device_t *restrict gd)
 void graph_device_queue_dump(const graph_device_queue_t *restrict gdq)
 {
 	char buffer[128];
-	register mlog_s *ml;
-	register VkQueueFamilyProperties *restrict p;
+	mlog_s *ml;
+	VkQueueFamilyProperties *restrict p;
 	ml = gdq->ml;
 	p = gdq->properties;
 	mlog_printf(ml, "queue[%u]:\n", (uint32_t) gdq->index);

@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 #include "device_pri.h"
 
+typedef struct graph_pipe_shader_stage_t graph_pipe_shader_stage_t;
+
 struct graph_shader_s {
 	mlog_s *ml;
 	graph_dev_s *dev;
@@ -75,11 +77,13 @@ struct graph_pipe_s {
 	graph_allocator_s *ga;
 };
 
-typedef struct graph_pipe_shader_stage_t {
-	char *name;
+struct graph_pipe_shader_stage_t {
+	refer_string_t name;
 	graph_shader_s *gs;
 	graph_shader_spec_s *spec;
-} graph_pipe_shader_stage_t;
+};
+
+// gpipe param
 
 struct graph_gpipe_param_s {
 	mlog_s *ml;
@@ -104,5 +108,23 @@ struct graph_gpipe_param_s {
 	VkPipelineDepthStencilStateCreateInfo depth_stencil;
 	VkPipelineDynamicStateCreateInfo dynamic;
 };
+
+// cpipe param
+
+struct graph_cpipe_param_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkComputePipelineCreateInfo *pi;
+	graph_pipe_shader_stage_t shader_stage;
+	struct graph_pipe_layout_s *pipe_layout;
+	VkComputePipelineCreateInfo info;
+};
+
+// inner func
+
+void graph_pipe_free_func(graph_pipe_s *restrict r);
+
+graph_pipe_shader_stage_t* graph_pipe_shader_stage_initial(graph_pipe_shader_stage_t *restrict stage, const graph_shader_s *restrict shader, const graph_shader_spec_s *restrict spec, const char *restrict entry);
+void graph_pipe_shader_stage_finally(graph_pipe_shader_stage_t *restrict stage);
 
 #endif
