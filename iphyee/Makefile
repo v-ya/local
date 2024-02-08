@@ -20,7 +20,7 @@ ${TARGET}: ${OBJECT}
 	${LD} ${LDFLAGS} -o $@ $^
 
 clear:
-	rm -f ${TARGET} *.o
+	rm -f ${TARGET} *.o */*.o glsl/*.spv
 install: ${TARGET} ${HEADER}
 	sudo cp ${TARGET} /usr/local/lib/
 	sudo mkdir -p /usr/local/include/iphyee/

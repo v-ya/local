@@ -19,7 +19,10 @@ static iphyee_bonex_inode_s* iphyee_bonex_inode_alloc_empty(void)
 		r->method = iphyee_bonex_fix_method__e;
 		r->property = iphyee_bonex_fix_property__fixed;
 		r->bonex_simple_fix = NULL;
-		r->value_minimum = r->value_maximum = r->value_multiplier = r->value_addend = 0;
+		r->default_value_minimum = 0;
+		r->default_value_maximum = 0;
+		r->default_value_multiplier = 0;
+		r->default_value_addend = 0;
 		default_index = ~(uintptr_t) 0;
 		r->index.base_joint_index = default_index;
 		r->index.this_inode_index = default_index;
@@ -43,10 +46,10 @@ iphyee_bonex_inode_s* iphyee_bonex_inode_alloc(const iphyee_param_bonex_inode_t 
 			r->bonex_simple_fix = iphyee_bonex_fix_method(param->method);
 			if (r->method == iphyee_bonex_fix_method__custom)
 				r->bonex_complex_fix = (iphyee_bonex_complex_s *) refer_save(param->fix_custom_complex);
-			r->value_minimum = param->default_value_minimum;
-			r->value_maximum = param->default_value_maximum;
-			r->value_multiplier = param->default_value_multiplier;
-			r->value_addend = param->default_value_addend;
+			r->default_value_minimum = param->default_value_minimum;
+			r->default_value_maximum = param->default_value_maximum;
+			r->default_value_multiplier = param->default_value_multiplier;
+			r->default_value_addend = param->default_value_addend;
 			return r;
 		}
 		refer_free(r);
@@ -65,10 +68,10 @@ iphyee_bonex_inode_s* iphyee_bonex_inode_dump(const iphyee_bonex_inode_s *restri
 		r->property = src->property;
 		r->bonex_simple_fix = src->bonex_simple_fix;
 		r->bonex_complex_fix = (iphyee_bonex_complex_s *) refer_save(src->bonex_complex_fix);
-		r->value_minimum = src->value_minimum;
-		r->value_maximum = src->value_maximum;
-		r->value_multiplier = src->value_multiplier;
-		r->value_addend = src->value_addend;
+		r->default_value_minimum = src->default_value_minimum;
+		r->default_value_maximum = src->default_value_maximum;
+		r->default_value_multiplier = src->default_value_multiplier;
+		r->default_value_addend = src->default_value_addend;
 		return r;
 	}
 	return NULL;

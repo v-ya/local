@@ -9,6 +9,7 @@ struct iphyee_mat4x4_t  {
 	float m[4][4];  // m[row][col]
 };
 
+void iphyee_mat4x4_cpy(iphyee_mat4x4_t *restrict dst, const iphyee_mat4x4_t *restrict src);
 void iphyee_mat4x4_mul(iphyee_mat4x4_t *restrict dst, const iphyee_mat4x4_t *restrict src1, const iphyee_mat4x4_t *restrict src2);
 
 void iphyee_mat4x4_set_e(iphyee_mat4x4_t *restrict dst);

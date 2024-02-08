@@ -33,11 +33,11 @@ iphyee_bonex_s* iphyee_bonex_alloc(uintptr_t joint_nsize, uintptr_t coord_nsize,
 #define d_find_field(_field)  {\
 		return (iphyee_bonex_##_field##_s *) vattr_get_first(r->_field, name);\
 	}
-iphyee_bonex_joint_s* iphyee_bonex_find_joint(iphyee_bonex_s *restrict r, const char *restrict name)
+iphyee_bonex_joint_s* iphyee_bonex_find_joint(const iphyee_bonex_s *restrict r, const char *restrict name)
 	d_find_field(joint)
-iphyee_bonex_coord_s* iphyee_bonex_find_coord(iphyee_bonex_s *restrict r, const char *restrict name)
+iphyee_bonex_coord_s* iphyee_bonex_find_coord(const iphyee_bonex_s *restrict r, const char *restrict name)
 	d_find_field(coord)
-iphyee_bonex_inode_s* iphyee_bonex_find_inode(iphyee_bonex_s *restrict r, const char *restrict name)
+iphyee_bonex_inode_s* iphyee_bonex_find_inode(const iphyee_bonex_s *restrict r, const char *restrict name)
 	d_find_field(inode)
 #undef d_find_field
 
@@ -238,12 +238,12 @@ static iphyee_bonex_s* iphyee_bonex_okay_value(iphyee_bonex_s *restrict r, iphye
 	joint->index.link_value_count = 0;
 	joint->index.fix_mat4x4_start = r->fix_mat4x4_count;
 	joint->index.fix_mat4x4_count = 0;
+	fixed = 0;
 	#define d_done_loop(_field, _pp)  \
 		if ((n = joint->index.link_##_field##_count))\
 		{\
 			i = joint->index.link_##_field##_start;\
 			_pp = r->_field##_array;\
-			fixed = 0;\
 			for (n += i; i < n; ++i)\
 			{\
 				_field = _pp[i];\
@@ -282,8 +282,33 @@ iphyee_bonex_s* iphyee_bonex_okay(iphyee_bonex_s *restrict r)
 		d_okay_field(inode, inode)
 		d_okay_field(joint, value)
 		#undef d_okay_field
+		r->bonex_index_okay = 1;
 	}
 	return r;
 	label_fail:
 	return NULL;
+}
+
+uint32_t iphyee_bonex_index_joint(const iphyee_bonex_s *restrict r, const char *restrict name)
+{
+	iphyee_bonex_joint_s *restrict p;
+	if (name && (p = iphyee_bonex_find_joint(r, name)))
+		return (uint32_t) p->index.this_joint_index;
+	return ~(uint32_t) 0;
+}
+
+uint32_t iphyee_bonex_index_coord(const iphyee_bonex_s *restrict r, const char *restrict name)
+{
+	iphyee_bonex_coord_s *restrict p;
+	if (name && (p = iphyee_bonex_find_coord(r, name)))
+		return (uint32_t) p->index.this_value_index;
+	return ~(uint32_t) 0;
+}
+
+uint32_t iphyee_bonex_index_inode(const iphyee_bonex_s *restrict r, const char *restrict name)
+{
+	iphyee_bonex_inode_s *restrict p;
+	if (name && (p = iphyee_bonex_find_inode(r, name)))
+		return (uint32_t) p->index.this_value_index;
+	return ~(uint32_t) 0;
 }
