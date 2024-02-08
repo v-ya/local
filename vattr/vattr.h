@@ -82,6 +82,11 @@ vattr_vlist_t* vattr_insert_tail(vattr_s *restrict vattr, const char *restrict k
 vattr_vlist_t* vattr_insert_index_last(vattr_s *restrict vattr, const char *restrict key, uintptr_t index, refer_t value);
 vattr_vlist_t* vattr_insert_index_next(vattr_s *restrict vattr, const char *restrict key, uintptr_t index, refer_t value);
 
+vattr_vlist_t* vattr_moveto_vattr_last(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item);
+vattr_vlist_t* vattr_moveto_vattr_next(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item);
+vattr_vlist_t* vattr_moveto_vslot_last(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item);
+vattr_vlist_t* vattr_moveto_vslot_next(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item);
+
 vattr_vslot_t* vattr_delete_vlist(vattr_vlist_t *restrict vlist);
 
 void vattr_delete_vslot(vattr_vslot_t *restrict vslot);

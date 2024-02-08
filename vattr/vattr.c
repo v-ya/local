@@ -5,43 +5,59 @@
 
 // vlist
 
-static vattr_vlist_t* vattr_vlist_alloc(register vattr_vslot_t *restrict vslot, vattr_vlist_t **restrict p_vattr, vattr_vlist_t **restrict p_vslot, refer_t value)
+static inline void vattr_vlist_link_vattr(register vattr_vlist_t *restrict vlist, register vattr_s *restrict vattr, vattr_vlist_t **restrict p_vattr)
 {
-	register vattr_vlist_t *restrict r;
+	if (!(vlist->vattr_next = *p_vattr))
+		vattr->p_vattr_tail = &vlist->vattr_next;
+	else (*p_vattr)->p_vattr_next = &vlist->vattr_next;
+	vlist->p_vattr_next = p_vattr;
+	*p_vattr = vlist;
+}
+
+static inline void vattr_vlist_unlink_vattr(register vattr_vlist_t *restrict vlist, register vattr_s *restrict vattr)
+{
+	if ((*vlist->p_vattr_next = vlist->vattr_next))
+		vlist->vattr_next->p_vattr_next = vlist->p_vattr_next;
+	else vattr->p_vattr_tail = vlist->p_vattr_next;
+}
+
+static inline void vattr_vlist_link_vslot(register vattr_vlist_t *restrict vlist, register vattr_vslot_t *restrict vslot, vattr_vlist_t **restrict p_vslot)
+{
+	if (!(vlist->vslot_next = *p_vslot))
+		vslot->p_vslot_tail = &vlist->vslot_next;
+	else (*p_vslot)->p_vslot_next = &vlist->vslot_next;
+	vlist->p_vslot_next = p_vslot;
+	*p_vslot = vlist;
+	vslot->number += 1;
+}
+
+static inline void vattr_vlist_unlink_vslot(register vattr_vlist_t *restrict vlist, register vattr_vslot_t *restrict vslot)
+{
+	vslot->number -= 1;
+	if ((*vlist->p_vslot_next = vlist->vslot_next))
+		vlist->vslot_next->p_vslot_next = vlist->p_vslot_next;
+	else vslot->p_vslot_tail = vlist->p_vslot_next;
+}
+
+static vattr_vlist_t* vattr_vlist_alloc(vattr_vslot_t *restrict vslot, vattr_vlist_t **restrict p_vattr, vattr_vlist_t **restrict p_vslot, refer_t value)
+{
+	vattr_vlist_t *restrict r;
 	if ((r = (vattr_vlist_t *) malloc(sizeof(vattr_vlist_t))))
 	{
-		// vattr list
-		if (!(r->vattr_next = *p_vattr))
-			vslot->vattr->p_vattr_tail = &r->vattr_next;
-		else (*p_vattr)->p_vattr_next = &r->vattr_next;
-		r->p_vattr_next = p_vattr;
-		*p_vattr = r;
-		// vslot list
-		if (!(r->vslot_next = *p_vslot))
-			vslot->p_vslot_tail = &r->vslot_next;
-		else (*p_vslot)->p_vslot_next = &r->vslot_next;
-		r->p_vslot_next = p_vslot;
-		*p_vslot = r;
-		// slot
+		vattr_vlist_link_vattr(r, vslot->vattr, p_vattr);
+		vattr_vlist_link_vslot(r, vslot, p_vslot);
 		r->vslot = vslot;
-		// value
 		r->value = refer_save(value);
-		// vslot
-		vslot->number += 1;
 	}
 	return r;
 }
 
 static void vattr_vlist_free(register vattr_vlist_t *restrict vlist)
 {
-	register vattr_vslot_t *restrict vslot = vlist->vslot;
-	vslot->number -= 1;
-	if ((*vlist->p_vattr_next = vlist->vattr_next))
-		vlist->vattr_next->p_vattr_next = vlist->p_vattr_next;
-	else vslot->vattr->p_vattr_tail = vlist->p_vattr_next;
-	if ((*vlist->p_vslot_next = vlist->vslot_next))
-		vlist->vslot_next->p_vslot_next = vlist->p_vslot_next;
-	else vslot->p_vslot_tail = vlist->p_vslot_next;
+	vattr_vslot_t *restrict vslot;
+	vslot = vlist->vslot;
+	vattr_vlist_unlink_vattr(vlist, vslot->vattr);
+	vattr_vlist_unlink_vslot(vlist, vslot);
 	if (vlist->value)
 		refer_free(vlist->value);
 	free(vlist);
@@ -373,6 +389,54 @@ vattr_vlist_t* vattr_insert_index_next(vattr_s *restrict vattr, const char *rest
 	if ((vslot = vattr_get_vslot(vattr, key)))
 		return vattr_insert_vslot_index_next(vslot, index, value);
 	return vattr_set(vattr, key, value);
+}
+
+vattr_vlist_t* vattr_moveto_vattr_last(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item)
+{
+	vattr_s *restrict vattr;
+	if ((uintptr_t) vpos != (uintptr_t) item && (vattr = item->vslot->vattr) == vpos->vslot->vattr)
+	{
+		vattr_vlist_unlink_vattr(item, vattr);
+		vattr_vlist_link_vattr(item, vattr, vpos->p_vattr_next);
+		return item;
+	}
+	return NULL;
+}
+
+vattr_vlist_t* vattr_moveto_vattr_next(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item)
+{
+	vattr_s *restrict vattr;
+	if ((uintptr_t) vpos != (uintptr_t) item && (vattr = item->vslot->vattr) == vpos->vslot->vattr)
+	{
+		vattr_vlist_unlink_vattr(item, vattr);
+		vattr_vlist_link_vattr(item, vattr, &vpos->vattr_next);
+		return item;
+	}
+	return NULL;
+}
+
+vattr_vlist_t* vattr_moveto_vslot_last(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item)
+{
+	vattr_vslot_t *restrict vslot;
+	if ((uintptr_t) vpos != (uintptr_t) item && (vslot = item->vslot) == vpos->vslot)
+	{
+		vattr_vlist_unlink_vslot(item, vslot);
+		vattr_vlist_link_vslot(item, vslot, vpos->p_vslot_next);
+		return item;
+	}
+	return NULL;
+}
+
+vattr_vlist_t* vattr_moveto_vslot_next(vattr_vlist_t *restrict vpos, vattr_vlist_t *restrict item)
+{
+	vattr_vslot_t *restrict vslot;
+	if ((uintptr_t) vpos != (uintptr_t) item && (vslot = item->vslot) == vpos->vslot)
+	{
+		vattr_vlist_unlink_vslot(item, vslot);
+		vattr_vlist_link_vslot(item, vslot, &vpos->vslot_next);
+		return item;
+	}
+	return NULL;
 }
 
 vattr_vslot_t* vattr_delete_vlist(vattr_vlist_t *restrict vlist)
