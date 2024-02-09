@@ -1,7 +1,7 @@
 #ifndef _gvcx_model_gguf_h_
 #define _gvcx_model_gguf_h_
 
-#include "gvcx.model.h"
+#include <stdint.h>
 
 // default little-endian
 

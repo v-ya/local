@@ -1,25 +1,25 @@
-#include "gvcx.model.h"
+#include "layer.model.h"
 #include <rbtree.h>
 #include <hashmap.h>
 
-struct gvcx_model_enum_s {
+struct layer_model_enum_s {
 	hashmap_t s2u;
 	rbtree_t *u2s;
 	uint64_t dv;
 };
 
-static void gvcx_model_enum_free_func(gvcx_model_enum_s *restrict r)
+static void layer_model_enum_free_func(layer_model_enum_s *restrict r)
 {
 	rbtree_clear(&r->u2s);
 	hashmap_uini(&r->s2u);
 }
 
-gvcx_model_enum_s* gvcx_model_enum_alloc(uint64_t dv)
+layer_model_enum_s* layer_model_enum_alloc(uint64_t dv)
 {
-	gvcx_model_enum_s *restrict r;
-	if ((r = (gvcx_model_enum_s *) refer_alloz(sizeof(gvcx_model_enum_s))))
+	layer_model_enum_s *restrict r;
+	if ((r = (layer_model_enum_s *) refer_alloz(sizeof(layer_model_enum_s))))
 	{
-		refer_set_free(r, (refer_free_f) gvcx_model_enum_free_func);
+		refer_set_free(r, (refer_free_f) layer_model_enum_free_func);
 		if (hashmap_init(&r->s2u))
 		{
 			r->dv = dv;
@@ -30,7 +30,7 @@ gvcx_model_enum_s* gvcx_model_enum_alloc(uint64_t dv)
 	return NULL;
 }
 
-gvcx_model_enum_s* gvcx_model_enum_insert(gvcx_model_enum_s *restrict e, const char *restrict name, uint64_t value)
+layer_model_enum_s* layer_model_enum_insert(layer_model_enum_s *restrict e, const char *restrict name, uint64_t value)
 {
 	hashmap_vlist_t *restrict vl;
 	rbtree_t *restrict rbv;
@@ -49,12 +49,12 @@ gvcx_model_enum_s* gvcx_model_enum_insert(gvcx_model_enum_s *restrict e, const c
 	return NULL;
 }
 
-uint64_t gvcx_model_enum_dv(const gvcx_model_enum_s *restrict e)
+uint64_t layer_model_enum_dv(const layer_model_enum_s *restrict e)
 {
 	return e->dv;
 }
 
-const char* gvcx_model_enum_name(const gvcx_model_enum_s *restrict e, uint64_t value)
+const char* layer_model_enum_name(const layer_model_enum_s *restrict e, uint64_t value)
 {
 	rbtree_t *restrict rbv;
 	if ((rbv = rbtree_find(&e->u2s, NULL, value)))
@@ -62,7 +62,7 @@ const char* gvcx_model_enum_name(const gvcx_model_enum_s *restrict e, uint64_t v
 	return NULL;
 }
 
-const gvcx_model_enum_s* gvcx_model_enum_value(const gvcx_model_enum_s *restrict e, const char *restrict name, uint64_t *restrict value)
+const layer_model_enum_s* layer_model_enum_value(const layer_model_enum_s *restrict e, const char *restrict name, uint64_t *restrict value)
 {
 	const uint64_t *restrict pv;
 	if ((pv = (const uint64_t *) hashmap_get_name(&e->s2u, name)))
