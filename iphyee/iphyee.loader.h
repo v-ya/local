@@ -13,27 +13,36 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 // 		o:iphyee.vertex
 // 			e:iphyee.fbits
 // 			d:iphyee.vertex (vec3 vertex)
+// 			u:iphyee.vertex.count
 // 		o:iphyee.normal
 // 			e:iphyee.fbits
 // 			d:iphyee.normal (vec3 normal)
+// 			u:iphyee.normal.count
 // 		o:iphyee.texture
 // 			e:iphyee.fbits
 // 			d:iphyee.texture (vec2 texture)
+// 			u:iphyee.texture.count
 // 			s:iphyee.texture.name
 // 		o:iphyee.fragment
 // 			e:iphyee.ubits
+// 			b:iphyee.fragment.vertex
+// 			b:iphyee.fragment.normal
+// 			b:iphyee.fragment.texture
+// 			d:iphyee.fragment (uint vertex_index?, uint normal_index?, uint texture_index?)
+// 			u:iphyee.fragment.count
 // 			*:iphyee.fraginfo
 // 				e:iphyee.fraginfo
 // 				o:iphyee.fraginfo
 // 					e:iphyee.ubits
 // 					d:iphyee.fraginfo (uint fragment_offset, uint fragment_number)
-// 			d:iphyee.fragment (uint[] vertex_index)
 // 		o:iphyee.vertex.joint
 // 			e:iphyee.ubits
 // 			e:iphyee.fbits
 // 			a:iphyee.vertex.joint (=> s joint_name)
 // 			d:iphyee.vertex.weight (uint joint_index, float weight)
+// 			u:iphyee.weight.count
 // 			d:iphyee.vertex.bind (uint weight_offset, uint weight_number)
+// 			u:iphyee.bind.count
 // 	o:iphyee.bonex
 // 		s:iphyee.bonex.name
 // 		a:iphyee.bonex.fixed (=> *:iphyee.bonex.fixed)
@@ -71,12 +80,21 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 #define iphyee_loader_stype__o_inode_info         "o:iphyee.inode.info"
 
 #define iphyee_loader_sname__x_fraginfo           iphyee_loader_stype__x_fraginfo
+#define iphyee_loader_sname__u_vertex_count       "u:iphyee.vertex.count"
+#define iphyee_loader_sname__u_normal_count       "u:iphyee.normal.count"
+#define iphyee_loader_sname__u_texture_count      "u:iphyee.texture.count"
+#define iphyee_loader_sname__u_fragment_count     "u:iphyee.fragment.count"
+#define iphyee_loader_sname__u_weight_count       "u:iphyee.weight.count"
+#define iphyee_loader_sname__u_bind_count         "u:iphyee.bind.count"
 #define iphyee_loader_sname__f_coord_value        "f:iphyee.coord.value"
 #define iphyee_loader_sname__f_inode_value        "f:iphyee.inode.value"
 #define iphyee_loader_sname__f_inode_minimum      "f:iphyee.inode.minimum"
 #define iphyee_loader_sname__f_inode_maximum      "f:iphyee.inode.maximum"
 #define iphyee_loader_sname__f_inode_multiplier   "f:iphyee.inode.multiplier"
 #define iphyee_loader_sname__f_inode_addend       "f:iphyee.inode.addend"
+#define iphyee_loader_sname__b_fragment_vertex    "b:iphyee.fragment.vertex"
+#define iphyee_loader_sname__b_fragment_normal    "b:iphyee.fragment.normal"
+#define iphyee_loader_sname__b_fragment_texture   "b:iphyee.fragment.texture"
 #define iphyee_loader_sname__s_texture_name       "s:iphyee.texture.name"
 #define iphyee_loader_sname__s_bonex_name         "s:iphyee.bonex.name"
 #define iphyee_loader_sname__s_coord_name         "s:iphyee.coord.name"
@@ -106,5 +124,13 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 #define iphyee_loader_sname__o_bonex_fixed_coord  iphyee_loader_stype__o_bonex_fixed_coord
 #define iphyee_loader_sname__o_bonex_fixed_inode  iphyee_loader_stype__o_bonex_fixed_inode
 #define iphyee_loader_sname__o_inode_info         iphyee_loader_stype__o_inode_info
+
+const iphyee_loader_s* iphyee_loader_alloc(void);
+
+layer_model_item_s* iphyee_loader_parse_obj_by_memory(const iphyee_loader_s *restrict loader, const char *restrict data, uintptr_t size);
+layer_model_item_s* iphyee_loader_parse_obj_by_file(const iphyee_loader_s *restrict loader, layer_file_s *restrict file, uint64_t offset, uint64_t size);
+layer_model_item_s* iphyee_loader_parse_obj_by_path(const iphyee_loader_s *restrict loader, const char *restrict path);
+layer_file_s* iphyee_loader_build_obj_to_file(const layer_model_item_s *restrict model);
+const char* iphyee_loader_build_obj_to_path(const layer_model_item_s *restrict model, const char *restrict path);
 
 #endif
