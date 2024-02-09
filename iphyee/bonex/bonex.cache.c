@@ -1,6 +1,72 @@
 #include "bonex.cache.h"
 #include <memory.h>
 
+// pn context
+
+typedef struct iphyee_bonex_cache_pn_context_t iphyee_bonex_cache_pn_context_t;
+
+struct iphyee_bonex_cache_pn_context_t {
+	iphyee_mat4x4_t c[4];
+	iphyee_mat4x4_t *dst_p_mat4x4;
+	iphyee_mat4x4_t *dst_n_mat4x4;
+	iphyee_mat4x4_t *src_p_mat4x4;
+	iphyee_mat4x4_t *src_n_mat4x4;
+	uintptr_t count;
+	uintptr_t index;
+};
+
+static void iphyee_bonex_cache_pn_initial(iphyee_bonex_cache_pn_context_t *restrict c, iphyee_mat4x4_t *dst_p_mat4x4, iphyee_mat4x4_t *dst_n_mat4x4, uintptr_t count)
+{
+	c->dst_p_mat4x4 = dst_p_mat4x4;
+	c->dst_n_mat4x4 = dst_n_mat4x4;
+	c->src_p_mat4x4 = NULL;
+	c->src_n_mat4x4 = NULL;
+	c->count = count;
+	c->index = 0;
+}
+static void iphyee_bonex_cache_pn_append(iphyee_bonex_cache_pn_context_t *restrict c, iphyee_mat4x4_t *src_p_mat4x4, iphyee_mat4x4_t *src_n_mat4x4)
+{
+	iphyee_mat4x4_t *restrict dst_p_mat4x4;
+	iphyee_mat4x4_t *restrict dst_n_mat4x4;
+	uintptr_t ci;
+	if (c->index++)
+	{
+		if (c->index < c->count)
+		{
+			ci = c->index & 1;
+			dst_p_mat4x4 = &c->c[ci];
+			dst_n_mat4x4 = &c->c[ci + 2];
+		}
+		else
+		{
+			dst_p_mat4x4 = c->dst_p_mat4x4;
+			dst_n_mat4x4 = c->dst_n_mat4x4;
+		}
+		iphyee_mat4x4_mul(dst_p_mat4x4, c->src_p_mat4x4, src_p_mat4x4);
+		iphyee_mat4x4_mul(dst_n_mat4x4, src_n_mat4x4, c->src_n_mat4x4);
+		c->src_p_mat4x4 = dst_p_mat4x4;
+		c->src_n_mat4x4 = dst_n_mat4x4;
+	}
+	else if (c->index < c->count)
+	{
+		c->src_p_mat4x4 = src_p_mat4x4;
+		c->src_n_mat4x4 = src_n_mat4x4;
+	}
+	else
+	{
+		iphyee_mat4x4_cpy(c->dst_p_mat4x4, src_p_mat4x4);
+		iphyee_mat4x4_cpy(c->dst_n_mat4x4, src_n_mat4x4);
+	}
+}
+static void iphyee_bonex_cache_pn_vector(iphyee_bonex_cache_pn_context_t *restrict c, iphyee_mat4x4_t *src_p_array, iphyee_mat4x4_t *src_n_array, uintptr_t count)
+{
+	uintptr_t i;
+	for (i = 0; i < count; ++i)
+		iphyee_bonex_cache_pn_append(c, src_p_array + i, src_n_array + i);
+}
+
+// cache
+
 static void iphyee_bonex_cache_free_func(iphyee_bonex_cache_s *restrict r)
 {
 	iphyee_bonex_cache_va_t *restrict p;
@@ -19,7 +85,7 @@ static iphyee_bonex_cache_s* iphyee_bonex_cache_alloc_empty(uintptr_t joint_coun
 	iphyee_bonex_cache_s *restrict r;
 	uintptr_t align_block, size;
 	size = align_block = ((sizeof(iphyee_bonex_cache_s) + 15) / 16 * 16);
-	size += sizeof(iphyee_mat4x4_t) * 2 * (joint_count + fixed_count);
+	size += sizeof(iphyee_mat4x4_t) * 2 * (joint_count + fixed_count + value_count);
 	size += sizeof(iphyee_bonex_cache_va_t) * value_count;
 	size += sizeof(iphyee_bonex_cache_ia_t) * inode_count;
 	size += sizeof(iphyee_bonex_cache_fa_t) * fixed_count;
@@ -32,7 +98,9 @@ static iphyee_bonex_cache_s* iphyee_bonex_cache_alloc_empty(uintptr_t joint_coun
 		r->joint_n_array = r->joint_p_array + joint_count;
 		r->fixed_p_array = r->joint_n_array + joint_count;
 		r->fixed_n_array = r->fixed_p_array + fixed_count;
-		r->va_array = (iphyee_bonex_cache_va_t *) (r->fixed_n_array + fixed_count);
+		r->value_p_array = r->fixed_n_array + fixed_count;
+		r->value_n_array = r->value_p_array + value_count;
+		r->va_array = (iphyee_bonex_cache_va_t *) (r->value_n_array + value_count);
 		r->ia_array = (iphyee_bonex_cache_ia_t *) (r->va_array + value_count);
 		r->fa_array = (iphyee_bonex_cache_fa_t *) (r->ia_array + inode_count);
 		r->ja_array = (iphyee_bonex_cache_ja_t *) (r->fa_array + fixed_count);
@@ -105,10 +173,16 @@ static void iphyee_bonex_cache_initial_loop_fixed(iphyee_bonex_cache_s *restrict
 }
 static void iphyee_bonex_cache_initial_loop_value(iphyee_bonex_cache_s *restrict r, const iphyee_bonex_s *restrict bonex)
 {
+	iphyee_mat4x4_t *restrict value_p_array;
+	iphyee_mat4x4_t *restrict value_n_array;
 	iphyee_bonex_cache_va_t *restrict va;
 	uintptr_t i, n;
+	value_p_array = r->value_p_array;
+	value_n_array = r->value_n_array;
 	for (i = 0, n = bonex->value_count; i < n; ++i)
 	{
+		iphyee_mat4x4_set_e(value_p_array + i);
+		iphyee_mat4x4_set_e(value_n_array + i);
 		va = &r->va_array[i];
 		va->need_update = 1;
 		va->base_joint_index = ~(uint32_t) 0;
@@ -149,6 +223,7 @@ static iphyee_bonex_cache_s* iphyee_bonex_cache_initial_loop_coord(iphyee_bonex_
 static iphyee_bonex_cache_s* iphyee_bonex_cache_initial_loop_inode(iphyee_bonex_cache_s *restrict r, const iphyee_bonex_s *restrict bonex)
 {
 	const iphyee_bonex_inode_s *restrict p;
+	iphyee_bonex_cache_ia_t *restrict ia;
 	iphyee_bonex_cache_fa_t *restrict fa;
 	iphyee_bonex_cache_va_t *restrict va;
 	uintptr_t i, n;
@@ -156,6 +231,11 @@ static iphyee_bonex_cache_s* iphyee_bonex_cache_initial_loop_inode(iphyee_bonex_
 	for (i = 0, n = bonex->inode_count; i < n; ++i)
 	{
 		p = bonex->inode_array[i];
+		ia = &r->ia_array[i];
+		ia->value_minimum = p->default_value_minimum;
+		ia->value_maximum = p->default_value_maximum;
+		ia->value_multiplier = p->default_value_multiplier;
+		ia->value_addend = p->default_value_addend;
 		vi = (uint32_t) p->index.this_value_index;
 		fi = (uint32_t) p->index.fix_mat4x4_index;
 		ji = (uint32_t) p->index.base_joint_index;
@@ -210,6 +290,8 @@ iphyee_bonex_cache_s* iphyee_bonex_cache_dump(const iphyee_bonex_cache_s *restri
 		memcpy(r->joint_n_array, cache->joint_n_array, sizeof(iphyee_mat4x4_t) * r->joint_count);
 		memcpy(r->fixed_p_array, cache->fixed_p_array, sizeof(iphyee_mat4x4_t) * r->fixed_count);
 		memcpy(r->fixed_n_array, cache->fixed_n_array, sizeof(iphyee_mat4x4_t) * r->fixed_count);
+		memcpy(r->value_p_array, cache->value_p_array, sizeof(iphyee_mat4x4_t) * r->value_count);
+		memcpy(r->value_n_array, cache->value_n_array, sizeof(iphyee_mat4x4_t) * r->value_count);
 		memcpy(r->va_array, cache->va_array, sizeof(iphyee_bonex_cache_va_t) * r->value_count);
 		memcpy(r->ia_array, cache->ia_array, sizeof(iphyee_bonex_cache_ia_t) * r->inode_count);
 		memcpy(r->fa_array, cache->fa_array, sizeof(iphyee_bonex_cache_fa_t) * r->fixed_count);
@@ -266,148 +348,81 @@ iphyee_bonex_cache_s* iphyee_bonex_cache_set_value(iphyee_bonex_cache_s *restric
 	return NULL;
 }
 
-static void iphyee_bonex_cache_fetch_value(iphyee_bonex_cache_va_t *restrict va, iphyee_mat4x4_t *restrict p, iphyee_mat4x4_t *restrict n, float value)
+static void iphyee_bonex_cache_fetch_value(iphyee_bonex_cache_s *restrict r, uint32_t value_start, uint32_t value_count)
 {
+	iphyee_bonex_cache_va_t *restrict va;
+	iphyee_mat4x4_t *restrict value_p_array;
+	iphyee_mat4x4_t *restrict value_n_array;
+	float *restrict value_array;
 	iphyee_bonex_simple_f value_simple;
 	iphyee_bonex_complex_s *restrict value_complex;
-	va->need_update = 0;
-	if ((value_simple = va->value_simple))
+	float value;
+	va = r->va_array;
+	value_p_array = r->value_p_array;
+	value_n_array = r->value_n_array;
+	value_array = r->value_array;
+	for (value_count += value_start; value_start < value_count; ++value_start)
 	{
-		value_simple(p, value);
-		value_simple(n, -value);
-	}
-	else if ((value_complex = va->value_complex))
-	{
-		value_complex->mat4x4gen(value_complex, p, value);
-		value_complex->mat4x4gen(value_complex, n, -value);
-	}
-	else
-	{
-		iphyee_mat4x4_set_e(p);
-		iphyee_mat4x4_set_e(n);
-	}
-}
-static void iphyee_bonex_cache_fetch_value_mul(iphyee_bonex_cache_va_t *restrict va, iphyee_mat4x4_t *restrict p, iphyee_mat4x4_t *restrict n, const float *restrict value, uint32_t count)
-{
-	iphyee_mat4x4_t c[6];
-	iphyee_mat4x4_t *restrict p0, *restrict n0;
-	iphyee_mat4x4_t *restrict p1, *restrict n1;
-	iphyee_mat4x4_t *restrict p2, *restrict n2;
-	uint32_t k;
-	k = 0;
-	p1 = &c[k]; k = (k + 1) % 6;
-	n1 = &c[k]; k = (k + 1) % 6;
-	iphyee_mat4x4_set_e(p1);
-	iphyee_mat4x4_set_e(n1);
-	iphyee_bonex_cache_fetch_value(va++, p1, n1, *value++);
-	count -= 1;
-	do {
-		p2 = &c[k]; k = (k + 1) % 6;
-		n2 = &c[k]; k = (k + 1) % 6;
-		iphyee_mat4x4_set_e(p2);
-		iphyee_mat4x4_set_e(n2);
-		iphyee_bonex_cache_fetch_value(va++, p2, n2, *value++);
-		if ((count -= 1))
+		if (va[value_start].need_update)
 		{
-			p0 = &c[k]; k = (k + 1) % 6;
-			n0 = &c[k]; k = (k + 1) % 6;
+			va[value_start].need_update = 0;
+			value = value_array[value_start];
+			if ((value_simple = va[value_start].value_simple))
+			{
+				value_simple(value_p_array + value_start, value);
+				value_simple(value_n_array + value_start, -value);
+			}
+			else if ((value_complex = va[value_start].value_complex))
+			{
+				value_complex->mat4x4gen(value_complex, value_p_array + value_start, value);
+				value_complex->mat4x4gen(value_complex, value_n_array + value_start, -value);
+			}
 		}
-		else
-		{
-			p0 = p;
-			n0 = n;
-		}
-		iphyee_mat4x4_mul(p0, p1, p2);
-		iphyee_mat4x4_mul(n0, n2, n1);
-		p1 = p0;
-		n1 = n0;
-	} while(count);
-}
-static void iphyee_bonex_cache_touch_fixed(iphyee_bonex_cache_s *restrict r, uint32_t fixed_index)
-{
-	iphyee_bonex_cache_fa_t *restrict fa;
-	iphyee_bonex_cache_va_t *restrict va;
-	iphyee_mat4x4_t *restrict p;
-	iphyee_mat4x4_t *restrict n;
-	float *v;
-	uint32_t vn;
-	fa = r->fa_array + fixed_index;
-	va = r->va_array + fa->link_value_start;
-	p = r->fixed_p_array + fixed_index;
-	n = r->fixed_n_array + fixed_index;
-	v = r->value_array + fixed_index;
-	if ((vn = fa->link_value_count) == 1)
-		iphyee_bonex_cache_fetch_value(va, p, n, *v);
-	else if (vn > 1)
-		iphyee_bonex_cache_fetch_value_mul(va, p, n, v, vn);
-	else
-	{
-		iphyee_mat4x4_set_e(p);
-		iphyee_mat4x4_set_e(n);
 	}
 }
 static void iphyee_bonex_cache_fetch_fixed(iphyee_bonex_cache_s *restrict r, uint32_t fixed_start, uint32_t fixed_count)
 {
+	iphyee_bonex_cache_pn_context_t context;
+	iphyee_mat4x4_t *restrict fixed_p_array;
+	iphyee_mat4x4_t *restrict fixed_n_array;
+	iphyee_mat4x4_t *restrict value_p_array;
+	iphyee_mat4x4_t *restrict value_n_array;
 	iphyee_bonex_cache_fa_t *restrict fa;
+	uintptr_t link_value_start;
+	uintptr_t link_value_count;
+	fixed_p_array = r->fixed_p_array;
+	fixed_n_array = r->fixed_n_array;
+	value_p_array = r->value_p_array;
+	value_n_array = r->value_n_array;
 	fa = r->fa_array;
 	for (fixed_count += fixed_start; fixed_start < fixed_count; ++fixed_start)
 	{
 		if (fa[fixed_start].need_update)
 		{
 			fa[fixed_start].need_update = 0;
-			iphyee_bonex_cache_touch_fixed(r, fixed_start);
+			link_value_start = fa[fixed_start].link_value_start;
+			link_value_count = fa[fixed_start].link_value_count;
+			iphyee_bonex_cache_fetch_value(r, link_value_start, link_value_count);
+			iphyee_bonex_cache_pn_initial(&context, fixed_p_array + fixed_start, fixed_n_array + fixed_start, link_value_count);
+			iphyee_bonex_cache_pn_vector(&context, value_p_array + link_value_start, value_n_array + link_value_start, link_value_count);
 		}
 	}
 }
 static void iphyee_bonex_cache_touch_joint(iphyee_bonex_cache_s *restrict r, uint32_t joint_index)
 {
-	iphyee_mat4x4_t c[6];
-	iphyee_mat4x4_t *restrict p0, *restrict n0;
-	iphyee_mat4x4_t *restrict p1, *restrict n1;
-	iphyee_mat4x4_t *restrict p2, *restrict n2;
+	iphyee_bonex_cache_pn_context_t context;
 	iphyee_bonex_cache_ja_t *restrict ja;
-	uint32_t n, k;
+	uintptr_t base_joint_index;
+	uintptr_t base_joint_exist;
+	uintptr_t link_fixed_start;
+	uintptr_t link_fixed_count;
 	ja = r->ja_array + joint_index;
-	if ((n = ja->link_fixed_count))
-	{
-		k = 0;
-		if (ja->base_joint_index < r->joint_count)
-		{
-			p1 = r->joint_p_array + ja->base_joint_index;
-			n1 = r->joint_n_array + ja->base_joint_index;
-		}
-		else
-		{
-			p1 = &c[k]; k = (k + 1) % 6;
-			n1 = &c[k]; k = (k + 1) % 6;
-			iphyee_mat4x4_set_e(p1);
-			iphyee_mat4x4_set_e(n1);
-		}
-		p2 = r->fixed_p_array + ja->link_fixed_start;
-		n2 = r->fixed_n_array + ja->link_fixed_start;
-		do {
-			n -= 1;
-			if (n)
-			{
-				p0 = &c[k]; k = (k + 1) % 6;
-				n0 = &c[k]; k = (k + 1) % 6;
-			}
-			else
-			{
-				p0 = r->joint_p_array + joint_index;
-				n0 = r->joint_n_array + joint_index;
-			}
-			iphyee_mat4x4_mul(p0, p1, p2);
-			iphyee_mat4x4_mul(n0, n2, n1);
-			p1 = p0; p2 += 1;
-			n1 = n0; n2 += 1;
-		} while(n);
-	}
-	else
-	{
-		iphyee_mat4x4_cpy(r->joint_p_array + joint_index, r->joint_p_array + ja->base_joint_index);
-		iphyee_mat4x4_cpy(r->joint_n_array + joint_index, r->joint_n_array + ja->base_joint_index);
-	}
+	base_joint_exist = ((base_joint_index = ja->base_joint_index) < r->joint_count)?1:0;
+	link_fixed_start = ja->link_fixed_start;
+	link_fixed_count = ja->link_fixed_count;
+	iphyee_bonex_cache_pn_initial(&context, r->joint_p_array + joint_index, r->joint_n_array + joint_index, link_fixed_count + base_joint_exist);
+	if (base_joint_exist) iphyee_bonex_cache_pn_append(&context, r->joint_p_array + base_joint_index, r->joint_n_array + base_joint_index);
+	iphyee_bonex_cache_pn_vector(&context, r->fixed_p_array + link_fixed_start, r->fixed_n_array + link_fixed_start, link_fixed_count);
 }
 static iphyee_bonex_cache_s* iphyee_bonex_cache_fetch_joint(iphyee_bonex_cache_s *restrict r, uint32_t joint_index)
 {

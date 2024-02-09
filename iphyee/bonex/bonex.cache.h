@@ -14,6 +14,8 @@ struct iphyee_bonex_cache_s {
 	iphyee_mat4x4_t *joint_n_array;
 	iphyee_mat4x4_t *fixed_p_array;
 	iphyee_mat4x4_t *fixed_n_array;
+	iphyee_mat4x4_t *value_p_array;
+	iphyee_mat4x4_t *value_n_array;
 	iphyee_bonex_cache_va_t *va_array;
 	iphyee_bonex_cache_ia_t *ia_array;
 	iphyee_bonex_cache_fa_t *fa_array;
