@@ -159,6 +159,12 @@ const layer_model_type_s* layer_model_type_create__object(const layer_model_s *r
 
 // api
 
+const struct vattr_s* layer_model_get_o_vattr(const layer_model_item_s *restrict i)
+{
+	if (i->type_major == layer_model_type__object)
+		return ((layer_model_item_object_s *) i)->object;
+	return NULL;
+}
 layer_model_item_s* layer_model_get_o_child(const layer_model_item_s *restrict i, const char *restrict key)
 {
 	if (i->type_major == layer_model_type__object && key)

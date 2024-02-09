@@ -3,6 +3,7 @@
 
 #include <refer.h>
 
+struct vattr_s;
 struct layer_log_s;
 struct layer_file_s;
 
@@ -41,6 +42,7 @@ layer_model_item_s* layer_model_get_a_index(const layer_model_item_s *restrict i
 layer_model_item_s* layer_model_set_a_clear(layer_model_item_s *restrict i);
 layer_model_item_s* layer_model_set_a_append(layer_model_item_s *restrict i, layer_model_item_s *restrict item);
 layer_model_item_s* layer_model_set_a_create(layer_model_item_s *restrict i, const char *restrict type);
+const struct vattr_s* layer_model_get_o_vattr(const layer_model_item_s *restrict i);
 layer_model_item_s* layer_model_get_o_child(const layer_model_item_s *restrict i, const char *restrict key);
 layer_model_item_s* layer_model_get_o_value(const layer_model_item_s *restrict i, const char *restrict key);
 layer_model_item_s* layer_model_set_o_clear(layer_model_item_s *restrict i);

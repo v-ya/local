@@ -105,7 +105,7 @@ uintptr_t layer_file_write(layer_file_s *restrict f, const void *restrict data, 
 {
 	uintptr_t size;
 	size = nblock * bsize;
-	if (size > nblock && size > bsize)
+	if (size >= nblock && size >= bsize)
 	{
 		size = f->write(f, data, size);
 		nblock = size / bsize;
