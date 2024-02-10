@@ -83,6 +83,22 @@ static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_v(iphyee_loader_parse_
 	label_fail:
 	return NULL;
 }
+static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_vt(iphyee_loader_parse_obj_t *restrict c, const char *restrict p, uintptr_t n, uintptr_t i)
+{
+	double vec[2];
+	while (i < n && d_test_space(p[i], ==, ||)) i += 1;
+	i = iphyee_loader_parse_obj_float(p, n, i, vec);
+	if (i >= n || d_test_space(p[i], !=, &&))
+		goto label_fail;
+	while (i < n && d_test_space(p[i], ==, ||)) i += 1;
+	i = iphyee_loader_parse_obj_float(p, n, i, vec + 1);
+	if (i < n && d_test_space(p[i], !=, &&))
+		goto label_fail;
+	if (iphyee_loader_model_append_texture(c->model, vec))
+		return c;
+	label_fail:
+	return NULL;
+}
 static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_vn(iphyee_loader_parse_obj_t *restrict c, const char *restrict p, uintptr_t n, uintptr_t i)
 {
 	double vec[3];
@@ -99,22 +115,6 @@ static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_vn(iphyee_loader_parse
 	if (i < n && d_test_space(p[i], !=, &&))
 		goto label_fail;
 	if (iphyee_loader_model_append_normal(c->model, vec))
-		return c;
-	label_fail:
-	return NULL;
-}
-static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_vt(iphyee_loader_parse_obj_t *restrict c, const char *restrict p, uintptr_t n, uintptr_t i)
-{
-	double vec[2];
-	while (i < n && d_test_space(p[i], ==, ||)) i += 1;
-	i = iphyee_loader_parse_obj_float(p, n, i, vec);
-	if (i >= n || d_test_space(p[i], !=, &&))
-		goto label_fail;
-	while (i < n && d_test_space(p[i], ==, ||)) i += 1;
-	i = iphyee_loader_parse_obj_float(p, n, i, vec + 1);
-	if (i < n && d_test_space(p[i], !=, &&))
-		goto label_fail;
-	if (iphyee_loader_model_append_texture(c->model, vec))
 		return c;
 	label_fail:
 	return NULL;
@@ -145,6 +145,9 @@ static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_f(iphyee_loader_parse_
 		if (i < n && d_test_space(p[i], !=, &&))
 			goto label_fail;
 		while (i < n && d_test_space(p[i], ==, ||)) i += 1;
+		vec[0] -= 1;
+		vec[1] -= 1;
+		vec[2] -= 1;
 		if (!iphyee_loader_model_append_fragment(c->model, vec, 3))
 			goto label_fail;
 		fragment_number += 1;
@@ -171,8 +174,8 @@ static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_line(iphyee_loader_par
 	{
 		if (p[0] == 'v')
 		{
-			if (p[1] == 'n') return iphyee_loader_parse_obj_vn(c, p, n, i);
 			if (p[1] == 't') return iphyee_loader_parse_obj_vt(c, p, n, i);
+			if (p[1] == 'n') return iphyee_loader_parse_obj_vn(c, p, n, i);
 		}
 	}
 	return c;
@@ -186,8 +189,8 @@ static layer_model_item_s* iphyee_loader_parse_obj_func(const iphyee_loader_s *l
 	model = NULL;
 	if ((c.model = iphyee_loader_model_alloc(loader,
 		iphyee_loader_model_eblock__vertex |
-		iphyee_loader_model_eblock__normal |
 		iphyee_loader_model_eblock__texture |
+		iphyee_loader_model_eblock__normal |
 		iphyee_loader_model_eblock__nocheck,
 		32, 32)))
 	{

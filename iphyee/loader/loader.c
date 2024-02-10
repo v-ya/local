@@ -52,14 +52,14 @@ static const layer_model_custom_object_t d_symbol(o_vertex)[] = {
 	d_objvar(u_vertex_count, uint),
 	d_object()
 };
-static const layer_model_custom_object_t d_symbol(o_normal)[] = {
-	d_objvar(d_normal, data),
-	d_objvar(u_normal_count, uint),
-	d_object()
-};
 static const layer_model_custom_object_t d_symbol(o_texture)[] = {
 	d_objvar(d_texture, data),
 	d_objvar(u_texture_count, uint),
+	d_object()
+};
+static const layer_model_custom_object_t d_symbol(o_normal)[] = {
+	d_objvar(d_normal, data),
+	d_objvar(u_normal_count, uint),
 	d_object()
 };
 static const layer_model_custom_object_t d_symbol(o_effect)[] = {
@@ -125,8 +125,8 @@ const iphyee_loader_s* iphyee_loader_alloc(void)
 			d_create_object(o_bonex_fixed_inode) &&
 			d_create_objpool(o_meshes, iphyee_loader_stype__o_surface) &&
 			d_create_object(o_vertex) &&
-			d_create_object(o_normal) &&
 			d_create_object(o_texture) &&
+			d_create_object(o_normal) &&
 			d_create_object(o_effect) &&
 			d_create_object(o_fragment) &&
 			d_create_object(o_bonex_bind) &&

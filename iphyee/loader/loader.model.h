@@ -21,8 +21,8 @@ typedef layer_file_s* (*iphyee_loader_model_write_fragment_f)(layer_file_s *rest
 
 enum iphyee_loader_model_eblock_t {
 	iphyee_loader_model_eblock__vertex  = 0x0001,
-	iphyee_loader_model_eblock__normal  = 0x0002,
-	iphyee_loader_model_eblock__texture = 0x0004,
+	iphyee_loader_model_eblock__texture = 0x0002,
+	iphyee_loader_model_eblock__normal  = 0x0004,
 	iphyee_loader_model_eblock__effect  = 0x0008,
 	iphyee_loader_model_eblock__bonex   = 0x0010,
 	iphyee_loader_model_eblock__nocheck = 0x8000,
@@ -30,8 +30,8 @@ enum iphyee_loader_model_eblock_t {
 
 struct iphyee_loader_model_func_t {
 	iphyee_loader_model_write_vec3_f write_vertex;
-	iphyee_loader_model_write_vec3_f write_normal;
 	iphyee_loader_model_write_vec2_f write_texture;
+	iphyee_loader_model_write_vec3_f write_normal;
 	iphyee_loader_model_write_weight_f write_weight;
 	iphyee_loader_model_write_range_f write_effect;
 	iphyee_loader_model_write_fragment_f write_fragment;
@@ -77,8 +77,8 @@ struct iphyee_loader_model_s {
 	const layer_model_s *m;
 	layer_model_item_s *model;
 	iphyee_loader_model_block_s *vertex;
-	iphyee_loader_model_block_s *normal;
 	iphyee_loader_model_block_s *texture;
+	iphyee_loader_model_block_s *normal;
 	iphyee_loader_model_effect_s *effect;
 	iphyee_loader_model_fragment_s *fragment;
 	iphyee_loader_model_bonex_s *bonex;
@@ -90,8 +90,8 @@ struct iphyee_loader_model_s {
 
 iphyee_loader_model_s* iphyee_loader_model_alloc(const iphyee_loader_s *restrict loader, iphyee_loader_model_eblock_t eblock, uint32_t bits_value, uint32_t bits_index);
 iphyee_loader_model_s* iphyee_loader_model_append_vertex(iphyee_loader_model_s *restrict r, const double vertex[3]);
-iphyee_loader_model_s* iphyee_loader_model_append_normal(iphyee_loader_model_s *restrict r, const double normal[3]);
 iphyee_loader_model_s* iphyee_loader_model_append_texture(iphyee_loader_model_s *restrict r, const double texture[2]);
+iphyee_loader_model_s* iphyee_loader_model_append_normal(iphyee_loader_model_s *restrict r, const double normal[3]);
 iphyee_loader_model_s* iphyee_loader_model_append_weight_joint(iphyee_loader_model_s *restrict r, const char *restrict joint_name);
 iphyee_loader_model_s* iphyee_loader_model_append_weight(iphyee_loader_model_s *restrict r, uintptr_t joint_index, double weight);
 iphyee_loader_model_s* iphyee_loader_model_append_effect(iphyee_loader_model_s *restrict r, uintptr_t weight_offset, uintptr_t weight_number);

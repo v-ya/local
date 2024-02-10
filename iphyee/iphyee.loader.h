@@ -14,12 +14,12 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 // 	o:iphyee.vertex
 // 		d:iphyee.vertex (vec3 vertex)
 // 		u:iphyee.vertex.count
-// 	o:iphyee.normal
-// 		d:iphyee.normal (vec3 normal)
-// 		u:iphyee.normal.count
 // 	o:iphyee.texture
 // 		d:iphyee.texture (vec2 texture)
 // 		u:iphyee.texture.count
+// 	o:iphyee.normal
+// 		d:iphyee.normal (vec3 normal)
+// 		u:iphyee.normal.count
 // 	o:iphyee.effect
 // 		a:iphyee.weight.joint (=> s joint_name)
 // 		d:iphyee.weight (uint joint_index, float weight)
@@ -27,7 +27,7 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 // 		d:iphyee.effect (uint weight_offset, uint weight_number)
 // 		u:iphyee.effect.count
 // 	o:iphyee.fragment
-// 		d:iphyee.fragment (uint vertex_index?, uint normal_index?, uint texture_index?, uint effect_index?)
+// 		d:iphyee.fragment (uint vertex_index?, uint texture_index?, uint normal_index?, uint effect_index?)
 // 		u:iphyee.fragment.count
 // 		o:iphyee.meshes (name => o:iphyee.surface)
 // 			o:iphyee.surface
@@ -60,16 +60,16 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 #define iphyee_loader_stype__o_bonex_fixed_inode  "o:iphyee.bonex.fixed.inode"
 #define iphyee_loader_stype__o_meshes             "o:iphyee.meshes"
 #define iphyee_loader_stype__o_vertex             "o:iphyee.vertex"
-#define iphyee_loader_stype__o_normal             "o:iphyee.normal"
 #define iphyee_loader_stype__o_texture            "o:iphyee.texture"
+#define iphyee_loader_stype__o_normal             "o:iphyee.normal"
 #define iphyee_loader_stype__o_effect             "o:iphyee.effect"
 #define iphyee_loader_stype__o_fragment           "o:iphyee.fragment"
 #define iphyee_loader_stype__o_bonex_bind         "o:iphyee.bonex.bind"
 #define iphyee_loader_stype__o_model              "o:iphyee.model"
 
 #define iphyee_loader_sname__u_vertex_count       "u:iphyee.vertex.count"
-#define iphyee_loader_sname__u_normal_count       "u:iphyee.normal.count"
 #define iphyee_loader_sname__u_texture_count      "u:iphyee.texture.count"
+#define iphyee_loader_sname__u_normal_count       "u:iphyee.normal.count"
 #define iphyee_loader_sname__u_weight_count       "u:iphyee.weight.count"
 #define iphyee_loader_sname__u_effect_count       "u:iphyee.effect.count"
 #define iphyee_loader_sname__u_fragment_count     "u:iphyee.fragment.count"
@@ -85,8 +85,8 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 #define iphyee_loader_sname__s_coord_name         "s:iphyee.coord.name"
 #define iphyee_loader_sname__s_inode_name         "s:iphyee.inode.name"
 #define iphyee_loader_sname__d_vertex             "d:iphyee.vertex"
-#define iphyee_loader_sname__d_normal             "d:iphyee.normal"
 #define iphyee_loader_sname__d_texture            "d:iphyee.texture"
+#define iphyee_loader_sname__d_normal             "d:iphyee.normal"
 #define iphyee_loader_sname__d_weight             "d:iphyee.weight"
 #define iphyee_loader_sname__d_effect             "d:iphyee.effect"
 #define iphyee_loader_sname__d_fragment           "d:iphyee.fragment"
@@ -101,8 +101,8 @@ typedef struct iphyee_loader_s iphyee_loader_s;
 #define iphyee_loader_sname__o_bonex_fixed_inode  iphyee_loader_stype__o_bonex_fixed_inode
 #define iphyee_loader_sname__o_meshes             iphyee_loader_stype__o_meshes
 #define iphyee_loader_sname__o_vertex             iphyee_loader_stype__o_vertex
-#define iphyee_loader_sname__o_normal             iphyee_loader_stype__o_normal
 #define iphyee_loader_sname__o_texture            iphyee_loader_stype__o_texture
+#define iphyee_loader_sname__o_normal             iphyee_loader_stype__o_normal
 #define iphyee_loader_sname__o_effect             iphyee_loader_stype__o_effect
 #define iphyee_loader_sname__o_fragment           iphyee_loader_stype__o_fragment
 #define iphyee_loader_sname__o_bonex_bind         iphyee_loader_stype__o_bonex_bind

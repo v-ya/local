@@ -80,8 +80,8 @@ static iphyee_loader_model_fragment_s* iphyee_loader_model_fragment_alloc(const 
 	uintptr_t length_of_fragment, i;
 	length_of_fragment = 0;
 	if (model->vertex) block_check[length_of_fragment++] = model->vertex;
-	if (model->normal) block_check[length_of_fragment++] = model->normal;
 	if (model->texture) block_check[length_of_fragment++] = model->texture;
+	if (model->normal) block_check[length_of_fragment++] = model->normal;
 	if (model->effect) block_check[length_of_fragment++] = model->effect->effect;
 	if (object && length_of_fragment && (r = (iphyee_loader_model_fragment_s *) refer_alloz(
 		sizeof(iphyee_loader_model_fragment_s) + sizeof(iphyee_loader_model_block_s *) * length_of_fragment)))
@@ -277,15 +277,15 @@ static iphyee_loader_model_func_t* iphyee_loader_model_func_initial(iphyee_loade
 	if (bits_value == 32)
 	{
 		func->write_vertex = iphyee_loader_model_write_vec3_value32;
-		func->write_normal = iphyee_loader_model_write_vec3_value32;
 		func->write_texture = iphyee_loader_model_write_vec2_value32;
+		func->write_normal = iphyee_loader_model_write_vec3_value32;
 		func->write_weight = iphyee_loader_model_write_weight_value32;
 	}
 	else if (bits_value == 64)
 	{
 		func->write_vertex = iphyee_loader_model_write_vec3_value64;
-		func->write_normal = iphyee_loader_model_write_vec3_value64;
 		func->write_texture = iphyee_loader_model_write_vec2_value64;
+		func->write_normal = iphyee_loader_model_write_vec3_value64;
 		func->write_weight = iphyee_loader_model_write_weight_value64;
 	}
 	else goto label_fail;
@@ -323,8 +323,8 @@ static void iphyee_loader_model_free_func(iphyee_loader_model_s *restrict r)
 	if (r->bonex) refer_free(r->bonex);
 	if (r->fragment) refer_free(r->fragment);
 	if (r->effect) refer_free(r->effect);
-	if (r->texture) refer_free(r->texture);
 	if (r->normal) refer_free(r->normal);
+	if (r->texture) refer_free(r->texture);
 	if (r->vertex) refer_free(r->vertex);
 	if (r->model) refer_free(r->model);
 	if (r->m) refer_free(r->m);
@@ -353,20 +353,20 @@ iphyee_loader_model_s* iphyee_loader_model_alloc(const iphyee_loader_s *restrict
 					iphyee_loader_sname__u_vertex_count
 				))) goto label_fail;
 			}
-			if (eblock & iphyee_loader_model_eblock__normal)
-			{
-				if (!(r->normal = iphyee_loader_model_block_alloc(
-					layer_model_set_o_create(r->model, d_oc_mm(o_normal)),
-					iphyee_loader_sname__d_normal,
-					iphyee_loader_sname__u_normal_count
-				))) goto label_fail;
-			}
 			if (eblock & iphyee_loader_model_eblock__texture)
 			{
 				if (!(r->texture = iphyee_loader_model_block_alloc(
 					layer_model_set_o_create(r->model, d_oc_mm(o_texture)),
 					iphyee_loader_sname__d_texture,
 					iphyee_loader_sname__u_texture_count
+				))) goto label_fail;
+			}
+			if (eblock & iphyee_loader_model_eblock__normal)
+			{
+				if (!(r->normal = iphyee_loader_model_block_alloc(
+					layer_model_set_o_create(r->model, d_oc_mm(o_normal)),
+					iphyee_loader_sname__d_normal,
+					iphyee_loader_sname__u_normal_count
 				))) goto label_fail;
 			}
 			if (eblock & iphyee_loader_model_eblock__effect)
@@ -399,17 +399,17 @@ iphyee_loader_model_s* iphyee_loader_model_append_vertex(iphyee_loader_model_s *
 		return r;
 	return NULL;
 }
-iphyee_loader_model_s* iphyee_loader_model_append_normal(iphyee_loader_model_s *restrict r, const double normal[3])
-{
-	iphyee_loader_model_block_s *restrict block;
-	if ((block = r->normal) && r->func.write_normal(block->block, normal) && (block->count += 1) < r->index_max)
-		return r;
-	return NULL;
-}
 iphyee_loader_model_s* iphyee_loader_model_append_texture(iphyee_loader_model_s *restrict r, const double texture[2])
 {
 	iphyee_loader_model_block_s *restrict block;
 	if ((block = r->texture) && r->func.write_texture(block->block, texture) && (block->count += 1) < r->index_max)
+		return r;
+	return NULL;
+}
+iphyee_loader_model_s* iphyee_loader_model_append_normal(iphyee_loader_model_s *restrict r, const double normal[3])
+{
+	iphyee_loader_model_block_s *restrict block;
+	if ((block = r->normal) && r->func.write_normal(block->block, normal) && (block->count += 1) < r->index_max)
 		return r;
 	return NULL;
 }
@@ -498,9 +498,9 @@ iphyee_loader_model_s* iphyee_loader_model_update(iphyee_loader_model_s *restric
 	result = r;
 	if (r->vertex && !iphyee_loader_model_block_update(r->vertex))
 		result = NULL;
-	if (r->normal && !iphyee_loader_model_block_update(r->normal))
-		result = NULL;
 	if (r->texture && !iphyee_loader_model_block_update(r->texture))
+		result = NULL;
+	if (r->normal && !iphyee_loader_model_block_update(r->normal))
 		result = NULL;
 	if ((effect = r->effect))
 	{
