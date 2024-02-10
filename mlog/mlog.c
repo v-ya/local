@@ -16,6 +16,7 @@ struct mlog_write_t {
 };
 struct mlog_printf_t {
 	const char *format;
+	uintptr_t size;
 	va_list list;
 };
 
@@ -140,15 +141,12 @@ mlog_s* mlog_write(mlog_s *restrict r, const char *restrict data, uintptr_t size
 
 static mlog_s* mlog_printf_wdone(mlog_s *restrict mlog, mlog_printf_t *restrict pri, uintptr_t *restrict rlength)
 {
-	uintptr_t n, nn;
-	if (mlog->length + 1 < mlog->size || (mlog = mlog_expand(mlog)))
+	char *restrict p;
+	uintptr_t n;
+	if ((p = mlog_wneed(mlog, pri->size)))
 	{
-		label_try:
-		nn = mlog->size - mlog->length;
-		if ((int) (n = vsnprintf(mlog->mlog + mlog->length, nn, pri->format, pri->list)) < 0)
+		if ((int) (n = vsnprintf(p, pri->size, pri->format, pri->list)) < 0)
 			mlog = NULL;
-		else if (n + 1 >= nn && (mlog = mlog_expand(mlog)))
-			goto label_try;
 		*rlength = n;
 		return mlog;
 	}
@@ -159,6 +157,9 @@ mlog_s* mlog_printf(mlog_s *restrict r, const char *restrict fmt, ...)
 {
 	mlog_printf_t pri;
 	pri.format = fmt;
+	va_start(pri.list, fmt);
+	pri.size = vsnprintf(NULL, 0, fmt, pri.list) + 1;
+	va_end(pri.list);
 	va_start(pri.list, fmt);
 	r = mlog_wdone(r, (mlog_wdone_f) mlog_printf_wdone, &pri);
 	va_end(pri.list);
