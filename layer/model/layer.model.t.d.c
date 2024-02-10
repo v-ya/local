@@ -76,7 +76,7 @@ layer_model_item_s* layer_model_set_d(layer_model_item_s *restrict i, struct lay
 		if (file)
 		{
 			fsize = layer_file_size(file);
-			if (offset < fsize && size <= fsize - offset)
+			if (offset <= fsize && size <= fsize - offset)
 			{
 				refer_save(file);
 				label_set:
