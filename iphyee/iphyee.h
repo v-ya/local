@@ -2,8 +2,8 @@
 #define _iphyee_h_
 
 #include <refer.h>
-#include <graph/graph.h>
-#include <graph/device.h>
+
+struct mlog_s;
 
 typedef struct iphyee_s iphyee_s;
 typedef struct iphyee_bonex_s iphyee_bonex_s;
@@ -19,5 +19,18 @@ const iphyee_bonex_s* iphyee_create_bonex(iphyee_s *restrict r, const iphyee_par
 // bonex
 
 // model
+
+// worker
+
+typedef struct iphyee_worker_s iphyee_worker_s;
+typedef enum iphyee_worker_debug_t iphyee_worker_debug_t;
+
+enum iphyee_worker_debug_t {
+	iphyee_worker_debug__none,
+	iphyee_worker_debug__error,
+	iphyee_worker_debug__warning,
+	iphyee_worker_debug__info,
+	iphyee_worker_debug__version,
+};
 
 #endif
