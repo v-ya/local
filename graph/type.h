@@ -561,6 +561,10 @@ typedef enum graph_fence_flags_e {
 	graph_fence_flags_signaled = 0x01
 } graph_fence_flags_t;
 
+typedef enum graph_event_flags_e {
+	graph_event_flags_device_only = 0x01
+} graph_event_flags_t;
+
 typedef enum graph_buffer_flags_e {
 	graph_buffer_flags_sparse_binding                = 0x01,
 	graph_buffer_flags_sparse_residency              = 0x02,

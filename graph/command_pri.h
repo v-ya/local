@@ -43,4 +43,11 @@ struct graph_fence_s {
 	graph_allocator_s *ga;
 };
 
+struct graph_event_s {
+	mlog_s *ml;
+	graph_dev_s *dev;
+	VkEvent event;
+	graph_allocator_s *ga;
+};
+
 #endif

@@ -8,6 +8,7 @@ typedef struct graph_command_pool_s graph_command_pool_s;
 typedef struct graph_command_pipe_barrier_param_s graph_command_pipe_barrier_param_s;
 typedef struct graph_semaphore_s graph_semaphore_s;
 typedef struct graph_fence_s graph_fence_s;
+typedef struct graph_event_s graph_event_s;
 
 struct graph_device_queue_t;
 struct graph_dev_s;
@@ -56,6 +57,11 @@ graph_semaphore_s* graph_semaphore_signal(graph_semaphore_s *restrict semaphore,
 graph_semaphore_s* graph_semaphore_wait(graph_semaphore_s *restrict semaphore, uint64_t timeout, uint64_t value);
 graph_fence_s* graph_fence_alloc(struct graph_dev_s *restrict dev, graph_fence_flags_t flags);
 graph_fence_s* graph_fence_reset(graph_fence_s *restrict fence);
+graph_fence_s* graph_fence_is_signaled(graph_fence_s *restrict fence);
 graph_fence_s* graph_fence_wait(graph_fence_s *restrict fence, uint64_t timeout);
+graph_event_s* graph_event_alloc(struct graph_dev_s *restrict dev, graph_event_flags_t flags);
+graph_event_s* graph_event_reset(graph_event_s *restrict event);
+graph_event_s* graph_event_signal(graph_event_s *restrict event);
+graph_event_s* graph_event_is_signaled(graph_event_s *restrict event);
 
 #endif

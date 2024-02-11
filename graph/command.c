@@ -619,7 +619,7 @@ graph_fence_s* graph_fence_alloc(struct graph_dev_s *restrict dev, graph_fence_f
 	info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	info.pNext = NULL;
 	info.flags = (VkFenceCreateFlags) flags;
-	r = (graph_fence_s *) refer_alloz(sizeof(graph_semaphore_s));
+	r = (graph_fence_s *) refer_alloz(sizeof(graph_fence_s));
 	if (r)
 	{
 		refer_set_free(r, (refer_free_f) graph_fence_free_func);
@@ -643,11 +643,75 @@ graph_fence_s* graph_fence_reset(graph_fence_s *restrict fence)
 	return NULL;
 }
 
+graph_fence_s* graph_fence_is_signaled(graph_fence_s *restrict fence)
+{
+	if (!vkGetFenceStatus(fence->dev->dev, fence->fence))
+		return fence;
+	return NULL;
+}
+
 graph_fence_s* graph_fence_wait(graph_fence_s *restrict fence, uint64_t timeout)
 {
 	VkResult ret;
 	ret = vkWaitForFences(fence->dev->dev, 1, &fence->fence, VK_FALSE, timeout);
 	if (!ret) return fence;
 	mlog_printf(fence->ml, "[graph_fence_reset] vkResetFences = %d\n", ret);
+	return NULL;
+}
+
+static void graph_event_free_func(graph_event_s *restrict r)
+{
+	void *v;
+	if ((v = r->event)) vkDestroyEvent(r->dev->dev, (VkEvent) v, &r->ga->alloc);
+	if ((v = r->ml)) refer_free(v);
+	if ((v = r->dev)) refer_free(v);
+	if ((v = r->ga)) refer_free(v);
+}
+
+graph_event_s* graph_event_alloc(struct graph_dev_s *restrict dev, graph_event_flags_t flags)
+{
+	graph_event_s *restrict r;
+	VkEventCreateInfo info;
+	VkResult ret;
+	info.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+	info.pNext = NULL;
+	info.flags = (VkEventCreateFlags) flags;
+	r = (graph_event_s *) refer_alloz(sizeof(graph_event_s));
+	if (r)
+	{
+		refer_set_free(r, (refer_free_f) graph_event_free_func);
+		r->ml = (mlog_s *) refer_save(dev->ml);
+		r->dev = (graph_dev_s *) refer_save(dev);
+		r->ga = (graph_allocator_s *) refer_save(dev->ga);
+		ret = vkCreateEvent(dev->dev, &info, &r->ga->alloc, &r->event);
+		if (!ret) return r;
+		mlog_printf(r->ml, "[graph_event_alloc] vkCreateEvent = %d\n", ret);
+		refer_free(r);
+	}
+	return NULL;
+}
+
+graph_event_s* graph_event_reset(graph_event_s *restrict event)
+{
+	VkResult ret;
+	ret = vkResetEvent(event->dev->dev, event->event);
+	if (!ret) return event;
+	mlog_printf(event->ml, "[graph_event_reset] vkResetEvent = %d\n", ret);
+	return NULL;
+}
+
+graph_event_s* graph_event_signal(graph_event_s *restrict event)
+{
+	VkResult ret;
+	ret = vkSetEvent(event->dev->dev, event->event);
+	if (!ret) return event;
+	mlog_printf(event->ml, "[graph_event_signal] vkSetEvent = %d\n", ret);
+	return NULL;
+}
+
+graph_event_s* graph_event_is_signaled(graph_event_s *restrict event)
+{
+	if (!vkGetEventStatus(event->dev->dev, event->event))
+		return event;
 	return NULL;
 }
