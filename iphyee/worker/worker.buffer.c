@@ -40,3 +40,42 @@ iphyee_worker_buffer_s* iphyee_worker_buffer_alloc(iphyee_worker_memory_heap_s *
 	}
 	return NULL;
 }
+
+void* iphyee_worker_buffer_map(iphyee_worker_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+{
+	void *ptr;
+	if (!vkMapMemory(buffer->device, buffer->memory, offset, size, 0, &ptr))
+		return ptr;
+	return NULL;
+}
+
+void iphyee_worker_buffer_unmap(iphyee_worker_buffer_s *restrict buffer)
+{
+	vkUnmapMemory(buffer->device, buffer->memory);
+}
+
+iphyee_worker_buffer_s* iphyee_worker_buffer_flush(iphyee_worker_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+{
+	VkMappedMemoryRange memory_range;
+	memory_range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	memory_range.pNext = NULL;
+	memory_range.memory = buffer->memory;
+	memory_range.offset = offset;
+	memory_range.size = size;
+	if (!vkFlushMappedMemoryRanges(buffer->device, 1, &memory_range))
+		return buffer;
+	return NULL;
+}
+
+iphyee_worker_buffer_s* iphyee_worker_buffer_invalidate(iphyee_worker_buffer_s *restrict buffer, uint64_t offset, uint64_t size)
+{
+	VkMappedMemoryRange memory_range;
+	memory_range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+	memory_range.pNext = NULL;
+	memory_range.memory = buffer->memory;
+	memory_range.offset = offset;
+	memory_range.size = size;
+	if (!vkInvalidateMappedMemoryRanges(buffer->device, 1, &memory_range))
+		return buffer;
+	return NULL;
+}

@@ -27,7 +27,7 @@ static void iphyee_worker_device_free_func(iphyee_worker_device_s *restrict r)
 iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_s *restrict instance, const iphyee_worker_physical_device_s *restrict physical_device)
 {
 	static const char *const debug_layer_array[] = {"VK_LAYER_KHRONOS_validation"};
-	// static const char *const debug_extension_array[] = {"VK_EXT_debug_utils"};
+	static const char *const debug_extension_array[] = {VK_EXT_SHADER_OBJECT_EXTENSION_NAME};
 	iphyee_worker_device_s *restrict r;
 	VkDeviceCreateInfo info;
 	VkPhysicalDeviceFeatures features;
@@ -53,8 +53,8 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	info.pQueueCreateInfos = info_queue;
 	info.enabledLayerCount = 0;
 	info.ppEnabledLayerNames = NULL;
-	info.enabledExtensionCount = 0;
-	info.ppEnabledExtensionNames = NULL;
+	info.enabledExtensionCount = sizeof(debug_extension_array) / sizeof(const char *);
+	info.ppEnabledExtensionNames = debug_extension_array;
 	info.pEnabledFeatures = &features;
 	if (instance->debug_messenger)
 	{
@@ -73,6 +73,11 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 			vkGetDeviceQueue(r->device, info_queue[0].queueFamilyIndex, 0, &r->queue_compute);
 			vkGetDeviceQueue(r->device, info_queue[1].queueFamilyIndex, 0, &r->queue_transfer);
 			vkGetPhysicalDeviceMemoryProperties(physical_device->physical_device, &r->memory_properties);
+			#define d_get_proc(_func)  r->_func = (PFN_##_func) vkGetDeviceProcAddr(r->device, #_func)
+			d_get_proc(vkCreateShadersEXT);
+			d_get_proc(vkDestroyShaderEXT);
+			d_get_proc(vkGetShaderBinaryDataEXT);
+			#undef d_get_proc
 			return r;
 		}
 		refer_free(r);
