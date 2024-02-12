@@ -44,14 +44,20 @@ const iphyee_worker_physical_device_s* iphyee_worker_physical_device_find_queue(
 
 // device
 
+typedef struct iphyee_worker_device_queue_t iphyee_worker_device_queue_t;
+struct iphyee_worker_device_queue_t {
+	uint32_t family_index;
+	uint32_t queue_count;
+};
 struct iphyee_worker_device_s {
 	VkDevice device;
-	VkQueue queue_compute;
-	VkQueue queue_transfer;
+	iphyee_worker_device_queue_t queue_compute;
+	iphyee_worker_device_queue_t queue_transfer;
 	const iphyee_worker_instance_s *instance;
 	const iphyee_worker_physical_device_s *physical_device;
 	PFN_vkCreateShadersEXT vkCreateShadersEXT;
 	PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
+	PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 	PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
 	VkPhysicalDeviceMemoryProperties memory_properties;
 };
@@ -60,6 +66,8 @@ struct iphyee_worker_device_s {
 
 struct iphyee_worker_queue_s {
 	VkQueue queue;
+	uint32_t family_index;
+	uint32_t queue_index;
 	iphyee_worker_device_s *device;
 };
 
@@ -77,6 +85,7 @@ struct iphyee_worker_semaphore_s {
 	VkSemaphore semaphore;
 	VkDevice device;
 	iphyee_worker_device_s *depend;
+	VkPipelineStageFlags wait_stage_mask;
 };
 
 // memory_heap
@@ -118,17 +127,12 @@ iphyee_worker_setlayout_s* iphyee_worker_setlayout_alloc(iphyee_worker_device_s 
 // desc_pool
 
 typedef struct iphyee_worker_desc_set_buffer_t iphyee_worker_desc_set_buffer_t;
-typedef struct iphyee_worker_desc_set_wbuffs_t iphyee_worker_desc_set_wbuffs_t;
 struct iphyee_worker_desc_set_buffer_t {
 	uint32_t binding;
 	VkDescriptorType desc_type;
 	iphyee_worker_buffer_s *buffer;
 	uint64_t offset;
 	uint64_t length;
-};
-struct iphyee_worker_desc_set_wbuffs_t {
-	const iphyee_worker_desc_set_buffer_t *buffer_array;
-	uintptr_t buffer_count;
 };
 struct iphyee_worker_desc_pool_s {
 	VkDescriptorPool desc_pool;
@@ -141,8 +145,8 @@ struct iphyee_worker_desc_pool_s {
 
 iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_alloc(iphyee_worker_device_s *restrict device, uintptr_t sets_max_count, uintptr_t size_count, const VkDescriptorPoolSize *restrict size_array);
 iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_reset(iphyee_worker_desc_pool_s *restrict r);
-iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_get(iphyee_worker_desc_pool_s *restrict r, uintptr_t number, iphyee_worker_setlayout_s *const *restrict setlayout_array, VkDescriptorSet *restrict desc_sets_array, const iphyee_worker_desc_set_wbuffs_t *restrict wbuffs_array);
-void iphyee_worker_desc_set_write_buffer(iphyee_worker_desc_pool_s *restrict r, VkDescriptorSet desc_set, const iphyee_worker_desc_set_buffer_t *restrict buffer_array, uintptr_t buffer_count);
+iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_fetch(iphyee_worker_desc_pool_s *restrict r, uintptr_t number, iphyee_worker_setlayout_s *const *restrict setlayout_array, VkDescriptorSet *restrict desc_sets_array);
+void iphyee_worker_desc_set_write_buffer(iphyee_worker_desc_pool_s *restrict r, VkDescriptorSet desc_set, uintptr_t buffer_count, const iphyee_worker_desc_set_buffer_t *restrict buffer_array);
 
 // shader
 
@@ -150,6 +154,36 @@ struct iphyee_worker_shader_s {
 	VkShaderEXT shader;
 	VkDevice device;
 	iphyee_worker_device_s *depend;
+	iphyee_worker_setlayout_s *setlayout;
+	uint32_t push_constants_offset;
+	uint32_t push_constants_length;
+};
+
+// pipelayout
+
+struct iphyee_worker_pipelayout_s {
+	VkPipelineLayout pipelayout;
+	VkDevice device;
+	const iphyee_worker_shader_s *shader;
+};
+
+// command_pool
+
+struct iphyee_worker_command_pool_s {
+	VkCommandPool command_pool;
+	VkQueue queue;
+	VkDevice device;
+	iphyee_worker_queue_s *depend;
+};
+
+// command_buffer
+
+struct iphyee_worker_command_buffer_s {
+	VkCommandBuffer command_buffer;
+	VkCommandPool command_pool;
+	VkQueue queue;
+	VkDevice device;
+	iphyee_worker_command_pool_s *depend;
 };
 
 #endif

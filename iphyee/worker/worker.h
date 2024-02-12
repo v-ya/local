@@ -16,6 +16,9 @@ typedef struct iphyee_worker_buffer_s iphyee_worker_buffer_s;
 typedef struct iphyee_worker_setlayout_s iphyee_worker_setlayout_s;
 typedef struct iphyee_worker_desc_pool_s iphyee_worker_desc_pool_s;
 typedef struct iphyee_worker_shader_s iphyee_worker_shader_s;
+typedef struct iphyee_worker_pipelayout_s iphyee_worker_pipelayout_s;
+typedef struct iphyee_worker_command_pool_s iphyee_worker_command_pool_s;
+typedef struct iphyee_worker_command_buffer_s iphyee_worker_command_buffer_s;
 
 // instance
 
@@ -32,8 +35,8 @@ iphyee_worker_device_s* iphyee_worker_device_wait_idle(iphyee_worker_device_s *r
 
 // queue
 
-iphyee_worker_queue_s* iphyee_worker_queue_create_compute(iphyee_worker_device_s *restrict device);
-iphyee_worker_queue_s* iphyee_worker_queue_create_transfer(iphyee_worker_device_s *restrict device);
+iphyee_worker_queue_s* iphyee_worker_queue_create_compute(iphyee_worker_device_s *restrict device, uint32_t queue_index);
+iphyee_worker_queue_s* iphyee_worker_queue_create_transfer(iphyee_worker_device_s *restrict device, uint32_t queue_index);
 iphyee_worker_queue_s* iphyee_worker_queue_wait_idle(iphyee_worker_queue_s *restrict r);
 
 // fence
@@ -41,13 +44,11 @@ iphyee_worker_queue_s* iphyee_worker_queue_wait_idle(iphyee_worker_queue_s *rest
 iphyee_worker_fence_s* iphyee_worker_fence_alloc(iphyee_worker_device_s *restrict device, uint32_t signaled);
 iphyee_worker_fence_s* iphyee_worker_fence_reset(iphyee_worker_fence_s *restrict fence);
 iphyee_worker_fence_s* iphyee_worker_fence_is_signaled(iphyee_worker_fence_s *restrict fence);
-iphyee_worker_fence_s* iphyee_worker_fence_wait(iphyee_worker_fence_s *restrict fence, uint64_t timeout);
+iphyee_worker_fence_s* iphyee_worker_fence_wait(iphyee_worker_fence_s *restrict fence, uint64_t timeout_nesc);
 
 // semaphore
 
-iphyee_worker_semaphore_s* iphyee_worker_semaphore_alloc(iphyee_worker_device_s *restrict device);
-iphyee_worker_semaphore_s* iphyee_worker_semaphore_signal(iphyee_worker_semaphore_s *restrict semaphore, uint64_t value);
-iphyee_worker_semaphore_s* iphyee_worker_semaphore_wait(iphyee_worker_semaphore_s *restrict semaphore, uint64_t timeout, uint64_t value);
+iphyee_worker_semaphore_s* iphyee_worker_semaphore_alloc(iphyee_worker_device_s *restrict device, uint32_t stage_compute, uint32_t stage_transfer);
 
 // buffer
 
@@ -59,6 +60,24 @@ iphyee_worker_buffer_s* iphyee_worker_buffer_invalidate(iphyee_worker_buffer_s *
 // shader
 
 iphyee_worker_shader_s* iphyee_worker_shader_alloc(iphyee_worker_device_s *restrict device, const void *restrict code, uintptr_t size, const char *restrict entry_name, iphyee_worker_setlayout_s *restrict setlayout, uint32_t push_constants_size);
-iphyee_worker_shader_s* iphyee_worker_shader_binary(iphyee_worker_shader_s *restrict r, uintptr_t *restrict binary_size, void *restrict binary_data);
+const iphyee_worker_shader_s* iphyee_worker_shader_binary(const iphyee_worker_shader_s *restrict r, uintptr_t *restrict binary_size, void *restrict binary_data);
+void iphyee_worker_shader_bind(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader);
+
+// pipelayout
+
+iphyee_worker_pipelayout_s* iphyee_worker_pipelayout_alloc(const iphyee_worker_shader_s *restrict shader);
+
+// command_pool
+
+iphyee_worker_command_pool_s* iphyee_worker_command_pool_alloc(iphyee_worker_queue_s *restrict queue, uint32_t short_live);
+
+// command_buffer
+
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_create_primary(iphyee_worker_command_pool_s *restrict command_pool);
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_create_secondary(iphyee_worker_command_pool_s *restrict command_pool);
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_reset(iphyee_worker_command_buffer_s *restrict r);
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_begin(iphyee_worker_command_buffer_s *restrict r, uint32_t keep);
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_end(iphyee_worker_command_buffer_s *restrict r);
+iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_submit(iphyee_worker_command_buffer_s *restrict r, iphyee_worker_fence_s *restrict fence, uintptr_t wait_count, iphyee_worker_semaphore_s **restrict wait_array, uintptr_t signal_count, iphyee_worker_semaphore_s **restrict signal_array);
 
 #endif

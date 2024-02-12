@@ -3,6 +3,7 @@
 static void iphyee_worker_shader_free_func(iphyee_worker_shader_s *restrict r)
 {
 	if (r->shader) r->depend->vkDestroyShaderEXT(r->device, r->shader, NULL);
+	if (r->setlayout) refer_free(r->setlayout);
 	if (r->depend) refer_free(r->depend);
 }
 
@@ -11,7 +12,7 @@ iphyee_worker_shader_s* iphyee_worker_shader_alloc(iphyee_worker_device_s *restr
 	iphyee_worker_shader_s *restrict r;
 	VkShaderCreateInfoEXT info;
 	VkPushConstantRange range;
-	if (device->vkCreateShadersEXT && device->vkDestroyShaderEXT)
+	if (device->vkCreateShadersEXT && device->vkDestroyShaderEXT && setlayout)
 	{
 		info.sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
 		info.pNext = NULL;
@@ -27,11 +28,8 @@ iphyee_worker_shader_s* iphyee_worker_shader_alloc(iphyee_worker_device_s *restr
 		info.pushConstantRangeCount = 0;
 		info.pPushConstantRanges = NULL;
 		info.pSpecializationInfo = NULL;
-		if (setlayout)
-		{
-			info.setLayoutCount = 1;
-			info.pSetLayouts = &setlayout->setlayout;
-		}
+		info.setLayoutCount = 1;
+		info.pSetLayouts = &setlayout->setlayout;
 		if (push_constants_size)
 		{
 			info.pushConstantRangeCount = 1;
@@ -44,7 +42,10 @@ iphyee_worker_shader_s* iphyee_worker_shader_alloc(iphyee_worker_device_s *restr
 		{
 			refer_set_free(r, (refer_free_f) iphyee_worker_shader_free_func);
 			r->depend = (iphyee_worker_device_s *) refer_save(device);
+			r->setlayout = (iphyee_worker_setlayout_s *) refer_save(setlayout);
 			r->device = device->device;
+			r->push_constants_offset = 0;
+			r->push_constants_length = push_constants_size;
 			if (!device->vkCreateShadersEXT(r->device, 1, &info, NULL, &r->shader))
 				return r;
 			refer_free(r);
@@ -53,10 +54,18 @@ iphyee_worker_shader_s* iphyee_worker_shader_alloc(iphyee_worker_device_s *restr
 	return NULL;
 }
 
-iphyee_worker_shader_s* iphyee_worker_shader_binary(iphyee_worker_shader_s *restrict r, uintptr_t *restrict binary_size, void *restrict binary_data)
+const iphyee_worker_shader_s* iphyee_worker_shader_binary(const iphyee_worker_shader_s *restrict r, uintptr_t *restrict binary_size, void *restrict binary_data)
 {
 	if (r->depend->vkGetShaderBinaryDataEXT && !r->depend->vkGetShaderBinaryDataEXT(
 		r->device, r->shader, binary_size, binary_data))
 		return r;
 	return NULL;
+}
+
+void iphyee_worker_shader_bind(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader)
+{
+	VkShaderStageFlagBits stage;
+	stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	if (shader->depend->vkCmdBindShadersEXT)
+		shader->depend->vkCmdBindShadersEXT(command_buffer->command_buffer, 1, &stage, &shader->shader);
 }

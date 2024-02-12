@@ -31,6 +31,7 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	iphyee_worker_device_s *restrict r;
 	VkDeviceCreateInfo info;
 	VkPhysicalDeviceFeatures features;
+	VkPhysicalDeviceShaderObjectFeaturesEXT shader_object_features;
 	VkDeviceQueueCreateInfo info_queue[2];
 	float queue_priorities[1];
 	memset(&features, 0, sizeof(features));
@@ -47,7 +48,7 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	info_queue[1].queueCount = 1;
 	info_queue[1].pQueuePriorities = queue_priorities;
 	info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	info.pNext = NULL;
+	info.pNext = &shader_object_features;
 	info.flags = 0;
 	info.queueCreateInfoCount = sizeof(info_queue) / sizeof(VkDeviceQueueCreateInfo);
 	info.pQueueCreateInfos = info_queue;
@@ -56,6 +57,9 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	info.enabledExtensionCount = sizeof(debug_extension_array) / sizeof(const char *);
 	info.ppEnabledExtensionNames = debug_extension_array;
 	info.pEnabledFeatures = &features;
+	shader_object_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
+	shader_object_features.pNext = NULL;
+	shader_object_features.shaderObject = VK_TRUE;
 	if (instance->debug_messenger)
 	{
 		info.enabledLayerCount = sizeof(debug_layer_array) / sizeof(const char *);
@@ -70,12 +74,15 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 		r->physical_device = (const iphyee_worker_physical_device_s *) refer_save(physical_device);
 		if (!vkCreateDevice(physical_device->physical_device, &info, NULL, &r->device))
 		{
-			vkGetDeviceQueue(r->device, info_queue[0].queueFamilyIndex, 0, &r->queue_compute);
-			vkGetDeviceQueue(r->device, info_queue[1].queueFamilyIndex, 0, &r->queue_transfer);
+			r->queue_compute.family_index = info_queue[0].queueFamilyIndex;
+			r->queue_compute.queue_count = info_queue[0].queueCount;
+			r->queue_transfer.family_index = info_queue[1].queueFamilyIndex;
+			r->queue_transfer.queue_count = info_queue[1].queueCount;
 			vkGetPhysicalDeviceMemoryProperties(physical_device->physical_device, &r->memory_properties);
 			#define d_get_proc(_func)  r->_func = (PFN_##_func) vkGetDeviceProcAddr(r->device, #_func)
 			d_get_proc(vkCreateShadersEXT);
 			d_get_proc(vkDestroyShaderEXT);
+			d_get_proc(vkCmdBindShadersEXT);
 			d_get_proc(vkGetShaderBinaryDataEXT);
 			#undef d_get_proc
 			return r;

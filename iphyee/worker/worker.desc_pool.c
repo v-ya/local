@@ -20,7 +20,7 @@ iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_alloc(iphyee_worker_device_s 
 	info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	info.pNext = NULL;
 	info.flags = 0;
-	info.maxSets = (uint32_t) sets_max_count;
+	info.maxSets = sets_max_count;
 	info.poolSizeCount = size_count;
 	info.pPoolSizes = size_array;
 	if ((r = (iphyee_worker_desc_pool_s *) refer_alloz(sizeof(iphyee_worker_desc_pool_s) +
@@ -54,14 +54,12 @@ iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_reset(iphyee_worker_desc_pool
 	return NULL;
 }
 
-iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_get(iphyee_worker_desc_pool_s *restrict r, uintptr_t number, iphyee_worker_setlayout_s *const *restrict setlayout_array, VkDescriptorSet *restrict desc_sets_array, const iphyee_worker_desc_set_wbuffs_t *restrict wbuffs_array)
+iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_fetch(iphyee_worker_desc_pool_s *restrict r, uintptr_t number, iphyee_worker_setlayout_s *const *restrict setlayout_array, VkDescriptorSet *restrict desc_sets_array)
 {
 	VkDescriptorSetAllocateInfo info;
 	VkDescriptorSetLayout layouts[number];
 	iphyee_worker_setlayout_s *restrict sl;
-	const iphyee_worker_desc_set_buffer_t *restrict psb;
-	uintptr_t wcount;
-	uintptr_t i, j, k, m;
+	uintptr_t i;
 	if (number && r->sets_cur_count + number <= r->sets_max_count)
 	{
 		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -69,58 +67,19 @@ iphyee_worker_desc_pool_s* iphyee_worker_desc_pool_get(iphyee_worker_desc_pool_s
 		info.descriptorPool = r->desc_pool;
 		info.descriptorSetCount = number;
 		info.pSetLayouts = layouts;
-		wcount = 0;
 		for (i = 0; i < number; ++i)
 		{
 			if (refer_save(r->setlayout_array[r->sets_cur_count++] = sl = setlayout_array[i]))
 				layouts[i] = sl->setlayout;
 			else layouts[i] = NULL;
 		}
-		if (wbuffs_array)
-		{
-			for (i = 0; i < number; ++i)
-				wcount += wbuffs_array[i].buffer_count;
-		}
 		if (!vkAllocateDescriptorSets(r->device, &info, desc_sets_array))
-		{
-			if (wcount)
-			{
-				VkWriteDescriptorSet wset[wcount];
-				VkDescriptorBufferInfo wbi[wcount];
-				for (i = k = 0; i < number; ++i)
-				{
-					psb = wbuffs_array[i].buffer_array;
-					m = wbuffs_array[i].buffer_count;
-					for (j = 0; i < m; ++i)
-					{
-						if (psb[j].buffer)
-						{
-							wset[k].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-							wset[k].pNext = NULL;
-							wset[k].dstSet = desc_sets_array[i];
-							wset[k].dstBinding = psb[j].binding;
-							wset[k].dstArrayElement = 0;
-							wset[k].descriptorCount = 1;
-							wset[k].descriptorType = psb[j].desc_type;
-							wset[k].pImageInfo = NULL;
-							wset[k].pBufferInfo = wbi + k;
-							wset[k].pTexelBufferView = NULL;
-							wbi[k].buffer = psb[j].buffer->buffer;
-							wbi[k].offset = psb[j].offset;
-							wbi[k].range = psb[j].length;
-							k += 1;
-						}
-					}
-				}
-				if (k) vkUpdateDescriptorSets(r->device, k, wset, 0, NULL);
-			}
 			return r;
-		}
 	}
 	return NULL;
 }
 
-void iphyee_worker_desc_set_write_buffer(iphyee_worker_desc_pool_s *restrict r, VkDescriptorSet desc_set, const iphyee_worker_desc_set_buffer_t *restrict buffer_array, uintptr_t buffer_count)
+void iphyee_worker_desc_set_write_buffer(iphyee_worker_desc_pool_s *restrict r, VkDescriptorSet desc_set, uintptr_t buffer_count, const iphyee_worker_desc_set_buffer_t *restrict buffer_array)
 {
 	VkWriteDescriptorSet wset[buffer_count];
 	VkDescriptorBufferInfo wbi[buffer_count];

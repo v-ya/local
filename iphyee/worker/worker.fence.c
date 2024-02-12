@@ -39,9 +39,9 @@ iphyee_worker_fence_s* iphyee_worker_fence_is_signaled(iphyee_worker_fence_s *re
 	return NULL;
 }
 
-iphyee_worker_fence_s* iphyee_worker_fence_wait(iphyee_worker_fence_s *restrict fence, uint64_t timeout)
+iphyee_worker_fence_s* iphyee_worker_fence_wait(iphyee_worker_fence_s *restrict fence, uint64_t timeout_nesc)
 {
-	if (!vkWaitForFences(fence->device, 1, &fence->fence, VK_FALSE, timeout))
+	if (!vkWaitForFences(fence->device, 1, &fence->fence, VK_FALSE, timeout_nesc))
 		return fence;
 	return NULL;
 }
