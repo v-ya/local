@@ -53,7 +53,8 @@ iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_begin(iphyee_worker
 	info.pNext = NULL;
 	info.flags = keep?0:VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	info.pInheritanceInfo = NULL;
-	if (!vkBeginCommandBuffer(r->command_buffer, &info))
+	if ((keep || !vkResetCommandBuffer(r->command_buffer, 0)) &&
+		!vkBeginCommandBuffer(r->command_buffer, &info))
 		return r;
 	return NULL;
 }

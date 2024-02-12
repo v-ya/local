@@ -14,8 +14,8 @@ iphyee_worker_pipelayout_s* iphyee_worker_pipelayout_alloc(const iphyee_worker_s
 	info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	info.pNext = NULL;
 	info.flags = 0;
-	info.setLayoutCount = 1;
-	info.pSetLayouts = &shader->setlayout->setlayout;
+	info.setLayoutCount = shader->setlayout?1:0;
+	info.pSetLayouts = shader->setlayout?&shader->setlayout->setlayout:NULL;
 	info.pushConstantRangeCount = 0;
 	info.pPushConstantRanges = NULL;
 	if (shader->push_constants_length)

@@ -23,6 +23,7 @@ iphyee_worker_memory_heap_s* iphyee_worker_memory_heap_alloc(iphyee_worker_devic
 				r->memory_type_index = i;
 				r->memory_heap_index = p[i].heapIndex;
 				r->depend = (iphyee_worker_device_s *) refer_save(device);
+				r->heap = device->memory_properties.memoryHeaps + r->memory_heap_index;
 				return r;
 			}
 			break;

@@ -20,6 +20,26 @@ typedef struct iphyee_worker_pipelayout_s iphyee_worker_pipelayout_s;
 typedef struct iphyee_worker_command_pool_s iphyee_worker_command_pool_s;
 typedef struct iphyee_worker_command_buffer_s iphyee_worker_command_buffer_s;
 
+typedef enum iphyee_worker_buffer_usage_t iphyee_worker_buffer_usage_t;
+
+enum iphyee_worker_buffer_usage_t {
+	iphyee_worker_buffer_usage__src = 0x01,
+	iphyee_worker_buffer_usage__dst = 0x02,
+	iphyee_worker_buffer_usage__fix = 0x03
+};
+
+// worker
+
+struct iphyee_worker_s {
+	iphyee_worker_device_s *device;
+	iphyee_worker_queue_s *queue_compute;
+	iphyee_worker_queue_s *queue_transfer;
+	iphyee_worker_memory_heap_s *mheap_host;
+	iphyee_worker_memory_heap_s *mheap_device;
+};
+
+iphyee_worker_s* iphyee_worker_alloc(iphyee_worker_instance_s *restrict instance, uintptr_t index);
+
 // instance
 
 iphyee_worker_instance_s* iphyee_worker_instance_alloc(const char *restrict application_name, uint32_t app_version, const char *restrict engine_name, uint32_t engine_version, struct mlog_s *restrict mlog, iphyee_worker_debug_t level);
@@ -52,6 +72,8 @@ iphyee_worker_semaphore_s* iphyee_worker_semaphore_alloc(iphyee_worker_device_s 
 
 // buffer
 
+iphyee_worker_buffer_s* iphyee_worker_buffer_create_storage(iphyee_worker_memory_heap_s *restrict memory_heap, uint64_t size, iphyee_worker_buffer_usage_t usage);
+uint64_t iphyee_worker_buffer_device_address(iphyee_worker_buffer_s *restrict buffer);
 void* iphyee_worker_buffer_map(iphyee_worker_buffer_s *restrict buffer, uint64_t offset, uint64_t size);
 void iphyee_worker_buffer_unmap(iphyee_worker_buffer_s *restrict buffer);
 iphyee_worker_buffer_s* iphyee_worker_buffer_flush(iphyee_worker_buffer_s *restrict buffer, uint64_t offset, uint64_t size);
@@ -79,5 +101,13 @@ iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_reset(iphyee_worker
 iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_begin(iphyee_worker_command_buffer_s *restrict r, uint32_t keep);
 iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_end(iphyee_worker_command_buffer_s *restrict r);
 iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_submit(iphyee_worker_command_buffer_s *restrict r, iphyee_worker_fence_s *restrict fence, uintptr_t wait_count, iphyee_worker_semaphore_s **restrict wait_array, uintptr_t signal_count, iphyee_worker_semaphore_s **restrict signal_array);
+
+// cmd
+
+void iphyee_worker_cmd_copy_buffer(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_buffer_s *restrict src, iphyee_worker_buffer_s *restrict dst, uint64_t src_offset, uint64_t dst_offset, uint64_t copy_size);
+void iphyee_worker_cmd_bind_shader(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader);
+void iphyee_worker_cmd_push_constants(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_pipelayout_s *restrict pipelayout, uint32_t offset, uint32_t size, const void *restrict value);
+void iphyee_worker_cmd_dispatch_base(iphyee_worker_command_buffer_s *restrict command_buffer, uint32_t group_base_x, uint32_t group_base_y, uint32_t group_base_z, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);
+void iphyee_worker_cmd_dispatch(iphyee_worker_command_buffer_s *restrict command_buffer, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);
 
 #endif

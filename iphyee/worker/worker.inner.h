@@ -14,12 +14,6 @@ struct iphyee_worker_enumerate_s {
 };
 iphyee_worker_enumerate_s* iphyee_worker_enumerate_alloc(uintptr_t count, uintptr_t bsize);
 
-// worker
-
-struct iphyee_worker_s {
-	;
-};
-
 // instance
 
 struct iphyee_worker_instance_s {
@@ -95,6 +89,7 @@ struct iphyee_worker_memory_heap_s {
 	uint32_t memory_type_index;
 	uint32_t memory_heap_index;
 	iphyee_worker_device_s *depend;
+	const VkMemoryHeap *heap;
 };
 iphyee_worker_memory_heap_s* iphyee_worker_memory_heap_alloc(iphyee_worker_device_s *restrict device, VkMemoryPropertyFlags flags);
 

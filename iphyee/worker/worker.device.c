@@ -31,6 +31,7 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	iphyee_worker_device_s *restrict r;
 	VkDeviceCreateInfo info;
 	VkPhysicalDeviceFeatures features;
+	VkPhysicalDeviceBufferDeviceAddressFeatures buffer_device_address;
 	VkPhysicalDeviceShaderObjectFeaturesEXT shader_object_features;
 	VkDeviceQueueCreateInfo info_queue[2];
 	float queue_priorities[1];
@@ -48,7 +49,7 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	info_queue[1].queueCount = 1;
 	info_queue[1].pQueuePriorities = queue_priorities;
 	info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	info.pNext = &shader_object_features;
+	info.pNext = &buffer_device_address;
 	info.flags = 0;
 	info.queueCreateInfoCount = sizeof(info_queue) / sizeof(VkDeviceQueueCreateInfo);
 	info.pQueueCreateInfos = info_queue;
@@ -57,6 +58,11 @@ iphyee_worker_device_s* iphyee_worker_device_alloc(const iphyee_worker_instance_
 	info.enabledExtensionCount = sizeof(debug_extension_array) / sizeof(const char *);
 	info.ppEnabledExtensionNames = debug_extension_array;
 	info.pEnabledFeatures = &features;
+	buffer_device_address.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+	buffer_device_address.pNext = &shader_object_features;
+	buffer_device_address.bufferDeviceAddress = VK_TRUE;
+	buffer_device_address.bufferDeviceAddressCaptureReplay = VK_FALSE;
+	buffer_device_address.bufferDeviceAddressMultiDevice = VK_FALSE;
 	shader_object_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
 	shader_object_features.pNext = NULL;
 	shader_object_features.shaderObject = VK_TRUE;
