@@ -4,6 +4,11 @@
 #include "worker.h"
 #include <vulkan/vulkan.h>
 
+typedef struct iphyee_worker_enumerate_s iphyee_worker_enumerate_s;
+typedef struct iphyee_worker_setlayout_s iphyee_worker_setlayout_s;
+typedef struct iphyee_worker_desc_pool_s iphyee_worker_desc_pool_s;
+typedef struct iphyee_worker_pipelayout_s iphyee_worker_pipelayout_s;
+
 // enumerate
 
 struct iphyee_worker_enumerate_s {
@@ -41,7 +46,9 @@ const iphyee_worker_physical_device_s* iphyee_worker_physical_device_find_queue(
 typedef struct iphyee_worker_device_queue_t iphyee_worker_device_queue_t;
 struct iphyee_worker_device_queue_t {
 	uint32_t family_index;
-	uint32_t queue_count;
+	uint32_t queue_offset;
+	uint32_t queue_number;
+	uint32_t queue_uconut;
 };
 struct iphyee_worker_device_s {
 	VkDevice device;
@@ -147,9 +154,9 @@ void iphyee_worker_desc_set_write_buffer(iphyee_worker_desc_pool_s *restrict r, 
 
 struct iphyee_worker_shader_s {
 	VkShaderEXT shader;
+	VkPipelineLayout layout;
 	VkDevice device;
 	iphyee_worker_device_s *depend;
-	iphyee_worker_setlayout_s *setlayout;
 	uint32_t push_constants_offset;
 	uint32_t push_constants_length;
 };
@@ -180,5 +187,9 @@ struct iphyee_worker_command_buffer_s {
 	VkDevice device;
 	iphyee_worker_command_pool_s *depend;
 };
+
+// record
+
+iphyee_worker_record_s* iphyee_worker_record_inner_set_submit(iphyee_worker_record_s *restrict r, VkSubmitInfo *restrict submit_info);
 
 #endif

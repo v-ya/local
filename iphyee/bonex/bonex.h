@@ -1,7 +1,10 @@
 #ifndef _iphyee_bonex_pri_h_
 #define _iphyee_bonex_pri_h_
 
-#include "../iphyee.pri.h"
+#include "../iphyee.h"
+#include "../iphyee.mat4x4.h"
+#include "../iphyee.param.h"
+#include <vattr.h>
 
 typedef struct iphyee_bonex_joint_t iphyee_bonex_joint_t;
 typedef struct iphyee_bonex_joint_s iphyee_bonex_joint_s;

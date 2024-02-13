@@ -2,12 +2,13 @@
 #define _iphyee_pri_h_
 
 #include "iphyee.h"
-#include "iphyee.mat4x4.h"
-#include "iphyee.param.h"
 #include <vattr.h>
 
+struct iphyee_worker_instance_s;
+
 struct iphyee_s {
-	vattr_s *bonex;
+	struct iphyee_worker_instance_s *worker_instance;
+	vattr_s *bonex_preset;
 };
 
 #endif

@@ -10,7 +10,7 @@ static void iphyee_worker_instance_free_func(iphyee_worker_instance_s *restrict 
 	if (r->engine_name) refer_free(r->engine_name);
 }
 
-iphyee_worker_instance_s* iphyee_worker_instance_alloc(const char *restrict application_name, uint32_t app_version, const char *restrict engine_name, uint32_t engine_version, struct mlog_s *restrict mlog, iphyee_worker_debug_t level)
+iphyee_worker_instance_s* iphyee_worker_instance_alloc(const char *restrict application_name, uint32_t application_version, const char *restrict engine_name, uint32_t engine_version, struct mlog_s *restrict mlog, iphyee_worker_debug_t level)
 {
 	static const char *const debug_layer_array[] = {"VK_LAYER_KHRONOS_validation"};
 	static const char *const debug_extension_array[] = {"VK_EXT_debug_utils"};
@@ -27,7 +27,7 @@ iphyee_worker_instance_s* iphyee_worker_instance_alloc(const char *restrict appl
 			app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 			app_info.pNext = NULL;
 			app_info.pApplicationName = r->application_name;
-			app_info.applicationVersion = app_version;
+			app_info.applicationVersion = application_version;
 			app_info.pEngineName = r->engine_name;
 			app_info.engineVersion = engine_version;
 			app_info.apiVersion = VK_MAKE_VERSION(
@@ -124,11 +124,11 @@ iphyee_worker_physical_device_s* iphyee_worker_instance_index_device(const iphye
 	return NULL;
 }
 
-iphyee_worker_device_s* iphyee_worker_instance_create_device(iphyee_worker_instance_s *restrict r, uintptr_t index)
+iphyee_worker_device_s* iphyee_worker_instance_create_device(iphyee_worker_instance_s *restrict r, uintptr_t index, uint32_t compute_queue_count, uint32_t transfer_queue_count)
 {
 	const iphyee_worker_physical_device_s *restrict physical_device;
 	if (r->physical_device && index < r->physical_device->count &&
 		(physical_device = (const iphyee_worker_physical_device_s *) r->physical_device->array[index]))
-		return iphyee_worker_device_alloc(r, physical_device);
+		return iphyee_worker_device_alloc(r, physical_device, compute_queue_count, transfer_queue_count);
 	return NULL;
 }

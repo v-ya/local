@@ -17,9 +17,9 @@ void iphyee_worker_cmd_bind_shader(iphyee_worker_command_buffer_s *restrict comm
 		shader->depend->vkCmdBindShadersEXT(command_buffer->command_buffer, 1, &stage, &shader->shader);
 }
 
-void iphyee_worker_cmd_push_constants(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_pipelayout_s *restrict pipelayout, uint32_t offset, uint32_t size, const void *restrict value)
+void iphyee_worker_cmd_push_constants(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader, uint32_t offset, uint32_t size, const void *restrict value)
 {
-	vkCmdPushConstants(command_buffer->command_buffer, pipelayout->pipelayout,
+	vkCmdPushConstants(command_buffer->command_buffer, shader->layout,
 		VK_SHADER_STAGE_COMPUTE_BIT, offset, size, value);
 }
 
