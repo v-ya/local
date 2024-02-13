@@ -28,6 +28,8 @@ void iphyee_mat4x4_mul(iphyee_mat4x4_t *restrict dst, const iphyee_mat4x4_t *res
 void iphyee_mat4x4_vec4(iphyee_vec4_t *restrict dst, const iphyee_mat4x4_t *restrict src1, const iphyee_vec4_t *restrict src2);
 
 void iphyee_mat4x4_set_e(iphyee_mat4x4_t *restrict dst);
+void iphyee_mat4x4_fix_kk(iphyee_mat4x4_t *restrict dst, float kx, float ky, float kz);
+void iphyee_mat4x4_set_kk(iphyee_mat4x4_t *restrict dst, float kx, float ky, float kz);
 void iphyee_mat4x4_fix_tr(iphyee_mat4x4_t *restrict dst, float tx, float ty, float tz);
 void iphyee_mat4x4_set_tr(iphyee_mat4x4_t *restrict dst, float tx, float ty, float tz);
 void iphyee_mat4x4_fix_tx(iphyee_mat4x4_t *restrict dst, float tx);

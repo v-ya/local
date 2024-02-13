@@ -9,6 +9,11 @@ void iphyee_worker_cmd_copy_buffer(iphyee_worker_command_buffer_s *restrict comm
 	vkCmdCopyBuffer(command_buffer->command_buffer, src->buffer, dst->buffer, 1, &copy);
 }
 
+void iphyee_worker_cmd_fill_buffer(iphyee_worker_command_buffer_s *restrict command_buffer, iphyee_worker_buffer_s *restrict dst, uint64_t dst_offset, uint64_t fill_size, uint32_t fill_value)
+{
+	vkCmdFillBuffer(command_buffer->command_buffer, dst->buffer, dst_offset, fill_size, fill_value);
+}
+
 void iphyee_worker_cmd_bind_shader(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader)
 {
 	VkShaderStageFlagBits stage;

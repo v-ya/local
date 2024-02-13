@@ -112,6 +112,7 @@ iphyee_worker_command_buffer_s* iphyee_worker_command_buffer_submit(iphyee_worke
 // cmd
 
 void iphyee_worker_cmd_copy_buffer(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_buffer_s *restrict src, iphyee_worker_buffer_s *restrict dst, uint64_t src_offset, uint64_t dst_offset, uint64_t copy_size);
+void iphyee_worker_cmd_fill_buffer(iphyee_worker_command_buffer_s *restrict command_buffer, iphyee_worker_buffer_s *restrict dst, uint64_t dst_offset, uint64_t fill_size, uint32_t fill_value);
 void iphyee_worker_cmd_bind_shader(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader);
 void iphyee_worker_cmd_push_constants(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader, uint32_t offset, uint32_t size, const void *restrict value);
 void iphyee_worker_cmd_dispatch_base(iphyee_worker_command_buffer_s *restrict command_buffer, uint32_t group_base_x, uint32_t group_base_y, uint32_t group_base_z, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);

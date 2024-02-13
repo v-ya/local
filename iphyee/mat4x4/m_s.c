@@ -18,6 +18,19 @@ void iphyee_mat4x4_set_e(iphyee_mat4x4_t *restrict dst)
 	);
 }
 
+void iphyee_mat4x4_fix_kk(iphyee_mat4x4_t *restrict dst, float kx, float ky, float kz)
+{
+	_set_(0, 0, kx);
+	_set_(1, 1, ky);
+	_set_(2, 2, kz);
+}
+
+void iphyee_mat4x4_set_kk(iphyee_mat4x4_t *restrict dst, float kx, float ky, float kz)
+{
+	iphyee_mat4x4_set_e(dst);
+	iphyee_mat4x4_fix_kk(dst, kx, ky, kz);
+}
+
 void iphyee_mat4x4_fix_tr(iphyee_mat4x4_t *restrict dst, float tx, float ty, float tz)
 {
 	_set_(0, 3, tx);
