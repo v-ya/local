@@ -37,3 +37,48 @@ void iphyee_worker_cmd_dispatch(iphyee_worker_command_buffer_s *restrict command
 {
 	vkCmdDispatch(command_buffer->command_buffer, group_count_x, group_count_y, group_count_z);
 }
+
+void iphyee_worker_cmd_bind_barrier_transfer2shader(iphyee_worker_command_buffer_s *restrict command_buffer)
+{
+	static const VkMemoryBarrier memory_barrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+	};
+	vkCmdPipelineBarrier(
+		command_buffer->command_buffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		0, 1, &memory_barrier, 0, NULL, 0, NULL);
+}
+
+void iphyee_worker_cmd_bind_barrier_shader2transfer(iphyee_worker_command_buffer_s *restrict command_buffer)
+{
+	static const VkMemoryBarrier memory_barrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+	};
+	vkCmdPipelineBarrier(
+		command_buffer->command_buffer,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		0, 1, &memory_barrier, 0, NULL, 0, NULL);
+}
+
+void iphyee_worker_cmd_bind_barrier_shader2shader(iphyee_worker_command_buffer_s *restrict command_buffer)
+{
+	static const VkMemoryBarrier memory_barrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+	};
+	vkCmdPipelineBarrier(
+		command_buffer->command_buffer,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		0, 1, &memory_barrier, 0, NULL, 0, NULL);
+}

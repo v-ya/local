@@ -117,5 +117,8 @@ void iphyee_worker_cmd_bind_shader(iphyee_worker_command_buffer_s *restrict comm
 void iphyee_worker_cmd_push_constants(iphyee_worker_command_buffer_s *restrict command_buffer, const iphyee_worker_shader_s *restrict shader, uint32_t offset, uint32_t size, const void *restrict value);
 void iphyee_worker_cmd_dispatch_base(iphyee_worker_command_buffer_s *restrict command_buffer, uint32_t group_base_x, uint32_t group_base_y, uint32_t group_base_z, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);
 void iphyee_worker_cmd_dispatch(iphyee_worker_command_buffer_s *restrict command_buffer, uint32_t group_count_x, uint32_t group_count_y, uint32_t group_count_z);
+void iphyee_worker_cmd_bind_barrier_transfer2shader(iphyee_worker_command_buffer_s *restrict command_buffer);
+void iphyee_worker_cmd_bind_barrier_shader2transfer(iphyee_worker_command_buffer_s *restrict command_buffer);
+void iphyee_worker_cmd_bind_barrier_shader2shader(iphyee_worker_command_buffer_s *restrict command_buffer);
 
 #endif
