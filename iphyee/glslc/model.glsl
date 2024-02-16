@@ -8,7 +8,6 @@ struct iphyee_model {
 	mat4 transform;
 	iphyee_model_data data;
 	iphyee_model_count count;
-	uint texture_id;
 };
 
 #endif

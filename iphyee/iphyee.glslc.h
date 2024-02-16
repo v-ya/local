@@ -15,6 +15,7 @@ typedef struct iphyee_glslc_array_texture_t iphyee_glslc_array_texture_t;
 typedef struct iphyee_glslc_array_normal_t iphyee_glslc_array_normal_t;
 typedef struct iphyee_glslc_array_fusion_t iphyee_glslc_array_fusion_t;
 typedef struct iphyee_glslc_image_t iphyee_glslc_image_t;
+typedef struct iphyee_glslc_texture_pool_t iphyee_glslc_texture_pool_t;
 typedef struct iphyee_glslc_model_data_t iphyee_glslc_model_data_t;
 typedef struct iphyee_glslc_model_count_t iphyee_glslc_model_count_t;
 typedef struct iphyee_glslc_model_t iphyee_glslc_model_t;
@@ -28,6 +29,7 @@ typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_vec3_xyz_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_vec2_uv_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_index_fusion_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_image_t;
+typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_texture_pool_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_model_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_tri3_render_t;
 
@@ -80,6 +82,10 @@ struct iphyee_glslc_image_t {
 	uint32_t height;
 };
 
+struct iphyee_glslc_texture_pool_t {
+	iphyee_glslc_pointer_image_t texture;
+};
+
 struct iphyee_glslc_model_data_t {
 	iphyee_glslc_array_vertex_t data_vertex;
 	iphyee_glslc_array_texture_t data_texture;
@@ -98,7 +104,6 @@ struct iphyee_glslc_model_t {
 	iphyee_mat4x4_t transform;
 	iphyee_glslc_model_data_t data;
 	iphyee_glslc_model_count_t count;
-	uint32_t texture_id;
 };
 
 struct iphyee_glslc_tri3_box_t {

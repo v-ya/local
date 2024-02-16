@@ -4,7 +4,7 @@ HEADER		= iphyee.h iphyee.mat4x4.h iphyee.param.h iphyee.worker.h iphyee.loader.
 CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
-LDFLAGS		= -shared -lm -lrefer -lexbuffer -lvattr -lmlog -lyaw -llayer -lfsys -lvulkan -soname ${TARGET}
+LDFLAGS		= -shared -lm -lrefer -lexbuffer -lvattr -lmlog -lqueue -lyaw -llayer -lfsys -lvulkan -soname ${TARGET}
 
 OBJECT		= $(patsubst %.c, %.o, $(wildcard *.c) $(wildcard */*.c))
 
