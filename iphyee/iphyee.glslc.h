@@ -132,7 +132,6 @@ struct iphyee_glslc_tri3_depth_t {
 
 struct iphyee_glslc_tri3_render_t {
 	iphyee_glslc_pointer_model_t model;
-	iphyee_glslc_tri3_box_t box;
 	iphyee_glslc_tri3_inside_t inside;
 	iphyee_glslc_tri3_depth_t depth;
 	uint32_t fusion_index;
