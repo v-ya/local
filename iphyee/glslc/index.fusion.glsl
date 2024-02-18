@@ -5,6 +5,7 @@ struct iphyee_index_fusion {
 	uint vertex;
 	uint texture;
 	uint normal;
+	uint effect;
 };
 
 #endif

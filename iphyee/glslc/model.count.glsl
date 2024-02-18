@@ -5,6 +5,8 @@ struct iphyee_model_count {
 	uint count_vertex;
 	uint count_texture;
 	uint count_normal;
+	uint count_weight;
+	uint count_effect;
 	uint count_fusion;
 };
 

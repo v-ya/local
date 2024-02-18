@@ -7,17 +7,17 @@ static uint64_t iphyee_render_rasterize_initial_block_array(iphyee_glslc_rasteri
 	{
 		for (x = 0; x < block_h_count; x += 1)
 		{
-			block->tri3_index = address;
-			block->tri3_box.xmin = x * block_size;
-			block->tri3_box.xmax = (x + 1) * block_size;
-			block->tri3_box.ymin = y * block_size;
-			block->tri3_box.ymax = (y + 1) * block_size;
-			block->max_count = block_max_tri3;
-			block->cur_count = 0;
-			if (block->tri3_box.xmax > w)
-				block->tri3_box.xmax = w;
-			if (block->tri3_box.ymax > h)
-				block->tri3_box.ymax = h;
+			block->tri3_index_array = address;
+			block->block_box.xmin = x * block_size;
+			block->block_box.xmax = (x + 1) * block_size;
+			block->block_box.ymin = y * block_size;
+			block->block_box.ymax = (y + 1) * block_size;
+			block->index_max_count = block_max_tri3;
+			block->index_cur_count = 0;
+			if (block->block_box.xmax > w)
+				block->block_box.xmax = w;
+			if (block->block_box.ymax > h)
+				block->block_box.ymax = h;
 			address += sizeof(uint32_t) * block_max_tri3;
 		}
 	}

@@ -7,10 +7,15 @@
 #include <queue/queue.h>
 #include <vattr.h>
 
+struct iphyee_loader_model_view_s;
+
 typedef struct iphyee_render_screen_s iphyee_render_screen_s;
 typedef struct iphyee_render_texture_s iphyee_render_texture_s;
 typedef struct iphyee_render_tpool_s iphyee_render_tpool_s;
 typedef struct iphyee_render_rasterize_s iphyee_render_rasterize_s;
+typedef struct iphyee_render_model_inst_part_s iphyee_render_model_inst_part_s;
+typedef struct iphyee_render_model_inst_s iphyee_render_model_inst_s;
+typedef struct iphyee_render_model_s iphyee_render_model_s;
 
 struct iphyee_render_screen_s {
 	iphyee_worker_buffer_s *screen_host;
@@ -69,6 +74,30 @@ struct iphyee_render_rasterize_s {
 	uint64_t rasterize_reset_size;
 };
 
+struct iphyee_render_model_inst_part_s {
+	refer_nstring_t texture_name;
+	uint32_t fusion_offset;
+	uint32_t fusion_number;
+	uint32_t model_part_index;
+	uint32_t texture_alpha;
+};
+
+struct iphyee_render_model_inst_s {
+	iphyee_worker_s *worker;
+	vattr_s *model_part_pool;
+	iphyee_worker_buffer_s *model_inst_host;
+	iphyee_worker_buffer_s *model_inst_device;
+	iphyee_glslc_model_inst_t *model_inst_data;
+	uint64_t model_inst_address;
+	uint64_t model_inst_size;
+	uintptr_t model_part_count;
+};
+
+struct iphyee_render_model_s {
+	iphyee_render_model_inst_s *inst;
+	iphyee_render_tpool_s *tpool;
+};
+
 iphyee_render_screen_s* iphyee_render_screen_alloc(iphyee_worker_s *restrict worker, uint32_t width, uint32_t height);
 
 iphyee_render_texture_s* iphyee_render_texture_alloc(iphyee_worker_s *restrict worker, const char *restrict name, const uint32_t *restrict pixels, uint32_t width, uint32_t height);
@@ -81,5 +110,7 @@ iphyee_render_tpool_s* iphyee_render_tpool_delete(iphyee_render_tpool_s *restric
 void iphyee_render_tpool_update(iphyee_render_tpool_s *restrict r, iphyee_worker_command_buffer_s *restrict cb_transfer);
 
 iphyee_render_rasterize_s* iphyee_render_rasterize_alloc(iphyee_render_screen_s *restrict screen, iphyee_render_tpool_s *restrict tpool, uint32_t block_size, uint32_t rasterize_max_tri3, uint32_t block_max_tri3);
+
+iphyee_render_model_inst_s* iphyee_render_model_inst_alloc(iphyee_worker_s *restrict worker, const struct iphyee_loader_model_view_s *restrict model_view);
 
 #endif
