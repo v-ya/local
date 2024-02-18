@@ -22,7 +22,7 @@ static iphyee_render_tpool_s* iphyee_render_tpool_new_index(iphyee_render_tpool_
 					r->texture_use_count += 1;
 					*p |= mask;
 					pi = r->texture_array + index;
-					pi->pixels.pixel = texture->texture_address;
+					pi->pixels = texture->texture_address;
 					pi->width = texture->texture_width;
 					pi->height = texture->texture_height;
 					texture->texture_index = index;
@@ -42,12 +42,12 @@ static void iphyee_render_tpool_del_index(iphyee_render_tpool_s *restrict r, iph
 	iphyee_glslc_image_t *restrict pi;
 	uint32_t index;
 	if ((index = texture->texture_index) < r->texture_max_count &&
-		(pi = r->texture_array + index)->pixels.pixel == texture->texture_address)
+		(pi = r->texture_array + index)->pixels == texture->texture_address)
 	{
 		texture->texture_vaild = 0;
 		texture->texture_index = 0;
 		texture = r->texture_miss;
-		pi->pixels.pixel = texture->texture_address;
+		pi->pixels = texture->texture_address;
 		pi->width = texture->texture_width;
 		pi->height = texture->texture_height;
 		r->tpool_mask[(index + 63) / 64] &= ~((uint64_t) 1 << (index & 63));
@@ -58,6 +58,7 @@ static void iphyee_render_tpool_del_index(iphyee_render_tpool_s *restrict r, iph
 
 static void iphyee_render_tpool_free_func(iphyee_render_tpool_s *restrict r)
 {
+	if (r->texture_array) iphyee_worker_buffer_unmap(r->tpool_host);
 	if (r->texture_delete) refer_free(r->texture_delete);
 	if (r->texture_insert) refer_free(r->texture_insert);
 	if (r->texture_pool) refer_free(r->texture_pool);
@@ -99,7 +100,7 @@ iphyee_render_tpool_s* iphyee_render_tpool_alloc(iphyee_worker_s *restrict worke
 			r->texture_use_count = 0;
 			for (p = r->texture_array; texture_max_count; texture_max_count -= 1, p += 1)
 			{
-				p->pixels.pixel = miss->texture_address;
+				p->pixels = miss->texture_address;
 				p->width = miss->texture_width;
 				p->height = miss->texture_height;
 			}
@@ -114,7 +115,8 @@ iphyee_render_tpool_s* iphyee_render_tpool_insert(iphyee_render_tpool_s *restric
 {
 	vattr_vlist_t *restrict vl;
 	queue_s *restrict q;
-	if (texture && !texture->texture_device && r->texture_use_count < r->texture_max_count &&
+	if (texture && texture->worker == r->worker && !texture->texture_device &&
+		r->texture_use_count < r->texture_max_count &&
 		!vattr_get_vslot(r->texture_pool, texture->texture_name) &&
 		iphyee_render_texture_device_enable(texture))
 	{

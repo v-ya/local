@@ -8,8 +8,6 @@ struct iphyee_tri3_inside {
 	float inverse_r1c1;
 	float base_at_x;
 	float base_at_y;
-	float scale_k1;
-	float scale_k2;
 };
 
 #endif

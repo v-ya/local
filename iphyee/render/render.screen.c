@@ -13,30 +13,24 @@ iphyee_render_screen_s* iphyee_render_screen_alloc(iphyee_worker_s *restrict wor
 	uint64_t pixels_count;
 	uint64_t screen_size;
 	uint64_t depth_size;
-	uint64_t mutex_size;
 	pixels_count = (uintptr_t) width * height;
 	screen_size = sizeof(uint32_t) * pixels_count;
 	depth_size = sizeof(float) * pixels_count;
-	mutex_size = sizeof(uint32_t) * pixels_count;
 	if (screen_size && (r = (iphyee_render_screen_s *) refer_alloz(sizeof(iphyee_render_screen_s))))
 	{
 		refer_set_free(r, (refer_free_f) iphyee_render_screen_free_func);
 		if ((r->screen_host = iphyee_worker_create_buffer_host(
 				worker, screen_size, iphyee_worker_buffer_usage__dst)) &&
 			(r->buffer_device = iphyee_worker_create_buffer_device(
-				worker, screen_size + depth_size + mutex_size,
-				iphyee_worker_buffer_usage__fix)) &&
+				worker, screen_size + depth_size, iphyee_worker_buffer_usage__fix)) &&
 			(r->screen_data = iphyee_worker_buffer_map(r->screen_host, 0, screen_size)) &&
 			(r->screen_address = iphyee_worker_buffer_device_address(r->buffer_device)))
 		{
+			r->depth_address = r->screen_address + screen_size;
 			r->screen_offset = 0;
 			r->screen_size = screen_size;
-			r->depth_address = r->screen_address + screen_size;
 			r->depth_offset = screen_size;
 			r->depth_size = depth_size;
-			r->mutex_address = r->depth_address + depth_size;
-			r->mutex_offset = screen_size + depth_size;
-			r->mutex_size = mutex_size;
 			r->width = width;
 			r->height = height;
 			return r;
