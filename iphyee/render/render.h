@@ -13,6 +13,7 @@ typedef struct iphyee_render_screen_s iphyee_render_screen_s;
 typedef struct iphyee_render_texture_s iphyee_render_texture_s;
 typedef struct iphyee_render_tpool_s iphyee_render_tpool_s;
 typedef struct iphyee_render_rasterize_s iphyee_render_rasterize_s;
+typedef struct iphyee_render_viewport_s iphyee_render_viewport_s;
 typedef struct iphyee_render_model_inst_part_s iphyee_render_model_inst_part_s;
 typedef struct iphyee_render_model_inst_s iphyee_render_model_inst_s;
 typedef struct iphyee_render_model_part_t iphyee_render_model_part_t;
@@ -73,6 +74,20 @@ struct iphyee_render_rasterize_s {
 	uint64_t rasterize_reset_size;
 };
 
+struct iphyee_render_viewport_s {
+	iphyee_mat4x4_t transform;
+	iphyee_vec4_t position;
+	iphyee_vec4_t vector_x;
+	iphyee_vec4_t vector_y;
+	float view_k_x;
+	float view_k_y;
+	float view_k_z;
+	float view_depth;
+	float screen_width;
+	float screen_height;
+	float screen_side;
+};
+
 struct iphyee_render_model_inst_part_s {
 	refer_nstring_t texture_name;
 	uint32_t fusion_offset;
@@ -125,6 +140,15 @@ iphyee_render_tpool_s* iphyee_render_tpool_delete(iphyee_render_tpool_s *restric
 void iphyee_render_tpool_update(iphyee_render_tpool_s *restrict r, iphyee_worker_command_buffer_s *restrict cb_transfer);
 
 iphyee_render_rasterize_s* iphyee_render_rasterize_alloc(iphyee_render_screen_s *restrict screen, iphyee_render_tpool_s *restrict tpool, uint32_t block_size, uint32_t tri3_max_count, uint32_t list_max_count);
+
+iphyee_render_viewport_s* iphyee_render_viewport_alloc(void);
+void iphyee_render_viewport_set_position(iphyee_render_viewport_s *restrict r, float x, float y, float z);
+void iphyee_render_viewport_set_vector_x(iphyee_render_viewport_s *restrict r, float x, float y, float z);
+void iphyee_render_viewport_set_vector_y(iphyee_render_viewport_s *restrict r, float x, float y, float z);
+void iphyee_render_viewport_set_view_k(iphyee_render_viewport_s *restrict r, float kx, float ky, float kz);
+void iphyee_render_viewport_set_depth(iphyee_render_viewport_s *restrict r, float view_depth);
+void iphyee_render_viewport_set_screen(iphyee_render_viewport_s *restrict r, uint32_t screen_width, uint32_t screen_height);
+iphyee_mat4x4_t* iphyee_render_viewport_get_transform(iphyee_render_viewport_s *restrict r);
 
 iphyee_render_model_inst_s* iphyee_render_model_inst_alloc(iphyee_worker_s *restrict worker, const struct iphyee_loader_model_view_s *restrict model_view);
 

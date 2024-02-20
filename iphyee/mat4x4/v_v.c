@@ -51,6 +51,25 @@ void iphyee_vec4_quat(iphyee_vec4_t *quat, const iphyee_vec4_t *nvec_rot_axis, f
 	quat->v[3] = cc;
 }
 
+void iphyee_vec4_quat_mul(iphyee_vec4_t *restrict quat, const iphyee_vec4_t *restrict quat1, const iphyee_vec4_t *restrict quat2)
+{
+	// quat = (x1i + y1j + z1k + w1) x (x2i + y2j + z2k + w2)
+	// quat = +x1x2ii +x1y2ij +x1z2ik +x1w2i
+	//        +y1x2ji +y1y2jj +y1z2jk +y1w2j
+	//        +z1x2ki +z1y2kj +z1z2kk +z1w2k
+	//        +w1x2i  +w1y2j  +w1z2k  +w1w2
+	// x = (+x1w2 +y1z2 -z1y2 +w1x2)i
+	// y = (+y1w2 +z1x2 -x1z2 +w1y2)j
+	// z = (+z1w2 +x1y2 -y1x2 +w1z2)k
+	// w = (+w1w2 -x1x2 -y1y2 -z1z2)
+	#define _m12_(_p1, _p2)  (quat1->v[_p1] * quat2->v[_p2])
+	quat->v[0] = _m12_(0, 3) + _m12_(1, 2) - _m12_(2, 1) + _m12_(3, 0);
+	quat->v[1] = _m12_(1, 3) + _m12_(2, 0) - _m12_(0, 2) + _m12_(3, 1);
+	quat->v[2] = _m12_(2, 3) + _m12_(0, 1) - _m12_(1, 0) + _m12_(3, 2);
+	quat->v[3] = _m12_(3, 3) - _m12_(0, 0) - _m12_(1, 1) - _m12_(2, 2);
+	#undef _m12_
+}
+
 void iphyee_vec4_mul4(iphyee_vec4_t *dst, const iphyee_vec4_t *src1, const iphyee_vec4_t *src2)
 {
 	dst->v[0] = src1->v[0] * src2->v[0];
