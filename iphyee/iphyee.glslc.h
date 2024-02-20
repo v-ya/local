@@ -139,7 +139,7 @@ struct iphyee_glslc_array_index_t {
 };
 
 struct iphyee_glslc_image_t {
-	iphyee_glslc_pointer_array_pixel_t pixels;
+	iphyee_glslc_pointer_array_pixel_t pixel;
 	uint32_t width;
 	uint32_t height;
 };

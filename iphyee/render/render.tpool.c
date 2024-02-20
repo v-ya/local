@@ -22,7 +22,7 @@ static iphyee_render_tpool_s* iphyee_render_tpool_new_index(iphyee_render_tpool_
 					r->texture_use_count += 1;
 					*p |= mask;
 					pi = r->texture_array + index;
-					pi->pixels = texture->texture_address;
+					pi->pixel = texture->texture_address;
 					pi->width = texture->texture_width;
 					pi->height = texture->texture_height;
 					texture->texture_index = index;
@@ -42,12 +42,12 @@ static void iphyee_render_tpool_del_index(iphyee_render_tpool_s *restrict r, iph
 	iphyee_glslc_image_t *restrict pi;
 	uint32_t index;
 	if ((index = texture->texture_index) < r->texture_max_count &&
-		(pi = r->texture_array + index)->pixels == texture->texture_address)
+		(pi = r->texture_array + index)->pixel == texture->texture_address)
 	{
 		texture->texture_vaild = 0;
 		texture->texture_index = 0;
 		texture = r->texture_miss;
-		pi->pixels = texture->texture_address;
+		pi->pixel = texture->texture_address;
 		pi->width = texture->texture_width;
 		pi->height = texture->texture_height;
 		r->tpool_mask[(index + 63) / 64] &= ~((uint64_t) 1 << (index & 63));
@@ -90,8 +90,7 @@ iphyee_render_tpool_s* iphyee_render_tpool_alloc(iphyee_worker_s *restrict worke
 			(r->texture_pool = vattr_alloc()) &&
 			(r->texture_insert = queue_alloc_ring(texture_max_count)) &&
 			(r->texture_delete = queue_alloc_ring(texture_max_count)) &&
-			(r->tpool_address = iphyee_worker_buffer_device_address(r->tpool_device)) &&
-			r->texture_insert->push(r->texture_insert, r->texture_miss))
+			(r->tpool_address = iphyee_worker_buffer_device_address(r->tpool_device)))
 		{
 			r->tpool_mask = (uint64_t *) (r + 1);
 			r->tpool_size = size;
@@ -100,14 +99,23 @@ iphyee_render_tpool_s* iphyee_render_tpool_alloc(iphyee_worker_s *restrict worke
 			r->texture_use_count = 0;
 			for (p = r->texture_array; texture_max_count; texture_max_count -= 1, p += 1)
 			{
-				p->pixels = miss->texture_address;
+				p->pixel = miss->texture_address;
 				p->width = miss->texture_width;
 				p->height = miss->texture_height;
 			}
-			return r;
+			if (iphyee_render_tpool_new_index(r, r->texture_miss) &&
+				r->texture_insert->push(r->texture_insert, r->texture_miss))
+				return r;
 		}
 		refer_free(r);
 	}
+	return NULL;
+}
+
+const iphyee_render_texture_s* iphyee_render_tpool_find(const iphyee_render_tpool_s *restrict r, const char *restrict texture_name)
+{
+	if (texture_name)
+		return (const iphyee_render_texture_s *) vattr_get_first(r->texture_pool, texture_name);
 	return NULL;
 }
 

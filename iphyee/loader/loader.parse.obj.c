@@ -94,6 +94,7 @@ static iphyee_loader_parse_obj_t* iphyee_loader_parse_obj_vt(iphyee_loader_parse
 	i = iphyee_loader_parse_obj_float(p, n, i, vec + 1);
 	if (i < n && d_test_space(p[i], !=, &&))
 		goto label_fail;
+	vec[1] = 1 - vec[1];
 	if (iphyee_loader_model_append_texture(c->model, vec))
 		return c;
 	label_fail:

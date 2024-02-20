@@ -174,6 +174,7 @@ static iphyee_render_model_inst_s* iphyee_render_model_inst_initial(iphyee_rende
 		model_part_index += 1;
 	}
 	r->model_part_count = model_part_index;
+	r->model_tri3_count = count->count_fusion / 3;
 	return r;
 	label_fail:
 	return NULL;
@@ -209,6 +210,7 @@ iphyee_render_model_inst_s* iphyee_render_model_inst_alloc(iphyee_worker_s *rest
 			{
 				r->model_inst_size = size;
 				r->model_part_count = 0;
+				r->model_tri3_count = 0;
 				if (iphyee_render_model_inst_initial(r, model_view, &count))
 					return r;
 			}

@@ -45,10 +45,9 @@ struct iphyee_loader_build_obj_test_t {
 		uintptr_t n;\
 		p = (const _type *) test->value_data;\
 		p += index * (n = test->number_of_value);\
-		mlog_printf(test->mlog, test->value_name);\
-		for (index = 0; index < n; ++index)\
-			mlog_printf(test->mlog, " %f", p[index]);\
-		mlog_printf(test->mlog, "\n");\
+		if (n == 3) mlog_printf(test->mlog, "%s %f %f %f\n", test->value_name, p[0], p[1], p[2]);\
+		else if (n == 2) mlog_printf(test->mlog, "%s %f %f\n", test->value_name, p[0], 1 - p[1]);\
+		else mlog_printf(test->mlog, "# %s\n", test->value_name);\
 	}
 #define d_index(_name, _type)  \
 	static void _name(const iphyee_loader_build_obj_test_t *restrict test)\

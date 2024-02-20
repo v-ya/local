@@ -1,5 +1,5 @@
-#ifndef _iphyee_rasterize_
-#define _iphyee_rasterize_
+#ifndef _iphyee_glsl_rasterize_
+#define _iphyee_glsl_rasterize_
 
 #include "image.glsl"
 #include "array.depth.glsl"

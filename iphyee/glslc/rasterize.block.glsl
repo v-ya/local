@@ -1,5 +1,5 @@
-#ifndef _iphyee_rasterize_block_
-#define _iphyee_rasterize_block_
+#ifndef _iphyee_glsl_rasterize_block_
+#define _iphyee_glsl_rasterize_block_
 
 #include "array.index.glsl"
 #include "tri3.box.glsl"

@@ -4,7 +4,7 @@
 #include "array.pixel.glsl"
 
 struct iphyee_image {
-	iphyee_array_pixel pixels;
+	iphyee_array_pixel pixel;
 	uint width;
 	uint height;
 };

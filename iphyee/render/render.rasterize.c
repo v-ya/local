@@ -19,6 +19,7 @@ static uint64_t iphyee_render_rasterize_initial_block_array(iphyee_glslc_rasteri
 			if (block->block_box.ymax > h)
 				block->block_box.ymax = h;
 			address += sizeof(uint32_t) * block_max_tri3;
+			block += 1;
 		}
 	}
 	return address;
@@ -67,8 +68,8 @@ iphyee_render_rasterize_s* iphyee_render_rasterize_alloc(iphyee_render_screen_s 
 				r->block_normal = (iphyee_glslc_rasterize_block_t *) (r->rasterize_data + 1);
 				r->block_alpha = r->block_normal + block_count;
 				r->rasterize_reset_size = host_size;
-				address = r->rasterize_address + sizeof(iphyee_glslc_rasterize_block_t);
-				p->image.pixels = r->screen->screen_address;
+				address = r->rasterize_address + sizeof(iphyee_glslc_rasterize_t);
+				p->image.pixel = r->screen->screen_address;
 				p->image.width = r->screen->width;
 				p->image.height = r->screen->height;
 				p->depth = r->screen->depth_address;
