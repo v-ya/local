@@ -34,9 +34,9 @@ typedef struct iphyee_glslc_tri3_depth_t iphyee_glslc_tri3_depth_t;
 typedef struct iphyee_glslc_tri3_index_t iphyee_glslc_tri3_index_t;
 typedef struct iphyee_glslc_tri3_render_t iphyee_glslc_tri3_render_t;
 typedef struct iphyee_glslc_array_tri3_render_t iphyee_glslc_array_tri3_render_t;
-typedef struct iphyee_glslc_tri3_cache_t iphyee_glslc_tri3_cache_t;
+typedef struct iphyee_glslc_index_list_t iphyee_glslc_index_list_t;
+typedef struct iphyee_glslc_array_index_list_t iphyee_glslc_array_index_list_t;
 typedef struct iphyee_glslc_rasterize_block_t iphyee_glslc_rasterize_block_t;
-typedef struct iphyee_glslc_array_rasterize_block_t iphyee_glslc_array_rasterize_block_t;
 typedef struct iphyee_glslc_rasterize_t iphyee_glslc_rasterize_t;
 
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_array_pixel_t;
@@ -52,7 +52,8 @@ typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_array_index_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_texture_pool_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_model_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_array_tri3_render_t;
-typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_array_rasterize_block_t;
+typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_array_index_list_t;
+typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_rasterize_block_t;
 typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_rasterize_t;
 
 struct iphyee_glslc_vec3_xyz_t {
@@ -219,31 +220,31 @@ struct iphyee_glslc_array_tri3_render_t {
 	iphyee_glslc_tri3_render_t tri3[0];
 };
 
-struct iphyee_glslc_tri3_cache_t {
-	iphyee_glslc_pointer_array_tri3_render_t tri3_array;
-	uint32_t tri3_max_count;
-	uint32_t tri3_cur_count;
+struct iphyee_glslc_index_list_t {
+	uint32_t next;
+	uint32_t index;
+};
+
+struct iphyee_glslc_array_index_list_t {
+	iphyee_glslc_index_list_t list[0];
 };
 
 struct iphyee_glslc_rasterize_block_t {
-	iphyee_glslc_pointer_array_index_t tri3_index_array;
-	iphyee_glslc_tri3_box_t block_box;
-	uint32_t index_max_count;
-	uint32_t index_cur_count;
-};
-
-struct iphyee_glslc_array_rasterize_block_t {
-	iphyee_glslc_rasterize_block_t block[0];
+	uint32_t list_next[0];
 };
 
 struct iphyee_glslc_rasterize_t {
 	iphyee_glslc_image_t image;
 	iphyee_glslc_pointer_array_depth_t depth;
 	iphyee_glslc_pointer_texture_pool_t tpool;
-	iphyee_glslc_tri3_cache_t tri3_normal;
-	iphyee_glslc_tri3_cache_t tri3_alpha;
-	iphyee_glslc_pointer_array_rasterize_block_t block_normal;
-	iphyee_glslc_pointer_array_rasterize_block_t block_alpha;
+	iphyee_glslc_pointer_array_tri3_render_t tri3;
+	iphyee_glslc_pointer_array_index_list_t list;
+	iphyee_glslc_pointer_rasterize_block_t block_normal;
+	iphyee_glslc_pointer_rasterize_block_t block_alpha;
+	uint32_t tri3_max_count;
+	uint32_t tri3_cur_count;
+	uint32_t list_max_count;
+	uint32_t list_cur_count;
 	uint32_t block_width;
 	uint32_t block_height;
 	uint32_t block_h_count;

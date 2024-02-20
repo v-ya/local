@@ -69,8 +69,6 @@ struct iphyee_render_rasterize_s {
 	iphyee_worker_buffer_s *rasterize_host;
 	iphyee_worker_buffer_s *rasterize_device;
 	iphyee_glslc_rasterize_t *rasterize_data;
-	iphyee_glslc_rasterize_block_t *block_normal;
-	iphyee_glslc_rasterize_block_t *block_alpha;
 	iphyee_glslc_pointer_rasterize_t rasterize_address;
 	uint64_t rasterize_reset_size;
 };
@@ -126,7 +124,7 @@ iphyee_render_tpool_s* iphyee_render_tpool_insert(iphyee_render_tpool_s *restric
 iphyee_render_tpool_s* iphyee_render_tpool_delete(iphyee_render_tpool_s *restrict r, const char *restrict texture_name);
 void iphyee_render_tpool_update(iphyee_render_tpool_s *restrict r, iphyee_worker_command_buffer_s *restrict cb_transfer);
 
-iphyee_render_rasterize_s* iphyee_render_rasterize_alloc(iphyee_render_screen_s *restrict screen, iphyee_render_tpool_s *restrict tpool, uint32_t block_size, uint32_t rasterize_max_tri3, uint32_t block_max_tri3);
+iphyee_render_rasterize_s* iphyee_render_rasterize_alloc(iphyee_render_screen_s *restrict screen, iphyee_render_tpool_s *restrict tpool, uint32_t block_size, uint32_t tri3_max_count, uint32_t list_max_count);
 
 iphyee_render_model_inst_s* iphyee_render_model_inst_alloc(iphyee_worker_s *restrict worker, const struct iphyee_loader_model_view_s *restrict model_view);
 
