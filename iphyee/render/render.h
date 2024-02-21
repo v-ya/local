@@ -148,6 +148,9 @@ void iphyee_render_viewport_set_vector_y(iphyee_render_viewport_s *restrict r, f
 void iphyee_render_viewport_set_view_k(iphyee_render_viewport_s *restrict r, float kx, float ky, float kz);
 void iphyee_render_viewport_set_depth(iphyee_render_viewport_s *restrict r, float view_depth);
 void iphyee_render_viewport_set_screen(iphyee_render_viewport_s *restrict r, uint32_t screen_width, uint32_t screen_height);
+void iphyee_render_viewport_forward(iphyee_render_viewport_s *restrict r, float tz);
+void iphyee_render_viewport_rotate(iphyee_render_viewport_s *restrict r, float rx, float ry);
+void iphyee_render_viewport_rotate_axis(iphyee_render_viewport_s *restrict r, const iphyee_vec4_t *restrict axis, float rad);
 iphyee_mat4x4_t* iphyee_render_viewport_get_transform(iphyee_render_viewport_s *restrict r);
 
 iphyee_render_model_inst_s* iphyee_render_model_inst_alloc(iphyee_worker_s *restrict worker, const struct iphyee_loader_model_view_s *restrict model_view);

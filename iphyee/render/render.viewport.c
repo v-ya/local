@@ -54,6 +54,49 @@ void iphyee_render_viewport_set_screen(iphyee_render_viewport_s *restrict r, uin
 	r->screen_side = (float) sqrt((double) screen_width * (double) screen_height);
 }
 
+void iphyee_render_viewport_forward(iphyee_render_viewport_s *restrict r, float tz)
+{
+	iphyee_vec4_t ez;
+	iphyee_vec4_cross(&ez, &r->vector_x, &r->vector_y);
+	iphyee_vec4_mul3k(&ez, &ez, tz);
+	iphyee_vec4_add3(&r->position, &r->position, &ez);
+}
+
+void iphyee_render_viewport_rotate(iphyee_render_viewport_s *restrict r, float rx, float ry)
+{
+	iphyee_mat4x4_t tr;
+	iphyee_vec4_t ez, dx, dy, dxy, q;
+	float rad;
+	if ((rad = sqrtf(rx * rx + ry * ry)) > 0)
+	{
+		iphyee_vec4_cross(&ez, &r->vector_x, &r->vector_y);
+		iphyee_vec4_mul3k(&dx, &r->vector_x, rx);
+		iphyee_vec4_mul3k(&dy, &r->vector_y, ry);
+		iphyee_vec4_add3(&dxy, &dx, &dy);
+		iphyee_vec4_cross(&q, &ez, &dxy);
+		iphyee_vec4_nvec(&q, &q);
+		iphyee_vec4_quat(&q, &q, rad);
+		iphyee_mat4x4_set_quat(&tr, &q);
+		iphyee_mat4x4_vec4(&dx, &tr, &r->vector_x);
+		iphyee_mat4x4_vec4(&dy, &tr, &r->vector_y);
+		iphyee_vec4_nvec(&r->vector_x, &dx);
+		iphyee_vec4_nvec(&r->vector_y, &dy);
+	}
+}
+
+void iphyee_render_viewport_rotate_axis(iphyee_render_viewport_s *restrict r, const iphyee_vec4_t *restrict axis, float rad)
+{
+	iphyee_mat4x4_t tr;
+	iphyee_vec4_t qn;
+	iphyee_vec4_nvec(&qn, axis);
+	iphyee_vec4_quat(&qn, &qn, rad);
+	iphyee_mat4x4_set_quat(&tr, &qn);
+	iphyee_mat4x4_vec4(&qn, &tr, &r->vector_x);
+	iphyee_vec4_nvec(&r->vector_x, &qn);
+	iphyee_mat4x4_vec4(&qn, &tr, &r->vector_y);
+	iphyee_vec4_nvec(&r->vector_y, &qn);
+}
+
 iphyee_mat4x4_t* iphyee_render_viewport_get_transform(iphyee_render_viewport_s *restrict r)
 {
 	iphyee_mat4x4_t tf0t, tf0x, tf0y, tfvk, tfvp, tfvt;

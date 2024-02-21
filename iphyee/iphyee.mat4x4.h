@@ -20,6 +20,8 @@ void iphyee_vec4_nvec(iphyee_vec4_t *nvec, const iphyee_vec4_t *vec4);
 float iphyee_vec4_len3(const iphyee_vec4_t *restrict src);
 void iphyee_vec4_quat(iphyee_vec4_t *quat, const iphyee_vec4_t *nvec_rot_axis, float ra);
 void iphyee_vec4_quat_mul(iphyee_vec4_t *restrict quat, const iphyee_vec4_t *restrict quat1, const iphyee_vec4_t *restrict quat2);
+void iphyee_vec4_add3(iphyee_vec4_t *dst, const iphyee_vec4_t *src1, const iphyee_vec4_t *src2);
+void iphyee_vec4_mul3k(iphyee_vec4_t *dst, const iphyee_vec4_t *src, float k);
 void iphyee_vec4_mul4(iphyee_vec4_t *dst, const iphyee_vec4_t *src1, const iphyee_vec4_t *src2);
 float iphyee_vec4_dot3(const iphyee_vec4_t *restrict src1, const iphyee_vec4_t *restrict src2);
 void iphyee_vec4_cross(iphyee_vec4_t *restrict dst, const iphyee_vec4_t *restrict src1, const iphyee_vec4_t *restrict src2);

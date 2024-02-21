@@ -70,6 +70,25 @@ void iphyee_vec4_quat_mul(iphyee_vec4_t *restrict quat, const iphyee_vec4_t *res
 	#undef _m12_
 }
 
+void iphyee_vec4_add3(iphyee_vec4_t *dst, const iphyee_vec4_t *src1, const iphyee_vec4_t *src2)
+{
+	float k1, k2;
+	k1 = src1->v[3];
+	k2 = src2->v[3];
+	dst->v[0] = src1->v[0] * k1 + src2->v[0] * k2;
+	dst->v[1] = src1->v[1] * k1 + src2->v[1] * k2;
+	dst->v[2] = src1->v[2] * k1 + src2->v[2] * k2;
+	dst->v[3] = 1.0f;
+}
+
+void iphyee_vec4_mul3k(iphyee_vec4_t *dst, const iphyee_vec4_t *src, float k)
+{
+	dst->v[0] = src->v[0] * k;
+	dst->v[1] = src->v[1] * k;
+	dst->v[2] = src->v[2] * k;
+	dst->v[3] = src->v[3];
+}
+
 void iphyee_vec4_mul4(iphyee_vec4_t *dst, const iphyee_vec4_t *src1, const iphyee_vec4_t *src2)
 {
 	dst->v[0] = src1->v[0] * src2->v[0];
