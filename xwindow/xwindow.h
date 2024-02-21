@@ -6,6 +6,7 @@
 typedef struct xwindow_s xwindow_s;
 typedef struct xwindow_event_s xwindow_event_s;
 typedef struct xwindow_image_s xwindow_image_s;
+typedef struct xwindow_cursor_s xwindow_cursor_s;
 
 typedef enum xwindow_event_t {
 	xwindow_event_null,      // 事件队列结束符
@@ -98,5 +99,11 @@ xwindow_image_s* xwindow_image_alloc_shm(xwindow_s *restrict xwindow, uint32_t w
 uint32_t* xwindow_image_map(xwindow_image_s *restrict r, uint32_t width, uint32_t height);
 xwindow_image_s* xwindow_image_update_full(xwindow_image_s *restrict r, int32_t dx, int32_t dy);
 xwindow_image_s* xwindow_image_update_block(xwindow_image_s *restrict r, uint32_t w, uint32_t h, int32_t sx, int32_t sy, int32_t dx, int32_t dy);
+
+xwindow_cursor_s* xwindow_cursor_alloc(xwindow_s *restrict xwindow, uint32_t width, uint32_t height, uint32_t xpos, uint32_t ypos, uint32_t color0, uint32_t color1, uintptr_t bits_size, const void *restrict source_bits, const void *restrict mask_bits);
+xwindow_cursor_s* xwindow_cursor_enable(xwindow_cursor_s *restrict cursor);
+xwindow_s* xwindow_cursor_disable(xwindow_s *restrict xwindow);
+
+xwindow_s* xwindow_move_pointer(xwindow_s *restrict xwindow, int32_t xpos, int32_t ypos);
 
 #endif

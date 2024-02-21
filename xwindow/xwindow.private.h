@@ -83,6 +83,13 @@ struct xwindow_image_s {
 	uint32_t height;
 };
 
+struct xwindow_cursor_s {
+	xwindow_s *xwindow;
+	xcb_pixmap_t source;
+	xcb_pixmap_t mask;
+	xcb_cursor_t cursor;
+};
+
 // inner.atom.c
 
 xwindow_atom_s* xwindow_atom_alloc(void);
