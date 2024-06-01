@@ -696,7 +696,7 @@ static transport_poll_status_t web_server_thread_working_poll_req_body(transport
 		goto label_okay;
 	if (exbuffer_need(eb, req->request_body_length))
 	{
-		if (!transport_recv(tp, eb->data, req->request_body_length - eb->used, &n, NULL))
+		if (!transport_recv(tp, eb->data + eb->used, req->request_body_length - eb->used, &n, NULL))
 			goto label_fail;
 		if ((eb->used += n) < req->request_body_length)
 			return transport_poll_status_continue;
