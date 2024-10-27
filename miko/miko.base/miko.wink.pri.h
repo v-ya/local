@@ -31,6 +31,7 @@ struct miko_wink_gomi_s {
 	miko_wink_search_s *search;
 	miko_wink_search_s *cache;
 	uintptr_t miko_gomi_msec;
+	volatile uintptr_t version;
 	yaw_s *daemon;
 };
 
@@ -38,7 +39,11 @@ struct miko_wink_to_s {
 	yaw_lock_s *read;
 	yaw_lock_s *write;
 	rbtree_t *wink;     // (uint64_t) (miko_wink_s *) wink => ((uintptr_t) rbv->value) refcount
-	uintptr_t modify;
+	const volatile uintptr_t *gomi_version;
+	volatile uintptr_t modify_version;
 };
+
+#define miko_wink_modify_flag  (~((~(uintptr_t) 0) >> 1))
+#define miko_wink_modify_mask  ((~(uintptr_t) 0) >> 1)
 
 #endif

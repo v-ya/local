@@ -73,18 +73,32 @@ static miko_wink_to_s* miko_wink_to_alloc(void)
 	return NULL;
 }
 
+static inline uintptr_t miko_wink_to_modify_version(miko_wink_to_s *restrict r)
+{
+	return *r->gomi_version | miko_wink_modify_flag;
+}
+
+static inline void miko_wink_to_modify_clear(miko_wink_to_s *restrict r, uintptr_t version)
+{
+	uintptr_t modify_version;
+	while ((modify_version = r->modify_version) && modify_version != version &&
+		!__sync_bool_compare_and_swap(&r->modify_version, modify_version, 0)) ;
+}
+
 static rbtree_t* miko_wink_to_link(miko_wink_to_s *restrict r, const miko_wink_s *restrict item)
 {
 	yaw_lock_s *restrict lock;
 	rbtree_t *restrict rbv;
+	uintptr_t modify;
 	lock = r->write;
 	yaw_lock_lock(lock);
 	if ((rbv = rbtree_find(&r->wink, NULL, (uintptr_t) item)) ||
 		(rbv = rbtree_insert(&r->wink, NULL, (uintptr_t) item, NULL, NULL)))
 		rbv->value = (void *) ((uintptr_t) rbv->value + 1);
-	item->wink->modify = 1;
-	r->modify = 1;
 	yaw_lock_unlock(lock);
+	modify = miko_wink_to_modify_version(r);
+	item->wink->modify_version = modify;
+	r->modify_version = modify;
 	return rbv;
 }
 
@@ -92,13 +106,15 @@ static void miko_wink_to_unlink(miko_wink_to_s *restrict r, const miko_wink_s *r
 {
 	yaw_lock_s *restrict lock;
 	rbtree_t *restrict rbv;
+	uintptr_t modify;
+	modify = miko_wink_to_modify_version(r);
+	item->wink->modify_version = modify;
+	r->modify_version = modify;
 	lock = r->write;
 	yaw_lock_lock(lock);
 	if ((rbv = rbtree_find(&r->wink, NULL, (uintptr_t) item)) &&
 		!(rbv->value = (void *) ((uintptr_t) rbv->value - 1)))
 		rbtree_delete_by_pointer(&r->wink, rbv);
-	item->wink->modify = 1;
-	r->modify = 1;
 	yaw_lock_unlock(lock);
 }
 
@@ -167,13 +183,13 @@ static miko_wink_search_s* miko_wink_gomi_visible_deal(miko_wink_search_s *restr
 #define miko_wink_from_inode(_inode_)  ((miko_wink_s *) (_inode_))
 #define miko_wink_to_inode(_wink_)     (&(_wink_)->inode)
 
-static miko_wink_gomi_s* miko_wink_gomi_visible_reset(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search)
+static miko_wink_gomi_s* miko_wink_gomi_visible_reset(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search, uintptr_t version)
 {
 	miko_wink_s *restrict wink;
 	miko_wink_search_clear(search);
 	for (wink = miko_wink_from_inode(gomi->root); wink; wink = miko_wink_from_inode(wink->inode.next))
 	{
-		wink->wink->modify = 0;
+		miko_wink_to_modify_clear(wink->wink, version);
 		if (wink->status == miko_wink_status__lost)
 			wink->visible = miko_wink_visible__lost;
 		else
@@ -193,7 +209,7 @@ static void miko_wink_gomi_visible_clear(miko_wink_gomi_s *restrict gomi)
 	p = &gomi->root;
 	while ((wink = miko_wink_from_inode(*p)))
 	{
-		if (wink->visible != miko_wink_visible__lost || wink->wink->modify)
+		if (wink->visible != miko_wink_visible__lost || wink->wink->modify_version)
 			p = &wink->inode.next;
 		else
 		{
@@ -210,6 +226,7 @@ static void miko_wink_gomi_daemon(yaw_s *restrict yaw)
 {
 	miko_wink_gomi_s *restrict gomi;
 	uint64_t ts_curr, ts_next;
+	uintptr_t version;
 	gomi = (miko_wink_gomi_s *) yaw->data;
 	ts_curr = ts_next = 0;
 	while (yaw->running)
@@ -218,9 +235,12 @@ static void miko_wink_gomi_daemon(yaw_s *restrict yaw)
 		{
 			if ((ts_next += gomi->miko_gomi_msec) < ts_curr)
 				ts_next = ts_curr;
-			if (miko_wink_gomi_visible_reset(gomi, gomi->search) &&
+			version = __sync_add_and_fetch(&gomi->version, 1) | miko_wink_modify_flag;
+			if (miko_wink_gomi_visible_reset(gomi, gomi->search, version) &&
 				miko_wink_gomi_visible_deal(gomi->search, gomi->cache))
 				miko_wink_gomi_visible_clear(gomi);
+			miko_wink_search_clear(gomi->search);
+			miko_wink_search_clear(gomi->cache);
 		}
 		if (ts_curr < ts_next)
 			yaw_msleep(50);
@@ -275,6 +295,7 @@ miko_wink_s* miko_wink_alloc(miko_wink_gomi_s *restrict gomi, uintptr_t size, re
 		refer_hook_free(r, wink);
 		if ((r->wink = miko_wink_to_alloc()))
 		{
+			r->wink->gomi_version = &gomi->version;
 			r->free = free;
 			r->status = miko_wink_status__root;
 			r->visible = miko_wink_visible__visit;
