@@ -9,7 +9,7 @@ LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -lmlog -ltparse -lyaw -soname ${TARGET-LIB}
 LDFLAGS-STD	= -shared -lm -lrefer -lmlog -L. -lmiko -soname ${TARGET-STD}
-LDFLAGS-BIN	= -lrefer -lmlog -lfsys -L. -lmiko -lmiko-std
+LDFLAGS-BIN	= -lrefer -lmlog -lfsys -lyaw -L. -lmiko -lmiko-std
 
 OBJECT-LIB	= $(patsubst %.c, %.o, $(wildcard miko.base/*.c))
 OBJECT-STD	= $(patsubst %.c, %.o, $(wildcard miko.std/*.c))

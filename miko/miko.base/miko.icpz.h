@@ -1,7 +1,7 @@
 #ifndef _miko_base_miko_icpz_h_
 #define _miko_base_miko_icpz_h_
 
-#include "miko.h"
+#include "miko.refer.h"
 
 typedef struct miko_icpz_r_t miko_icpz_r_t;
 typedef struct miko_icpz_w_s miko_icpz_w_s;
