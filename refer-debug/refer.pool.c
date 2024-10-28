@@ -345,6 +345,7 @@ static void refer_pool_push(refer_pool_s *restrict r, refer_pool_item_s *restric
 			refer_pool_signal_wait(&r->signal_pull, status, NULL);
 		}
 	}
+	refer_pool_signal_inc_wake(&r->signal_push, 1);
 	refer_free(item);
 }
 
