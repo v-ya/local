@@ -27,14 +27,15 @@ static void miko_wink_gomi_env_finally(miko_wink_gomi_env_t *restrict env)
 static miko_wink_gomi_s* miko_wink_gomi_go(miko_wink_gomi_s *restrict gomi, miko_wink_gomi_env_t *restrict env)
 {
 	miko_wink_gomi_s *result;
-	uintptr_t batch_modify;
+	uintptr_t batch_skip;
 	result = NULL;
-	batch_modify = miko_wink_batch_modify(__sync_add_and_fetch(&gomi->batch, 1));
+	batch_skip = gomi->skip;
 	if ((env->timestamp_next_msec += env->miko_gomi_msec) < env->timestamp_curr_msec)
 		env->timestamp_next_msec = env->timestamp_curr_msec;
 	memset(&env->data, 0, sizeof(env->data));
-	if (miko_wink_gomi_visible_initial(gomi, &env->data, gomi->search, batch_modify) &&
-		miko_wink_gomi_visible_layer(gomi->search, gomi->cache))
+	if (miko_wink_gomi_visible_initial(gomi, gomi->search, &env->data) &&
+		miko_wink_gomi_visible_layer(gomi, gomi->search, gomi->cache, &env->data) &&
+		gomi->skip == batch_skip)
 	{
 		miko_wink_gomi_visible_finally(gomi, &env->data);
 		env->data.timestamp_msec_start = env->timestamp_curr_msec;

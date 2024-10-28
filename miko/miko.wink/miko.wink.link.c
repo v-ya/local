@@ -1,4 +1,5 @@
 #include "miko.wink.link.h"
+#include "miko.wink.see.h"
 
 static void miko_wink_link_free_func(miko_wink_link_s *restrict r)
 {
@@ -7,13 +8,13 @@ static void miko_wink_link_free_func(miko_wink_link_s *restrict r)
 	rbtree_clear(&r->wink);
 }
 
-miko_wink_link_s* miko_wink_link_alloc(const miko_wink_batch_t *restrict batch)
+miko_wink_link_s* miko_wink_link_alloc(miko_wink_gomi_s *restrict gomi)
 {
 	miko_wink_link_s *restrict r;
 	if ((r = (miko_wink_link_s *) refer_alloz(sizeof(miko_wink_link_s))))
 	{
 		refer_hook_free(r, link);
-		r->batch = batch;
+		r->gomi = gomi;
 		if (!yaw_lock_alloc_rwlock(&r->read, &r->write))
 			return r;
 		refer_free(r);
@@ -25,16 +26,17 @@ rbtree_t* miko_wink_link_insert(miko_wink_link_s *restrict r, miko_wink_s *restr
 {
 	yaw_lock_s *restrict lock;
 	rbtree_t *restrict rbv;
-	uintptr_t modify;
+	rbtree_t *restrict rbv_insert;
 	lock = r->write;
+	rbv_insert = NULL;
 	yaw_lock_lock(lock);
 	if ((rbv = rbtree_find(&r->wink, NULL, (uintptr_t) item)) ||
-		(rbv = rbtree_insert(&r->wink, NULL, (uintptr_t) item, NULL, NULL)))
+		(rbv = rbv_insert = rbtree_insert(&r->wink, NULL, (uintptr_t) item, NULL, NULL)))
 		rbv->value = (void *) ((uintptr_t) rbv->value + 1);
 	yaw_lock_unlock(lock);
-	modify = miko_wink_batch_modify(*r->batch);
-	item->link->modify = modify;
-	r->modify = modify;
+	// notify gomi re-search item
+	if (rbv_insert)
+		miko_wink_see_wink_to_gomi(r->gomi, item);
 	return rbv;
 }
 
@@ -42,10 +44,6 @@ void miko_wink_link_delete(miko_wink_link_s *restrict r, miko_wink_s *restrict i
 {
 	yaw_lock_s *restrict lock;
 	rbtree_t *restrict rbv;
-	uintptr_t modify;
-	modify = miko_wink_batch_modify(*r->batch);
-	item->link->modify = modify;
-	r->modify = modify;
 	lock = r->write;
 	yaw_lock_lock(lock);
 	if ((rbv = rbtree_find(&r->wink, NULL, (uintptr_t) item)) &&
@@ -59,6 +57,6 @@ void miko_wink_link_call(miko_wink_link_s *restrict r, rbtree_func_call_f call_f
 	yaw_lock_s *restrict lock;
 	lock = r->read;
 	yaw_lock_lock(lock);
-	rbtree_call(&r->wink, call_func, call_data);
+	if (r->wink) rbtree_call(&r->wink, call_func, call_data);
 	yaw_lock_unlock(lock);
 }

@@ -13,7 +13,7 @@ static void miko_wink_free_func(miko_wink_s *restrict r)
 static miko_wink_s* miko_wink_initial(miko_wink_s *restrict r, miko_wink_gomi_s *restrict gomi)
 {
 	refer_set_free(r, (refer_free_f) miko_wink_free_func);
-	if ((r->link = miko_wink_link_alloc(&gomi->batch)))
+	if ((r->link = miko_wink_link_alloc(gomi)))
 	{
 		r->status = miko_wink_status__root;
 		r->visible = miko_wink_visible__visit;

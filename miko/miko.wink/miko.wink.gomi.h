@@ -6,17 +6,18 @@
 #include <yaw.h>
 
 struct miko_wink_gomi_s {
-	miko_list_t *root;
-	yaw_signal_s *signal;
-	queue_s *request;
-	miko_wink_search_s *search;
-	miko_wink_search_s *cache;
-	miko_wink_batch_t batch;
-	yaw_s *daemon;
+	miko_list_t *root;           // list => (miko_wink_s *)
+	miko_list_t *linked;         // list => (miko_wink_see_s *)
+	yaw_signal_s *signal;        // user call signal
+	queue_s *request;            // user call queue
+	miko_wink_search_s *search;  // used by search
+	miko_wink_search_s *cache;   // used by search
+	miko_wink_batch_t skip;      // control skip this gomi
+	yaw_s *daemon;               // gomi daemon thread
 };
 
-miko_wink_search_s* miko_wink_gomi_visible_layer(miko_wink_search_s *restrict search, miko_wink_search_s *restrict cache);
-miko_wink_gomi_s* miko_wink_gomi_visible_initial(miko_wink_gomi_s *restrict gomi, miko_wink_report_t *restrict report, miko_wink_search_s *restrict search, uintptr_t batch_modify);
+miko_wink_gomi_s* miko_wink_gomi_visible_layer(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search, miko_wink_search_s *restrict cache, miko_wink_report_t *restrict report);
+miko_wink_gomi_s* miko_wink_gomi_visible_initial(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search, miko_wink_report_t *restrict report);
 void miko_wink_gomi_visible_finally(miko_wink_gomi_s *restrict gomi, miko_wink_report_t *restrict report);
 
 void miko_wink_gomi_daemon(yaw_s *restrict yaw);

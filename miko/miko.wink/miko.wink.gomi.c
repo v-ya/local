@@ -17,6 +17,11 @@ static void miko_wink_gomi_free_func(miko_wink_gomi_s *restrict r)
 		miko_list_unlink(&r->root, inode);
 		refer_free(inode);
 	}
+	while ((inode = r->linked))
+	{
+		miko_list_unlink(&r->linked, inode);
+		refer_free(inode);
+	}
 	refer_ck_free(r->signal);
 	refer_ck_free(r->request);
 	refer_ck_free(r->search);

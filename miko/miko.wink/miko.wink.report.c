@@ -13,13 +13,12 @@ static void miko_wink_report_default_report(miko_wink_report_default_s *restrict
 		miko_ck_diff(latter_lost_inode) ||
 		miko_ck_diff(visible_visit_inode) ||
 		miko_ck_diff(visible_wink_inode) ||
-		miko_ck_diff(visible_lost_inode) ||
-		miko_ck_diff(visible_free_inode)
+		miko_ck_diff(visible_lost_inode)
 	))
 	{
 		time_start = (double) (int64_t) (report->timestamp_msec_start - r->last.timestamp_msec_start) / 1000;
 		time_cost = (double) (int64_t) (report->timestamp_msec_stop - report->timestamp_msec_start) / 1000;
-		mlog_printf(r->mlog, "[+%.3f:+%.3f] root:lost=(%zu:%zu => %zu:%zu) visit=%zu, wink=%zu, lost=%zu, free=%zu, have=%zd\n",
+		mlog_printf(r->mlog, "[+%.3f:+%.3f] root:lost=(%zu:%zu => %zu:%zu) visit=%zu, wink=%zu, lost=%zu, layer=%zu, have=%zd\n",
 			time_start, time_cost,
 			report->former_root_inode,
 			report->former_lost_inode,
@@ -28,8 +27,8 @@ static void miko_wink_report_default_report(miko_wink_report_default_s *restrict
 			report->visible_visit_inode,
 			report->visible_wink_inode,
 			report->visible_lost_inode,
-			report->visible_free_inode,
-			(intptr_t) (report->latter_root_inode + report->latter_lost_inode - report->visible_free_inode));
+			report->layer_done_count,
+			(intptr_t) (report->latter_root_inode + report->latter_lost_inode - report->visible_lost_inode));
 		memcpy(&r->last, report, sizeof(*report));
 	}
 	#undef miko_ck_diff

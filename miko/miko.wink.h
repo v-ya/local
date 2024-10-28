@@ -21,7 +21,7 @@ struct miko_wink_report_t {
 	uintptr_t visible_visit_inode;
 	uintptr_t visible_wink_inode;
 	uintptr_t visible_lost_inode;
-	uintptr_t visible_free_inode;
+	uintptr_t layer_done_count;
 };
 
 struct miko_wink_report_s {

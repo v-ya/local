@@ -27,14 +27,26 @@ enum miko_wink_visible_t {
 };
 
 struct miko_wink_s {
-	miko_list_t inode;          // this must modify by miko.wink.gomi
+	miko_list_t inode;          // mount at miko.wink.gomi.root
 	miko_wink_link_s *link;     // save wink link
 	refer_free_f free;          // user free func
 	volatile uint32_t status;   // this must modify by miko.wink.gomi
 	volatile uint32_t visible;  // this must modify by miko.wink.gomi
 };
 
-#define miko_wink_modify_flag            (~((~(uintptr_t) 0) >> 1))
-#define miko_wink_batch_modify(_batch_)  ((_batch_) | miko_wink_modify_flag)
+// ep. A -link> x, B -unlink> x
+// (gomi) searched A or unsearch A
+// (user) A -link> x
+// (user) B -unlink> x
+// (gomi) search B
+// (gomi) free x
+// must confirm free before search x
+// (gomi) searched A or unsearch A
+// (user) A -link> x
+// (gomi) search okay (searched B)
+// (gomi) free lost (B -link> x)
+// (user) push x to search
+// (user) B -unlink> x
+// (gomi) will next to search
 
 #endif

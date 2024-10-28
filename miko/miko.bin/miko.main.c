@@ -28,23 +28,19 @@ void gomi_test(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 		miko_wink_set_free(d, wink_free_func);
 		miko_wink_set_free(e, wink_free_func);
 		printf("%p, %p, %p, %p, %p\n", a, b, c, d, e);
-		miko_wink_link(a, a);
+		miko_wink_link(a, b);
 		miko_wink_link(b, c);
-		miko_wink_link(c, b);
+		miko_wink_link(c, d);
 		miko_wink_link(d, e);
-		miko_wink_link(e, d);
-		// miko_wink_link(a, b);
-		miko_wink_link(a, e);
-		(void) getchar();
-		miko_wink_link(c, a);
-		miko_wink_link(d, a);
-		miko_wink_lost(a);
+		miko_wink_link(e, a);
 		(void) getchar();
 		miko_wink_lost(b);
 		miko_wink_lost(c);
 		(void) getchar();
 		miko_wink_lost(d);
 		miko_wink_lost(e);
+		(void) getchar();
+		miko_wink_lost(a);
 		(void) getchar();
 		miko_wink_gomi_call_gomi(gomi, NULL);
 	}
