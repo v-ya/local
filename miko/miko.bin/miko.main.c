@@ -6,43 +6,46 @@
 
 #include "../miko.base/miko.env.h"
 
-void wink_free_func(void *restrict r)
-{
-	printf("free [%p]\n", r);
-}
-
 void gomi_test(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 {
-	miko_wink_t a, b, c, d, e;
+	miko_wink_t p, c;
+	uintptr_t i, n;
+	n = (1 << 20);
 	miko_wink_gomi_default_report(gomi, mlog, 1);
 	miko_wink_gomi_call_cycle(gomi, 200);
-	if ((a = miko_wink_alloz(gomi, 0)) &&
-		(b = miko_wink_alloz(gomi, 0)) &&
-		(c = miko_wink_alloz(gomi, 0)) &&
-		(d = miko_wink_alloz(gomi, 0)) &&
-		(e = miko_wink_alloz(gomi, 0)))
+	p = c = NULL;
+	for (i = 0; i < n; ++i)
 	{
-		miko_wink_set_free(a, wink_free_func);
-		miko_wink_set_free(b, wink_free_func);
-		miko_wink_set_free(c, wink_free_func);
-		miko_wink_set_free(d, wink_free_func);
-		miko_wink_set_free(e, wink_free_func);
-		printf("%p, %p, %p, %p, %p\n", a, b, c, d, e);
-		miko_wink_link(a, b);
-		miko_wink_link(b, c);
-		miko_wink_link(c, d);
-		miko_wink_link(d, e);
-		miko_wink_link(e, a);
-		(void) getchar();
-		miko_wink_lost(b);
-		miko_wink_lost(c);
-		(void) getchar();
-		miko_wink_lost(d);
-		miko_wink_lost(e);
-		(void) getchar();
-		miko_wink_lost(a);
-		(void) getchar();
-		miko_wink_gomi_call_gomi(gomi, NULL);
+		if (p || (p = miko_wink_alloz(gomi, 0)))
+		{
+			if ((c = miko_wink_alloz(gomi, 0)))
+			{
+				miko_wink_link(p, c);
+				miko_wink_lost(c);
+			}
+		}
+	}
+	if (p) miko_wink_lost(p);
+	miko_wink_gomi_call_gomi(gomi, NULL);
+	p = c = NULL;
+	for (i = 0; i < n; ++i)
+	{
+		if (c || (c = miko_wink_alloz(gomi, 0)))
+		{
+			if ((p = miko_wink_alloz(gomi, 0)))
+			{
+				miko_wink_link(p, c);
+				miko_wink_lost(c);
+				c = p;
+			}
+		}
+	}
+	if (p) miko_wink_lost(p);
+	miko_wink_gomi_call_gomi(gomi, NULL);
+	{
+		miko_wink_report_t data;
+		while (miko_wink_gomi_call_gomi(gomi, &data) && (data.latter_root_inode + data.latter_lost_inode))
+			;
 	}
 }
 
