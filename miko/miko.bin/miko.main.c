@@ -1,25 +1,32 @@
 #include "../miko.h"
 #include "../miko.dev.h"
+#include "../miko.wink.h"
 #include <stdio.h>
 #include <yaw.h>
 
 #include "../miko.base/miko.env.h"
-#include "../miko.base/miko.wink.h"
 
 void wink_free_func(void *restrict r)
 {
 	printf("free [%p]\n", r);
 }
 
-void gomi_test(miko_wink_gomi_s *gomi)
+void gomi_test(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 {
-	miko_wink_s *a, *b, *c, *d, *e;
-	if ((a = miko_wink_alloc(gomi, sizeof(miko_wink_s), wink_free_func)) &&
-		(b = miko_wink_alloc(gomi, sizeof(miko_wink_s), wink_free_func)) &&
-		(c = miko_wink_alloc(gomi, sizeof(miko_wink_s), wink_free_func)) &&
-		(d = miko_wink_alloc(gomi, sizeof(miko_wink_s), wink_free_func)) &&
-		(e = miko_wink_alloc(gomi, sizeof(miko_wink_s), wink_free_func)))
+	miko_wink_t a, b, c, d, e;
+	miko_wink_gomi_default_report(gomi, mlog, 1);
+	miko_wink_gomi_call_cycle(gomi, 200);
+	if ((a = miko_wink_alloz(gomi, 0)) &&
+		(b = miko_wink_alloz(gomi, 0)) &&
+		(c = miko_wink_alloz(gomi, 0)) &&
+		(d = miko_wink_alloz(gomi, 0)) &&
+		(e = miko_wink_alloz(gomi, 0)))
 	{
+		miko_wink_set_free(a, wink_free_func);
+		miko_wink_set_free(b, wink_free_func);
+		miko_wink_set_free(c, wink_free_func);
+		miko_wink_set_free(d, wink_free_func);
+		miko_wink_set_free(e, wink_free_func);
 		printf("%p, %p, %p, %p, %p\n", a, b, c, d, e);
 		miko_wink_link(a, a);
 		miko_wink_link(b, c);
@@ -39,6 +46,7 @@ void gomi_test(miko_wink_gomi_s *gomi)
 		miko_wink_lost(d);
 		miko_wink_lost(e);
 		(void) getchar();
+		miko_wink_gomi_call_gomi(gomi, NULL);
 	}
 }
 
@@ -53,9 +61,9 @@ int main(int argc, const char *argv[])
 		mlog_printf(mlog, "miko.bin start ...\n");
 		if ((env = miko_env_alloc(mlog)))
 		{
-			if ((gomi = miko_wink_gomi_alloc(1000)))
+			if ((gomi = miko_wink_gomi_alloc()))
 			{
-				gomi_test(gomi);
+				gomi_test(gomi, mlog);
 				refer_free(gomi);
 			}
 			refer_free(env);

@@ -1,5 +1,5 @@
-#ifndef _miko_base_miko_list_api_h_
-#define _miko_base_miko_list_api_h_
+#ifndef _miko_wink_miko_list_api_h_
+#define _miko_wink_miko_list_api_h_
 
 #include "miko.list.h"
 
