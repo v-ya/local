@@ -29,16 +29,27 @@ const miko_iset_pool_s* miko_iset_pool_save_depend(const miko_iset_pool_s *restr
 	miko_label_fail(miss, miko_log_add_key, log, name);
 }
 
-refer_string_t miko_iset_pool_save_type(const miko_iset_pool_s *restrict pool, const char *restrict name)
-{
-	const vattr_vlist_t *restrict vlist;
-	const miko_iset_s *restrict iset;
-	refer_string_t result;
-	for (vlist = pool->vattr; vlist; vlist = vlist->vattr_next)
-	{
-		iset = (const miko_iset_s *) vlist->value;
-		if ((result = (refer_string_t) vattr_get_first(iset->type, name)))
-			return refer_save(result);
+#define miko_iset_pool_save(_type_, _field_)  \
+	{\
+		const vattr_vlist_t *restrict vlist;\
+		const miko_iset_s *restrict iset;\
+		_type_ result;\
+		for (vlist = pool->vattr; vlist; vlist = vlist->vattr_next)\
+		{\
+			iset = (const miko_iset_s *) vlist->value;\
+			if ((result = (_type_) vattr_get_first(iset->_field_, name)))\
+				return (_type_) refer_save(result);\
+		}\
+		return NULL;\
 	}
-	return NULL;
-}
+
+refer_string_t miko_iset_pool_save_score(const miko_iset_pool_s *restrict pool, const char *restrict name)
+	miko_iset_pool_save(refer_string_t, score)
+
+refer_string_t miko_iset_pool_save_style(const miko_iset_pool_s *restrict pool, const char *restrict name)
+	miko_iset_pool_save(refer_string_t, style)
+
+miko_major_s* miko_iset_pool_save_major(const miko_iset_pool_s *restrict pool, const char *restrict name)
+	miko_iset_pool_save(miko_major_s *, major)
+
+#undef miko_iset_pool_save

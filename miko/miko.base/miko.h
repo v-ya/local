@@ -10,5 +10,6 @@ typedef struct miko_instruction_func_t miko_instruction_func_t;
 typedef struct miko_instruction_xpos_t miko_instruction_xpos_t;
 typedef struct miko_instruction_xpos_s miko_instruction_xpos_s;
 typedef struct miko_instruction_s miko_instruction_s;
+typedef struct miko_major_s miko_major_s;
 
 #endif

@@ -43,8 +43,17 @@ void miko_log_print(miko_log_s *restrict r, mlog_s *restrict mlog);
 
 miko_iset_s* miko_iset_alloc(const char *restrict name);
 miko_iset_s* miko_iset_add_depend(miko_iset_s *restrict r, const char *restrict name);
-miko_iset_s* miko_iset_add_type(miko_iset_s *restrict r, const char *restrict name);
+miko_iset_s* miko_iset_add_score(miko_iset_s *restrict r, const char *restrict name);
+miko_iset_s* miko_iset_add_style(miko_iset_s *restrict r, const char *restrict name);
+miko_iset_s* miko_iset_add_major(miko_iset_s *restrict r, const char *restrict major_name, miko_major_vtype_t vtype);
+miko_iset_s* miko_iset_add_minor(miko_iset_s *restrict r, const char *restrict major_name, miko_minor_s *restrict minor);
+miko_iset_s* miko_iset_add_default_minor(miko_iset_s *restrict r, const char *restrict major_name, const char *restrict minor_name);
 miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_xpos_prefix_t xpos[], const miko_instruction_attr_t attr[], refer_t pri);
+
+// miko.minor
+
+void miko_minor_free_func(miko_minor_s *restrict r);
+miko_minor_s* miko_minor_alloc(const char *restrict name, uintptr_t size);
 
 // miko.env
 

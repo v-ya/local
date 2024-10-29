@@ -20,6 +20,7 @@ typedef struct vattr_s miko_iset_pool_s;
 
 typedef enum miko_log_level_t miko_log_level_t;
 typedef enum miko_instruction_attr_field_t miko_instruction_attr_field_t;
+typedef enum miko_major_vtype_t miko_major_vtype_t;
 
 // type union
 
@@ -29,6 +30,7 @@ typedef union miko_instruction_attr_func_t miko_instruction_attr_func_t;
 
 typedef struct miko_xpos_prefix_t miko_xpos_prefix_t;
 typedef struct miko_instruction_attr_t miko_instruction_attr_t;
+typedef struct miko_minor_s miko_minor_s;
 
 // type function
 
@@ -53,6 +55,12 @@ enum miko_instruction_attr_field_t {
 	miko_instruction_attr_field_max
 };
 
+enum miko_major_vtype_t {
+	miko_major_vtype__real,
+	miko_major_vtype__refer,
+	miko_major_vtype__wink
+};
+
 union miko_instruction_attr_func_t {
 	miko_func_f func;
 	miko_instruction_attr_call_f call;
@@ -69,6 +77,12 @@ struct miko_xpos_prefix_t {
 struct miko_instruction_attr_t {
 	miko_instruction_attr_field_t field;
 	miko_instruction_attr_func_t func;
+};
+
+// var-type creater
+struct miko_minor_s {
+	refer_string_t name;  // miko.major.name
+	miko_index_t minor;   // miko.major[major].minor[minor]
 };
 
 #endif

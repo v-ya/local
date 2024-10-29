@@ -4,19 +4,19 @@
 static void miko_instruction_free_func(miko_instruction_s *restrict r)
 {
 	refer_ck_free(r->name);
-	refer_ck_free(r->set);
+	refer_ck_free(r->iset);
 	refer_ck_free(r->pri);
 	refer_ck_free(r->xpos);
 }
 
-miko_instruction_s* miko_instruction_alloc(const char *restrict name, refer_string_t set, refer_t pri)
+miko_instruction_s* miko_instruction_alloc(const char *restrict name, refer_string_t iset, refer_t pri)
 {
 	miko_instruction_s *restrict r;
-	if ((r = (miko_instruction_s *) refer_alloz(sizeof(miko_instruction_s))))
+	if (name && iset && (r = (miko_instruction_s *) refer_alloz(sizeof(miko_instruction_s))))
 	{
 		refer_hook_free(r, instruction);
-		if ((r->name = (name?refer_dump_string(name):NULL)) &&
-			(r->set = (refer_string_t) refer_save(set)))
+		if ((r->name = refer_dump_string(name)) &&
+			(r->iset = (refer_string_t) refer_save(iset)))
 		{
 			r->pri = refer_save(pri);
 			return r;

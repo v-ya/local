@@ -9,7 +9,7 @@ CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-WINK	= -shared -lrefer -lexbuffer -lqueue -lyaw -lmlog -soname ${TARGET-WINK}
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -lmlog -ltparse -L. -lmiko-wink -soname ${TARGET-LIB}
+LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -lmlog -ltparse -lyaw -L. -lmiko-wink -soname ${TARGET-LIB}
 LDFLAGS-STD	= -shared -lm -lrefer -lmlog -L. -lmiko-wink -lmiko -soname ${TARGET-STD}
 LDFLAGS-BIN	= -lrefer -lmlog -lfsys -lyaw -L. -lmiko-wink -lmiko -lmiko-std
 
