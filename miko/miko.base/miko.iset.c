@@ -44,13 +44,13 @@ miko_iset_s* miko_iset_add_depend(miko_iset_s *restrict r, const char *restrict 
 miko_iset_s* miko_iset_add_type(miko_iset_s *restrict r, const char *restrict name)
 	miko_iset_add_string(type, name)
 
-miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_instruction_argv_t argv[], const miko_instruction_attr_t attr[], refer_t pri)
+miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_xpos_prefix_t xpos[], const miko_instruction_attr_t attr[], refer_t pri)
 {
 	miko_instruction_s *restrict instruction;
 	if (name && !vattr_get_vslot(r->instruction, name) &&
 		(instruction = miko_instruction_alloc(name, r->name, pri)))
 	{
-		if (miko_instruction_set_args(instruction, pool, argv) &&
+		if (miko_instruction_set_xpos(instruction, pool, xpos) &&
 			miko_instruction_set_func(instruction, attr) &&
 			vattr_insert_tail(r->instruction, name, instruction))
 			;

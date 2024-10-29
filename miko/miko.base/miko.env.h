@@ -6,9 +6,13 @@
 
 struct miko_env_s {
 	mlog_s *mlog;
+	miko_log_s *log;
 	miko_iset_pool_s *pool;
+	// iset-merge
+	vattr_s *iset_type;
+	vattr_s *iset_instruction;
 };
 
-miko_env_s* miko_env_alloc(mlog_s *restrict mlog);
+miko_env_s* miko_env_okay(miko_env_s *restrict r);
 
 #endif

@@ -1,10 +1,9 @@
 #include "../miko.h"
 #include "../miko.dev.h"
 #include "../miko.wink.h"
+#include "../miko.std.h"
 #include <stdio.h>
 #include <yaw.h>
-
-#include "../miko.base/miko.env.h"
 
 void gomi_test(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 {
@@ -58,11 +57,11 @@ int main(int argc, const char *argv[])
 	{
 		mlog_set_report(mlog, mlog_report_stdout_func, NULL);
 		mlog_printf(mlog, "miko.bin start ...\n");
-		if ((env = miko_env_alloc(mlog)))
+		if ((env = miko_env_create(mlog, (miko_env_register_f []) {miko_std_env_register, NULL})))
 		{
 			if ((gomi = miko_wink_gomi_alloc()))
 			{
-				gomi_test(gomi, mlog);
+				// gomi_test(gomi, mlog);
 				refer_free(gomi);
 			}
 			refer_free(env);

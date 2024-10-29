@@ -5,5 +5,7 @@
 #include "../miko.dev.h"
 #include "../miko.std.h"
 #include "../miko.std.dev.h"
+#include "../miko.dev.marco.h"
+#include "../miko.std.dev.marco.h"
 
 #endif
