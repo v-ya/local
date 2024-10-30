@@ -28,7 +28,12 @@ void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, rbtree_t *restric
 void rbtree_delete(rbtree_t *restrict *restrict pr, const char *restrict name, uint64_t index);
 rbtree_t* rbtree_find(rbtree_t *const restrict *restrict pr, const char *restrict name, uint64_t index);
 void rbtree_clear(rbtree_t *restrict *restrict pr);
-void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f callFunc, void *data);
-void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f callFunc, void *data);
+void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f func, void *data);
+void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f func, void *data);
+
+rbtree_t* rbtree_first(rbtree_t *const restrict *restrict pr);
+rbtree_t* rbtree_tail(rbtree_t *const restrict *restrict pr);
+rbtree_t* rbtree_next(rbtree_t *restrict p);
+rbtree_t* rbtree_last(rbtree_t *restrict p);
 
 #endif

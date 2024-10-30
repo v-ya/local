@@ -484,8 +484,7 @@ void rbtree_delete_by_pointer(rbtree_t *restrict *restrict pr, register rbtree_t
 	uint32_t color;
 	if ((v = p->r))
 	{
-		do
-		{
+		do {
 			pp = v;
 		} while ((v = v->l));
 		if (p->free) p->free(p);
@@ -633,17 +632,17 @@ void rbtree_clear(rbtree_t *restrict *restrict pr)
 	}
 }
 
-void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f callFunc, void *data)
+void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f func, void *data)
 {
 	register rbtree_t *v;
 	v = *pr;
-	if (callFunc && v)
+	if (func && v)
 	{
 		// find minimum
 		while (v->l) v = v->l;
 		while (v)
 		{
-			callFunc(v, data);
+			func(v, data);
 			// find next
 			if (v->r)
 			{
@@ -659,17 +658,17 @@ void rbtree_call(rbtree_t *const restrict *restrict pr, rbtree_func_call_f callF
 	}
 }
 
-void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f callFunc, void *data)
+void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f func, void *data)
 {
 	register rbtree_t *v, *n;
 	v = *pr;
-	if (callFunc && v)
+	if (func && v)
 	{
 		// find minimum
 		while (v->l) v = v->l;
 		while (v)
 		{
-			if (callFunc(v, data))
+			if (func(v, data))
 			{
 				n = v;
 				if (!v->r)
@@ -694,4 +693,48 @@ void rbtree_isfree(rbtree_t *restrict *restrict pr, rbtree_func_isfree_f callFun
 			v = n;
 		}
 	}
+}
+
+rbtree_t* rbtree_first(rbtree_t *const restrict *restrict pr)
+{
+	register rbtree_t *restrict p;
+	if ((p = *pr)) while (p->l) p = p->l;
+	return p;
+}
+
+rbtree_t* rbtree_tail(rbtree_t *const restrict *restrict pr)
+{
+	register rbtree_t *restrict p;
+	if ((p = *pr)) while (p->r) p = p->r;
+	return p;
+}
+
+rbtree_t* rbtree_next(rbtree_t *restrict p)
+{
+	if (p->r)
+	{
+		p = p->r;
+		while (p->l) p = p->l;
+	}
+	else
+	{
+		while (p->u && p->u->r == p) p = p->u;
+		p = p->u;
+	}
+	return p;
+}
+
+rbtree_t* rbtree_last(rbtree_t *restrict p)
+{
+	if (p->l)
+	{
+		p = p->l;
+		while (p->r) p = p->r;
+	}
+	else
+	{
+		while (p->u && p->u->l == p) p = p->u;
+		p = p->u;
+	}
+	return p;
 }
