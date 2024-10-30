@@ -1,5 +1,5 @@
-#ifndef _miko_dev_marco_h_
-#define _miko_dev_marco_h_
+#ifndef _miko_marco_h_
+#define _miko_marco_h_
 
 #define miko_status_memless        "miko.status.memless"
 #define miko_status_miss           "miko.status.miss"

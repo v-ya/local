@@ -1,12 +1,12 @@
 #include "miko.instruction.h"
-#include "miko.instruction.xpos.h"
+#include "miko.instruction.prefix.h"
 
 static void miko_instruction_free_func(miko_instruction_s *restrict r)
 {
 	refer_ck_free(r->name);
 	refer_ck_free(r->iset);
 	refer_ck_free(r->pri);
-	refer_ck_free(r->xpos);
+	refer_ck_free(r->prefix);
 }
 
 miko_instruction_s* miko_instruction_alloc(const char *restrict name, refer_string_t iset, refer_t pri)
@@ -26,9 +26,9 @@ miko_instruction_s* miko_instruction_alloc(const char *restrict name, refer_stri
 	return NULL;
 }
 
-miko_instruction_s* miko_instruction_set_xpos(miko_instruction_s *restrict r, const miko_iset_pool_s *restrict pool, const miko_xpos_prefix_t xpos[])
+miko_instruction_s* miko_instruction_set_prefix(miko_instruction_s *restrict r, const miko_iset_pool_s *restrict pool, const miko_access_prefix_t prefix[])
 {
-	if (!r->xpos && (r->xpos = miko_instruction_xpos_alloc(pool, xpos)))
+	if (!r->prefix && (r->prefix = miko_instruction_prefix_alloc(pool, prefix)))
 		return r;
 	return NULL;
 }

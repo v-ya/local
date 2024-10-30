@@ -8,11 +8,7 @@ struct miko_iset_s* miko_std_env_register(miko_env_s *restrict env, struct miko_
 		// score
 		if (!miko_iset_add_score(r, miko_std_score__const))
 			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__static))
-			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__stack))
-			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__this))
+		if (!miko_iset_add_score(r, miko_std_score__form))
 			goto label_fail;
 		// style
 		if (!miko_iset_add_style(r, miko_std_style__read))

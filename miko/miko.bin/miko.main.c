@@ -1,7 +1,7 @@
-#include "../miko.h"
-#include "../miko.dev.h"
-#include "../miko.wink.h"
-#include "../miko.std.h"
+#include "../header/miko.h"
+#include "../header/miko.api.h"
+#include "../header/miko.wink.h"
+#include "../header/miko.std.h"
 #include <stdio.h>
 #include <yaw.h>
 

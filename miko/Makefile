@@ -3,7 +3,7 @@ TARGET-LIB	= libmiko.so
 TARGET-STD	= libmiko-std.so
 TARGET-BIN	= miko
 TARGET		= ${TARGET-WINK} ${TARGET-LIB} ${TARGET-STD} ${TARGET-BIN}
-HEADER		= $(wildcard *.h)
+HEADER		= $(wildcard header/*.h)
 
 CC		= gcc
 LD		= ld

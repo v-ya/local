@@ -89,13 +89,13 @@ miko_iset_s* miko_iset_add_default_minor(miko_iset_s *restrict r, const char *re
 	return NULL;
 }
 
-miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_xpos_prefix_t xpos[], const miko_instruction_attr_t attr[], refer_t pri)
+miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_access_prefix_t prefix[], const miko_instruction_attr_t attr[], refer_t pri)
 {
 	miko_instruction_s *restrict instruction;
 	if (name && !vattr_get_vslot(r->instruction, name) &&
 		(instruction = miko_instruction_alloc(name, r->name, pri)))
 	{
-		if (miko_instruction_set_xpos(instruction, pool, xpos) &&
+		if (miko_instruction_set_prefix(instruction, pool, prefix) &&
 			miko_instruction_set_func(instruction, attr) &&
 			vattr_insert_tail(r->instruction, name, instruction))
 			;

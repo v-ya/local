@@ -1,7 +1,7 @@
 #ifndef _miko_wink_miko_wink_h_
 #define _miko_wink_miko_wink_h_
 
-#include "../miko.wink.h"
+#include "../header/miko.wink.h"
 #include "miko.list.h"
 
 #define refer_ck_free(_refer_)            if (_refer_) refer_free(_refer_)
