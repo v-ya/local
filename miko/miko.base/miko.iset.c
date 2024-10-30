@@ -92,8 +92,7 @@ miko_iset_s* miko_iset_add_default_minor(miko_iset_s *restrict r, const char *re
 miko_iset_s* miko_iset_add_instruction(miko_iset_s *restrict r, const miko_iset_pool_s *restrict pool, const char *restrict name, const miko_access_prefix_t prefix[], const miko_instruction_attr_t attr[], refer_t pri)
 {
 	miko_instruction_s *restrict instruction;
-	if (name && !vattr_get_vslot(r->instruction, name) &&
-		(instruction = miko_instruction_alloc(name, r->name, pri)))
+	if (name && (instruction = miko_instruction_alloc(name, r->name, pri)))
 	{
 		if (miko_instruction_set_prefix(instruction, pool, prefix) &&
 			miko_instruction_set_func(instruction, attr) &&

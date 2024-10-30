@@ -6,9 +6,11 @@ struct miko_iset_s* miko_std_env_register(miko_env_s *restrict env, struct miko_
 	if ((r = miko_iset_alloc(miko_std_name)))
 	{
 		// score
+		if (!miko_iset_add_score(r, miko_std_score__form))
+			goto label_fail;
 		if (!miko_iset_add_score(r, miko_std_score__const))
 			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__form))
+		if (!miko_iset_add_score(r, miko_std_score__immed))
 			goto label_fail;
 		// style
 		if (!miko_iset_add_style(r, miko_std_style__read))

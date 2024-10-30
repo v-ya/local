@@ -7,8 +7,8 @@ typedef struct miko_access_t miko_access_t;
 typedef struct miko_access_prefix_t miko_access_prefix_t;
 
 struct miko_access_t {
-	miko_index_t index;  // miko.form = miko.form.stack[index]
-	miko_xpos_t xpos;    // var = miko.form[xpos].var
+	miko_index_t index;  // miko_form_t *form = ((miko_form_table_t *) table)[index].locate;
+	miko_xpos_t xpos;    // miko_var_t  *var  = &form[xpos].var;
 };
 
 // this modifier prefix of a (miko_access_t)

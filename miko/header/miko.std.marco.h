@@ -7,8 +7,9 @@
 
 // iset type
 
-#define miko_std_score__const        "std.score.const"        // (init ) by: compiler
 #define miko_std_score__form         "std.score.form"         // (exec ) to: instruction
+#define miko_std_score__const        "std.score.const"        // (init ) by: compiler
+#define miko_std_score__immed        "std.score.immed"        // (init ) as: instr's immediate number
 #define miko_std_style__read         "std.style.read"         // (allow) op: read
 #define miko_std_style__write        "std.style.write"        // (allow) op: read write
 #define miko_std_style__exec         "std.style.exec"         // (allow) op: call

@@ -9,8 +9,10 @@ struct miko_env_s {
 	miko_log_s *log;
 	miko_iset_pool_s *pool;
 	// iset-merge
-	vattr_s *iset_type;
-	vattr_s *iset_instruction;
+	vattr_s *score;
+	vattr_s *style;
+	vattr_s *major;
+	vattr_s *instruction;
 };
 
 miko_env_s* miko_env_okay(miko_env_s *restrict r);

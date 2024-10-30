@@ -62,7 +62,7 @@ uintptr_t miko_vector_pop(miko_vector_s_t r, uintptr_t item_count)
 	p = r->vector.data + (r->vector.used = (r->item_count = n - item_count) * (z = r->item_size));
 	if ((finally = r->finally))
 	{
-		for (i = 0; i < n; ++i, p += z)
+		for (i = 0; i < item_count; ++i, p += z)
 			finally(p);
 	}
 	return item_count;
