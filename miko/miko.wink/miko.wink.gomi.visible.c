@@ -1,57 +1,43 @@
 #include "miko.wink.gomi.h"
-#include "miko.wink.link.h"
 #include "miko.wink.search.h"
 #include "miko.wink.see.h"
 #include "miko.list.api.h"
 
-// inline function
-
-static inline void miko_wink_visible(miko_wink_s *restrict wink, miko_wink_visible_t visible)
-{
-	if (wink->visible < visible)
-		wink->visible = visible;
-}
-
 // gomi visible layer
 
-static void miko_wink_gomi_visible_layer_go_func(rbtree_t *restrict rbv, miko_wink_search_s **restrict result)
+static miko_wink_search_s* miko_wink_gomi_visible_layer_once(miko_wink_search_s *restrict search, miko_wink_w **restrict wink_array, uintptr_t wink_count)
 {
-	miko_wink_s *restrict wink;
-	if (*result)
-	{
-		wink = (miko_wink_s *) (uintptr_t) rbv->key_index;
-		if (wink->visible == miko_wink_visible__lost)
-			*result = miko_wink_search_append(*result, wink);
-	}
-}
-
-static miko_wink_search_s* miko_wink_gomi_visible_layer_once(miko_wink_search_s *restrict search, miko_wink_s **restrict wink_array, uintptr_t wink_count)
-{
-	miko_wink_s *restrict wink;
-	miko_wink_search_s *volatile result;
+	miko_wink_w *restrict wink;
+	yaw_lock_s *restrict lock;
+	miko_wink_view_f view;
 	uintptr_t index;
-	result = search;
 	miko_wink_search_clear(search);
-	for (index = 0; result && index < wink_count; ++index)
+	for (index = 0; search && index < wink_count; ++index)
 	{
 		wink = wink_array[index];
-		miko_wink_visible(wink, miko_wink_visible__wink);
-		miko_wink_link_call(wink->link, (rbtree_func_call_f) miko_wink_gomi_visible_layer_go_func, (void *) &result);
+		wink->visible = miko_wink_visible__inside;
+		if ((view = wink->view))
+		{
+			lock = wink->rlock;
+			yaw_lock_lock(lock);
+			search = view(search, wink + 1);
+			yaw_lock_unlock(lock);
+		}
 	}
-	return result;
+	return search;
 }
 
 static miko_wink_gomi_s* miko_wink_gomi_visible_layer_collect(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search)
 {
 	miko_list_t **restrict p;
-	miko_wink_see_s *restrict see;
+	miko_wink_see_t *restrict see;
 	p = &gomi->linked;
-	while ((see = (miko_wink_see_s *) *p))
+	while ((see = (miko_wink_see_t *) *p))
 	{
 		if (!miko_wink_search_append(search, see->wink))
 			goto label_fail;
 		miko_list_unlink(p, &see->inode);
-		refer_free(see);
+		miko_wink_see_free(see);
 	}
 	return gomi;
 	label_fail:
@@ -61,7 +47,7 @@ static miko_wink_gomi_s* miko_wink_gomi_visible_layer_collect(miko_wink_gomi_s *
 miko_wink_gomi_s* miko_wink_gomi_visible_layer(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search, miko_wink_search_s *restrict cache, miko_wink_report_t *restrict report)
 {
 	miko_wink_search_s *restrict swap;
-	miko_wink_s **restrict wink_array;
+	miko_wink_w **restrict wink_array;
 	uintptr_t wink_count;
 	if (!miko_wink_gomi_visible_layer_collect(gomi, cache))
 		goto label_fail;
@@ -81,27 +67,32 @@ miko_wink_gomi_s* miko_wink_gomi_visible_layer(miko_wink_gomi_s *restrict gomi, 
 	return NULL;
 }
 
-#define miko_wink_from_inode(_inode_)  ((miko_wink_s *) (_inode_))
-#define miko_wink_to_inode(_wink_)     (&(_wink_)->inode)
-
 miko_wink_gomi_s* miko_wink_gomi_visible_initial(miko_wink_gomi_s *restrict gomi, miko_wink_search_s *restrict search, miko_wink_report_t *restrict report)
 {
-	miko_wink_s *restrict wink;
+	miko_list_t **restrict p;
+	miko_wink_w *restrict wink;
 	miko_wink_search_clear(search);
-	for (wink = miko_wink_from_inode(gomi->root); wink; wink = miko_wink_from_inode(wink->inode.next))
+	p = &gomi->root;
+	while ((wink = (miko_wink_w *) *p))
 	{
-		if (wink->status == miko_wink_status__lost)
+		if (!wink->refs)
 		{
-			wink->visible = miko_wink_visible__lost;
-			report->former_lost_inode += 1;
+			miko_list_unlink(p, &wink->inode);
+			miko_list_insert(&gomi->lost, &wink->inode);
 		}
 		else
 		{
-			wink->visible = miko_wink_visible__visit;
-			report->former_root_inode += 1;
+			wink->visible = miko_wink_visible__outside;
 			if (!miko_wink_search_append(search, wink))
 				gomi = NULL;
+			p = &wink->inode.next;
+			report->former_root_inode += 1;
 		}
+	}
+	for (wink = (miko_wink_w *) gomi->lost; wink; wink = (miko_wink_w *) wink->inode.next)
+	{
+		wink->visible = miko_wink_visible__outside;
+		report->former_lost_inode += 1;
 	}
 	return gomi;
 }
@@ -109,29 +100,20 @@ miko_wink_gomi_s* miko_wink_gomi_visible_initial(miko_wink_gomi_s *restrict gomi
 void miko_wink_gomi_visible_finally(miko_wink_gomi_s *restrict gomi, miko_wink_report_t *restrict report)
 {
 	miko_list_t **restrict p;
-	miko_wink_s *restrict wink;
-	uint32_t status, visible;
-	p = &gomi->root;
-	while ((wink = miko_wink_from_inode(*p)))
+	miko_wink_w *restrict wink;
+	p = &gomi->lost;
+	while ((wink = (miko_wink_w *) *p))
 	{
-		status = wink->status;
-		visible = wink->visible;
-		if (status == miko_wink_status__lost)
-			report->latter_lost_inode += 1;
-		else report->latter_root_inode += 1;
-		switch (visible)
+		if (wink->visible != miko_wink_visible__outside)
 		{
-			case miko_wink_visible__lost: report->visible_lost_inode += 1; break;
-			case miko_wink_visible__wink: report->visible_wink_inode += 1; break;
-			case miko_wink_visible__visit: report->visible_visit_inode += 1; break;
-			default: break;
-		}
-		if (visible != miko_wink_visible__lost)
 			p = &wink->inode.next;
+			report->latter_lost_inode += 1;
+		}
 		else
 		{
-			miko_list_unlink(p, miko_wink_to_inode(wink));
-			refer_free(wink);
+			miko_list_unlink(p, &wink->inode);
+			miko_wink_w_free(wink);
+			report->latter_free_inode += 1;
 		}
 	}
 }

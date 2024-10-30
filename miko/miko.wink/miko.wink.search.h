@@ -11,8 +11,8 @@ struct miko_wink_search_s {
 };
 
 miko_wink_search_s* miko_wink_search_alloc(void);
-miko_wink_search_s* miko_wink_search_append(miko_wink_search_s *restrict r, miko_wink_s *restrict wink);
-miko_wink_s** miko_wink_search_data(const miko_wink_search_s *restrict r, uintptr_t *restrict count);
+miko_wink_search_s* miko_wink_search_append(miko_wink_search_s *restrict r, miko_wink_w *restrict wink);
+miko_wink_w** miko_wink_search_data(const miko_wink_search_s *restrict r, uintptr_t *restrict count);
 void miko_wink_search_clear(miko_wink_search_s *restrict r);
 
 #endif

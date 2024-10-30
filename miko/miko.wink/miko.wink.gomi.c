@@ -1,5 +1,6 @@
 #include "miko.wink.gomi.h"
 #include "miko.wink.search.h"
+#include "miko.wink.see.h"
 #include "miko.list.api.h"
 
 static void miko_wink_gomi_free_func(miko_wink_gomi_s *restrict r)
@@ -15,12 +16,17 @@ static void miko_wink_gomi_free_func(miko_wink_gomi_s *restrict r)
 	while ((inode = r->root))
 	{
 		miko_list_unlink(&r->root, inode);
-		refer_free(inode);
+		miko_wink_w_free((miko_wink_w *) inode);
+	}
+	while ((inode = r->lost))
+	{
+		miko_list_unlink(&r->lost, inode);
+		miko_wink_w_free((miko_wink_w *) inode);
 	}
 	while ((inode = r->linked))
 	{
 		miko_list_unlink(&r->linked, inode);
-		refer_free(inode);
+		miko_wink_see_free((miko_wink_see_t *) inode);
 	}
 	refer_ck_free(r->signal);
 	refer_ck_free(r->request);

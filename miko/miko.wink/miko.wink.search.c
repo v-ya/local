@@ -19,7 +19,7 @@ miko_wink_search_s* miko_wink_search_alloc(void)
 	return NULL;
 }
 
-miko_wink_search_s* miko_wink_search_append(miko_wink_search_s *restrict r, miko_wink_s *restrict wink)
+miko_wink_search_s* miko_wink_search_append(miko_wink_search_s *restrict r, miko_wink_w *restrict wink)
 {
 	rbtree_t *restrict rbv;
 	if (!wink || rbtree_find(&r->exist, NULL, (uintptr_t) wink))
@@ -36,10 +36,10 @@ miko_wink_search_s* miko_wink_search_append(miko_wink_search_s *restrict r, miko
 	return NULL;
 }
 
-miko_wink_s** miko_wink_search_data(const miko_wink_search_s *restrict r, uintptr_t *restrict count)
+miko_wink_w** miko_wink_search_data(const miko_wink_search_s *restrict r, uintptr_t *restrict count)
 {
-	if (count) *count = r->wink_array.used / sizeof(miko_wink_s *);
-	return (miko_wink_s **) r->wink_array.data;
+	if (count) *count = r->wink_array.used / sizeof(miko_wink_w *);
+	return (miko_wink_w **) r->wink_array.data;
 }
 
 void miko_wink_search_clear(miko_wink_search_s *restrict r)

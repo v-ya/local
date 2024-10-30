@@ -6,8 +6,9 @@
 #include <yaw.h>
 
 struct miko_wink_gomi_s {
-	miko_list_t *root;           // list => (miko_wink_s *)
-	miko_list_t *linked;         // list => (miko_wink_see_s *)
+	miko_list_t *root;           // list => (miko_wink_w *)
+	miko_list_t *lost;           // list => (miko_wink_w *)
+	miko_list_t *linked;         // list => (miko_wink_see_t *)
 	yaw_signal_s *signal;        // user call signal
 	queue_s *request;            // user call queue
 	miko_wink_search_s *search;  // used by search
