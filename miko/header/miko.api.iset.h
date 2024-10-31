@@ -9,8 +9,8 @@
 
 miko_iset_s* miko_iset_alloc(const char *restrict name);
 miko_iset_s* miko_iset_add_depend(miko_iset_s *restrict r, const char *restrict name);
-miko_iset_s* miko_iset_add_score(miko_iset_s *restrict r, const char *restrict name);
-miko_iset_s* miko_iset_add_style(miko_iset_s *restrict r, const char *restrict name);
+miko_iset_s* miko_iset_add_segment(miko_iset_s *restrict r, const char *restrict name);
+miko_iset_s* miko_iset_add_action(miko_iset_s *restrict r, const char *restrict name);
 miko_iset_s* miko_iset_add_major(miko_iset_s *restrict r, const char *restrict major_name, miko_major_vtype_t vtype);
 miko_iset_s* miko_iset_add_minor(miko_iset_s *restrict r, const char *restrict major_name, miko_minor_s *restrict minor);
 miko_iset_s* miko_iset_add_default_minor(miko_iset_s *restrict r, const char *restrict major_name, const char *restrict minor_name);

@@ -43,11 +43,11 @@ const miko_iset_pool_s* miko_iset_pool_save_depend(const miko_iset_pool_s *restr
 		return NULL;\
 	}
 
-refer_string_t miko_iset_pool_save_score(const miko_iset_pool_s *restrict pool, const char *restrict name)
-	miko_iset_pool_save(refer_string_t, score)
+refer_string_t miko_iset_pool_save_segment(const miko_iset_pool_s *restrict pool, const char *restrict name)
+	miko_iset_pool_save(refer_string_t, segment)
 
-refer_string_t miko_iset_pool_save_style(const miko_iset_pool_s *restrict pool, const char *restrict name)
-	miko_iset_pool_save(refer_string_t, style)
+refer_string_t miko_iset_pool_save_action(const miko_iset_pool_s *restrict pool, const char *restrict name)
+	miko_iset_pool_save(refer_string_t, action)
 
 miko_major_s* miko_iset_pool_save_major(const miko_iset_pool_s *restrict pool, const char *restrict name)
 	miko_iset_pool_save(miko_major_s *, major)

@@ -25,7 +25,7 @@ struct miko_form_table_t {
 	miko_form_w *inode;
 };
 
-struct miko_form_table_s {
+struct miko_form_table_w {
 	miko_form_table_t *table;
 	uintptr_t count;
 };

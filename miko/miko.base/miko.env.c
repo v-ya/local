@@ -6,8 +6,8 @@ static void miko_env_free_func(miko_env_s *restrict r)
 	refer_ck_free(r->mlog);
 	refer_ck_free(r->log);
 	refer_ck_free(r->pool);
-	refer_ck_free(r->score);
-	refer_ck_free(r->style);
+	refer_ck_free(r->segment);
+	refer_ck_free(r->action);
 	refer_ck_free(r->major);
 	refer_ck_free(r->instruction);
 }
@@ -21,8 +21,8 @@ static miko_env_s* miko_env_alloc(mlog_s *restrict mlog)
 		r->mlog = (mlog_s *) refer_save(mlog);
 		if ((!mlog || (r->log = miko_log_alloc())) &&
 			(r->pool = vattr_alloc()) &&
-			(r->score = vattr_alloc()) &&
-			(r->style = vattr_alloc()) &&
+			(r->segment = vattr_alloc()) &&
+			(r->action = vattr_alloc()) &&
 			(r->major = vattr_alloc()) &&
 			(r->instruction = vattr_alloc()))
 			return r;

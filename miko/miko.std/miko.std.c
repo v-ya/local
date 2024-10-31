@@ -5,19 +5,19 @@ struct miko_iset_s* miko_std_env_register(miko_env_s *restrict env, struct miko_
 	miko_iset_s *restrict r;
 	if ((r = miko_iset_alloc(miko_std_name)))
 	{
-		// score
-		if (!miko_iset_add_score(r, miko_std_score__form))
+		// segment
+		if (!miko_iset_add_segment(r, miko_std_segment__form))
 			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__const))
+		if (!miko_iset_add_segment(r, miko_std_segment__const))
 			goto label_fail;
-		if (!miko_iset_add_score(r, miko_std_score__immed))
+		if (!miko_iset_add_segment(r, miko_std_segment__immed))
 			goto label_fail;
-		// style
-		if (!miko_iset_add_style(r, miko_std_style__read))
+		// action
+		if (!miko_iset_add_action(r, miko_std_action__read))
 			goto label_fail;
-		if (!miko_iset_add_style(r, miko_std_style__write))
+		if (!miko_iset_add_action(r, miko_std_action__write))
 			goto label_fail;
-		if (!miko_iset_add_style(r, miko_std_style__exec))
+		if (!miko_iset_add_action(r, miko_std_action__exec))
 			goto label_fail;
 		// major and minor
 		// instruction

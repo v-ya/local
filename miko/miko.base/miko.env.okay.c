@@ -3,8 +3,8 @@
 
 static void miko_env_reset(miko_env_s *restrict r)
 {
-	vattr_clear(r->score);
-	vattr_clear(r->style);
+	vattr_clear(r->segment);
+	vattr_clear(r->action);
 	vattr_clear(r->major);
 	vattr_clear(r->instruction);
 }
@@ -62,9 +62,9 @@ miko_env_s* miko_env_okay(miko_env_s *restrict r)
 	for (vlist = r->pool->vattr; vlist; vlist = vlist->vattr_next)
 	{
 		iset = (const miko_iset_s *) vlist->value;
-		if (!miko_env_vattr_append(r->score, iset->score))
+		if (!miko_env_vattr_append(r->segment, iset->segment))
 			goto label_fail;
-		if (!miko_env_vattr_append(r->style, iset->style))
+		if (!miko_env_vattr_append(r->action, iset->action))
 			goto label_fail;
 		if (!miko_env_vattr_append(r->major, iset->major))
 			goto label_fail;

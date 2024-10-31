@@ -4,8 +4,8 @@
 #include "miko.h"
 
 struct miko_instruction_prefix_t {
-	refer_string_t score;
-	refer_string_t style;
+	refer_string_t segment;
+	refer_string_t action;
 	refer_string_t major;
 	refer_string_t minor;
 };

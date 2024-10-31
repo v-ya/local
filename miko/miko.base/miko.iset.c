@@ -6,8 +6,8 @@ static void miko_iset_free_func(miko_iset_s *restrict r)
 {
 	refer_ck_free(r->name);
 	refer_ck_free(r->depend);
-	refer_ck_free(r->score);
-	refer_ck_free(r->style);
+	refer_ck_free(r->segment);
+	refer_ck_free(r->action);
 	refer_ck_free(r->major);
 	refer_ck_free(r->instruction);
 }
@@ -20,8 +20,8 @@ miko_iset_s* miko_iset_alloc(const char *restrict name)
 		refer_hook_free(r, iset);
 		if ((r->name = (name?refer_dump_string(name):NULL)) &&
 			(r->depend = vattr_alloc()) &&
-			(r->score = vattr_alloc()) &&
-			(r->style = vattr_alloc()) &&
+			(r->segment = vattr_alloc()) &&
+			(r->action = vattr_alloc()) &&
 			(r->major = vattr_alloc()) &&
 			(r->instruction = vattr_alloc()))
 			return r;
@@ -46,11 +46,11 @@ miko_iset_s* miko_iset_alloc(const char *restrict name)
 miko_iset_s* miko_iset_add_depend(miko_iset_s *restrict r, const char *restrict name)
 	miko_iset_add_string(depend, name)
 
-miko_iset_s* miko_iset_add_score(miko_iset_s *restrict r, const char *restrict name)
-	miko_iset_add_string(score, name)
+miko_iset_s* miko_iset_add_segment(miko_iset_s *restrict r, const char *restrict name)
+	miko_iset_add_string(segment, name)
 
-miko_iset_s* miko_iset_add_style(miko_iset_s *restrict r, const char *restrict name)
-	miko_iset_add_string(style, name)
+miko_iset_s* miko_iset_add_action(miko_iset_s *restrict r, const char *restrict name)
+	miko_iset_add_string(action, name)
 
 #undef miko_iset_add_string
 
