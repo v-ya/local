@@ -30,6 +30,7 @@ static void miko_wink_gomi_free_func(miko_wink_gomi_s *restrict r)
 	}
 	refer_ck_free(r->signal);
 	refer_ck_free(r->request);
+	refer_ck_free(r->searched);
 	refer_ck_free(r->search);
 	refer_ck_free(r->cache);
 }
@@ -42,8 +43,9 @@ miko_wink_gomi_s* miko_wink_gomi_alloc(void)
 		refer_hook_free(r, gomi);
 		if ((r->signal = yaw_signal_alloc()) &&
 			(r->request = queue_alloc_ring(1024)) &&
-			(r->search = miko_wink_search_alloc()) &&
-			(r->cache = miko_wink_search_alloc()) &&
+			(r->searched = miko_wink_searched_alloc()) &&
+			(r->search = miko_wink_search_alloc(r->searched)) &&
+			(r->cache = miko_wink_search_alloc(r->searched)) &&
 			(r->daemon = yaw_alloc_and_start(miko_wink_gomi_daemon, NULL, r)))
 			return r;
 		refer_free(r);

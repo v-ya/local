@@ -12,6 +12,7 @@ typedef volatile uintptr_t miko_wink_batch_t;
 
 typedef struct miko_wink_w miko_wink_w;
 typedef struct miko_wink_search_s miko_wink_search_s;
+typedef struct miko_wink_searched_s miko_wink_searched_s;
 
 struct miko_wink_w {
 	miko_list_t inode;

@@ -33,6 +33,7 @@ static miko_wink_gomi_s* miko_wink_gomi_go(miko_wink_gomi_s *restrict gomi, miko
 	if ((env->timestamp_next_msec += env->miko_gomi_msec) < env->timestamp_curr_msec)
 		env->timestamp_next_msec = env->timestamp_curr_msec;
 	memset(&env->data, 0, sizeof(env->data));
+	miko_wink_searched_clear(gomi->searched);
 	if (miko_wink_gomi_visible_initial(gomi, gomi->search, &env->data) &&
 		miko_wink_gomi_visible_layer(gomi, gomi->search, gomi->cache, &env->data) &&
 		gomi->skip == batch_skip)
@@ -45,6 +46,7 @@ static miko_wink_gomi_s* miko_wink_gomi_go(miko_wink_gomi_s *restrict gomi, miko
 	}
 	miko_wink_search_clear(gomi->search);
 	miko_wink_search_clear(gomi->cache);
+	miko_wink_searched_clear(gomi->searched);
 	return result;
 }
 

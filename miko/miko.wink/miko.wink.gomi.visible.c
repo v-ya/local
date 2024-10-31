@@ -49,7 +49,7 @@ miko_wink_gomi_s* miko_wink_gomi_visible_layer(miko_wink_gomi_s *restrict gomi, 
 	miko_wink_search_s *restrict swap;
 	miko_wink_w **restrict wink_array;
 	uintptr_t wink_count;
-	if (!miko_wink_gomi_visible_layer_collect(gomi, cache))
+	if (!miko_wink_gomi_visible_layer_collect(gomi, search))
 		goto label_fail;
 	while ((wink_array = miko_wink_search_data(search, &wink_count)) && wink_count)
 	{
