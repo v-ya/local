@@ -3,6 +3,7 @@
 
 #include "miko.api.vector.h"
 #include "miko.api.strpool.h"
+#include "miko.api.form.h"
 #include "miko.api.log.h"
 #include "miko.api.iset.h"
 #include "miko.api.minor.h"
