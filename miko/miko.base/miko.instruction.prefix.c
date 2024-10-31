@@ -7,7 +7,7 @@ static const miko_access_prefix_t* miko_instruction_prefix_get_count(const miko_
 	uintptr_t i;
 	if (prefix)
 	{
-		for (i = 0; prefix[i].segment && prefix[i].action && prefix[i].major; ++i) ;
+		for (i = 0; prefix[i].action && prefix[i].major; ++i) ;
 		*count = i;
 		if (!prefix[i].segment && !prefix[i].action && !prefix[i].major && !prefix[i].minor)
 			return prefix;
@@ -45,8 +45,11 @@ miko_instruction_prefix_s* miko_instruction_prefix_alloc(const miko_iset_pool_s 
 		{
 			major = NULL;
 			minor = NULL;
-			if (!(r->prefix[i].segment = miko_iset_pool_save_segment(pool, prefix[i].segment)))
-				goto label_fail;
+			if (prefix[i].segment)
+			{
+				if (!(r->prefix[i].segment = miko_iset_pool_save_segment(pool, prefix[i].segment)))
+					goto label_fail;
+			}
 			if (!(r->prefix[i].action = miko_iset_pool_save_action(pool, prefix[i].action)))
 				goto label_fail;
 			if (!(major = miko_iset_pool_save_major(pool, prefix[i].major)))

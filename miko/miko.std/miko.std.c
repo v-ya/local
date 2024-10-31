@@ -6,11 +6,11 @@ struct miko_iset_s* miko_std_env_register(miko_env_s *restrict env, struct miko_
 	if ((r = miko_iset_alloc(miko_std_name)))
 	{
 		// segment
-		if (!miko_iset_add_segment(r, miko_std_segment__form))
+		if (!miko_iset_add_segment(r, miko_std_segment__stack))
 			goto label_fail;
-		if (!miko_iset_add_segment(r, miko_std_segment__const))
+		if (!miko_iset_add_segment(r, miko_std_segment__static))
 			goto label_fail;
-		if (!miko_iset_add_segment(r, miko_std_segment__immed))
+		if (!miko_iset_add_segment(r, miko_std_segment__this))
 			goto label_fail;
 		// action
 		if (!miko_iset_add_action(r, miko_std_action__read))

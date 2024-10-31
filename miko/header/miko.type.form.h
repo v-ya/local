@@ -7,7 +7,7 @@
 
 typedef struct miko_form_t miko_form_t;
 typedef struct miko_form_w miko_form_w;
-typedef struct miko_form_table_t miko_form_table_t;
+typedef miko_form_t **miko_form_table_t;
 typedef struct miko_form_table_s miko_form_table_s;
 
 struct miko_form_t {
@@ -20,14 +20,10 @@ struct miko_form_w {
 	uintptr_t count;
 };
 
-struct miko_form_table_t {
-	miko_form_t *locate;
-	miko_form_w *inode;
-};
-
+// don't at this call (miko_wink_used or miko_wink_ref) by (miko_form_t *)
 struct miko_form_table_s {
-	miko_form_table_t *table;
-	uintptr_t count;
+	miko_form_table_t table_array;
+	uintptr_t table_count;
 };
 
 #endif
