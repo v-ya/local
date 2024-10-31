@@ -21,15 +21,19 @@ static void miko_form_impl_free_func(miko_form_impl_w *restrict r)
 	exbuffer_uini(&r->buffer);
 }
 
-miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi)
+miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi, uintptr_t max_count)
 {
 	miko_form_impl_w *restrict r;
 	if ((r = ((miko_form_impl_w *) miko_wink_alloz(gomi, sizeof(miko_form_impl_w), NULL,
 		(miko_wink_view_f) miko_form_impl_view_func,
 		(miko_wink_free_f) miko_form_impl_free_func))))
 	{
-		if (exbuffer_init(&r->buffer, 0))
+		if (exbuffer_init(&r->buffer, max_count * sizeof(miko_form_t)))
+		{
+			r->form.form = (miko_form_t *) r->buffer.data;
+			r->limit = max_count;
 			return &r->form;
+		}
 		miko_wink_unref(r);
 	}
 	return NULL;
@@ -40,8 +44,11 @@ miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi)
 miko_form_w* miko_form_set_limit(miko_form_w *restrict r, uintptr_t max_count)
 {
 	miko_form_t *restrict p;
-	if (max_count > _impl_(r)->limit)
+	uintptr_t size;
+	if (max_count >= _impl_(r)->form.count)
 	{
+		if ((size = max_count * sizeof(miko_form_t)) <= _impl_(r)->buffer.size)
+			goto label_okay;
 		miko_wink_wlock_lock(r);
 		if ((p = (miko_form_t *) exbuffer_need(&_impl_(r)->buffer, max_count * sizeof(miko_form_t))))
 		{
@@ -49,7 +56,11 @@ miko_form_w* miko_form_set_limit(miko_form_w *restrict r, uintptr_t max_count)
 			_impl_(r)->limit = max_count;
 		}
 		miko_wink_wlock_unlock(r);
-		if (p) return r;
+		if (p)
+		{
+			label_okay:
+			return r;
+		}
 	}
 	return NULL;
 }

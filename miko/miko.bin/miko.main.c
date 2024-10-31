@@ -25,7 +25,7 @@ int main(int argc, const char *argv[])
 				miko_wink_gomi_default_report(gomi, mlog, 1);
 				miko_wink_gomi_call_cycle(gomi, 200);
 				// gomi_test(gomi, mlog);
-				// gomi_test_form(gomi, mlog);
+				gomi_test_form(gomi, mlog);
 				refer_free(gomi);
 			}
 			refer_free(env);
@@ -56,10 +56,8 @@ void gomi_test_form(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 		refer_t refer;
 		real_count = refer_count = wink_count = n;
 		range_max -= range_min;
-		if (range_max && (form = miko_form_alloc(gomi)))
+		if (range_max && (form = miko_form_alloc(gomi, real_count + refer_count + wink_count)))
 		{
-			mlog_printf(mlog, "form limit [%zu]...\n", real_count + refer_count + wink_count);
-			miko_form_set_limit(form, real_count + refer_count + wink_count);
 			while (real_count || refer_count || wink_count)
 			{
 				#define _rand_count_(_type_, _n_)  \
@@ -104,9 +102,8 @@ void gomi_test_form(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 				}
 			}
 			mlog_printf(mlog, "form [%zu]...\n", form->count);
-			if ((copy = miko_form_alloc(gomi)))
+			if ((copy = miko_form_alloc(gomi, form->count)))
 			{
-				miko_form_set_limit(copy, form->count);
 				miko_form_push_copy(copy, form->form, form->count);
 				miko_wink_unref(form);
 				form = copy;

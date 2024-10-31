@@ -51,4 +51,12 @@
 //           { std.segment.form, std.action.read,  std.major.uint, std.minor.bit32 }, { stack:form_index, form:var_index },
 //           { std.segment.form, std.action.read,  std.major.uint, std.minor.bit32 }, { stack:form_index, form:var_index }
 
+// form table
+// static by per miko.env
+// ep. call function
+// [instr] push param
+// [instr] fix miko.form.table[stack] and miko.form.table[static]
+// [instr] call function
+// [instr] fix miko.form.table[stack] and miko.form.table[static]
+
 #endif
