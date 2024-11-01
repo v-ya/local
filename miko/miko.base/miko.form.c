@@ -65,7 +65,37 @@ miko_form_w* miko_form_set_limit(miko_form_w *restrict r, miko_count_t max_count
 	return NULL;
 }
 
-miko_form_w* miko_form_push_zero(miko_form_w *restrict r, miko_major_vtype_t vtype, miko_count_t count)
+miko_form_w* miko_form_push_1_zero(miko_form_w *restrict r, miko_major_vtype_t vtype)
+{
+	miko_form_t *restrict p;
+	uintptr_t pos;
+	if ((pos = _impl_(r)->form.count) < _impl_(r)->limit)
+	{
+		p = _impl_(r)->form.form + pos;
+		p->var.u64 = 0;
+		p->vtype = vtype;
+		_impl_(r)->form.count = pos + 1;
+		return r;
+	}
+	return NULL;
+}
+
+miko_form_w* miko_form_push_1_copy(miko_form_w *restrict r, const miko_form_t *restrict value)
+{
+	miko_form_t *restrict p;
+	uintptr_t pos;
+	if ((pos = _impl_(r)->form.count) < _impl_(r)->limit)
+	{
+		p = _impl_(r)->form.form + pos;
+		p->var = value->var;
+		p->vtype = value->vtype;
+		_impl_(r)->form.count = pos + 1;
+		return r;
+	}
+	return NULL;
+}
+
+miko_form_w* miko_form_push_n_zero(miko_form_w *restrict r, miko_major_vtype_t vtype, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t pos;
@@ -85,7 +115,7 @@ miko_form_w* miko_form_push_zero(miko_form_w *restrict r, miko_major_vtype_t vty
 	return NULL;
 }
 
-miko_form_w* miko_form_push_copy(miko_form_w *restrict r, const miko_form_t *restrict array, miko_count_t count)
+miko_form_w* miko_form_push_n_copy(miko_form_w *restrict r, const miko_form_t *restrict array, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t pos;

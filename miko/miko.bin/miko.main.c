@@ -65,7 +65,7 @@ void gomi_test_form(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 					if (_n_ > _type_##_count) _n_ = _type_##_count;\
 					_type_##_count -= _n_
 				#define _push_count_(_type_, _n_)  \
-					if (_n_ && !miko_form_push_zero(form, miko_major_vtype__##_type_, _n_))\
+					if (_n_ && !miko_form_push_n_zero(form, miko_major_vtype__##_type_, _n_))\
 						goto label_fail
 				_rand_count_(real, n);
 				_push_count_(real, n);
@@ -104,7 +104,7 @@ void gomi_test_form(miko_wink_gomi_s *gomi, mlog_s *restrict mlog)
 			mlog_printf(mlog, "form [%zu]...\n", form->count);
 			if ((copy = miko_form_alloc(gomi, form->count)))
 			{
-				miko_form_push_copy(copy, form->form, form->count);
+				miko_form_push_n_copy(copy, form->form, form->count);
 				miko_wink_unref(form);
 				form = copy;
 				copy = NULL;
