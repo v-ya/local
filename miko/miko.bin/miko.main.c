@@ -25,7 +25,7 @@ int main(int argc, const char *argv[])
 				miko_wink_gomi_default_report(gomi, mlog, 1);
 				miko_wink_gomi_call_cycle(gomi, 200);
 				// gomi_test(gomi, mlog);
-				gomi_test_form(gomi, mlog);
+				// gomi_test_form(gomi, mlog);
 				refer_free(gomi);
 			}
 			refer_free(env);

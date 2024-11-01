@@ -1,6 +1,6 @@
 #include "miko.form.h"
 
-miko_form_table_s* miko_form_table_alloc(uintptr_t count)
+miko_form_table_s* miko_form_table_alloc(miko_count_t count)
 {
 	miko_form_table_s *restrict r;
 	if ((r = (miko_form_table_s *) refer_alloz(sizeof(miko_form_table_s) + count * sizeof(miko_form_t *))))

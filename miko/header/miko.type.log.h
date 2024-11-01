@@ -3,6 +3,8 @@
 
 #include <refer.h>
 
+typedef uintptr_t miko_log_into_t;  // vaild < ~(uintptr_t) 0
+
 typedef struct miko_log_s miko_log_s;
 
 typedef enum miko_log_level_t miko_log_level_t;

@@ -1,6 +1,7 @@
 #ifndef _miko_type_instr_h_
 #define _miko_type_instr_h_
 
+#include "miko.type.base.h"
 #include "miko.type.rt.h"
 #include "miko.type.form.h"
 #include "miko.type.access.h"
@@ -13,7 +14,7 @@ struct miko_instr_t {
 	miko_index_t instruction;
 	miko_instr_f instr_func;
 	refer_t instr_data;
-	uintptr_t count;
+	miko_count_t count;
 	miko_access_t argv[];
 };
 

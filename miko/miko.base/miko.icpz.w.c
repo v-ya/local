@@ -1,10 +1,6 @@
 #include "miko.icpz.h"
 #include <exbuffer.h>
 
-struct miko_icpz_w_s {
-	exbuffer_t icpz;
-};
-
 static void miko_icpz_w_free_func(miko_icpz_w_s *restrict r)
 {
 	exbuffer_uini(&r->icpz);

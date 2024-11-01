@@ -10,7 +10,7 @@ typedef struct miko_strpool_s miko_strpool_s;
 struct miko_strpool_item_t {
 	refer_string_t string;
 	uintptr_t length;
-	uintptr_t count;
+	miko_count_t count;
 };
 
 struct miko_strpool_s {

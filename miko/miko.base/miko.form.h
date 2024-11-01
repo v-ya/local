@@ -9,7 +9,7 @@ typedef struct miko_form_impl_w miko_form_impl_w;
 struct miko_form_impl_w {
 	miko_form_w form;
 	exbuffer_t buffer;
-	uintptr_t limit;
+	miko_count_t limit;
 };
 
 #endif

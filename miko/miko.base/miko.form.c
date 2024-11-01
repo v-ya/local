@@ -21,7 +21,7 @@ static void miko_form_impl_free_func(miko_form_impl_w *restrict r)
 	exbuffer_uini(&r->buffer);
 }
 
-miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi, uintptr_t max_count)
+miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi, miko_count_t max_count)
 {
 	miko_form_impl_w *restrict r;
 	if ((r = ((miko_form_impl_w *) miko_wink_alloz(gomi, sizeof(miko_form_impl_w), NULL,
@@ -41,7 +41,7 @@ miko_form_w* miko_form_alloc(miko_wink_gomi_s *restrict gomi, uintptr_t max_coun
 
 #define _impl_(_form_)  ((miko_form_impl_w *) (_form_))
 
-miko_form_w* miko_form_set_limit(miko_form_w *restrict r, uintptr_t max_count)
+miko_form_w* miko_form_set_limit(miko_form_w *restrict r, miko_count_t max_count)
 {
 	miko_form_t *restrict p;
 	uintptr_t size;
@@ -65,7 +65,7 @@ miko_form_w* miko_form_set_limit(miko_form_w *restrict r, uintptr_t max_count)
 	return NULL;
 }
 
-miko_form_w* miko_form_push_zero(miko_form_w *restrict r, miko_major_vtype_t vtype, uintptr_t count)
+miko_form_w* miko_form_push_zero(miko_form_w *restrict r, miko_major_vtype_t vtype, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t pos;
@@ -85,7 +85,7 @@ miko_form_w* miko_form_push_zero(miko_form_w *restrict r, miko_major_vtype_t vty
 	return NULL;
 }
 
-miko_form_w* miko_form_push_copy(miko_form_w *restrict r, const miko_form_t *restrict array, uintptr_t count)
+miko_form_w* miko_form_push_copy(miko_form_w *restrict r, const miko_form_t *restrict array, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t pos;
@@ -113,7 +113,7 @@ miko_form_w* miko_form_push_copy(miko_form_w *restrict r, const miko_form_t *res
 	return NULL;
 }
 
-void miko_form_pop(miko_form_w *restrict r, uintptr_t count)
+void miko_form_pop(miko_form_w *restrict r, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t tail;
@@ -133,7 +133,7 @@ void miko_form_pop(miko_form_w *restrict r, uintptr_t count)
 	}
 }
 
-void miko_form_keep_count(miko_form_w *restrict r, uintptr_t count)
+void miko_form_keep_count(miko_form_w *restrict r, miko_count_t count)
 {
 	miko_form_t *restrict p;
 	uintptr_t tail;

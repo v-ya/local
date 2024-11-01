@@ -118,7 +118,7 @@ miko_log_s* miko_log_add_key_value(miko_log_s *restrict r, miko_log_level_t leve
 	return NULL;
 }
 
-uintptr_t miko_log_into(miko_log_s *restrict r, refer_string_t name)
+miko_log_into_t miko_log_into(miko_log_s *restrict r, refer_string_t name)
 {
 	miko_log_item_t item;
 	uintptr_t result;
@@ -135,7 +135,7 @@ uintptr_t miko_log_into(miko_log_s *restrict r, refer_string_t name)
 	return ~(uintptr_t) 0;
 }
 
-uintptr_t miko_log_into_name(miko_log_s *restrict r, const char *restrict name)
+miko_log_into_t miko_log_into_name(miko_log_s *restrict r, const char *restrict name)
 {
 	refer_string_t n;
 	uintptr_t result;
@@ -149,7 +149,7 @@ uintptr_t miko_log_into_name(miko_log_s *restrict r, const char *restrict name)
 	return ~(uintptr_t) 0;
 }
 
-void miko_log_back(miko_log_s *restrict r, uintptr_t into_result)
+void miko_log_back(miko_log_s *restrict r, miko_log_into_t into_result)
 {
 	miko_log_item_t *restrict item;
 	uintptr_t count;

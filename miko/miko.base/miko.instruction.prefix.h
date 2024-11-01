@@ -11,7 +11,7 @@ struct miko_instruction_prefix_t {
 };
 
 struct miko_instruction_prefix_s {
-	uintptr_t count;
+	miko_count_t count;
 	miko_instruction_prefix_t prefix[];
 };
 

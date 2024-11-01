@@ -1,6 +1,7 @@
 #ifndef _miko_type_form_h_
 #define _miko_type_form_h_
 
+#include "miko.type.base.h"
 #include "miko.type.var.h"
 #include "miko.type.major.h"
 #include "miko.wink.h"
@@ -17,13 +18,13 @@ struct miko_form_t {
 
 struct miko_form_w {
 	miko_form_t *form;
-	uintptr_t count;
+	miko_count_t count;
 };
 
 // don't at this call (miko_wink_used or miko_wink_ref) by (miko_form_t *)
 struct miko_form_table_s {
 	miko_form_table_t table_array;
-	uintptr_t table_count;
+	miko_count_t table_count;
 };
 
 #endif

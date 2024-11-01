@@ -25,7 +25,7 @@ miko_vector_s_t miko_vector_alloc(uintptr_t item_size, miko_vector_initial_f ini
 	return NULL;
 }
 
-uintptr_t miko_vector_push(miko_vector_s_t r, const void *item_array, uintptr_t item_count)
+miko_count_t miko_vector_push(miko_vector_s_t r, const void *item_array, miko_count_t item_count)
 {
 	miko_vector_initial_f initial;
 	uint8_t *restrict p;
@@ -52,7 +52,7 @@ uintptr_t miko_vector_push(miko_vector_s_t r, const void *item_array, uintptr_t 
 	return 0;
 }
 
-uintptr_t miko_vector_pop(miko_vector_s_t r, uintptr_t item_count)
+miko_count_t miko_vector_pop(miko_vector_s_t r, miko_count_t item_count)
 {
 	miko_vector_finally_f finally;
 	uint8_t *restrict p;
@@ -68,7 +68,7 @@ uintptr_t miko_vector_pop(miko_vector_s_t r, uintptr_t item_count)
 	return item_count;
 }
 
-uintptr_t miko_vector_count(const miko_vector_s_t r)
+miko_count_t miko_vector_count(const miko_vector_s_t r)
 {
 	return r->item_count;
 }
@@ -78,14 +78,14 @@ void* miko_vector_data(const miko_vector_s_t r)
 	return r->vector.data;
 }
 
-void* miko_vector_index(const miko_vector_s_t r, uintptr_t item_index)
+void* miko_vector_index(const miko_vector_s_t r, miko_offset_t item_index)
 {
 	if (item_index < r->item_count)
 		return r->vector.data + item_index * r->item_size;
 	return NULL;
 }
 
-void* miko_vector_map(const miko_vector_s_t r, uintptr_t item_offset, uintptr_t item_count, uintptr_t *restrict count)
+void* miko_vector_map(const miko_vector_s_t r, miko_offset_t item_offset, miko_count_t item_count, miko_count_t *restrict count)
 {
 	uintptr_t n;
 	n = r->item_count;

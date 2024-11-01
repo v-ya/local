@@ -22,7 +22,7 @@ struct miko_log_data_item_t {
 
 struct miko_log_data_inode_t {
 	refer_string_t name;
-	uintptr_t count;
+	miko_count_t count;
 };
 
 union miko_log_data_t {

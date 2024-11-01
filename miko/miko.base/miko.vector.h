@@ -11,7 +11,7 @@ struct miko_vector_s {
 	miko_vector_initial_f initial;
 	miko_vector_finally_f finally;
 	uintptr_t item_size;
-	uintptr_t item_count;
+	miko_count_t item_count;
 };
 
 #endif
