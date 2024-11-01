@@ -16,7 +16,5 @@ struct miko_major_s {
 };
 
 miko_major_s* miko_major_alloc(const char *restrict name, refer_string_t iset, miko_major_vtype_t vtype);
-miko_major_s* miko_major_add_minor(miko_major_s *restrict r, miko_minor_s *restrict minor);
-miko_minor_s* miko_major_save_minor(const miko_major_s *restrict r, const char *restrict name);
 
 #endif

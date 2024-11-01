@@ -3,6 +3,11 @@
 
 static void miko_env_reset(miko_env_s *restrict r)
 {
+	if (r->table)
+	{
+		refer_free(r->table);
+		r->table = NULL;
+	}
 	vattr_clear(r->segment);
 	vattr_clear(r->action);
 	vattr_clear(r->major);
@@ -71,7 +76,8 @@ miko_env_s* miko_env_okay(miko_env_s *restrict r)
 		if (!miko_env_vattr_append(r->instruction, iset->instruction))
 			goto label_fail;
 	}
-	return r;
+	if ((r->table = miko_env_table_alloc(r)))
+		return r;
 	label_fail:
 	return NULL;
 }

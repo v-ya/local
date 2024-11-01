@@ -1,5 +1,16 @@
 #include "miko.major.h"
 
+static void* miko_major_vector_initial_func(refer_t *restrict r)
+{
+	refer_save(*r);
+	return r;
+}
+
+static void miko_major_vector_finally_func(refer_t *restrict r)
+{
+	refer_ck_free(*r);
+}
+
 static void miko_major_free_func(miko_major_s *restrict r)
 {
 	refer_ck_free(r->name);
@@ -23,7 +34,9 @@ miko_major_s* miko_major_alloc(const char *restrict name, refer_string_t iset, m
 			(r->iset = (refer_string_t) refer_save(iset)) &&
 			!yaw_lock_alloc_rwlock(&r->read, &r->write) &&
 			(r->pool = vattr_alloc()) &&
-			(r->table = miko_vector_alloc(sizeof(miko_minor_s *), NULL, NULL)) &&
+			(r->table = miko_vector_alloc(sizeof(miko_minor_s *),
+				(miko_vector_initial_f) miko_major_vector_initial_func,
+				(miko_vector_finally_f) miko_major_vector_finally_func)) &&
 			miko_vector_push(r->table, (const void *) &minor, 1))
 			return r;
 		refer_free(r);
@@ -55,7 +68,18 @@ miko_major_s* miko_major_add_minor(miko_major_s *restrict r, miko_minor_s *restr
 	return result;
 }
 
-miko_minor_s* miko_major_save_minor(const miko_major_s *restrict r, const char *restrict name)
+miko_minor_s* miko_major_save_minor_by_index(const miko_major_s *restrict r, miko_index_t index)
+{
+	miko_minor_s *restrict minor;
+	yaw_lock_s *restrict lock;
+	lock = r->read;
+	yaw_lock_lock(lock);
+	refer_save(minor = (miko_minor_s *) miko_vector_index(r->table, index));
+	yaw_lock_unlock(lock);
+	return minor;
+}
+
+miko_minor_s* miko_major_save_minor_by_name(const miko_major_s *restrict r, const char *restrict name)
 {
 	miko_minor_s *restrict minor;
 	yaw_lock_s *restrict lock;
@@ -63,7 +87,7 @@ miko_minor_s* miko_major_save_minor(const miko_major_s *restrict r, const char *
 	{
 		lock = r->read;
 		yaw_lock_lock(lock);
-		minor = (miko_minor_s *) vattr_get_first(r->pool, name);
+		refer_save(minor = (miko_minor_s *) vattr_get_first(r->pool, name));
 		yaw_lock_unlock(lock);
 		return minor;
 	}

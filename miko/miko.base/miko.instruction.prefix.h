@@ -3,6 +3,9 @@
 
 #include "miko.h"
 
+typedef struct miko_instruction_prefix_t miko_instruction_prefix_t;
+typedef struct miko_instruction_prefix_s miko_instruction_prefix_s;
+
 struct miko_instruction_prefix_t {
 	refer_string_t segment;
 	refer_string_t action;
@@ -16,5 +19,6 @@ struct miko_instruction_prefix_s {
 };
 
 miko_instruction_prefix_s* miko_instruction_prefix_alloc(const miko_iset_pool_s *restrict pool, const miko_access_prefix_t prefix[]);
+const miko_instruction_prefix_s* miko_instruction_prefix_vaild(const miko_instruction_prefix_s *restrict r, const miko_access_prefix_t prefix[]);
 
 #endif

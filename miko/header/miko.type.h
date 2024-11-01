@@ -3,6 +3,7 @@
 
 #include "miko.type.base.h"
 #include "miko.type.env.h"
+#include "miko.type.env.table.h"
 #include "miko.type.rt.h"
 #include "miko.type.icpz.h"
 #include "miko.type.vector.h"

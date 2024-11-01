@@ -2,6 +2,9 @@
 #define _miko_base_miko_instruction_h_
 
 #include "miko.h"
+#include "miko.instruction.prefix.h"
+
+typedef struct miko_instruction_func_t miko_instruction_func_t;
 
 struct miko_instruction_func_t {
 	miko_instruction_attr_call_f call;

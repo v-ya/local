@@ -8,6 +8,7 @@
 #include "miko.api.form.h"
 #include "miko.api.log.h"
 #include "miko.api.iset.h"
+#include "miko.api.major.h"
 #include "miko.api.minor.h"
 #include "miko.api.env.h"
 

@@ -6,6 +6,7 @@ static void miko_env_free_func(miko_env_s *restrict r)
 	refer_ck_free(r->mlog);
 	refer_ck_free(r->log);
 	refer_ck_free(r->pool);
+	refer_ck_free(r->table);
 	refer_ck_free(r->segment);
 	refer_ck_free(r->action);
 	refer_ck_free(r->major);

@@ -1,5 +1,16 @@
 #include "miko.table.h"
 
+static void* miko_table_impl_vector_initial_func(refer_t *restrict r)
+{
+	refer_save(*r);
+	return r;
+}
+
+static void miko_table_impl_vector_finally_func(refer_t *restrict r)
+{
+	refer_ck_free(*r);
+}
+
 static void miko_table_impl_free_func(miko_table_impl_s *restrict r)
 {
 	refer_ck_free(r->range);
@@ -15,14 +26,21 @@ static miko_table_impl_s* miko_table_alloc(void)
 		refer_hook_free(r, table_impl);
 		refer = NULL;
 		if ((r->vector = miko_vector_alloc(sizeof(refer_t),
-			(miko_vector_initial_f) refer_save,
-			(miko_vector_finally_f) (miko_func_f) refer_free)) &&
+			(miko_vector_initial_f) miko_table_impl_vector_initial_func,
+			(miko_vector_finally_f) miko_table_impl_vector_finally_func)) &&
 			(r->range = vattr_alloc()) &&
-			miko_vector_push(r->vector, &refer, sizeof(refer_t)))
+			miko_vector_push(r->vector, &refer, 1))
 			return r;
 		refer_free(r);
 	}
 	return NULL;
+}
+
+static const miko_table_s* miko_table_okay(miko_table_impl_s *restrict r)
+{
+	r->table.table = miko_vector_data(r->vector);
+	r->table.count = miko_vector_count(r->vector);
+	return &r->table;
 }
 
 static miko_table_impl_s* miko_table_set_range(miko_table_impl_s *restrict r, const char *restrict name, miko_index_t index, miko_count_t count)
@@ -49,7 +67,7 @@ static miko_table_impl_s* miko_table_initial_single(miko_table_impl_s *restrict 
 		if (vlist->vslot->vslot == vlist)
 		{
 			index = miko_vector_count(r->vector);
-			if (!miko_vector_push(r->vector, &vlist->value, sizeof(refer_t)))
+			if (!miko_vector_push(r->vector, &vlist->value, 1))
 				goto label_fail;
 			if (!miko_table_set_range(r, vlist->vslot->key, index, 1))
 				goto label_fail;
@@ -73,7 +91,7 @@ static miko_table_impl_s* miko_table_initial_multi(miko_table_impl_s *restrict r
 			count = 0;
 			for (vslot = vlist; vslot; vslot = vslot->vslot_next)
 			{
-				if (!miko_vector_push(r->vector, &vslot->value, sizeof(refer_t)))
+				if (!miko_vector_push(r->vector, &vslot->value, 1))
 					goto label_fail;
 				count += 1;
 			}
@@ -86,31 +104,43 @@ static miko_table_impl_s* miko_table_initial_multi(miko_table_impl_s *restrict r
 	return NULL;
 }
 
-miko_table_s* miko_table_create_single(struct vattr_s *restrict pool)
+const miko_table_s* miko_table_create_single(struct vattr_s *restrict pool)
 {
 	miko_table_impl_s *restrict r;
 	if (pool && (r = miko_table_alloc()))
 	{
 		if (miko_table_initial_single(r, pool))
-			return &r->table;
+			return miko_table_okay(r);
 		refer_free(r);
 	}
 	return NULL;
 }
 
-miko_table_s* miko_table_create_multi(struct vattr_s *restrict pool)
+const miko_table_s* miko_table_create_multi(struct vattr_s *restrict pool)
 {
 	miko_table_impl_s *restrict r;
 	if (pool && (r = miko_table_alloc()))
 	{
 		if (miko_table_initial_multi(r, pool))
-			return &r->table;
+			return miko_table_okay(r);
 		refer_free(r);
 	}
 	return NULL;
 }
 
 #define _impl_(_table_)  ((miko_table_impl_s *) (_table_))
+
+const miko_table_s* miko_table_range(const miko_table_s *restrict r, const char *restrict name, miko_index_t *restrict index, miko_count_t *restrict count)
+{
+	const miko_table_range_s *restrict range;
+	if (name && (range = (const miko_table_range_s *) vattr_get_first(_impl_(r)->range, name)))
+	{
+		if (index) *index = range->index;
+		if (count) *count = range->count;
+		return r;
+	}
+	return NULL;
+}
 
 miko_index_t miko_table_index(const miko_table_s *restrict r, const char *restrict name)
 {

@@ -7,6 +7,7 @@
 typedef enum miko_instruction_attr_field_t miko_instruction_attr_field_t;
 typedef union miko_instruction_attr_value_t miko_instruction_attr_value_t;
 typedef struct miko_instruction_attr_t miko_instruction_attr_t;
+typedef struct miko_instruction_s miko_instruction_s;
 
 typedef miko_instr_f miko_instruction_attr_call_f;
 

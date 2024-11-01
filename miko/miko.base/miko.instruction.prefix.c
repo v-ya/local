@@ -1,6 +1,7 @@
 #include "miko.instruction.prefix.h"
 #include "miko.iset.pool.h"
 #include "miko.major.h"
+#include <string.h>
 
 static const miko_access_prefix_t* miko_instruction_prefix_get_count(const miko_access_prefix_t prefix[], uintptr_t *restrict count)
 {
@@ -58,7 +59,7 @@ miko_instruction_prefix_s* miko_instruction_prefix_alloc(const miko_iset_pool_s 
 				goto label_fail;
 			if (prefix[i].minor)
 			{
-				if (!(minor = miko_major_save_minor(major, prefix[i].minor)))
+				if (!(minor = miko_major_save_minor_by_name(major, prefix[i].minor)))
 					goto label_fail;
 				if (!(r->prefix[i].minor = (refer_string_t) refer_save(minor->name)))
 					goto label_fail;
@@ -72,5 +73,33 @@ miko_instruction_prefix_s* miko_instruction_prefix_alloc(const miko_iset_pool_s 
 		refer_ck_free(minor);
 		refer_free(r);
 	}
+	return NULL;
+}
+
+const miko_instruction_prefix_s* miko_instruction_prefix_vaild(const miko_instruction_prefix_s *restrict r, const miko_access_prefix_t prefix[])
+{
+	const char *restrict ustr;
+	refer_string_t istr;
+	uintptr_t i, n;
+	for (i = 0, n = r->count; i < n; ++i)
+	{
+		if ((istr = r->prefix[i].segment))
+		{
+			if (!(ustr = prefix[i].segment) || strcmp(istr, ustr))
+				goto label_fail;
+		}
+		if (!(ustr = prefix[i].action) || strcmp(r->prefix[i].action, ustr))
+			goto label_fail;
+		if (!(ustr = prefix[i].major) || strcmp(r->prefix[i].major, ustr))
+			goto label_fail;
+		if ((istr = r->prefix[i].minor))
+		{
+			if (!(ustr = prefix[i].minor) || strcmp(istr, ustr))
+				goto label_fail;
+		}
+	}
+	if (!prefix[i].segment && !prefix[i].action && !prefix[i].major && !prefix[i].minor)
+		return r;
+	label_fail:
 	return NULL;
 }
