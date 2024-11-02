@@ -104,6 +104,27 @@ static miko_table_impl_s* miko_table_initial_multi(miko_table_impl_s *restrict r
 	return NULL;
 }
 
+static miko_table_impl_s* miko_table_initial_builder(miko_table_impl_s *restrict r, const miko_table_s *restrict source, miko_table_builder_f builder)
+{
+	const refer_t *restrict p;
+	refer_t value;
+	uintptr_t i, n;
+	miko_bool_t isokay;
+	p = source->table;
+	n = source->count;
+	isokay = 1;
+	for (i = 0; isokay && i < n; ++i)
+	{
+		value = builder(p[i], &isokay);
+		if (!miko_vector_push(r->vector, &value, 1))
+			goto label_fail;
+	}
+	if (isokay)
+		return r;
+	label_fail:
+	return NULL;
+}
+
 const miko_table_s* miko_table_create_single(struct vattr_s *restrict pool)
 {
 	miko_table_impl_s *restrict r;
@@ -122,6 +143,18 @@ const miko_table_s* miko_table_create_multi(struct vattr_s *restrict pool)
 	if (pool && (r = miko_table_alloc()))
 	{
 		if (miko_table_initial_multi(r, pool))
+			return miko_table_okay(r);
+		refer_free(r);
+	}
+	return NULL;
+}
+
+const miko_table_s* miko_table_create_builder(const miko_table_s *restrict source, miko_table_builder_f builder)
+{
+	miko_table_impl_s *restrict r;
+	if (source && builder && (r = miko_table_alloc()))
+	{
+		if (miko_table_initial_builder(r, source, builder))
 			return miko_table_okay(r);
 		refer_free(r);
 	}

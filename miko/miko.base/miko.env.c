@@ -6,10 +6,12 @@ static void miko_env_free_func(miko_env_s *restrict r)
 	refer_ck_free(r->mlog);
 	refer_ck_free(r->log);
 	refer_ck_free(r->pool);
-	refer_ck_free(r->table);
+	refer_ck_free(r->runtime);
 	refer_ck_free(r->segment);
 	refer_ck_free(r->action);
+	refer_ck_free(r->interrupt);
 	refer_ck_free(r->major);
+	refer_ck_free(r->process);
 	refer_ck_free(r->instruction);
 }
 
@@ -24,7 +26,9 @@ static miko_env_s* miko_env_alloc(mlog_s *restrict mlog)
 			(r->pool = vattr_alloc()) &&
 			(r->segment = vattr_alloc()) &&
 			(r->action = vattr_alloc()) &&
+			(r->interrupt = vattr_alloc()) &&
 			(r->major = vattr_alloc()) &&
+			(r->process = vattr_alloc()) &&
 			(r->instruction = vattr_alloc()))
 			return r;
 		refer_free(r);

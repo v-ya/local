@@ -8,7 +8,7 @@
 
 typedef struct miko_instr_t miko_instr_t;
 
-typedef miko_rt_s* (*miko_instr_f)(const miko_instr_t *restrict instr, miko_form_table_t segment, miko_rt_s *restrict runtime);
+typedef miko_interrupt_t (*miko_instr_f)(const miko_instr_t *restrict instr, miko_form_table_t segment, miko_rt_s *restrict runtime);
 
 struct miko_instr_t {
 	miko_index_t instruction;

@@ -14,5 +14,7 @@ void miko_form_pop(miko_form_w *restrict r, miko_count_t count);
 void miko_form_keep_count(miko_form_w *restrict r, miko_count_t count);
 
 miko_form_table_s* miko_form_table_alloc(miko_count_t count);
+void miko_form_table_clear(miko_form_table_s *restrict r);
+miko_form_table_s* miko_form_table_copy(miko_form_table_s *restrict dst, const miko_form_table_s *restrict src);
 
 #endif

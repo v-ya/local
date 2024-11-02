@@ -8,7 +8,9 @@ static void miko_iset_free_func(miko_iset_s *restrict r)
 	refer_ck_free(r->depend);
 	refer_ck_free(r->segment);
 	refer_ck_free(r->action);
+	refer_ck_free(r->interrupt);
 	refer_ck_free(r->major);
+	refer_ck_free(r->process);
 	refer_ck_free(r->instruction);
 }
 
@@ -22,7 +24,9 @@ miko_iset_s* miko_iset_alloc(const char *restrict name)
 			(r->depend = vattr_alloc()) &&
 			(r->segment = vattr_alloc()) &&
 			(r->action = vattr_alloc()) &&
+			(r->interrupt = vattr_alloc()) &&
 			(r->major = vattr_alloc()) &&
+			(r->process = vattr_alloc()) &&
 			(r->instruction = vattr_alloc()))
 			return r;
 		refer_free(r);
@@ -51,6 +55,9 @@ miko_iset_s* miko_iset_add_segment(miko_iset_s *restrict r, const char *restrict
 
 miko_iset_s* miko_iset_add_action(miko_iset_s *restrict r, const char *restrict name)
 	miko_iset_add_string(action, name)
+
+miko_iset_s* miko_iset_add_interrupt(miko_iset_s *restrict r, const char *restrict name)
+	miko_iset_add_string(interrupt, name)
 
 #undef miko_iset_add_string
 
@@ -86,6 +93,14 @@ miko_iset_s* miko_iset_add_default_minor(miko_iset_s *restrict r, const char *re
 		refer_free(minor);
 		return r;
 	}
+	return NULL;
+}
+
+miko_iset_s* miko_iset_add_process(miko_iset_s *restrict r, const char *restrict name, miko_process_s *restrict process)
+{
+	if (name && process && !vattr_get_vslot(r->process, name) &&
+		vattr_insert_tail(r->process, name, process))
+		return r;
 	return NULL;
 }
 

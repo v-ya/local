@@ -17,7 +17,7 @@ static miko_wink_view_s* miko_form_impl_view_func(miko_wink_view_s *restrict vie
 
 static void miko_form_impl_free_func(miko_form_impl_w *restrict r)
 {
-	miko_form_pop(&r->form, r->form.count);
+	miko_form_keep_count(&r->form, 0);
 	exbuffer_uini(&r->buffer);
 }
 

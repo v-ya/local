@@ -3,14 +3,16 @@
 
 static void miko_env_reset(miko_env_s *restrict r)
 {
-	if (r->table)
+	if (r->runtime)
 	{
-		refer_free(r->table);
-		r->table = NULL;
+		refer_free(r->runtime);
+		r->runtime = NULL;
 	}
 	vattr_clear(r->segment);
 	vattr_clear(r->action);
+	vattr_clear(r->interrupt);
 	vattr_clear(r->major);
+	vattr_clear(r->process);
 	vattr_clear(r->instruction);
 }
 
@@ -71,12 +73,16 @@ miko_env_s* miko_env_okay(miko_env_s *restrict r)
 			goto label_fail;
 		if (!miko_env_vattr_append(r->action, iset->action))
 			goto label_fail;
+		if (!miko_env_vattr_append(r->interrupt, iset->interrupt))
+			goto label_fail;
 		if (!miko_env_vattr_append(r->major, iset->major))
+			goto label_fail;
+		if (!miko_env_vattr_append(r->process, iset->process))
 			goto label_fail;
 		if (!miko_env_vattr_append(r->instruction, iset->instruction))
 			goto label_fail;
 	}
-	if ((r->table = miko_env_table_alloc(r)))
+	if ((r->runtime = miko_env_runtime_alloc(r)))
 		return r;
 	label_fail:
 	return NULL;
