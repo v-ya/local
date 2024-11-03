@@ -13,6 +13,8 @@ struct miko_iset_s* miko_std_env_register(miko_env_s *restrict env, struct miko_
 		if (!miko_iset_add_segment(r, miko_std_segment__this))
 			goto label_fail;
 		// action
+		if (!miko_iset_add_action(r, miko_std_action__immed))
+			goto label_fail;
 		if (!miko_iset_add_action(r, miko_std_action__read))
 			goto label_fail;
 		if (!miko_iset_add_action(r, miko_std_action__write))

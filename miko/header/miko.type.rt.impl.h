@@ -16,9 +16,9 @@ typedef struct miko_rt_context_t miko_rt_context_t;
 typedef struct miko_rt_dynamic_t miko_rt_dynamic_t;
 
 struct miko_rt_context_t {
-	const miko_instr_t *instr_array;  // null | symbol initial
-	miko_count_t instr_count;         // 0    | symbol initial
-	miko_offset_t instr_index;        // 0    | symbol initial
+	const miko_instr_t *const *instr_array;  // null | symbol initial
+	miko_count_t instr_count;                // 0    | symbol initial
+	miko_offset_t instr_index;               // 0    | symbol initial
 };
 
 struct miko_rt_dynamic_t {

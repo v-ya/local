@@ -84,7 +84,7 @@ miko_rt_s* miko_rt_exec(miko_rt_s *restrict r)
 	segment = r->dynamic.segment->table_array;
 	while ((index = context->instr_index) < context->instr_count)
 	{
-		instr = context->instr_array + index;
+		instr = context->instr_array[index];
 		context->instr_index = index + 1;
 		if (!(interrupt = instr->instr_func(instr, segment, r)))
 			continue;

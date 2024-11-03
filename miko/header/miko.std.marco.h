@@ -10,6 +10,7 @@
 #define miko_std_segment__stack      "std.segment.stack"      // by: function local var, argv, temp
 #define miko_std_segment__static     "std.segment.static"     // by: static, const, outside {}, lamda ref stack
 #define miko_std_segment__this       "std.segment.this"       // by: object {}
+#define miko_std_action__immed       "std.action.immed"       // (allow) op: instr
 #define miko_std_action__read        "std.action.read"        // (allow) op: read
 #define miko_std_action__write       "std.action.write"       // (allow) op: read write
 #define miko_std_action__exec        "std.action.exec"        // (allow) op: call
