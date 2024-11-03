@@ -7,6 +7,7 @@
 #include "miko.api.table.h"
 #include "miko.api.form.h"
 #include "miko.api.code.h"
+#include "miko.api.source.h"
 #include "miko.api.log.h"
 #include "miko.api.iset.h"
 #include "miko.api.major.h"

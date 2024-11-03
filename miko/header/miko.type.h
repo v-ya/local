@@ -16,6 +16,7 @@
 #include "miko.type.table.h"
 #include "miko.type.form.h"
 #include "miko.type.code.h"
+#include "miko.type.source.h"
 #include "miko.type.log.h"
 #include "miko.type.var.h"
 #include "miko.type.access.h"

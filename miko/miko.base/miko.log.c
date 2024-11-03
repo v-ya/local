@@ -8,6 +8,9 @@ static miko_log_item_t* miko_log_item_initial(miko_log_item_t *restrict v)
 			refer_save(v->data.item.key);
 			refer_save(v->data.item.value);
 			return v;
+		case miko_log_type__source:
+			refer_save(v->data.source.source);
+			return v;
 		case miko_log_type__inode:
 			refer_save(v->data.inode.name);
 			return v;
@@ -23,6 +26,9 @@ static void miko_log_item_finally(miko_log_item_t *restrict v)
 		case miko_log_type__item:
 			refer_ck_free(v->data.item.key);
 			refer_ck_free(v->data.item.value);
+			break;
+		case miko_log_type__source:
+			refer_ck_free(v->data.source.source);
 			break;
 		case miko_log_type__inode:
 			refer_ck_free(v->data.inode.name);
@@ -118,6 +124,21 @@ miko_log_s* miko_log_add_key_value(miko_log_s *restrict r, miko_log_level_t leve
 	return NULL;
 }
 
+miko_log_s* miko_log_add_source(miko_log_s *restrict r, miko_log_level_t level, const miko_source_s *restrict source, uintptr_t pos_at_source)
+{
+	miko_log_item_t item;
+	if (r && level <= r->limit)
+	{
+		item.type = miko_log_type__source;
+		item.level = level;
+		item.data.source.source = source;
+		item.data.source.pos_at_source = pos_at_source;
+		if (miko_vector_push(r->log_array, &item, 1))
+			return r;
+	}
+	return NULL;
+}
+
 miko_log_into_t miko_log_into(miko_log_s *restrict r, refer_string_t name)
 {
 	miko_log_item_t item;
@@ -163,9 +184,26 @@ void miko_log_back(miko_log_s *restrict r, miko_log_into_t into_result)
 	}
 }
 
+static const char *const _empty_ = "";
+
+static void miko_log_print_source(mlog_s *restrict mlog, const miko_log_data_source_t *restrict source, uint32_t indent)
+{
+	miko_source_pos_t pos;
+	if (source->source && miko_source_find_by_pos(source->source, &pos, source->pos_at_source))
+	{
+		mlog_printf(mlog, "%*s" "%s (%zu, %zu):\n", indent, _empty_,
+			source->source->name?source->source->name:_empty_,
+			pos.row_of_source + 1, pos.col_of_line + 1);
+		if (pos.col_of_line < pos.space_of_line)
+			pos.col_of_line = pos.space_of_line;
+		indent += 4;
+		mlog_printf(mlog, "%*s" "%s\n", indent, _empty_, pos.line_string + pos.space_of_line);
+		mlog_printf(mlog, "%*s" "^\n", indent + (uint32_t) (pos.col_of_line - pos.space_of_line), _empty_);
+	}
+}
+
 static void miko_log_print_array(mlog_s *restrict mlog, const miko_log_item_t *restrict p, uintptr_t n, uint32_t indent)
 {
-	static const char *const _empty_ = "";
 	while (n)
 	{
 		switch (p->type)
@@ -174,6 +212,9 @@ static void miko_log_print_array(mlog_s *restrict mlog, const miko_log_item_t *r
 				mlog_printf(mlog, "%*s" "%s: <%s>\n", indent, _empty_,
 					p->data.item.key?p->data.item.key:_empty_,
 					p->data.item.value?p->data.item.value:_empty_);
+				break;
+			case miko_log_type__source:
+				miko_log_print_source(mlog, &p->data.source, indent);
 				break;
 			case miko_log_type__inode:
 				mlog_printf(mlog, "%*s" "(%s)\n", indent, _empty_,

@@ -5,12 +5,14 @@
 
 typedef enum miko_log_type_t miko_log_type_t;
 typedef struct miko_log_data_item_t miko_log_data_item_t;
+typedef struct miko_log_data_source_t miko_log_data_source_t;
 typedef struct miko_log_data_inode_t miko_log_data_inode_t;
 typedef union miko_log_data_t miko_log_data_t;
 typedef struct miko_log_item_t miko_log_item_t;
 
 enum miko_log_type_t {
 	miko_log_type__item,
+	miko_log_type__source,
 	miko_log_type__inode,
 	miko_log_type_max
 };
@@ -20,6 +22,11 @@ struct miko_log_data_item_t {
 	refer_string_t value;
 };
 
+struct miko_log_data_source_t {
+	const miko_source_s *source;
+	uintptr_t pos_at_source;
+};
+
 struct miko_log_data_inode_t {
 	refer_string_t name;
 	miko_count_t count;
@@ -27,6 +34,7 @@ struct miko_log_data_inode_t {
 
 union miko_log_data_t {
 	miko_log_data_item_t item;
+	miko_log_data_source_t source;
 	miko_log_data_inode_t inode;
 };
 
