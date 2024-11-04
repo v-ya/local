@@ -9,8 +9,8 @@ CC		= gcc
 LD		= ld
 CCFLAGS		= -O2 -fPIC -Wall -Wextra -Wno-unused-parameter
 LDFLAGS-WINK	= -shared -lrefer -lexbuffer -lrbtree -lqueue -lyaw -lmlog -soname ${TARGET-WINK}
-LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -lmlog -ltparse -lyaw -L. -lmiko-wink -soname ${TARGET-LIB}
-LDFLAGS-STD	= -shared -lm -lrefer -lmlog -L. -lmiko-wink -lmiko -soname ${TARGET-STD}
+LDFLAGS-LIB	= -shared -lrefer -lhashmap -lrbtree -lvattr -lexbuffer -lmlog -lyaw -L. -lmiko-wink -soname ${TARGET-LIB}
+LDFLAGS-STD	= -shared -lm -lrefer -lmlog -ltparse -L. -lmiko-wink -lmiko -soname ${TARGET-STD}
 LDFLAGS-BIN	= -lrefer -lmlog -lfsys -lyaw -lexbuffer -L. -lmiko-wink -lmiko -lmiko-std
 
 OBJECT-WINK	= $(patsubst %.c, %.o, $(wildcard miko.wink/*.c))

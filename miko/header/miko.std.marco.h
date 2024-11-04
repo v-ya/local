@@ -17,10 +17,11 @@
 
 #define miko_std_major__void         "std.major.void"         // (fake) vtype, index
 #define miko_std_major__form         "std.major.form"         // (wink) form
+#define miko_std_major__bool         "std.major.bool"         // (real) bool
 #define miko_std_major__int          "std.major.int"          // (real) bit8, bit16, bit32, bit64
 #define miko_std_major__uint         "std.major.uint"         // (real) bit8, bit16, bit32, bit64
 #define miko_std_major__float        "std.major.float"        // (real) bit32, bit64
-#define miko_std_major__string       "std.major.string"       // (real) string
+#define miko_std_major__string       "std.major.string"       // (refer) string
 #define miko_std_major__object       "std.major.object"       // (ipre) {dynamic add minor by pre-instruction}
 
 #define miko_std_minor__fake_offset  "std.minor.fake.offset"  // fake: void | std.segment.const
@@ -30,6 +31,7 @@
 #define miko_std_minor__fake_major   "std.minor.fake.major"   // fake: void | miko.index.major
 #define miko_std_minor__fake_minor   "std.minor.fake.minor"   // fake: void | miko.index.minor
 #define miko_std_minor__form         "std.minor.form"         // form: wink | at miko.form.table[static]
+#define miko_std_minor__bool         "std.minor.bool"         // real: bool
 #define miko_std_minor__bit8         "std.minor.bit8"         // real: int uint
 #define miko_std_minor__bit16        "std.minor.bit16"        // real: int uint
 #define miko_std_minor__bit32        "std.minor.bit32"        // real: int uint float
@@ -55,5 +57,31 @@
 //             pop  last instr-list and instr-pos
 // [instr] call function
 // [instr] fix miko.form.table[stack] and miko.form.table[static]
+
+// syntaxor
+
+#define miko_std_syntax__comment     "std.syntax.comment"     // (miko.std) //...\n /*...*/
+#define miko_std_syntax__name        "std.syntax.name"        // (assembly) [A-Za-z_\-\.][A-Za-z0-9_\-\.]*
+#define miko_std_syntax__keyword     "std.syntax.keyword"     // (miko.std) [A-Za-z_][A-Za-z_0-9]*
+#define miko_std_syntax__operator    "std.syntax.operator"    // (miko.std) !#$%^&*+-./:<=>?@\^`|~
+#define miko_std_syntax__string      "std.syntax.string"      // (miko.std) ""
+#define miko_std_syntax__multichar   "std.syntax.multichar"   // (miko.std) ''
+#define miko_std_syntax__number      "std.syntax.number"      // (miko.std) number
+#define miko_std_syntax__comma       "std.syntax.comma"       // (miko.std) ,
+#define miko_std_syntax__semicolon   "std.syntax.semicolon"   // (miko.std) ;
+#define miko_std_syntax__scope       "std.syntax.scope"       // (miko.std) {}
+#define miko_std_syntax__param       "std.syntax.param"       // (miko.std) ()
+#define miko_std_syntax__index       "std.syntax.index"       // (miko.std) []
+#define miko_std_syntax__generics    "std.syntax.generics"    // (miko.std) <>
+#define miko_std_syntax__op_ternary  "std.syntax.op.ternary"  // (miko.std) ?:
+#define miko_std_syntax__op_binary   "std.syntax.op.binary"   // (miko.std) [+-*/%&|^<=>(<<)(>>)]=?, !=, &&, ||, .
+#define miko_std_syntax__op_unit     "std.syntax.op.unit"     // (miko.std) [!~], ++, --
+
+// std.syntax.number: (head: [0-9])
+//     (hex)       0[Xx][0-9A-Fa-f_]+
+//     (binary)    0[Bb][01_]+
+//     (octal)     0[0-7_]+
+//     (integer)   [+\-]?[0-9_]+
+//     (floating)  (integer)(\.[0-9]+([Ee](integer))?)?|([DdFf])?
 
 #endif
