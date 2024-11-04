@@ -1,10 +1,10 @@
-miko.major "std.major.void"   = fake;
-miko.major "std.major.bool"   = real;
-miko.major "std.major.int"    = real;
-miko.major "std.major.uint"   = real;
-miko.major "std.major.float"  = real;
-miko.major "std.major.string" = refer;
-miko.major "std.major.object" = wink;
+miko.major "std.major.void"   = std.fake;
+miko.major "std.major.bool"   = miko.real;
+miko.major "std.major.int"    = miko.real;
+miko.major "std.major.uint"   = miko.real;
+miko.major "std.major.float"  = miko.real;
+miko.major "std.major.string" = miko.refer;
+miko.major "std.major.object" = miko.wink;
 
 std.class "std.major.object";
 
@@ -42,29 +42,24 @@ op.level "or"      = 10;
 op.level "ternary" = 11;
 op.level "move"    = 12;
 
-marco.def spec.immed = "std.action.immed";
-marco.def spec.read  = "std.action.read";
-marco.def spec.write = "std.action.write";
-marco.def spec.exec  = "std.action.exec";
-
 marco.def spec.instr.wrr(_name_, _p1_, _p2_, _p3_) = _name_ {
-	instr.access = spec.write, _p1_;
-	instr.access = spec.read,  _p2_;
-	instr.access = spec.read,  _p3_;
+	instr.access = action.write, _p1_;
+	instr.access = action.read,  _p2_;
+	instr.access = action.read,  _p3_;
 };
 marco.def spec.instr.wr(_name_, _p1_, _p2_) = _name_ {
-	instr.access = spec.write, _p1_;
-	instr.access = spec.read,  _p2_;
+	instr.access = action.write, _p1_;
+	instr.access = action.read,  _p2_;
 };
 marco.def spec.instr.move(_p1_, _p2_) = spec.instr.wr("std.instr.move", _p1_, _p2_);
 marco.def spec.instr.jmp(_p1_, _p2_) = "std.instr.jmp" {
-	instr.access = spec.immed, _p1_;
-	instr.access = spec.immed, _p2_;
+	instr.access = action.immed, _p1_;
+	instr.access = action.immed, _p2_;
 };
 marco.def spec.instr.ifnjmp(_p1_, _p2_, _p3_) = "std.instr.ifnjmp" {
-	instr.access = spec.read, _p1_;
-	instr.access = spec.immed, _p2_;
-	instr.access = spec.immed, _p3_;
+	instr.access = action.read,  _p1_;
+	instr.access = action.immed, _p2_;
+	instr.access = action.immed, _p3_;
 };
 marco.def spec.instr.op.binary(_name_) = spec.instr.wrr(_name_, op.output, op.left, op.right);
 marco.def spec.instr.op.unit(_name_) = spec.instr.wr(_name_, op.output, op.input);

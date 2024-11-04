@@ -3,10 +3,79 @@
 #include "../header/miko.api.h"
 #include "../header/miko.wink.h"
 #include "../header/miko.std.h"
+#include "../header/miko.std.type.h"
+#include "../header/miko.std.api.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <yaw.h>
+
+#define _str_(...)  #__VA_ARGS__
+
+static const char *const code = _str_(
+	for (i = 0; i < n; ++i)
+	{
+		if (a) a[i] = 0;
+		if (b)
+		{
+			b += a;
+			b *= b;
+		}
+	}
+);
+
+void test_syntax_print(mlog_s *restrict mlog, miko_std_syntax_s *restrict syntax, uint32_t indent)
+{
+	miko_std_syntax_s *restrict value;
+	vattr_vlist_t *restrict vlist;
+	for (vlist = syntax->data.scope->vattr; vlist; vlist = vlist->vattr_next)
+	{
+		value = (miko_std_syntax_s *) vlist->value;
+		if (value->data.scope)
+		{
+			mlog_printf(mlog, "%*s" "%s:\n", indent, "", vlist->vslot->key);
+			test_syntax_print(mlog, value, indent + 4);
+		}
+		else mlog_printf(mlog, "%*s" "%s => %s\n", indent, "", vlist->vslot->key, value->data.syntax?value->data.syntax->string:"");
+	}
+}
+
+void test_std(mlog_s *restrict mlog)
+{
+	refer_nstring_t nstr;
+	miko_source_s *restrict source;
+	miko_std_syntaxor_s *restrict syntaxor;
+	miko_std_syntax_s *restrict syntax;
+	if ((nstr = refer_dump_nstring(code)))
+	{
+		if ((source = miko_source_alloc("test", nstr)))
+		{
+			if ((syntaxor = miko_std_syntaxor_alloc(mlog)))
+			{
+				mlog_printf(mlog, "syntaxor %p\n", syntaxor);
+				if (miko_std_syntaxor_add_keyword(syntaxor, "name.()", "()",
+						(const char *const []) {"(", ")", NULL}) &&
+					miko_std_syntaxor_add_keyword(syntaxor, "name.[]", "[]",
+						(const char *const []) {"[", "]", NULL}) &&
+					miko_std_syntaxor_add_keyword(syntaxor, "name.{}", "{}",
+						(const char *const []) {"{", "}", NULL}) &&
+					miko_std_syntaxor_okay(syntaxor))
+				{
+					mlog_printf(mlog, "syntaxor %p okay\n", syntaxor);
+					if ((syntax = miko_std_syntaxor_create(syntaxor, source)))
+					{
+						mlog_printf(mlog, "syntax %p\n", syntax);
+						test_syntax_print(mlog, syntax, 0);
+						refer_free(syntax);
+					}
+				}
+				refer_free(syntaxor);
+			}
+			refer_free(source);
+		}
+		refer_free(nstr);
+	}
+}
 
 void gomi_test_form(miko_wink_gomi_s *gomi, mlog_s *restrict mlog);
 void gomi_test(miko_wink_gomi_s *gomi, mlog_s *restrict mlog);
@@ -28,6 +97,7 @@ int main(int argc, const char *argv[])
 				mlog_printf(mlog, "miko.wink.gomi = %p ...\n", gomi);
 				miko_wink_gomi_default_report(gomi, mlog, 1);
 				miko_wink_gomi_call_cycle(gomi, 200);
+				test_std(mlog);
 				// gomi_test(gomi, mlog);
 				// gomi_test_form(gomi, mlog);
 				refer_free(gomi);

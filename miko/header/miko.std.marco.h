@@ -84,4 +84,8 @@
 //     (integer)   [+\-]?[0-9_]+
 //     (floating)  (integer)(\.[0-9]+([Ee](integer))?)?|([DdFf])?
 
+// error
+
+#define miko_std_error__syntaxor  "std.error.syntaxor"
+
 #endif

@@ -2,9 +2,14 @@
 #define _miko_std_type_syntaxor_h_
 
 #include <vattr.h>
+#include <tparse/tword.h>
+#include <tparse/tstack.h>
+#include <tparse/tstring.h>
+#include <tparse/tmapping.h>
 #include "miko.type.base.h"
 #include "miko.type.source.h"
 
+typedef const char *miko_std_syntaxor_chars_t;
 typedef struct miko_std_syntax_source_t miko_std_syntax_source_t;
 typedef struct miko_std_syntax_data_t miko_std_syntax_data_t;
 typedef struct miko_std_syntax_id_t miko_std_syntax_id_t;
@@ -12,9 +17,9 @@ typedef struct miko_std_syntaxor_s miko_std_syntaxor_s;
 typedef struct miko_std_syntax_s miko_std_syntax_s;
 
 struct miko_std_syntax_source_t {
-	miko_source_s *source;  // source code (offset <= syntax < tail)
-	miko_offset_t offset;   // this syntax start at source
-	miko_offset_t tail;     // this syntax stop at source
+	const miko_source_s *source;  // source code (offset <= syntax < tail)
+	miko_offset_t offset;         // this syntax start at source
+	miko_offset_t tail;           // this syntax stop at source
 };
 
 struct miko_std_syntax_data_t {
