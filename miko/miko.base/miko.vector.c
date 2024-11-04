@@ -25,32 +25,40 @@ miko_vector_s_t miko_vector_alloc(uintptr_t item_size, miko_vector_initial_f ini
 	return NULL;
 }
 
-miko_count_t miko_vector_push(miko_vector_s_t r, const void *item_array, miko_count_t item_count)
-{
-	miko_vector_initial_f initial;
-	uint8_t *restrict p;
-	uintptr_t n, z;
-	if ((n = (z = r->item_size) * item_count) &&
-		(p = (uint8_t *) exbuffer_need(&r->vector, r->vector.used + n)))
-	{
-		p += r->vector.used;
-		memcpy(p, item_array, n);
-		if ((initial = r->initial))
-		{
-			for (n = 0; n < item_count; ++n, p += z)
-			{
-				if (!initial(p)) break;
-				r->vector.used += z;
-			}
-			r->item_count += n;
-			return n;
-		}
-		r->vector.used += n;
-		r->item_count += item_count;
-		return item_count;
+#define _push_function_(...)  \
+	{\
+		miko_vector_initial_f initial;\
+		uint8_t *restrict p;\
+		uintptr_t n, z;\
+		if ((n = (z = r->item_size) * item_count) &&\
+			(p = (uint8_t *) exbuffer_need(&r->vector, r->vector.used + n)))\
+		{\
+			p += r->vector.used;\
+			__VA_ARGS__\
+			if ((initial = r->initial))\
+			{\
+				for (n = 0; n < item_count; ++n, p += z)\
+				{\
+					if (!initial(p)) break;\
+					r->vector.used += z;\
+				}\
+				r->item_count += n;\
+				return n;\
+			}\
+			r->vector.used += n;\
+			r->item_count += item_count;\
+			return item_count;\
+		}\
+		return 0;\
 	}
-	return 0;
-}
+
+miko_count_t miko_vector_push_zero(miko_vector_s_t r, miko_count_t item_count)
+	_push_function_(memset(p, 0, n);)
+
+miko_count_t miko_vector_push(miko_vector_s_t r, const void *item_array, miko_count_t item_count)
+	_push_function_(memcpy(p, item_array, n);)
+
+#undef _push_function_
 
 miko_count_t miko_vector_pop(miko_vector_s_t r, miko_count_t item_count)
 {

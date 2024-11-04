@@ -24,12 +24,10 @@ static void miko_major_free_func(miko_major_s *restrict r)
 miko_major_s* miko_major_alloc(const char *restrict name, refer_string_t iset, miko_major_vtype_t vtype)
 {
 	miko_major_s *restrict r;
-	miko_major_s *minor;
 	if (name && iset && (r = (miko_major_s *) refer_alloz(sizeof(miko_major_s))))
 	{
 		refer_hook_free(r, major);
 		r->vtype = vtype;
-		minor = NULL;
 		if ((r->name = refer_dump_string(name)) &&
 			(r->iset = (refer_string_t) refer_save(iset)) &&
 			!yaw_lock_alloc_rwlock(&r->read, &r->write) &&
@@ -37,7 +35,7 @@ miko_major_s* miko_major_alloc(const char *restrict name, refer_string_t iset, m
 			(r->table = miko_vector_alloc(sizeof(miko_minor_s *),
 				(miko_vector_initial_f) miko_major_vector_initial_func,
 				(miko_vector_finally_f) miko_major_vector_finally_func)) &&
-			miko_vector_push(r->table, (const void *) &minor, 1))
+			miko_vector_push_zero(r->table, 1))
 			return r;
 		refer_free(r);
 	}

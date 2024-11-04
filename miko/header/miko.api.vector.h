@@ -7,6 +7,7 @@
 #define miko_vector_auto  (~(uintptr_t) 0)
 
 miko_vector_s_t miko_vector_alloc(uintptr_t item_size, miko_vector_initial_f initial, miko_vector_finally_f finally);
+miko_count_t miko_vector_push_zero(miko_vector_s_t r, miko_count_t item_count);
 miko_count_t miko_vector_push(miko_vector_s_t r, const void *item_array, miko_count_t item_count);
 miko_count_t miko_vector_pop(miko_vector_s_t r, miko_count_t item_count);
 miko_count_t miko_vector_count(const miko_vector_s_t r);

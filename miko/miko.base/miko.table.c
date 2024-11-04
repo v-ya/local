@@ -20,16 +20,14 @@ static void miko_table_impl_free_func(miko_table_impl_s *restrict r)
 static miko_table_impl_s* miko_table_alloc(void)
 {
 	miko_table_impl_s *restrict r;
-	refer_t refer;
 	if ((r = ((miko_table_impl_s *) refer_alloz(sizeof(miko_table_impl_s)))))
 	{
 		refer_hook_free(r, table_impl);
-		refer = NULL;
 		if ((r->vector = miko_vector_alloc(sizeof(refer_t),
 			(miko_vector_initial_f) miko_table_impl_vector_initial_func,
 			(miko_vector_finally_f) miko_table_impl_vector_finally_func)) &&
 			(r->range = vattr_alloc()) &&
-			miko_vector_push(r->vector, &refer, 1))
+			miko_vector_push_zero(r->vector, 1))
 			return r;
 		refer_free(r);
 	}

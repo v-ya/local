@@ -3,6 +3,7 @@
 #include "../header/miko.api.h"
 #include "../header/miko.wink.h"
 #include "../header/miko.std.h"
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <yaw.h>
@@ -21,11 +22,12 @@ int main(int argc, const char *argv[])
 		mlog_printf(mlog, "miko.bin start ...\n");
 		if ((env = miko_env_create(mlog, (miko_env_register_f []) {miko_std_env_register, NULL})))
 		{
+			mlog_printf(mlog, "miko.env = %p ...\n", env);
 			if ((gomi = miko_wink_gomi_alloc()))
 			{
+				mlog_printf(mlog, "miko.wink.gomi = %p ...\n", gomi);
 				miko_wink_gomi_default_report(gomi, mlog, 1);
 				miko_wink_gomi_call_cycle(gomi, 200);
-				// test_source(mlog);
 				// gomi_test(gomi, mlog);
 				// gomi_test_form(gomi, mlog);
 				refer_free(gomi);
