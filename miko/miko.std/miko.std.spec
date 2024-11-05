@@ -6,9 +6,12 @@ miko.major "std.major.float"  = miko.real;
 miko.major "std.major.string" = miko.refer;
 miko.major "std.major.object" = miko.wink;
 
-std.class "std.major.object";
+class.major "std.major.object";
 
 type.def "void";
+type.def ".real"   = "std.major.void",   "std.minor.fake.real";
+type.def ".refer"  = "std.major.void",   "std.minor.fake.refer";
+type.def ".wink"   = "std.major.void",   "std.minor.fake.wink";
 type.def "bool"    = "std.major.bool",   "std.minor.bool";
 type.def "int8"    = "std.major.int",    "std.minor.bit8";
 type.def "uint8"   = "std.major.uint",   "std.minor.bit8";
@@ -52,14 +55,12 @@ marco.def spec.instr.wr(_name_, _p1_, _p2_) = _name_ {
 	instr.access = action.read,  _p2_;
 };
 marco.def spec.instr.move(_p1_, _p2_) = spec.instr.wr("std.instr.move", _p1_, _p2_);
-marco.def spec.instr.jmp(_p1_, _p2_) = "std.instr.jmp" {
+marco.def spec.instr.jdw(_p1_) = "std.instr.jdw" {
 	instr.access = action.immed, _p1_;
-	instr.access = action.immed, _p2_;
 };
-marco.def spec.instr.ifnjmp(_p1_, _p2_, _p3_) = "std.instr.ifnjmp" {
+marco.def spec.instr.ifnjdw(_p1_, _p2_) = "std.instr.ifnjdw" {
 	instr.access = action.read,  _p1_;
 	instr.access = action.immed, _p2_;
-	instr.access = action.immed, _p3_;
 };
 marco.def spec.instr.op.binary(_name_) = spec.instr.wrr(_name_, op.output, op.left, op.right);
 marco.def spec.instr.op.unit(_name_) = spec.instr.wr(_name_, op.output, op.input);
@@ -67,6 +68,19 @@ marco.def spec.instr.op.unit(_name_) = spec.instr.wr(_name_, op.output, op.input
 op.binary "." {
 	op.priority  = "access";
 	op.direction = >>;
+	op.assembly = class.fetch;
+};
+
+op.unit "[]" {
+	op.priority  = "access";
+	op.direction = >>;
+	op.assembly = array.fetch;
+};
+
+op.unit "()" {
+	op.priority  = "access";
+	op.direction = >>;
+	op.assembly = function.call;
 };
 
 op.binary "+" {
@@ -98,14 +112,14 @@ op.ternary "?" ":" {
 	op.priority  = "ternary";
 	op.direction = >>;
 	op.assembly = {
-		op.instr = spec.instr.ifnjmp(op.first, op.label ".label.true", op.label ".label.false");
-		op.label = ".label.true";
+		op.instr = spec.instr.ifnjdw(op.first, label.diff(".label.false", ".label.true"));
+		label.def = ".label.true";
 		op.process = op.inner;
 		op.instr = spec.instr.move(op.output, op.inner);
-		op.instr = spec.instr.jmp(op.label ".label.false", op.label ".label.end");
-		op.label = ".label.false";
+		op.instr = spec.instr.jdw(label.diff(".label.end", ".label.false"));
+		label.def = ".label.false";
 		op.process = op.tail;
 		op.instr = spec.instr.move(op.output, op.tail);
-		op.label = ".label.end";
+		label.def = ".label.end";
 	};
 };

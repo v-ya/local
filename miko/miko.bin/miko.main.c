@@ -5,40 +5,80 @@
 #include "../header/miko.std.h"
 #include "../header/miko.std.type.h"
 #include "../header/miko.std.api.h"
+#include "../header/miko.std.marco.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <yaw.h>
 
+void test_syntax_print(mlog_s *restrict mlog, miko_std_syntax_s *restrict syntax, uint32_t indent);
+
+void test_syntax_print_scope(mlog_s *restrict mlog, miko_std_syntax_s *restrict syntax, uint32_t indent, uint32_t isblock)
+{
+	miko_std_syntax_s *restrict value;
+	vattr_vlist_t *restrict vlist;
+	refer_nstring_t nstr;
+	uintptr_t pos;
+	nstr = syntax->data.syntax;
+	if (nstr && nstr->length >= 2)
+	{
+		if (!isblock) mlog_printf(mlog, "%c", nstr->string[0]);
+		else mlog_printf(mlog, "\n%*s%c\n", indent, "", nstr->string[0]);
+		indent += 4;
+	}
+	pos = 0;
+	for (vlist = syntax->data.scope->vattr; vlist; vlist = vlist->vattr_next)
+	{
+		value = (miko_std_syntax_s *) vlist->value;
+		if (isblock && !pos)
+			mlog_printf(mlog, "%*s", indent, "");
+		if (pos) mlog_printf(mlog, " ");
+		test_syntax_print(mlog, value, indent);
+		pos += 1;
+		if (isblock && !strcmp(value->id.name, miko_std_syntax__semicolon))
+		{
+			mlog_printf(mlog, "\n");
+			pos = 0;
+		}
+		if (!value->id.name || !strcmp(value->id.name, miko_std_syntax__scope))
+			pos = 0;
+	}
+	if (nstr && nstr->length >= 2)
+	{
+		indent -= 4;
+		if (!isblock) mlog_printf(mlog, "%c", nstr->string[1]);
+		else mlog_printf(mlog, "%s%*s%c\n", pos?"\n":"", indent, "", nstr->string[1]);
+	}
+}
+
+void test_syntax_print(mlog_s *restrict mlog, miko_std_syntax_s *restrict syntax, uint32_t indent)
+{
+	if (syntax->data.scope)
+	{
+		if (!syntax->id.name || !strcmp(syntax->id.name, miko_std_syntax__scope))
+			test_syntax_print_scope(mlog, syntax, indent, 1);
+		else test_syntax_print_scope(mlog, syntax, indent, 0);
+	}
+	else if (syntax->data.syntax)
+		mlog_printf(mlog, "%s", syntax->data.syntax->string);
+}
+
 #define _str_(...)  #__VA_ARGS__
 
 static const char *const code = _str_(
-	for (i = 0; i < n; ++i)
+	for (i = 0, b = 0; i < length; ++i)
 	{
 		if (a) a[i] = 0;
 		if (b)
 		{
+			c = (uint32_t) ("0123456789"[i] - '0');
 			b += a;
 			b *= b;
 		}
 	}
 );
 
-void test_syntax_print(mlog_s *restrict mlog, miko_std_syntax_s *restrict syntax, uint32_t indent)
-{
-	miko_std_syntax_s *restrict value;
-	vattr_vlist_t *restrict vlist;
-	for (vlist = syntax->data.scope->vattr; vlist; vlist = vlist->vattr_next)
-	{
-		value = (miko_std_syntax_s *) vlist->value;
-		if (value->data.scope)
-		{
-			mlog_printf(mlog, "%*s" "%s:\n", indent, "", vlist->vslot->key);
-			test_syntax_print(mlog, value, indent + 4);
-		}
-		else mlog_printf(mlog, "%*s" "%s => %s\n", indent, "", vlist->vslot->key, value->data.syntax?value->data.syntax->string:"");
-	}
-}
+#undef _str_
 
 void test_std(mlog_s *restrict mlog)
 {
@@ -50,24 +90,14 @@ void test_std(mlog_s *restrict mlog)
 	{
 		if ((source = miko_source_alloc("test", nstr)))
 		{
-			if ((syntaxor = miko_std_syntaxor_alloc(mlog)))
+			if ((syntaxor = miko_std_syntaxor_create_spec(mlog)))
 			{
-				mlog_printf(mlog, "syntaxor %p\n", syntaxor);
-				if (miko_std_syntaxor_add_keyword(syntaxor, "name.()", "()",
-						(const char *const []) {"(", ")", NULL}) &&
-					miko_std_syntaxor_add_keyword(syntaxor, "name.[]", "[]",
-						(const char *const []) {"[", "]", NULL}) &&
-					miko_std_syntaxor_add_keyword(syntaxor, "name.{}", "{}",
-						(const char *const []) {"{", "}", NULL}) &&
-					miko_std_syntaxor_okay(syntaxor))
+				mlog_printf(mlog, "syntaxor %p okay\n", syntaxor);
+				if ((syntax = miko_std_syntaxor_create(syntaxor, source)))
 				{
-					mlog_printf(mlog, "syntaxor %p okay\n", syntaxor);
-					if ((syntax = miko_std_syntaxor_create(syntaxor, source)))
-					{
-						mlog_printf(mlog, "syntax %p\n", syntax);
-						test_syntax_print(mlog, syntax, 0);
-						refer_free(syntax);
-					}
+					mlog_printf(mlog, "syntax %p\n", syntax);
+					test_syntax_print(mlog, syntax, 0);
+					refer_free(syntax);
 				}
 				refer_free(syntaxor);
 			}

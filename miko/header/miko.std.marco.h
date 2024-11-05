@@ -16,7 +16,6 @@
 #define miko_std_action__exec        "std.action.exec"        // (allow) op: call
 
 #define miko_std_major__void         "std.major.void"         // (fake) vtype, index
-#define miko_std_major__form         "std.major.form"         // (wink) form
 #define miko_std_major__bool         "std.major.bool"         // (real) bool
 #define miko_std_major__int          "std.major.int"          // (real) bit8, bit16, bit32, bit64
 #define miko_std_major__uint         "std.major.uint"         // (real) bit8, bit16, bit32, bit64
@@ -30,7 +29,6 @@
 #define miko_std_minor__fake_wink    "std.minor.fake.wink"    // fake: void | miko.major.vtype.wink
 #define miko_std_minor__fake_major   "std.minor.fake.major"   // fake: void | miko.index.major
 #define miko_std_minor__fake_minor   "std.minor.fake.minor"   // fake: void | miko.index.minor
-#define miko_std_minor__form         "std.minor.form"         // form: wink | at miko.form.table[static]
 #define miko_std_minor__bool         "std.minor.bool"         // real: bool
 #define miko_std_minor__bit8         "std.minor.bit8"         // real: int uint
 #define miko_std_minor__bit16        "std.minor.bit16"        // real: int uint
@@ -61,7 +59,7 @@
 // syntaxor
 
 #define miko_std_syntax__comment     "std.syntax.comment"     // (miko.std) //...\n /*...*/
-#define miko_std_syntax__name        "std.syntax.name"        // (assembly) [A-Za-z_\-\.][A-Za-z0-9_\-\.]*
+#define miko_std_syntax__name        "std.syntax.name"        // (assembly) [A-Za-z_][A-Za-z0-9_\-\.]*
 #define miko_std_syntax__keyword     "std.syntax.keyword"     // (miko.std) [A-Za-z_][A-Za-z_0-9]*
 #define miko_std_syntax__operator    "std.syntax.operator"    // (miko.std) !#$%^&*+-./:<=>?@\^`|~
 #define miko_std_syntax__string      "std.syntax.string"      // (miko.std) ""

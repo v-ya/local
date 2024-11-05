@@ -4,6 +4,7 @@ static void miko_std_syntax_free_func(miko_std_syntax_s *restrict r)
 {
 	refer_ck_free(r->id.name);
 	refer_ck_free(r->data.syntax);
+	refer_ck_free(r->data.value);
 	refer_ck_free(r->data.scope);
 	refer_ck_free(r->source.source);
 }

@@ -23,8 +23,9 @@ struct miko_std_syntax_source_t {
 };
 
 struct miko_std_syntax_data_t {
-	refer_nstring_t syntax;  // only used one
-	vattr_s *scope;          // only used one
+	refer_nstring_t syntax;  // original data
+	refer_nstring_t value;   // analysis data
+	vattr_s *scope;          // (maybe null) => (miko_std_syntax_s *)
 };
 
 struct miko_std_syntax_id_t {
