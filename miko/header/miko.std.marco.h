@@ -61,10 +61,10 @@
 #define miko_std_syntax__comment     "std.syntax.comment"     // (miko.std) //...\n /*...*/
 #define miko_std_syntax__name        "std.syntax.name"        // (assembly) [A-Za-z_][A-Za-z0-9_\-\.]*
 #define miko_std_syntax__keyword     "std.syntax.keyword"     // (miko.std) [A-Za-z_][A-Za-z_0-9]*
-#define miko_std_syntax__operator    "std.syntax.operator"    // (miko.std) !#$%^&*+-./:<=>?@\^`|~
 #define miko_std_syntax__string      "std.syntax.string"      // (miko.std) ""
 #define miko_std_syntax__multichar   "std.syntax.multichar"   // (miko.std) ''
 #define miko_std_syntax__number      "std.syntax.number"      // (miko.std) number
+#define miko_std_syntax__operator    "std.syntax.operator"    // (miko.std) !#$%^&*+-./:<=>?@\^`|~
 #define miko_std_syntax__comma       "std.syntax.comma"       // (miko.std) ,
 #define miko_std_syntax__semicolon   "std.syntax.semicolon"   // (miko.std) ;
 #define miko_std_syntax__scope       "std.syntax.scope"       // (miko.std) {}

@@ -320,7 +320,7 @@ static miko_std_syntax_s* miko_std_syntaxor_scope(miko_std_syntaxor_s *restrict 
 					{
 						// replace scope
 						vlist_next = vlist->vattr_next;
-						if (!miko_std_syntaxor_scope_replace(scope, stack.vlist_start, vlist))
+						if (!miko_std_syntaxor_scope_replace(scope, syntax, stack.vlist_start, vlist))
 							goto label_fail;
 						vlist = vlist_next;
 						continue;

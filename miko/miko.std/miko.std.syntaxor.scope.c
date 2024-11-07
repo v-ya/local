@@ -51,48 +51,23 @@ const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_allow_test(const miko_s
 	return NULL;
 }
 
-const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_syntaxor_scope_s *restrict r, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop)
+const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_syntaxor_scope_s *restrict r, miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop)
 {
-	const miko_std_syntax_s *restrict syntax_start;
-	const miko_std_syntax_s *restrict syntax_stop;
-	miko_std_syntax_s *restrict scope;
-	vattr_vlist_t *restrict vlist;
-	vattr_s *restrict vattr;
-	if ((vattr = vlist_start->vslot->vattr) == vlist_stop->vslot->vattr)
+	miko_std_syntax_s *restrict syntax;
+	miko_std_syntax_source_t source;
+	if (miko_std_syntax_fetch_source_by_vlist(&source, vlist_start, vlist_stop) &&
+		(syntax = miko_std_syntax_create_scope_by_vlist(&r->id, &source,
+			vlist_start->vattr_next, vlist_stop)))
 	{
-		syntax_start = (const miko_std_syntax_s *) vlist_start->value;
-		syntax_stop = (const miko_std_syntax_s *) vlist_stop->value;
-		if ((scope = miko_std_syntax_create_scope(&r->id, &syntax_start->source)))
+		syntax->data.syntax = (refer_nstring_t) refer_save(r->syntax);
+		syntax->data.value = (refer_nstring_t) refer_save(r->syntax);
+		if (miko_std_syntax_scope_replace_vlist2syntax(scope,
+			vlist_start, vlist_stop->vattr_next, syntax))
 		{
-			// create and set scope
-			scope->source.tail = syntax_stop->source.tail;
-			scope->data.syntax = (refer_nstring_t) refer_save(r->syntax);
-			scope->data.value = (refer_nstring_t) refer_save(r->syntax);
-			// copy scope.data.scope by (vlist_start, vlist_stop)
-			for (vlist = vlist_start->vattr_next; vlist && vlist != vlist_stop; vlist = vlist->vattr_next)
-			{
-				if (!vattr_insert_tail(scope->data.scope, vlist->vslot->key, vlist->value))
-					goto label_fail;
-			}
-			if (vlist != vlist_stop)
-				goto label_fail;
-			// insert scope to last of vlist_start
-			if (!(vlist = vattr_insert_tail(vattr, scope->id.name, scope)))
-				goto label_fail;
-			if (!vattr_moveto_vattr_last(vlist_start, vlist))
-				goto label_fail;
-			refer_free(scope);
-			// delete [vlist_start, vlist_stop]
-			vlist_stop = vlist_stop->vattr_next;
-			for (vlist = vlist_start; vlist && vlist != vlist_stop; vlist = vlist_start)
-			{
-				vlist_start = vlist->vattr_next;
-				vattr_delete_vlist(vlist);
-			}
+			refer_free(syntax);
 			return r;
-			label_fail:
-			refer_free(scope);
 		}
+		refer_free(syntax);
 	}
 	return NULL;
 }

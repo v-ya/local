@@ -15,8 +15,11 @@ LDFLAGS-BIN	= -lrefer -lmlog -lfsys -lyaw -lexbuffer -L. -lmiko-wink -lmiko -lmi
 
 OBJECT-WINK	= $(patsubst %.c, %.o, $(wildcard miko.wink/*.c))
 OBJECT-LIB	= $(patsubst %.c, %.o, $(wildcard miko.base/*.c))
-OBJECT-STD	= $(patsubst %.c, %.o, $(wildcard miko.std/*.c))
+OBJECT-STD	= $(patsubst %.c, %.o, $(wildcard miko.std/*.c)) miko.std/miko.std.spec.o
 OBJECT-BIN	= $(patsubst %.c, %.o, $(wildcard miko.bin/*.c))
+
+%.o: %.s %
+	${CC} -c -o $@ $<
 
 %.o: %.c
 	${CC} ${CCFLAGS} -c -o $@ $<

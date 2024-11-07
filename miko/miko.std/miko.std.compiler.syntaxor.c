@@ -7,26 +7,44 @@
 
 miko_std_syntaxor_s* miko_std_syntaxor_create_spec(mlog_s *restrict mlog)
 {
+	const char *const *allow_syntax_name;
 	miko_std_syntaxor_s *restrict r;
 	if ((r = miko_std_syntaxor_alloc(mlog)))
 	{
+		allow_syntax_name = _strlist_(
+			miko_std_syntax__name,
+			miko_std_syntax__string,
+			miko_std_syntax__multichar,
+			miko_std_syntax__number,
+			miko_std_syntax__operator,
+			miko_std_syntax__comma,
+			miko_std_syntax__semicolon,
+			miko_std_syntax__scope,
+			miko_std_syntax__param,
+			miko_std_syntax__index,
+			NULL
+		);
 		if (
 			miko_std_syntaxor_add_tword(r,
 				miko_std_syntax__name,
 				_alphabet_ "_",
 				_alphabet_ _digital_ "_-.",
 				_alphabet_ _digital_ "_") &&
-			miko_std_syntaxor_add_tword(r,
-				miko_std_syntax__operator,
-				_operator_,
-				_operator_,
-				_operator_) &&
 			miko_std_syntaxor_add_tstring(r,
 				miko_std_syntax__string, "\"",
 				tparse_tstring_alloc_c_parse_multi_quotes) &&
 			miko_std_syntaxor_add_tstring(r,
 				miko_std_syntax__multichar, "\'",
 				tparse_tstring_alloc_c_parse_single_quotes) &&
+			miko_std_syntaxor_add_tstring(r,
+				miko_std_syntax__number,
+				_digital_ "+-",
+				miko_std_tstring_create_number) &&
+			miko_std_syntaxor_add_tword(r,
+				miko_std_syntax__operator,
+				_operator_,
+				_operator_,
+				_operator_) &&
 			miko_std_syntaxor_add_keyword(r,
 				miko_std_syntax__comma,
 				",", _strlist_(",", NULL)) &&
@@ -44,46 +62,13 @@ miko_std_syntaxor_s* miko_std_syntaxor_create_spec(mlog_s *restrict mlog)
 				"[]", _strlist_("[", "]", NULL)) &&
 			miko_std_syntaxor_set_scope(r,
 				miko_std_syntax__scope,
-				"{", "}", "{}", 1, _strlist_(
-					miko_std_syntax__name,
-					miko_std_syntax__operator,
-					miko_std_syntax__string,
-					miko_std_syntax__multichar,
-					miko_std_syntax__comma,
-					miko_std_syntax__semicolon,
-					miko_std_syntax__scope,
-					miko_std_syntax__param,
-					miko_std_syntax__index,
-					NULL
-				)) &&
+				"{", "}", "{}", 1, allow_syntax_name) &&
 			miko_std_syntaxor_set_scope(r,
 				miko_std_syntax__param,
-				"(", ")", "()", 1, _strlist_(
-					miko_std_syntax__name,
-					miko_std_syntax__operator,
-					miko_std_syntax__string,
-					miko_std_syntax__multichar,
-					miko_std_syntax__comma,
-					miko_std_syntax__semicolon,
-					miko_std_syntax__scope,
-					miko_std_syntax__param,
-					miko_std_syntax__index,
-					NULL
-				)) &&
+				"(", ")", "()", 1, allow_syntax_name) &&
 			miko_std_syntaxor_set_scope(r,
 				miko_std_syntax__index,
-				"[", "]", "[]", 1, _strlist_(
-					miko_std_syntax__name,
-					miko_std_syntax__operator,
-					miko_std_syntax__string,
-					miko_std_syntax__multichar,
-					miko_std_syntax__comma,
-					miko_std_syntax__semicolon,
-					miko_std_syntax__scope,
-					miko_std_syntax__param,
-					miko_std_syntax__index,
-					NULL
-				)) &&
+				"[", "]", "[]", 1, allow_syntax_name) &&
 			miko_std_syntaxor_okay(r)
 		) return r;
 		refer_free(r);

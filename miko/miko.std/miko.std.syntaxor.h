@@ -47,9 +47,21 @@ miko_std_syntaxor_item_s* miko_std_syntaxor_item_create_tstring(tparse_tstring_s
 miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_alloc(const miko_std_syntax_id_t *restrict id, const char *restrict syntax_scope, uintptr_t must_match);
 miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_add_allow(miko_std_syntaxor_scope_s *restrict r, miko_index_t index);
 const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_allow_test(const miko_std_syntaxor_scope_s *restrict r, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
-const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_syntaxor_scope_s *restrict r, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_syntaxor_scope_s *restrict r, miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
 
+// create syntax
 miko_std_syntax_s* miko_std_syntax_create_syntax(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source, const char *restrict syntax, uintptr_t length);
+// create scope
 miko_std_syntax_s* miko_std_syntax_create_scope(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source);
+// create scope, scope.append([vlist_start, vlist_stop))
+miko_std_syntax_s* miko_std_syntax_create_scope_by_vlist(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+// source <= {vlist_start, vlist_stop}
+miko_std_syntax_source_t* miko_std_syntax_fetch_source_by_vlist(miko_std_syntax_source_t *restrict source, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+// scope.append([vlist_start, vlist_stop))
+miko_std_syntax_s* miko_std_syntax_scope_append_vlist(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+// scope.delete([vlist_start, vlist_stop))
+miko_std_syntax_s* miko_std_syntax_scope_delete_vlist(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+// scope.replace([vlist_start, vlist_stop), syntax)
+miko_std_syntax_s* miko_std_syntax_scope_replace_vlist2syntax(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop, const miko_std_syntax_s *restrict syntax);
 
 #endif

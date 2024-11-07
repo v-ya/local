@@ -4,6 +4,8 @@
 #include <mlog.h>
 #include "miko.std.type.syntaxor.h"
 
+tparse_tstring_s* miko_std_tstring_create_number(void);
+
 miko_std_syntaxor_s* miko_std_syntaxor_alloc(mlog_s *restrict mlog);
 miko_index_t miko_std_syntaxor_name2index(const miko_std_syntaxor_s *restrict r, const char *restrict id_name);
 miko_index_t miko_std_syntaxor_add_none(miko_std_syntaxor_s *restrict r, const char *restrict id_name);
