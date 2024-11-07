@@ -49,19 +49,16 @@ miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_add_allow(miko_std_syntaxor_s
 const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_allow_test(const miko_std_syntaxor_scope_s *restrict r, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
 const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_syntaxor_scope_s *restrict r, miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
 
-// create syntax
 miko_std_syntax_s* miko_std_syntax_create_syntax(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source, const char *restrict syntax, uintptr_t length);
-// create scope
 miko_std_syntax_s* miko_std_syntax_create_scope(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source);
-// create scope, scope.append([vlist_start, vlist_stop))
 miko_std_syntax_s* miko_std_syntax_create_scope_by_vlist(const miko_std_syntax_id_t *restrict id, const miko_std_syntax_source_t *restrict source, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
-// source <= {vlist_start, vlist_stop}
 miko_std_syntax_source_t* miko_std_syntax_fetch_source_by_vlist(miko_std_syntax_source_t *restrict source, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
-// scope.append([vlist_start, vlist_stop))
-miko_std_syntax_s* miko_std_syntax_scope_append_vlist(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
-// scope.delete([vlist_start, vlist_stop))
-miko_std_syntax_s* miko_std_syntax_scope_delete_vlist(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
-// scope.replace([vlist_start, vlist_stop), syntax)
-miko_std_syntax_s* miko_std_syntax_scope_replace_vlist2syntax(miko_std_syntax_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop, const miko_std_syntax_s *restrict syntax);
+vattr_s* miko_std_syntax_scope_append_vlist(vattr_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+vattr_s* miko_std_syntax_scope_append_vlist_copy(vattr_s *restrict scope, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+vattr_s* miko_std_syntax_scope_delete_vlist(vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop);
+vattr_s* miko_std_syntax_scope_replace_vlist2syntax(vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop, const miko_std_syntax_s *restrict syntax);
+vattr_s* miko_std_syntax_scope_replace_vlist2vlist(vattr_vlist_t *restrict target_start, vattr_vlist_t *restrict target_stop, vattr_vlist_t *restrict source_start, vattr_vlist_t *restrict source_stop);
+vattr_vlist_t* miko_std_syntax_scope_find_id(vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop, miko_index_t id_index);
+vattr_vlist_t* miko_std_syntax_scope_find_syntax(vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop, miko_index_t id_index, const char *restrict syntax);
 
 #endif

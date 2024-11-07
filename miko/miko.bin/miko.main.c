@@ -18,16 +18,21 @@ void test_std(mlog_s *restrict mlog)
 	const miko_source_s *restrict spec;
 	miko_std_syntaxor_s *restrict syntaxor;
 	miko_std_syntax_s *restrict syntax;
+	miko_std_compiler_spec_index_t index;
 	if ((spec = miko_std_compiler_create_default_spec()))
 	{
 		// mlog_printf(mlog, "%s", spec->source->string);
-		if ((syntaxor = miko_std_syntaxor_create_spec(mlog)))
+		if ((syntaxor = miko_std_compiler_create_syntaxor_spec(mlog, &index)))
 		{
 			mlog_printf(mlog, "syntaxor %p okay\n", syntaxor);
 			if ((syntax = miko_std_syntaxor_create(syntaxor, spec)))
 			{
 				mlog_printf(mlog, "syntax %p\n", syntax);
-				test_syntax_print(mlog, syntax, 0);
+				if (miko_std_compiler_syntaxor_marco_spec(syntaxor, &index, syntax))
+				{
+					mlog_printf(mlog, "miko_std_compiler_syntaxor_marco_spec %p ... okay\n", syntax);
+					test_syntax_print(mlog, syntax, 0);
+				}
 				refer_free(syntax);
 			}
 			refer_free(syntaxor);

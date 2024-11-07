@@ -61,7 +61,7 @@ const miko_std_syntaxor_scope_s* miko_std_syntaxor_scope_replace(const miko_std_
 	{
 		syntax->data.syntax = (refer_nstring_t) refer_save(r->syntax);
 		syntax->data.value = (refer_nstring_t) refer_save(r->syntax);
-		if (miko_std_syntax_scope_replace_vlist2syntax(scope,
+		if (miko_std_syntax_scope_replace_vlist2syntax(
 			vlist_start, vlist_stop->vattr_next, syntax))
 		{
 			refer_free(syntax);

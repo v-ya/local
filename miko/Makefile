@@ -18,7 +18,7 @@ OBJECT-LIB	= $(patsubst %.c, %.o, $(wildcard miko.base/*.c))
 OBJECT-STD	= $(patsubst %.c, %.o, $(wildcard miko.std/*.c)) miko.std/miko.std.spec.o
 OBJECT-BIN	= $(patsubst %.c, %.o, $(wildcard miko.bin/*.c))
 
-%.o: %.s %
+%.o: %.s
 	${CC} -c -o $@ $<
 
 %.o: %.c

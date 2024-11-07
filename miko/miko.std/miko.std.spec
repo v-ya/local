@@ -4,9 +4,7 @@ miko.major "std.major.int"    = miko.real;
 miko.major "std.major.uint"   = miko.real;
 miko.major "std.major.float"  = miko.real;
 miko.major "std.major.string" = miko.refer;
-miko.major "std.major.object" = miko.wink;
-
-class.major "std.major.object";
+miko.major "std.major.object" = miko.wink, std.class;
 
 type.def "void";
 type.def ".real"   = "std.major.void",   "std.minor.fake.real";
@@ -45,22 +43,30 @@ op.level "or"      = 10;
 op.level "ternary" = 11;
 op.level "move"    = 12;
 
-marco.def spec.instr.wrr(_name_, _p1_, _p2_, _p3_) = _name_ {
-	instr.access = action.write, _p1_;
-	instr.access = action.read,  _p2_;
-	instr.access = action.read,  _p3_;
+marco.def spec.instr.wrr(_name_, _p1_, _p2_, _p3_) = {
+	_name_ {
+		instr.access = action.write, _p1_;
+		instr.access = action.read,  _p2_;
+		instr.access = action.read,  _p3_;
+	}
 };
-marco.def spec.instr.wr(_name_, _p1_, _p2_) = _name_ {
-	instr.access = action.write, _p1_;
-	instr.access = action.read,  _p2_;
+marco.def spec.instr.wr(_name_, _p1_, _p2_) = {
+	_name_ {
+		instr.access = action.write, _p1_;
+		instr.access = action.read,  _p2_;
+	}
 };
 marco.def spec.instr.move(_p1_, _p2_) = spec.instr.wr("std.instr.move", _p1_, _p2_);
-marco.def spec.instr.jdw(_p1_) = "std.instr.jdw" {
-	instr.access = action.immed, _p1_;
+marco.def spec.instr.jdw(_p1_) = {
+	"std.instr.jdw" {
+		instr.access = action.immed, _p1_;
+	}
 };
-marco.def spec.instr.ifnjdw(_p1_, _p2_) = "std.instr.ifnjdw" {
-	instr.access = action.read,  _p1_;
-	instr.access = action.immed, _p2_;
+marco.def spec.instr.ifnjdw(_p1_, _p2_) = {
+	"std.instr.ifnjdw" {
+		instr.access = action.read,  _p1_;
+		instr.access = action.immed, _p2_;
+	}
 };
 marco.def spec.instr.op.binary(_name_) = spec.instr.wrr(_name_, op.output, op.left, op.right);
 marco.def spec.instr.op.unit(_name_) = spec.instr.wr(_name_, op.output, op.input);
@@ -68,26 +74,31 @@ marco.def spec.instr.op.unit(_name_) = spec.instr.wr(_name_, op.output, op.input
 op.binary "." {
 	op.priority  = "access";
 	op.direction = >>;
-	op.assembly = class.fetch;
+	op.output.allow.left;
+	op.assembly = {
+	};
 };
 
 op.unit "[]" {
 	op.priority  = "access";
 	op.direction = >>;
-	op.assembly = array.fetch;
+	op.output.allow.left;
+	op.assembly = {
+	};
 };
 
 op.unit "()" {
 	op.priority  = "access";
 	op.direction = >>;
-	op.assembly = function.call;
+	op.assembly = {
+	};
 };
 
 op.binary "+" {
 	op.priority  = "add";
 	op.direction = >>;
 	op.assembly = {
-		op.instr = spec.op.binary.instr("std.instr.add");
+		op.instr = spec.instr.op.binary("std.instr.add");
 	};
 };
 
@@ -104,7 +115,7 @@ op.unit "~" {
 	op.priority  = "unit";
 	op.direction = <<;
 	op.assembly = {
-		op.instr = spec.op.unit.instr("std.instr.bitnot");
+		op.instr = spec.instr.op.unit("std.instr.bitnot");
 	};
 };
 
@@ -121,5 +132,14 @@ op.ternary "?" ":" {
 		op.process = op.tail;
 		op.instr = spec.instr.move(op.output, op.tail);
 		label.def = ".label.end";
+	};
+};
+
+op.optimization = {
+	optimization.instr = "std.instr.move";
+	optimization.check = var.is.temp(this.param[1]);
+	optimization.done = {
+		this.param[1] = this.param[0];
+		this.delete;
 	};
 };

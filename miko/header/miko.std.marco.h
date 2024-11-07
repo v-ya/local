@@ -10,10 +10,11 @@
 #define miko_std_segment__stack      "std.segment.stack"      // by: function local var, argv, temp
 #define miko_std_segment__static     "std.segment.static"     // by: static, const, outside {}, lamda ref stack
 #define miko_std_segment__this       "std.segment.this"       // by: object {}
-#define miko_std_action__immed       "std.action.immed"       // (allow) op: instr
-#define miko_std_action__read        "std.action.read"        // (allow) op: read
-#define miko_std_action__write       "std.action.write"       // (allow) op: read write
-#define miko_std_action__exec        "std.action.exec"        // (allow) op: call
+#define miko_std_action__immed       "std.action.immed"       // (allow) op: instr-number
+#define miko_std_action__read        "std.action.read"        // (allow) op: only-read
+#define miko_std_action__modify      "std.action.modify"      // (allow) op: read and write
+#define miko_std_action__write       "std.action.write"       // (allow) op: only-write
+#define miko_std_action__exec        "std.action.exec"        // (allow) op: allow call
 
 #define miko_std_major__void         "std.major.void"         // (fake) vtype, index
 #define miko_std_major__bool         "std.major.bool"         // (real) bool
@@ -85,5 +86,6 @@
 // error
 
 #define miko_std_error__syntaxor  "std.error.syntaxor"
+#define miko_std_error__marco     "std.error.marco"
 
 #endif

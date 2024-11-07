@@ -16,5 +16,6 @@ miko_std_syntaxor_s* miko_std_syntaxor_set_scope(miko_std_syntaxor_s *restrict r
 miko_std_syntaxor_s* miko_std_syntaxor_okay(miko_std_syntaxor_s *restrict r);
 
 miko_std_syntax_s* miko_std_syntaxor_create(miko_std_syntaxor_s *restrict r, const miko_source_s *restrict source);
+miko_std_syntax_s* miko_std_syntax_create_copy(const miko_std_syntax_s *restrict syntax);
 
 #endif
