@@ -15,6 +15,7 @@ typedef struct miko_std_syntax_data_t miko_std_syntax_data_t;
 typedef struct miko_std_syntax_id_t miko_std_syntax_id_t;
 typedef struct miko_std_syntaxor_s miko_std_syntaxor_s;
 typedef struct miko_std_syntax_s miko_std_syntax_s;
+typedef struct miko_std_syntax_reader_s miko_std_syntax_reader_s;
 
 struct miko_std_syntax_source_t {
 	const miko_source_s *source;  // source code (offset <= syntax < tail)

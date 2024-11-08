@@ -31,7 +31,7 @@ void test_std(mlog_s *restrict mlog)
 				if (miko_std_compiler_syntaxor_marco_spec(syntaxor, &index, syntax))
 				{
 					mlog_printf(mlog, "miko_std_compiler_syntaxor_marco_spec %p ... okay\n", syntax);
-					test_syntax_print(mlog, syntax, 0);
+					// test_syntax_print(mlog, syntax, 0);
 				}
 				refer_free(syntax);
 			}

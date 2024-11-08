@@ -4,14 +4,24 @@
 static miko_wink_view_s* miko_form_impl_view_func(miko_wink_view_s *restrict view, miko_form_impl_w *restrict form)
 {
 	const miko_form_t *restrict p;
-	uintptr_t i, n;
-	p = form->form.form;
-	n = form->form.count;
-	for (i = 0; view && i < n; ++i)
-	{
-		if (p[i].vtype == miko_major_vtype__wink)
-			view = miko_wink_view_add(view, p[i].var.wink);
-	}
+	uintptr_t i, n, batch;
+	batch = i = 0;
+	do {
+		batch += 4096;
+		p = *(miko_form_t *volatile *) &form->form.form;
+		n = *(miko_count_t volatile *) &form->form.count;
+		while (view && i < n && i < batch)
+		{
+			if (p[i].vtype == miko_major_vtype__wink)
+				view = miko_wink_view_add(view, p[i].var.wink);
+			i += 1;
+		}
+		if (i < n)
+		{
+			miko_wink_rlock_unlock(form);
+			miko_wink_rlock_lock(form);
+		}
+	} while (view && i < n);
 	return view;
 }
 
@@ -152,7 +162,9 @@ void miko_form_pop(miko_form_w *restrict r, miko_count_t count)
 		if (count > (tail = _impl_(r)->form.count))
 			count = tail;
 		count = tail - count;
+		miko_wink_wlock_lock(r);
 		_impl_(r)->form.count = count;
+		miko_wink_wlock_unlock(r);
 		p = _impl_(r)->form.form;
 		while (count < tail)
 		{
@@ -169,7 +181,9 @@ void miko_form_keep_count(miko_form_w *restrict r, miko_count_t count)
 	uintptr_t tail;
 	if (count < (tail = _impl_(r)->form.count))
 	{
+		miko_wink_wlock_lock(r);
 		_impl_(r)->form.count = count;
+		miko_wink_wlock_unlock(r);
 		p = _impl_(r)->form.form;
 		while (count < tail)
 		{

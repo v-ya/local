@@ -100,17 +100,17 @@ miko_std_syntax_s* miko_std_syntax_create_copy(const miko_std_syntax_s *restrict
 	return NULL;
 }
 
-miko_std_syntax_source_t* miko_std_syntax_fetch_source_by_vlist(miko_std_syntax_source_t *restrict source, vattr_vlist_t *restrict vlist_start, vattr_vlist_t *restrict vlist_stop)
+miko_std_syntax_source_t* miko_std_syntax_fetch_source_by_vlist(miko_std_syntax_source_t *restrict source, vattr_vlist_t *vlist_first, vattr_vlist_t *vlist_tail)
 {
-	const miko_std_syntax_s *restrict syntax_start;
-	const miko_std_syntax_s *restrict syntax_stop;
-	if (vlist_start && (syntax_start = (const miko_std_syntax_s *) vlist_start->value) &&
-		vlist_stop && (syntax_stop = (const miko_std_syntax_s *) vlist_stop->value) &&
-		syntax_start->source.source == syntax_stop->source.source)
+	const miko_std_syntax_s *syntax_first;
+	const miko_std_syntax_s *syntax_tail;
+	if (vlist_first && (syntax_first = (const miko_std_syntax_s *) vlist_first->value) &&
+		vlist_first && (syntax_tail = (const miko_std_syntax_s *) vlist_first->value) &&
+		syntax_first->source.source == syntax_tail->source.source)
 	{
-		source->source = syntax_start->source.source;
-		source->offset = syntax_start->source.offset;
-		source->tail = syntax_stop->source.tail;
+		source->source = syntax_first->source.source;
+		source->offset = syntax_first->source.offset;
+		source->tail = syntax_tail->source.tail;
 		return source;
 	}
 	return NULL;
@@ -244,5 +244,13 @@ vattr_vlist_t* miko_std_syntax_scope_find_syntax(vattr_vlist_t *restrict vlist_s
 		if (v->id.index == id_index && v->data.syntax && !strcmp(v->data.syntax->string, syntax))
 			return vlist;
 	}
+	return NULL;
+}
+
+const miko_std_syntax_s* miko_std_syntax_verify(const miko_std_syntax_s *restrict syntax, miko_index_t id_index, const char *restrict data_syntax)
+{
+	if (syntax && syntax->id.index == id_index && (!data_syntax || (syntax->data.syntax &&
+		!strcmp(syntax->data.syntax->string, data_syntax))))
+		return syntax;
 	return NULL;
 }

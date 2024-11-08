@@ -9,6 +9,7 @@ static void miko_std_syntaxor_free_func(miko_std_syntaxor_s *restrict r)
 	refer_ck_free(r->route);
 	refer_ck_free(r->scope_start);
 	refer_ck_free(r->scope_stop);
+	rbtree_clear(&r->index2item);
 }
 
 miko_std_syntaxor_s* miko_std_syntaxor_alloc(mlog_s *restrict mlog)
@@ -35,6 +36,22 @@ miko_index_t miko_std_syntaxor_name2index(const miko_std_syntaxor_s *restrict r,
 	if (id_name && (item = (const miko_std_syntaxor_item_s *) vattr_get_first(r->syntax, id_name)))
 		return item->id.index;
 	return 0;
+}
+
+const miko_std_syntax_id_t* miko_std_syntaxor_name2id(const miko_std_syntaxor_s *restrict r, const char *restrict id_name)
+{
+	const miko_std_syntaxor_item_s *restrict item;
+	if (id_name && (item = (const miko_std_syntaxor_item_s *) vattr_get_first(r->syntax, id_name)))
+		return &item->id;
+	return NULL;
+}
+
+const miko_std_syntax_id_t* miko_std_syntaxor_index2id(const miko_std_syntaxor_s *restrict r, miko_index_t id_index)
+{
+	rbtree_t *restrict rbv;
+	if ((rbv = rbtree_find(&r->index2item, NULL, (uint64_t) id_index)))
+		return &((const miko_std_syntaxor_item_s *) rbv->value)->id;
+	return NULL;
 }
 
 static miko_index_t miko_std_syntaxor_add_item(miko_std_syntaxor_s *restrict r, const char *restrict id_name, miko_std_syntaxor_chars_t head, miko_std_syntaxor_item_s *restrict item)
@@ -68,7 +85,8 @@ static miko_index_t miko_std_syntaxor_add_item(miko_std_syntaxor_s *restrict r, 
 				goto label_fail;
 			}
 		}
-		return item->id.index;
+		if (rbtree_insert(&r->index2item, NULL, (uint64_t) item->id.index, item, NULL))
+			return item->id.index;
 	}
 	label_fail:
 	return 0;
