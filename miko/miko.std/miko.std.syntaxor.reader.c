@@ -205,7 +205,7 @@ miko_index_t miko_std_syntax_reader_enable_inode_replace_scope(miko_std_syntax_r
 	if (!r->stack_array && (index = (r->reader_count - 1)))
 	{
 		p = r->reader_array + index;
-		p->data.flags |= miko_std_syntax_reader_flag__allow_ignore;
+		p->data.flags |= miko_std_syntax_reader_flag__replace_scope;
 		return index;
 	}
 	return 0;
@@ -398,6 +398,7 @@ miko_std_syntax_reader_s* miko_std_syntax_reader_fetch(miko_std_syntax_reader_s 
 				if ((slot = p[i].data.slot) < slot_count)
 					syntax_slot[slot] = syntax;
 				i = p[i].inode.okaynext;
+				vlist = vlist->vattr_next;
 			}
 			else if (p[i].data.flags & miko_std_syntax_reader_flag__allow_ignore)
 				i = p[i].inode.okaynext;

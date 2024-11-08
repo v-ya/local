@@ -29,19 +29,19 @@ type.def "float"   = "std.major.float",  "std.minor.bit32";
 type.def "double"  = "std.major.float",  "std.minor.bit64";
 type.def "string"  = "std.major.string", "std.minor.string";
 
-op.level "access"  =  0;
-op.level "unit"    =  1;
-op.level "mul"     =  2;
-op.level "add"     =  3;
-op.level "shift"   =  4;
-op.level "compare" =  5;
-op.level "bitand"  =  6;
-op.level "bitxor"  =  7;
-op.level "bitor"   =  8;
-op.level "and"     =  9;
-op.level "or"      = 10;
-op.level "ternary" = 11;
-op.level "move"    = 12;
+op.priority "access"  =  0;
+op.priority "unit"    =  1;
+op.priority "mul"     =  2;
+op.priority "add"     =  3;
+op.priority "shift"   =  4;
+op.priority "compare" =  5;
+op.priority "bitand"  =  6;
+op.priority "bitxor"  =  7;
+op.priority "bitor"   =  8;
+op.priority "and"     =  9;
+op.priority "or"      = 10;
+op.priority "ternary" = 11;
+op.priority "move"    = 12;
 
 marco.def spec.instr.wrr(_name_, _p1_, _p2_, _p3_) = {
 	_name_ {
