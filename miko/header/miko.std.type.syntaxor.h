@@ -16,6 +16,7 @@ typedef struct miko_std_syntax_id_t miko_std_syntax_id_t;
 typedef struct miko_std_syntaxor_s miko_std_syntaxor_s;
 typedef struct miko_std_syntax_s miko_std_syntax_s;
 typedef struct miko_std_syntax_reader_s miko_std_syntax_reader_s;
+typedef struct miko_std_syntaxor_spec_t miko_std_syntaxor_spec_t;
 
 struct miko_std_syntax_source_t {
 	const miko_source_s *source;  // source code (offset <= syntax < tail)
@@ -38,6 +39,20 @@ struct miko_std_syntax_s {
 	miko_std_syntax_id_t id;
 	miko_std_syntax_data_t data;
 	miko_std_syntax_source_t source;
+};
+
+struct miko_std_syntaxor_spec_t {
+	miko_index_t name;
+	miko_index_t keyword;
+	miko_index_t string;
+	miko_index_t multichar;
+	miko_index_t number;
+	miko_index_t operator;
+	miko_index_t comma;
+	miko_index_t semicolon;
+	miko_index_t scope;
+	miko_index_t param;
+	miko_index_t index;
 };
 
 #endif

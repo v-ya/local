@@ -116,7 +116,12 @@ miko_std_syntax_reader_s* miko_std_syntax_reader_alloc(const miko_std_syntaxor_s
 	return NULL;
 }
 
-miko_index_t miko_std_syntax_reader_now_group(miko_std_syntax_reader_s *restrict r)
+miko_count_t miko_std_syntax_reader_slot_count(const miko_std_syntax_reader_s *restrict r)
+{
+	return r->syntax_slot;
+}
+
+miko_index_t miko_std_syntax_reader_now_group(const miko_std_syntax_reader_s *restrict r)
 {
 	return r->group_curr_id;
 }

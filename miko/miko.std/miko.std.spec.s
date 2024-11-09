@@ -3,7 +3,8 @@
 .type _miko_std_spec_data_, @object
 .align 16
 	_miko_std_spec_data_:
-	.incbin "miko.std/miko.std.spec"
+	.incbin "miko.std/miko.std.spec.type.spec"
+	.incbin "miko.std/miko.std.spec.op.spec"
 	_miko_std_spec_tail_:
 .size _miko_std_spec_data_, .-_miko_std_spec_data_
 
