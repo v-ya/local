@@ -2,6 +2,8 @@
 #include "../loader/loader.model.view.h"
 #include <memory.h>
 
+/// TODO: move to /model/
+
 static void iphyee_render_model_inst_part_free_func(iphyee_render_model_inst_part_s *restrict r)
 {
 	if (r->texture_name) refer_free(r->texture_name);

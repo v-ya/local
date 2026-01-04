@@ -88,6 +88,8 @@ struct iphyee_render_viewport_s {
 	float screen_side;
 };
 
+/// TODO: render.model.inst move to model.static
+
 struct iphyee_render_model_inst_part_s {
 	refer_nstring_t texture_name;
 	uint32_t fusion_offset;
@@ -114,6 +116,8 @@ struct iphyee_render_model_part_t {
 	iphyee_glslc_model_t *model_part_data;
 	iphyee_glslc_pointer_model_t model_part_address;
 };
+
+/// TODO: render.model create by model.dynamic
 
 struct iphyee_render_model_s {
 	const iphyee_render_model_inst_s *inst;

@@ -5,6 +5,45 @@
 #include "iphyee.mat4x4.h"
 
 typedef uint64_t iphyee_glslc_pointer_t;
+// model
+typedef struct iphyee_glslc_model_vec3xyz_t iphyee_glslc_model_vec3xyz_t;
+// bvh
+typedef struct iphyee_glslc_bvh_pos_t iphyee_glslc_bvh_pos_t;
+typedef struct iphyee_glslc_bvh_box_t iphyee_glslc_bvh_box_t;
+typedef struct iphyee_glslc_bvh_refer_t iphyee_glslc_bvh_refer_t;
+
+// bvh
+typedef iphyee_glslc_pointer_t iphyee_glslc_pointer_bvh_refer_t;
+
+// model
+struct iphyee_glslc_model_vec3xyz_t {
+	float x;
+	float y;
+	float z;
+};
+
+// bvh
+struct iphyee_glslc_bvh_pos_t {
+	float x;
+	float y;
+	float z;
+};
+struct iphyee_glslc_bvh_box_t {
+	iphyee_glslc_bvh_pos_t p1;
+	iphyee_glslc_bvh_pos_t p2;
+};
+struct iphyee_glslc_bvh_refer_t {
+	iphyee_glslc_pointer_bvh_refer_t parent;
+	iphyee_glslc_pointer_bvh_refer_t next;
+	iphyee_glslc_pointer_bvh_refer_t child;
+	iphyee_glslc_bvh_box_t box;
+	iphyee_glslc_pointer_t target;
+	uint32_t tri3index;
+	int32_t layer;
+};
+
+/// TODO: need remove old version
+
 typedef struct iphyee_glslc_vec3_xyz_t iphyee_glslc_vec3_xyz_t;
 typedef struct iphyee_glslc_vec2_uv_t iphyee_glslc_vec2_uv_t;
 typedef struct iphyee_glslc_vec3_bgr_t iphyee_glslc_vec3_bgr_t;
