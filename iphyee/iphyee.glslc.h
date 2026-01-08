@@ -10,6 +10,8 @@ typedef struct iphyee_glslc_model_vec3xyz_t iphyee_glslc_model_vec3xyz_t;
 // bvh
 typedef struct iphyee_glslc_bvh_pos_t iphyee_glslc_bvh_pos_t;
 typedef struct iphyee_glslc_bvh_box_t iphyee_glslc_bvh_box_t;
+typedef struct iphyee_glslc_bvh_info_t iphyee_glslc_bvh_info_t;
+typedef struct iphyee_glslc_bvh_data_t iphyee_glslc_bvh_data_t;
 typedef struct iphyee_glslc_bvh_refer_t iphyee_glslc_bvh_refer_t;
 
 // bvh
@@ -32,14 +34,24 @@ struct iphyee_glslc_bvh_box_t {
 	iphyee_glslc_bvh_pos_t p1;
 	iphyee_glslc_bvh_pos_t p2;
 };
+struct iphyee_glslc_bvh_info_t {
+	uint32_t leaf_exist;
+	int32_t layer_level;
+	uint32_t leaf_count;
+	uint32_t leaf_alive;
+};
+struct iphyee_glslc_bvh_data_t {
+	uint64_t target;
+	uint32_t tri3index;
+	uint32_t pri_param;
+};
 struct iphyee_glslc_bvh_refer_t {
 	iphyee_glslc_pointer_bvh_refer_t parent;
 	iphyee_glslc_pointer_bvh_refer_t next;
 	iphyee_glslc_pointer_bvh_refer_t child;
+	iphyee_glslc_bvh_info_t info;
 	iphyee_glslc_bvh_box_t box;
-	iphyee_glslc_pointer_t target;
-	uint32_t tri3index;
-	int32_t layer;
+	iphyee_glslc_bvh_data_t data;
 };
 
 /// TODO: need remove old version
