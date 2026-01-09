@@ -37,6 +37,7 @@ struct iphyee_bvh_sah_inode_s {
 	exbuffer_t inode;
 	iphyee_bvh_sah_inode_t *inode_array;
 	uintptr_t inode_count;
+	int32_t layer_max;
 };
 
 struct iphyee_bvh_sah_blayer_s {
@@ -67,6 +68,8 @@ iphyee_bvh_sah_input_s** iphyee_bvh_sah_bucket_list(iphyee_bvh_sah_bucket_s *res
 // bvh.sah.inode.c
 iphyee_bvh_sah_inode_s* iphyee_bvh_sah_inode_alloc(void);
 iphyee_bvh_sah_inode_t* iphyee_bvh_sah_inode_append(iphyee_bvh_sah_inode_s *restrict r, const iphyee_bvh_sah_inode_t *restrict inode);
+iphyee_bvh_sah_inode_s* iphyee_bvh_sah_inode_append_split(iphyee_bvh_sah_inode_s *restrict r, uintptr_t inode_index, const iphyee_glslc_bvh_box_t *restrict box, iphyee_bvh_sah_input_s *restrict list, uintptr_t list_count);
+iphyee_bvh_sah_inode_s* iphyee_bvh_sah_inode_touch_tri3(iphyee_bvh_sah_inode_s *restrict r, uintptr_t inode_index, iphyee_bvh_sah_input_s *restrict list);
 
 // bvh.sah.blayer.c
 iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_alloc(uintptr_t bucket_number);

@@ -114,6 +114,113 @@ static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_bucket3fill(iphyee_bvh_sah
 	return NULL;
 }
 
+typedef struct iphyee_bvh_sah_blayer_split_t iphyee_bvh_sah_blayer_split_t;
+struct iphyee_bvh_sah_blayer_split_t {
+	iphyee_bvh_sah_bucket_s **bucket_array;
+	uintptr_t bucket_number;
+	uintptr_t split_middle; // 0 < split_middle < bucket_number
+	double cost_min;        // (Sa * Na + Sb * Nb) / (Sn * Nn)
+};
+
+static double iphyee_bvh_sah_blayer_bucket3split_cost(iphyee_bvh_sah_bucket_s **restrict p, uintptr_t m, uintptr_t n, double sn)
+{
+	iphyee_glslc_bvh_box_t boxa, boxb;
+	uintptr_t i, na, nb;
+	iphyee_bvh_box_initial(&boxa);
+	iphyee_bvh_box_initial(&boxb);
+	na = nb = 0;
+	#define _scan_(u, ia, ib)  \
+		for (i = ia; i < ib; ++i)\
+		{\
+			iphyee_bvh_box_append(&box##u, &p[i]->box);\
+			n##u += p[i]->bucket_count;\
+		}
+	_scan_(a, 0, m)
+	_scan_(b, m, n)
+	#undef _scan_
+	if (na && nb)
+		return (iphyee_bvh_box_area(&boxa) * na +
+			iphyee_bvh_box_area(&boxb) * nb) /
+			(sn * (na + nb));
+	return 2;
+}
+
+static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_bucket3split(iphyee_bvh_sah_blayer_s *restrict r, iphyee_bvh_sah_blayer_split_t *restrict split, const iphyee_glslc_bvh_box_t *restrict box)
+{
+	iphyee_bvh_sah_bucket_s **restrict p;
+	uintptr_t n, m;
+	double cost, sn;
+	n = r->bucket_number;
+	split->bucket_array = NULL;
+	split->bucket_number = n;
+	split->split_middle = 0;
+	split->cost_min = 1;
+	sn = iphyee_bvh_box_area(box);
+	for (m = 1; m < n; ++m)
+	{
+		#define _cost_min_set_(u)  \
+			if ((cost = iphyee_bvh_sah_blayer_bucket3split_cost(p = r->bucket_##u, m, n, sn)) < split->cost_min)\
+			{\
+				split->bucket_array = p;\
+				split->split_middle = m;\
+				split->cost_min = cost;\
+			}
+		_cost_min_set_(x)
+		_cost_min_set_(y)
+		_cost_min_set_(z)
+		#undef _cost_min_set_
+	}
+	return split->bucket_array?r:NULL;
+}
+
+static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_split(iphyee_bvh_sah_blayer_s *restrict r, iphyee_bvh_sah_blayer_split_t *restrict split, uintptr_t inode_index)
+{
+	iphyee_glslc_bvh_box_t boxa, boxb;
+	iphyee_bvh_sah_bucket_s **restrict p;
+	iphyee_bvh_sah_input_s **plist;
+	iphyee_bvh_sah_input_s *alist;
+	iphyee_bvh_sah_input_s *blist;
+	uintptr_t i, n, m, na, nb;
+	p = split->bucket_array;
+	n = split->bucket_number;
+	m = split->split_middle;
+	iphyee_bvh_box_initial(&boxa);
+	iphyee_bvh_box_initial(&boxb);
+	alist = blist = NULL;
+	na = nb = 0;
+	#define _scan_(u, ia, ib)  \
+		plist = &u##list;\
+		for (i = ia; i < ib; ++i)\
+		{\
+			iphyee_bvh_box_append(&box##u, &p[i]->box);\
+			n##u += p[i]->bucket_count;\
+			plist = iphyee_bvh_sah_bucket_list(p[i], plist);\
+		}
+	#define _split_(u)  \
+		if (u##list)\
+		{\
+			if (n##u > 1)\
+			{\
+				if (!iphyee_bvh_sah_inode_append_split(r->inode, inode_index, &box##u, u##list, n##u))\
+					goto label_fail;\
+			}\
+			else\
+			{\
+				if (!iphyee_bvh_sah_inode_touch_tri3(r->inode, inode_index, u##list))\
+					goto label_fail;\
+			}\
+		}
+	_scan_(a, 0, m)
+	_scan_(b, m, n)
+	_split_(a)
+	_split_(b)
+	#undef _scan_
+	#undef _split_
+	return r;
+	label_fail:
+	return NULL;
+}
+
 static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_build_initial(iphyee_bvh_sah_blayer_s *restrict r)
 {
 	iphyee_bvh_sah_inode_t inode;
@@ -136,6 +243,7 @@ static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_build_initial(iphyee_bvh_s
 	n = input->bucket_count;
 	for (i = 0; i < n; ++i)
 	{
+		inode.inode.tri3index = p[i]->tri3index;
 		inode.box = p[i]->box;
 		if (p[i]->inode_index != r->inode->inode_count)
 			goto label_fail;
@@ -151,11 +259,12 @@ static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_build_inner(iphyee_bvh_sah
 {
 	iphyee_bvh_sah_inode_s *restrict inode;
 	iphyee_bvh_sah_inode_t *restrict p;
+	iphyee_bvh_sah_blayer_split_t split;
 	uintptr_t i, n;
 	inode = r->inode;
 	i = 0;
 	do {
-		n = inode->inode_count;
+		n = (volatile uintptr_t) inode->inode_count;
 		while (i < n)
 		{
 			p = inode->inode_array + i;
@@ -163,21 +272,26 @@ static iphyee_bvh_sah_blayer_s* iphyee_bvh_sah_blayer_build_inner(iphyee_bvh_sah
 			{
 				if (p->inode.nleaf > 2)
 				{
-					// need split
 					if (!iphyee_bvh_sah_blayer_bucket3fill(r, p->list, &p->box))
 						goto label_fail;
-					/// TODO: get best split
+					if (iphyee_bvh_sah_blayer_bucket3split(r, &split, &p->box))
+					{
+						if (!iphyee_bvh_sah_blayer_split(r, &split, i))
+							goto label_fail;
+					}
+					else if (!iphyee_bvh_sah_inode_touch_tri3(inode, i, p->list))
+						goto label_fail;
 					iphyee_bvh_sah_blayer_bucket3clear(r);
 				}
 				else
 				{
-					// touch tri3
-					;
+					if (!iphyee_bvh_sah_inode_touch_tri3(inode, i, p->list))
+						goto label_fail;
 				}
 			}
 			i += 1;
 		}
-	} while (n < inode->inode_count);
+	} while (n < (volatile uintptr_t) inode->inode_count);
 	return r;
 	label_fail:
 	return NULL;
