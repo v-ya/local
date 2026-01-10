@@ -31,11 +31,15 @@ struct iphyee_model_ejoint { // 关节影响
 	uint wjoint_number;  // wjoint[] 中 wjoint 数量
 };
 
-struct iphyee_model_material { // 材质
+struct iphyee_model_material { // 材质 (纹理颜色即光吸收剩余率，纹理透明度即不透光度)
+	float fix4back;        // 反射颜色修正 (diffuse, specular) kcolor = pow(color, (1+fix)/(1-fix))
+	float fix4into;        // 透射颜色修正 (alpha, refraction) kcolor = pow(color, (1+fix)/(1-fix))
 	float diffuse;         // 漫反射强度
 	float specular;        // 镜面反射强度
 	float refraction;      // 折射强度 (全反射下将累加于<镜面反射强度>)
 	float refridx;         // 折射率 (入射折射率，出射为此倒数)
+	float roughness;       // 粗糙强度 (配合反射或折射形成光锥探测)
+	float illumine;        // 发光强度 (终止光线反射和透射)
 };
 
 struct iphyee_model_fusion { // 面元融合节点
@@ -153,10 +157,12 @@ _def_array_(8) iphyee_model_dynamic_refer {
 
 struct iphyee_model_render {
 	iphyee_model_dynamic_refer model;
-	uint render_enable;
-	uint fusion_offset;
-	uint fusion_number;
-	uint texture_index;
+	uint render_enable;  // 该渲染模型是否需要渲染
+	uint shader_index;   // 光线最近命中后续提交的着色器索引
+	uint fusion_offset;  // 面元融合节点偏移 (3 * tri3count)
+	uint fusion_number;  // 面元融合节点数目 (3 * tri3count)
+	uint texture_index;  // 该渲染模型纹理坐标对应的纹理索引
+	uint texture_lod;    // 需要使用的纹理细节层次
 };
 
 _def_pointer_ iphyee_model_render_refer;
